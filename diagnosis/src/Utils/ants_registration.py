@@ -65,6 +65,8 @@ class ANTsRegistration:
             if registration_method == 's':
                 self.transform_names = ['1Warp.nii.gz', '0GenericAffine.mat']
                 self.inverse_transform_names = ['1InverseWarp.nii.gz', '0GenericAffine.mat']
+
+            os.rename(src='Warped.nii.gz', dst=os.path.join(self.registration_folder, 'input_volume_to_MNI.nii.gz'))
         except Exception as e:
             print('Exception caught during registration. Error message: {}'.format(e))
 
@@ -104,20 +106,6 @@ class ANTsRegistration:
             ants.image_write(warped_input, warped_input_filename)
         except Exception as e:
             print('Exception caught during applying registration transform. Error message: {}'.format(e))
-
-    def apply_registration_inverse_transform_python(self, moving, fixed, interpolation='nearestNeighbor'):
-        moving_ants = ants.image_read(moving, dimension=3)
-        fixed_ants = ants.image_read(fixed, dimension=3)
-        try:
-            warped_input = ants.apply_transforms(fixed=fixed_ants,
-                                                 moving=moving_ants,
-                                                 transformlist=self.reg_transform['invtransforms'],
-                                                 interpolator=interpolation,
-                                                 whichtoinvert=[True, False])
-            warped_input_filename = os.path.join(self.registration_folder, 'input_anatomical_regions.nii.gz')
-            ants.image_write(warped_input, warped_input_filename)
-        except Exception as e:
-            print('Exception caught during applying registration inverse transform. Error message: {}'.format(e))
 
     def apply_registration_transform_cpp(self, moving, fixed, interpolation='NearestNeighbor'):
         """
@@ -170,6 +158,20 @@ class ANTsRegistration:
             output = popen.stdout.read()
         except Exception as e:
             print('Failed to apply transforms on input image with {}'.format(e))
+
+    def apply_registration_inverse_transform_python(self, moving, fixed, interpolation='nearestNeighbor'):
+        moving_ants = ants.image_read(moving, dimension=3)
+        fixed_ants = ants.image_read(fixed, dimension=3)
+        try:
+            warped_input = ants.apply_transforms(fixed=fixed_ants,
+                                                 moving=moving_ants,
+                                                 transformlist=self.reg_transform['invtransforms'],
+                                                 interpolator=interpolation,
+                                                 whichtoinvert=[True, False])
+            warped_input_filename = os.path.join(self.registration_folder, 'input_anatomical_regions.nii.gz')
+            ants.image_write(warped_input, warped_input_filename)
+        except Exception as e:
+            print('Exception caught during applying registration inverse transform. Error message: {}'.format(e))
 
     def apply_registration_transform_labels(self, moving, fixed):
         """

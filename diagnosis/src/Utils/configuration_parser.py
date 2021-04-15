@@ -35,8 +35,10 @@ class ResourcesConfiguration:
         self.__set_white_matter_tract_parameters()
         self.__set_default_parameters()
 
-        date = datetime.date.today().strftime('%d-%m-%Y')
-        hour = time.strftime("%H:%M:%S")
+        # date = datetime.date.today().strftime('%d-%m-%Y')
+        # hour = time.strftime("%H:%M:%S")
+        date = datetime.date.today().strftime('%d%m%Y')
+        hour = time.strftime("%H%M%S")
         timestamp = date + '_' + hour
         self.output_folder = os.path.join(output_dir, timestamp)
         os.makedirs(self.output_folder, exist_ok=True)
