@@ -10,7 +10,7 @@ from diagnosis.src.Utils.configuration_parser import ResourcesConfiguration
 from segmentation.main import main_segmentation
 
 
-def perform_brain_extraction(image_filepath, method='deep_learning'):
+def perform_brain_extraction(image_filepath):
     brain_predictions_file = perform_custom_brain_extraction(image_filepath,
                                                              ResourcesConfiguration.getInstance().output_folder)
 

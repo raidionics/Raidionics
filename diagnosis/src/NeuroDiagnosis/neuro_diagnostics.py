@@ -23,7 +23,7 @@ class NeuroDiagnostics:
         self.output_path = ResourcesConfiguration.getInstance().output_folder
 
         # @TODO. Assuming T1 input for now.
-        self.atlas_brain_filepath = ResourcesConfiguration.getInstance().neuro_mni_atlas_T1_filepath
+        self.atlas_brain_filepath = ResourcesConfiguration.getInstance().mni_atlas_filepath_T1
         self.from_slicer = ResourcesConfiguration.getInstance().from_slicer
         self.registration_runner = ANTsRegistration()
         self.diagnosis_parameters = NeuroDiagnosisParameters()
@@ -36,26 +36,22 @@ class NeuroDiagnostics:
 
     def run(self):
         # Generating the brain mask for the input file
-        if not ResourcesConfiguration.getInstance().neuro_diagnosis_preexisting_brain_filename is None \
-                and os.path.exists(ResourcesConfiguration.getInstance().neuro_diagnosis_preexisting_brain_filename):
-            brain_mask_filepath = ResourcesConfiguration.getInstance().neuro_diagnosis_preexisting_brain_filename
-        else:
-            print('LOG: Brain extraction - Begin (Step 1/?)')
-            brain_mask_filepath = perform_brain_extraction(image_filepath=self.input_filename, method='deep_learning')
-            print('LOG: Brain extraction - End (Step 1/?)')
+        print('LOG: Brain extraction - Begin (Step 1/?)')
+        brain_mask_filepath = perform_brain_extraction(image_filepath=self.input_filename)
+        print('LOG: Brain extraction - End (Step 1/?)')
 
         # Generating brain-masked fixed and moving images
         print('LOG: Registration preprocessing - Begin (Step 2/?)')
         input_masked_filepath = perform_brain_masking(image_filepath=self.input_filename,
                                                       mask_filepath=brain_mask_filepath)
         atlas_masked_filepath = perform_brain_masking(image_filepath=self.atlas_brain_filepath,
-                                                      mask_filepath=ResourcesConfiguration.getInstance().neuro_mni_atlas_brain_mask_filepath)
+                                                      mask_filepath=ResourcesConfiguration.getInstance().mni_atlas_brain_mask_filepath)
         print('LOG: Registration preprocessing - End (Step 2/?)')
 
         # Performing registration
         print('LOG: Registration - Begin (Step 3/?)')
-        self.registration_runner.compute_registration_python(fixed=atlas_masked_filepath, moving=input_masked_filepath,
-                                                             registration_method='sq')
+        self.registration_runner.compute_registration(fixed=atlas_masked_filepath, moving=input_masked_filepath,
+                                                      registration_method='sq')
         print('LOG: Registration - End (Step 3/?)')
 
         # Performing tumor segmentation
@@ -67,14 +63,14 @@ class NeuroDiagnostics:
 
         # Registering the tumor to the atlas
         print('LOG: Apply registration - Begin (Step 4/?)')
-        self.registration_runner.apply_registration_transform_python(moving=self.input_segmentation,
-                                                                     fixed=self.atlas_brain_filepath,
-                                                                     interpolation='nearestNeighbor')
+        self.registration_runner.apply_registration_transform(moving=self.input_segmentation,
+                                                              fixed=self.atlas_brain_filepath,
+                                                              interpolation='nearestNeighbor')
 
         # Registering the brain lobes to the patient's space
-        self.registration_runner.apply_registration_inverse_transform_python(moving=ResourcesConfiguration.getInstance().neuro_mni_atlas_lobes_mask_filepath,
-                                                                             fixed=self.input_filename,
-                                                                             interpolation='nearestNeighbor')
+        self.registration_runner.apply_registration_inverse_transform(moving=ResourcesConfiguration.getInstance().mni_atlas_lobes_mask_filepath,
+                                                                      fixed=self.input_filename,
+                                                                      interpolation='nearestNeighbor')
         print('LOG: Apply registration - End (Step 4/?)')
 
         if self.from_slicer:
@@ -159,7 +155,7 @@ class NeuroDiagnostics:
             self.diagnosis_parameters.setup(type=None, tumor_elements=0)
             return
 
-        # Assessing if the tumor is multifocal or monofocal
+        # Assessing if the tumor is multifocal
         tumor_clusters = measurements.label(refined_image)[0]
         tumor_clusters_labels = regionprops(tumor_clusters)
         self.diagnosis_parameters.setup(type=None, tumor_elements=len(tumor_clusters_labels))
@@ -257,115 +253,33 @@ class NeuroDiagnostics:
     def __compute_lateralisation(self, volume, category=None):
         brain_lateralisation_mask_ni = load_nifti_volume(ResourcesConfiguration.getInstance().neuro_mni_atlas_lateralisation_mask_filepath)
         brain_lateralisation_mask = brain_lateralisation_mask_ni.get_data()[:]
-        # pfile = open(self.output_report_filepath, 'a')
 
-        # Computing the lateralisation for the center of mass
-        com_lateralisation = None
-        com = center_of_mass(volume == 1)
-        com_lateralization = brain_lateralisation_mask[int(np.round(com[0])) - 3:int(np.round(com[0])) + 3,
-                             int(np.round(com[1]))-3:int(np.round(com[1]))+3,
-                             int(np.round(com[2]))-3:int(np.round(com[2]))+3]
-        com_sides_touched = list(np.unique(com_lateralization))
-        if 0 in com_sides_touched:
-            com_sides_touched.remove(0)
-        percentage_each_com_side = [np.count_nonzero(com_lateralization == x) / np.count_nonzero(com_lateralization) for x in com_sides_touched]
-        max_per = np.max(percentage_each_com_side)
-        if com_sides_touched[percentage_each_com_side.index(max_per)] == 1:
-            com_lateralisation = 'Right'
-        else:
-            com_lateralisation = 'Left'
-
-        self.diagnosis_parameters.statistics[category]['CoM'].laterality = com_lateralisation
-        self.diagnosis_parameters.statistics[category]['CoM'].laterality_percentage = np.round(max_per * 100., 2)
-
-        # pfile.write("Center of mass lateralization: {}\n".format(com_lateralisation))
-
-        # Computing the lateralisation for the overall tumor extent
-        extent_lateralisation = None
         right_side_percentage = np.count_nonzero((brain_lateralisation_mask == 1) & (volume != 0)) / np.count_nonzero(
             (volume != 0))
         left_side_percentage = np.count_nonzero((brain_lateralisation_mask == 2) & (volume != 0)) / np.count_nonzero(
             (volume != 0))
 
-        if right_side_percentage >= 0.95:
-            extent_lateralisation = 'Right (>95%)'
-        elif left_side_percentage >= 0.95:
-            extent_lateralisation = 'Left (>95%)'
-        elif right_side_percentage >= 0.6:
-            extent_lateralisation = 'Mostly Right ([60%-95%[)'
-        elif left_side_percentage >= 0.6:
-            extent_lateralisation = 'MostlyLeft ([60%-95%[)'
-        else:
-            extent_lateralisation = 'Midline (<60%)'
+        left_laterality_percentage = np.round(left_side_percentage * 100., 2)
+        right_laterality_percentage = np.round(right_side_percentage * 100., 2)
+        midline_crossing = True if max(left_laterality_percentage, right_laterality_percentage) < 100. else False
 
-        # pfile.write("Total extent lateralization: {}\n".format(extent_lateralisation))
-        # pfile.close()
-        self.diagnosis_parameters.statistics[category]['Overall'].laterality = extent_lateralisation
-        self.diagnosis_parameters.statistics[category]['Overall'].laterality_percentage = max(right_side_percentage, left_side_percentage)
         self.diagnosis_parameters.statistics[category]['Overall'].left_laterality_percentage = left_side_percentage
         self.diagnosis_parameters.statistics[category]['Overall'].right_laterality_percentage = right_side_percentage
+        self.diagnosis_parameters.statistics[category]['Overall'].laterality_midline_crossing = midline_crossing
 
     def __compute_lobe_location(self, volume, category=None):
-        #@TODO. To adjust for the collaboration with Amsterdam
-        lobe_inclusion_min_lim = 0.05
-        # pfile = open(self.output_report_filepath, 'a')
-
-        lobes_maks_ni = nib.load(ResourcesConfiguration.getInstance().neuro_mni_atlas_lobes_mask_filepath)
+        lobes_maks_ni = nib.load(ResourcesConfiguration.getInstance().mni_atlas_lobes_mask_filepath)
         lobes_mask = lobes_maks_ni.get_data()
-        lobes_description = pd.read_csv(ResourcesConfiguration.getInstance().neuro_mni_atlas_lobes_description_filepath)
+        lobes_description = pd.read_csv(ResourcesConfiguration.getInstance().mni_atlas_lobes_description_filepath)
 
-        # Computing the lobe location for the center of mass
-        com = center_of_mass(volume == 1)
-        com_label = lobes_mask[int(np.round(com[0])) - 3:int(np.round(com[0])) + 3,
-                    int(np.round(com[1]))-3:int(np.round(com[1]))+3,
-                    int(np.round(com[2]))-3:int(np.round(com[2]))+3]
-        com_lobes_touched = list(np.unique(com_label))
-        if 0 in com_lobes_touched:
-            com_lobes_touched.remove(0)
-        percentage_each_com_lobe = [np.count_nonzero(com_label == x) / np.count_nonzero(com_label) for x in com_lobes_touched]
-        max_per = np.max(percentage_each_com_lobe)
-        com_lobe = lobes_description.loc[lobes_description['Label'] == com_lobes_touched[percentage_each_com_lobe.index(max_per)]]
-        center_of_mass_lobe = com_lobe['Region'].values[0]
-        # pfile.write("Center of mass main lobe: {}, with {}%\n".format(center_of_mass_lobe, np.round(max_per*100, 2)))
-        self.diagnosis_parameters.statistics[category]['CoM'].mni_space_lobes_overlap[center_of_mass_lobe] = np.round(max_per*100, 2)
+        total_lobes_labels = np.unique(lobes_mask)[1:]  # Removing the background label with value 0.
+        overlap_per_lobe = {}
+        for li in total_lobes_labels:
+            overlap = volume[lobes_mask == li]
+            ratio_in_lobe = np.count_nonzero(overlap) / np.count_nonzero(volume)
+            overlap_per_lobe[lobes_description.loc[lobes_description['Label'] == li]['Region'].values[0] + '_' + lobes_description.loc[lobes_description['Label'] == li]['Laterality'].values[0]] = np.round(ratio_in_lobe * 100., 2)
 
-        # Computing the lobe location for the total volume extent
-        res = lobes_mask[volume == 1]
-        lobes_touched = list(np.unique(res))
-        if 0 in lobes_touched:
-            lobes_touched.remove(0)
-        percentage_each_lobe = [np.count_nonzero(res == x) / np.count_nonzero(res) for x in lobes_touched]
-
-        # pfile.write("Detailed distribution per lobe:\n")
-        count = 1
-        lobes_distribution = {}
-        for l, lobe_label in enumerate(lobes_touched):
-            per = percentage_each_lobe[l]
-            if per >= lobe_inclusion_min_lim:
-                lobe = lobes_description.loc[lobes_description['Label'] == lobe_label]
-                # pfile.write("\t{} - {} {} ({}) => {}%\n".format(count, lobe['Laterality'].values[0],
-                #                                                 lobe['Region'].values[0],
-                #                                                 lobe['Matter type'].values[0],
-                #                                                 np.round(per * 100, 2)))
-                if lobe['Region'].values[0] in lobes_distribution.keys():
-                    lobes_distribution[lobe['Region'].values[0]] = lobes_distribution[lobe['Region'].values[0]] + per
-                else:
-                    lobes_distribution[lobe['Region'].values[0]] = per
-                count = count + 1
-                if lobe['Region'].values[0] in self.diagnosis_parameters.statistics[category]['Overall'].mni_space_lobes_overlap.keys():
-                    self.diagnosis_parameters.statistics[category]['Overall'].mni_space_lobes_overlap[
-                        lobe['Region'].values[0]] += np.round(per * 100, 2)
-                else:
-                    self.diagnosis_parameters.statistics[category]['Overall'].mni_space_lobes_overlap[
-                        lobe['Region'].values[0]] = np.round(per * 100, 2)
-
-        if self.from_slicer:
-            ordered_l = collections.OrderedDict(sorted(self.diagnosis_parameters.statistics[category]['Overall'].mni_space_lobes_overlap.items(), key=operator.itemgetter(1), reverse=True))
-            self.diagnosis_parameters.statistics[category]['Overall'].mni_space_lobes_overlap = ordered_l
-        max_overlap = np.max(list(lobes_distribution.values()))
-        max_extent_lobe = list(lobes_distribution.keys())[list(lobes_distribution.values()).index(max_overlap)]
-        # pfile.write("Total extent main lobe: {}, with {}%.\n".format(max_extent_lobe, np.round(max_overlap * 100, 2)))
-        # pfile.close()
+        self.diagnosis_parameters.statistics[category]['Overall'].mni_space_lobes_overlap = overlap_per_lobe
 
     def __compute_tumor_volume(self, volume, spacing, category=None):
         voxel_size = np.prod(spacing[0:3])
@@ -388,16 +302,24 @@ class NeuroDiagnostics:
         avg_resectability = total_resectability / tumor_voxels_count
         self.diagnosis_parameters.statistics[category]['Overall'].mni_space_resectability_score = avg_resectability
 
-    def __compute_distance_to_tracts(self, volume, spacing, category=None):
+    def __compute_distance_to_tracts(self, volume, spacing, category=None, reference='BrainLab'):
         distances = {}
         overlaps = {}
-        tract_cutoff = 0.25 if ResourcesConfiguration.getInstance().neuro_mni_tracts_origin == 'BrainLab' else 0.5
-        for i, tfn in enumerate(ResourcesConfiguration.getInstance().neuro_mni_tracts_filepaths.keys()):
-            reg_tract_ni = nib.load(ResourcesConfiguration.getInstance().neuro_mni_tracts_filepaths[tfn])
+        distances_columns = []
+        overlaps_columns = []
+        tract_cutoff = 0.5
+        if reference == 'BrainLab':
+            tract_cutoff = 0.25
+
+        tracts_dict = ResourcesConfiguration.getInstance().white_matter_tracts['MNI'][reference]
+        for i, tfn in enumerate(tracts_dict.keys()):
+            reg_tract_ni = nib.load(tracts_dict[tfn])
             reg_tract = reg_tract_ni.get_data()[:]
             reg_tract[reg_tract < tract_cutoff] = 0
             reg_tract[reg_tract >= tract_cutoff] = 1
             overlap_volume = np.logical_and(reg_tract, volume).astype('uint8')
+            distances_columns.append('distance_' + tfn.split('.')[0][:-4] + '_' + category)
+            overlaps_columns.append('overlap_' + tfn.split('.')[0][:-4] + '_' + category)
             if np.count_nonzero(overlap_volume) != 0:
                 distances[tfn] = -1.
                 overlaps[tfn] = np.count_nonzero(overlap_volume) / np.count_nonzero(volume)
@@ -408,15 +330,24 @@ class NeuroDiagnostics:
                 distances[tfn] = dist
                 overlaps[tfn] = 0.
 
-        if self.from_slicer:
-            sorted_d = collections.OrderedDict(sorted(distances.items(), key=operator.itemgetter(1), reverse=False))
-            sorted_o = collections.OrderedDict(sorted(overlaps.items(), key=operator.itemgetter(1), reverse=True))
-            self.diagnosis_parameters.statistics[category]['Overall'].mni_space_tracts_overlap = sorted_o
-            self.diagnosis_parameters.statistics[category]['Overall'].mni_space_tracts_distance = sorted_d
-        else:
-            self.diagnosis_parameters.statistics[category]['Overall'].mni_space_tracts_overlap = overlaps
-            self.diagnosis_parameters.statistics[category]['Overall'].mni_space_tracts_distance = distances
-        return
+        self.diagnosis_parameters.statistics[category]['Overall'].mni_space_tracts_overlap = overlaps
+        self.diagnosis_parameters.statistics[category]['Overall'].mni_space_tracts_distance = distances
+
+    def __compute_tract_disconnection_probability(self, volume, spacing, category=None, reference='BCB'):
+        disconnections_max = {}
+        disconnections_proportion = {}
+        tracts_dict = ResourcesConfiguration.getInstance().white_matter_tracts['MNI'][reference]
+        for i, tfn in enumerate(tracts_dict.keys()):
+            reg_tract_ni = nib.load(tracts_dict[tfn])
+            reg_tract = reg_tract_ni.get_data()[:]
+            max_prob = np.max(reg_tract[volume == 1])
+            mean_prob = np.mean(reg_tract[volume == 1])
+            disconnection_prop = np.count_nonzero(reg_tract[volume == 1]) / np.count_nonzero(reg_tract)
+            disconnections_max[tfn] = max_prob
+            disconnections_proportion[tfn] = disconnection_prop
+
+        self.diagnosis_parameters.statistics[category]['Overall'].mni_space_tracts_disconnection_max = disconnections_max
+        self.diagnosis_parameters.statistics[category]['Overall'].mni_space_tracts_disconnection_prob = disconnections_proportion
 
     def __generate_lobe_description_file_slicer(self):
         df = generate_brain_lobe_labels_for_slicer()
@@ -451,28 +382,6 @@ class NeuroDiagnostics:
 
         dump_filename = os.path.join(self.output_path, 'brainlab_tracts_to_input.nii.gz')
         nib.save(nib.Nifti1Image(tracts_mask, affine=input_affine), dump_filename)
-
-    def __compute_tract_disconnection_probability(self, volume, spacing, category=None):
-        #@TODO. Should check beforehand that the volume is not empty
-        disconnections_max = {}
-        disconnections_avg = {}
-        for i, tfn in enumerate(ResourcesConfiguration.getInstance().neuro_mni_tracts_filepaths.keys()):
-            reg_tract_ni = nib.load(ResourcesConfiguration.getInstance().neuro_mni_tracts_filepaths[tfn])
-            reg_tract = reg_tract_ni.get_data()[:]
-            max_prob = np.max(reg_tract[volume == 1])
-            mean_prob = np.mean(reg_tract[volume == 1])
-            disconnections_max[tfn] = max_prob
-            disconnections_avg[tfn] = mean_prob
-
-        if self.from_slicer:
-            sorted_max = collections.OrderedDict(sorted(disconnections_max.items(), key=operator.itemgetter(1), reverse=True))
-            sorted_avg = collections.OrderedDict(sorted(disconnections_avg.items(), key=operator.itemgetter(1), reverse=True))
-            self.diagnosis_parameters.statistics[category]['Overall'].mni_space_tracts_disconnection_max = sorted_max
-            self.diagnosis_parameters.statistics[category]['Overall'].mni_space_tracts_disconnection_mean = sorted_avg
-        else:
-            self.diagnosis_parameters.statistics[category]['Overall'].mni_space_tracts_disconnection_max = disconnections_max
-            self.diagnosis_parameters.statistics[category]['Overall'].mni_space_tracts_disconnection_mean = disconnections_avg
-        return
 
     def __generate_tract_description_file_slicer(self):
         df = generate_white_matter_tracts_labels_for_slicer(os.path.join(self.output_path, 'Tracts.nii.gz'))

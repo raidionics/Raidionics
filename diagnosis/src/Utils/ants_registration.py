@@ -24,6 +24,7 @@ class ANTsRegistration:
         os.makedirs(self.registration_folder, exist_ok=True)
         self.transform_names = []
         self.inverse_transform_names = []
+        self.backend = 'cpp'  # cpp, python
 
     def clean(self):
         shutil.copyfile(src=os.path.join(self.registration_folder, 'Warped.nii.gz'),
@@ -37,6 +38,12 @@ class ANTsRegistration:
                 shutil.rmtree(self.registration_folder)
 
     def compute_registration(self, moving, fixed, registration_method):
+        if self.backend == 'python':
+            self.compute_registration_python(moving, fixed, registration_method)
+        elif self.backend == 'cpp':
+            self.compute_registration_cpp(moving, fixed, registration_method)
+
+    def compute_registration_cpp(self, moving, fixed, registration_method):
         print("STARTING REGISTRATION FOR PATIENT.")
 
         if registration_method == 'sq':
@@ -53,15 +60,9 @@ class ANTsRegistration:
                              '-o{output}'.format(output=self.registration_folder),
                              '-t{trans}'.format(trans=registration_method),
                              '-n{cores}'.format(cores=8),
-                             #'-p{precision}'.format(precision='f')
-                             # '-x[{mask_fixed},{mask_moving}]'.format(
-                             #     mask_fixed='/home/dbouget/Data/SINTEF/Atlas/NeuroAtlas/mni_icbm152_nlin_sym_09a/mni_icbm152_t1_tal_nlin_sym_09a_mask.nii',
-                             #     mask_moving=os.path.join(self.db_types.data_root, label_tumor.labels_filepath))])
-                             #'-x{mask}'.format(mask=fixed_mask_filepath)
                              ])
 
             if registration_method == 's':
-                #self.transform_names = ['0GenericAffine.mat', '1Warp.nii.gz']
                 self.transform_names = ['1Warp.nii.gz', '0GenericAffine.mat']
                 self.inverse_transform_names = ['1InverseWarp.nii.gz', '0GenericAffine.mat']
         except Exception as e:
@@ -83,6 +84,12 @@ class ANTsRegistration:
             ants.image_write(warped_input, warped_input_filename)
         except Exception as e:
             print('Exception caught during registration. Error message: {}'.format(e))
+
+    def apply_registration_transform(self, moving, fixed, interpolation='nearestNeighbor'):
+        if self.backend == 'python':
+            self.apply_registration_transform_python(moving, fixed, interpolation)
+        elif self.backend == 'cpp':
+            self.apply_registration_transform_cpp(moving, fixed, interpolation)
 
     def apply_registration_transform_python(self, moving, fixed, interpolation='nearestNeighbor'):
         moving_ants = ants.image_read(moving, dimension=3)
@@ -112,11 +119,11 @@ class ANTsRegistration:
         except Exception as e:
             print('Exception caught during applying registration inverse transform. Error message: {}'.format(e))
 
-    def apply_registration_transform(self, moving, fixed):
+    def apply_registration_transform_cpp(self, moving, fixed, interpolation='NearestNeighbor'):
         """
         Apply a registration transform onto the corresponding moving image.
         """
-        optimization_method = 'Linear'
+        optimization_method = 'Linear' if interpolation == 'linear' else 'NearestNeighbor'
         print("Apply registration transform to input volume.")
         script_path = os.path.join(self.ants_apply_dir, 'antsApplyTransforms')
 
@@ -216,11 +223,17 @@ class ANTsRegistration:
         except Exception as e:
             print('Failed to apply transforms on input image with {}'.format(e))
 
-    def apply_registration_inverse_transform_labels(self, moving, fixed):
+    def apply_registration_inverse_transform(self, moving, fixed, interpolation='nearestNeighbor'):
+        if self.backend == 'python':
+            self.apply_registration_inverse_transform_python(moving, fixed, interpolation)
+        elif self.backend == 'cpp':
+            self.apply_registration_inverse_transform_cpp(moving, fixed, interpolation)
+
+    def apply_registration_inverse_transform_cpp(self, moving, fixed, interpolation='NearestNeighbor'):
         """
         Apply an inverse registration transform onto the corresponding moving labels.
         """
-        optimization_method = 'NearestNeighbor'
+        optimization_method = 'NearestNeighbor' if interpolation == 'nearestNeighbor' else 'Linear'
         print("Apply registration transform to input volume annotation.")
         script_path = os.path.join(self.ants_apply_dir, 'antsApplyTransforms')
 
