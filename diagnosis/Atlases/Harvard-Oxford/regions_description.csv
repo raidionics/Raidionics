@@ -1,0 +1,61 @@
+Label,Color,Region-short,Region
+ 0 , 000000 ,background,background
+ 1 , 00007F ,FP, Frontal Pole 
+ 2 , 00FFFF ,Ins, Insular Cortex 
+ 3 , 007F7F ,SFG, Superior Frontal Gyrus 
+ 4 , 00FF7F ,MFG, Middle Frontal Gyrus 
+ 5 , 007F3F ,IFGpt, Inferior Frontal Gyrus - pars triangularis 
+ 6 , 00FF00 ,IFGpo, Inferior Frontal Gyrus - pars opercularis 
+ 7 , 007F00 ,PrG, Precentral Gyrus 
+ 8 , 7FFF00 ,TP, Temporal Pole 
+ 9 , 3F7F00 ,STGa, Superior Temporal Gyrus - anterior division 
+ 10 , FFFF00 ,STGp, Superior Temporal Gyrus - posterior division 
+ 11 , 7F7F00 ,MTGa, Middle Temporal Gyrus - anterior division 
+ 12 , FF7F00 ,MTGp, Middle Temporal Gyrus - posterior division 
+ 13 , 7F3F00 ,MTGtp, Middle Temporal Gyrus - temporooccipital part 
+ 14 , FF0000 ,ITGa, Inferior Temporal Gyrus - anterior division 
+ 15 , 7F0000 ,ITGp, Inferior Temporal Gyrus - posterior division 
+ 16 , FF007F ,ITGtp, Inferior Temporal Gyrus - temporooccipital part 
+ 17 , 7F003F ,PoG, Postcentral Gyrus 
+ 18 , FF00FF ,SPL, Superior Parietal Lobule 
+ 19 , 7F007F ,SmGa, Supramarginal Gyrus - anterior division 
+ 20 , 0055FF ,SmGp, Supramarginal Gyrus - posterior division 
+ 21 , 002A7F ,AG, Angular Gyrus 
+ 22 , 00FFD4 ,LOCs, Lateral Occipital Cortex - superior division 
+ 23 , 007F6A ,LOCi, Lateral Occipital Cortex - inferior division 
+ 24 , 00FF54 ,IcC, Intracalcarine Cortex 
+ 25 , 007F2A ,FMC, Frontal Medial Cortex 
+ 26 , 2AFF00 ,SMC, Juxtapositional Lobule Cortex (formerly Supplementary Motor Cortex) 
+ 27 , 157F00 ,ScC, Subcallosal Cortex 
+ 28 , A9FF00 ,PcG, Paracingulate Gyrus 
+ 29 , 547F00 ,CGa, Cingulate Gyrus - anterior division 
+ 30 , FFD400 ,CGp, Cingulate Gyrus - posterior division 
+ 31 , 7F6A00 ,PcC, Precuneous Cortex 
+ 32 , FF5400 ,CC, Cuneal Cortex 
+ 33 , 7F2A00 ,FOC, Frontal Orbital Cortex 
+ 34 , FF002A ,PhGa, Parahippocampal Gyrus - anterior division 
+ 35 , 7F0015 ,PaGp, Parahippocampal Gyrus - posterior division 
+ 36 , FF00A9 ,LG, Lingual Gyrus 
+ 37 , 7F0054 ,TFCa, Temporal Fusiform Cortex - anterior division 
+ 38 , AA00FF ,TFCp, Temporal Fusiform Cortex - posterior division 
+ 39 , 55007F ,TOF, Temporal Occipital Fusiform Cortex 
+ 40 , 00AAFF ,OFG, Occipital Fusiform Gyrus 
+ 41 , 00557F ,FOpC, Frontal Operculum Cortex 
+ 42 , 00FFA9 ,COpC, Central Opercular Cortex 
+ 43 , 007F54 ,POpC, Parietal Operculum Cortex 
+ 44 , 00FF2A ,PP, Planum Polare 
+ 45 , 007F15 ,H1/H2, Heschl s Gyrus (includes H1 and H2) 
+ 46 , 54FF00 ,PT, Planum Temporale 
+ 47 , 2A7F00 ,SccC, Supracalcarine Cortex 
+ 48 , D4FF00 ,OcP, Occipital Pole 
+ 49 , 6A7F00 , [49] , #6A7F00 
+ 50 , FFA900 , [50] , #FFA900 
+ 51 , 7F5400 , [51] , #7F5400 
+ 52 , FF2A00 , [52] , #FF2A00 
+ 53 , 7F1500 , [53] , #7F1500 
+ 54 , FF0054 , [54] , #FF0054 
+ 55 , 7F002A , [55] , #7F002A 
+ 56 , FF00D4 , [56] , #FF00D4 
+ 57 , 7F006A , [57] , #7F006A 
+ 58 , 5500FF , [58] , #5500FF 
+ 59 , 2A007F , [59] , #2A007F 

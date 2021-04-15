@@ -1,0 +1,48 @@
+Region,Laterality,Matter type,Label
+frontal,left,wm,30
+frontal,left,gm,210
+frontal,right,wm,17
+frontal,right,gm,211
+,,,
+temporal,left,wm,83
+temporal,left,gm,218
+temporal,right,wm,59
+temporal,right,gm,219
+,,,
+parietal,left,wm,57
+parietal,left,gm,6
+parietal,right,wm,105
+parietal,right,gm,2
+,,,
+occipital,left,wm,73
+occipital,left,gm,8
+occipital,right,wm,45
+occipital,right,gm,4
+,,,
+cerebellum,left,,67
+cerebellum,right,,76
+brain_stem,None,,20
+,,,
+lateral ventricle ,left,,3
+lateral ventricle ,right,,9
+3rd ventricle ,None,,232
+4th ventricle ,None,,233
+extracerebral CSF,None,,255
+,,,
+caudate,left,,39
+caudate,right,,53
+,,,
+putamen,left,,14
+putamen,right,,16
+,,,
+thalamus,left,,102
+thalamus,right,,203
+,,,
+subthalamic_nucleus,left,,33
+subthalamic_nucleus,right,,23
+,,,
+globus_pallidus ,left,,12
+globus_pallidus ,right,,11
+,,,
+fornix,left,,29
+fornix,right,,254
