@@ -166,7 +166,7 @@ class NeuroDiagnostics:
         self.__compute_lateralisation(volume=refined_image, category='Main')
         self.__compute_lobe_location(volume=refined_image, category='Main')
         self.__compute_tumor_volume(volume=refined_image, spacing=registered_tumor_ni.header.get_zooms(), category='Main')
-        self.__compute_resectability_index(volume=refined_image, category='Main')
+        self.__compute_resection_features(volume=refined_image, category='Main')
         self.__compute_distance_to_tracts(volume=refined_image, spacing=registered_tumor_ni.header.get_zooms(), category='Main')
         self.__compute_tract_disconnection_probability(volume=refined_image, spacing=registered_tumor_ni.header.get_zooms(), category='Main')
 
@@ -182,7 +182,7 @@ class NeuroDiagnostics:
                 self.__compute_lobe_location(volume=cluster_image, category=str(c+1))
                 self.__compute_tumor_volume(volume=cluster_image, spacing=registered_tumor_ni.header.get_zooms(),
                                             category=str(c+1))
-                self.__compute_resectability_index(volume=cluster_image, category=str(c+1))
+                self.__compute_resection_features(volume=cluster_image, category=str(c+1))
                 self.__compute_distance_to_tracts(volume=cluster_image, spacing=registered_tumor_ni.header.get_zooms(),
                                                   category=str(c+1))
                 self.__compute_tract_disconnection_probability(volume=cluster_image, spacing=registered_tumor_ni.header.get_zooms(),
@@ -251,7 +251,7 @@ class NeuroDiagnostics:
         self.diagnosis_parameters.statistics['Main']['Overall'].tumor_multifocal_distance = multifocal_largest_minimum_distance
 
     def __compute_lateralisation(self, volume, category=None):
-        brain_lateralisation_mask_ni = load_nifti_volume(ResourcesConfiguration.getInstance().neuro_mni_atlas_lateralisation_mask_filepath)
+        brain_lateralisation_mask_ni = load_nifti_volume(ResourcesConfiguration.getInstance().mni_atlas_lateralisation_mask_filepath)
         brain_lateralisation_mask = brain_lateralisation_mask_ni.get_data()[:]
 
         right_side_percentage = np.count_nonzero((brain_lateralisation_mask == 1) & (volume != 0)) / np.count_nonzero(
@@ -292,15 +292,38 @@ class NeuroDiagnostics:
         # pfile.write('Tumor volume: {} ml.\n'.format(np.round(volume_ml, 2)))
         # pfile.close()
 
-    def __compute_resectability_index(self, volume, category=None):
-        resectability_map_ni = nib.load(ResourcesConfiguration.getInstance().neuro_mni_atlas_resectability_mask_filepath)
-        resectability_map = resectability_map_ni.get_data()[:]
-        # resectability_overlap = np.zeros(volume.shape)
-        # resectability_overlap[volume != 0] = resectability_map[volume != 0]
+    def __compute_resection_features(self, volume, category=None):
+        resection_probability_map_filepath = None
+        complexity_probability_map_filepath = None
+        if self.diagnosis_parameters.statistics[category]['Overall'].laterality_midline_crossing == True:  # Tumors in both hemi-spheres
+            resection_probability_map_filepath = ResourcesConfiguration.getInstance().mni_resection_maps['Probability']['Global']
+            complexity_probability_map_filepath = ResourcesConfiguration.getInstance().mni_resection_maps['Complexity']['Global']
+        elif self.diagnosis_parameters.statistics[category]['Overall'].left_laterality_percentage == 100.:  # Tumor in the left hemi-sphere
+            resection_probability_map_filepath = ResourcesConfiguration.getInstance().mni_resection_maps['Probability']['Left']
+            complexity_probability_map_filepath = ResourcesConfiguration.getInstance().mni_resection_maps['Complexity']['Left']
+        else:
+            resection_probability_map_filepath = ResourcesConfiguration.getInstance().mni_resection_maps['Probability']['Right']
+            complexity_probability_map_filepath = ResourcesConfiguration.getInstance().mni_resection_maps['Complexity']['Right']
+
+        resection_probability_map_ni = nib.load(resection_probability_map_filepath)
+        resection_probability_map = resection_probability_map_ni.get_data()[:]
+        resection_probability_map = np.nan_to_num(resection_probability_map)
         tumor_voxels_count = np.count_nonzero(volume)
-        total_resectability = np.sum(resectability_map[volume != 0])
+        total_resectability = np.sum(resection_probability_map[volume != 0])
+        resectable_volume = total_resectability * 1e-3
+        residual_tumor_volume = (tumor_voxels_count * 1e-3) - resectable_volume
         avg_resectability = total_resectability / tumor_voxels_count
-        self.diagnosis_parameters.statistics[category]['Overall'].mni_space_resectability_score = avg_resectability
+
+        complexity_probability_map_ni = nib.load(complexity_probability_map_filepath)
+        complexity_probability_map = complexity_probability_map_ni.get_data()[:]
+        complexity_probability_map = np.nan_to_num(complexity_probability_map)
+        tumor_voxels_count = np.count_nonzero(volume)
+        total_complexity = np.sum(complexity_probability_map[volume != 0])
+        avg_complexity = total_complexity / tumor_voxels_count
+
+        self.diagnosis_parameters.statistics[category]['Overall'].mni_space_residual_tumor_volume = residual_tumor_volume
+        self.diagnosis_parameters.statistics[category]['Overall'].mni_space_resectability_index = avg_resectability
+        self.diagnosis_parameters.statistics[category]['Overall'].mni_space_complexity_index = avg_complexity
 
     def __compute_distance_to_tracts(self, volume, spacing, category=None, reference='BrainLab'):
         distances = {}

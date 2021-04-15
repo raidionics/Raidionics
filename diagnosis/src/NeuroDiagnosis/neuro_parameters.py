@@ -55,74 +55,6 @@ class NeuroDiagnosisParameters:
             return
         pfile.write('Tumor multifocality: {}\n'.format(self.tumor_multifocal))
 
-        # Overall tumor parameters
-        pfile.write('\nOverall tumor\n')
-        pfile.write('\tCenter of mass laterality: {} with {}%\n'.format(self.statistics['Main']['CoM'].laterality,
-                                                                        self.statistics['Main']['CoM'].laterality_percentage))
-        pfile.write('\tCenter of mass lobe(s): ')
-        for l in self.statistics['Main']['CoM'].mni_space_lobes_overlap.keys():
-            pfile.write('{} ({}%), '.format(l, self.statistics['Main']['CoM'].mni_space_lobes_overlap[l]))
-        pfile.write('\n')
-
-        pfile.write('\tOverall volume: {}ml\n'.format(self.statistics['Main']['Overall'].mni_space_tumor_volume))
-        pfile.write('\tOverall laterality: {} with {}%\n'.format(self.statistics['Main']['Overall'].laterality,
-                                                                 np.round(self.statistics['Main']['Overall'].laterality_percentage*100., 2)))
-        pfile.write('\tOverall lobe(s): ')
-        for l in self.statistics['Main']['Overall'].mni_space_lobes_overlap.keys():
-            pfile.write('{} ({}%), '.format(l, self.statistics['Main']['Overall'].mni_space_lobes_overlap[l]))
-        pfile.write('\n')
-
-        pfile.write('\tOverall tracts distances: ')
-        for l in self.statistics['Main']['Overall'].mni_space_tracts_distance.keys():
-            if self.statistics['Main']['Overall'].mni_space_tracts_distance[l] != -1.:
-                pfile.write('{} ({}mm), '.format(l, np.round(self.statistics['Main']['Overall'].mni_space_tracts_distance[l], 2)))
-        pfile.write('\n')
-
-        pfile.write('\tOverall tracts overlaps: ')
-        for l in self.statistics['Main']['Overall'].mni_space_tracts_overlap.keys():
-            if self.statistics['Main']['Overall'].mni_space_tracts_overlap[l] > 0:
-                pfile.write('{} ({}%), '.format(l, np.round(self.statistics['Main']['Overall'].mni_space_tracts_overlap[l]*100., 2)))
-        pfile.write('\n')
-
-        # Parameters for each tumor element
-        if self.tumor_multifocal:
-            for p in range(self.tumor_parts):
-                tumor_component = str(p+1)
-                pfile.write('\nTumor part {}\n'.format(tumor_component))
-                pfile.write(
-                    '\tCenter of mass laterality: {} with {}%\n'.format(self.statistics[tumor_component]['CoM'].laterality,
-                                                                        self.statistics[tumor_component][
-                                                                            'CoM'].laterality_percentage))
-                pfile.write('\tCenter of mass lobe(s): ')
-                for l in self.statistics[tumor_component]['CoM'].mni_space_lobes_overlap.keys():
-                    pfile.write('{} ({}%), '.format(l, self.statistics[tumor_component]['CoM'].mni_space_lobes_overlap[l]))
-                pfile.write('\n')
-
-                pfile.write(
-                    '\tOverall volume: {}ml\n'.format(self.statistics[tumor_component]['Overall'].mni_space_tumor_volume))
-                pfile.write('\tOverall laterality: {} with {}%\n'.format(self.statistics[tumor_component]['Overall'].laterality,
-                                                                         np.round(self.statistics[tumor_component][
-                                                                                      'Overall'].laterality_percentage * 100.,
-                                                                                  2)))
-                pfile.write('\tOverall lobe(s): ')
-                for l in self.statistics[tumor_component]['Overall'].mni_space_lobes_overlap.keys():
-                    pfile.write('{} ({}%), '.format(l, self.statistics[tumor_component]['Overall'].mni_space_lobes_overlap[l]))
-                pfile.write('\n')
-
-                pfile.write('\tOverall tracts distances: ')
-                for l in self.statistics[tumor_component]['Overall'].mni_space_tracts_distance.keys():
-                    if self.statistics[tumor_component]['Overall'].mni_space_tracts_distance[l] != -1.:
-                        pfile.write('{} ({}mm), '.format(l, np.round(
-                            self.statistics[tumor_component]['Overall'].mni_space_tracts_distance[l], 2)))
-                pfile.write('\n')
-
-                pfile.write('\tOverall tracts overlaps: ')
-                for l in self.statistics[tumor_component]['Overall'].mni_space_tracts_overlap.keys():
-                    if self.statistics[tumor_component]['Overall'].mni_space_tracts_overlap[l] > 0:
-                        pfile.write('{} ({}%), '.format(l, np.round(
-                            self.statistics[tumor_component]['Overall'].mni_space_tracts_overlap[l] * 100., 2)))
-                pfile.write('\n')
-
         pfile.close()
         return
 
@@ -160,7 +92,9 @@ class TumorStatistics():
         self.right_laterality_percentage = None
         self.laterality_midline_crossing = None
         self.mni_space_tumor_volume = None
-        self.mni_space_resectability_score = None
+        self.mni_space_residual_tumor_volume = None
+        self.mni_space_resectability_index = None
+        self.mni_space_complexity_index = None
         self.mni_space_lobes_overlap = {}
         self.mni_space_tracts_overlap = {}
         self.mni_space_tracts_distance = {}
