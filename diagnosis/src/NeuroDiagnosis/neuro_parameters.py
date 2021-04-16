@@ -47,8 +47,7 @@ class NeuroDiagnosisParameters:
 
     def to_txt(self, filename):
         pfile = open(filename, 'a')
-        pfile.write('######### Clinical report #########\n')
-        pfile.write('Tumor type: {}\n'.format(self.tumor_type))
+        pfile.write('######### Glioma RADS report #########\n')
         pfile.write('Tumor found: {}\n'.format(self.tumor_presence_state))
         if not self.tumor_presence_state:
             pfile.close()
@@ -59,12 +58,22 @@ class NeuroDiagnosisParameters:
         return
 
     def to_csv(self, filename):
-        column_names = ['Multifocal', '# parts', 'Volume (ml)', 'Left laterality (%)', 'Right laterality (%)',
-                        'Resectability score']
-        values = [self.tumor_multifocal, self.tumor_parts, self.statistics['Main']['Overall'].mni_space_tumor_volume,
-                  np.round(self.statistics['Main']['Overall'].left_laterality_percentage*100., 2),
-                  np.round(self.statistics['Main']['Overall'].right_laterality_percentage*100., 2),
-                  self.statistics['Main']['Overall'].mni_space_resectability_score]
+        values = [self.tumor_multifocal, self.tumor_parts, np.round(self.tumor_multifocal_distance, 2)]
+        column_names = ['Multifocality', 'Tumor parts nb', 'Multifocal distance (mm)']
+
+        values.extend([self.statistics['Main']['Overall'].mni_space_tumor_volume, -1.])
+        column_names.extend(['Volume original (ml)', 'Volume in MNI (ml)'])
+
+        values.extend([np.round(self.statistics['Main']['Overall'].left_laterality_percentage*100., 2),
+                       np.round(self.statistics['Main']['Overall'].right_laterality_percentage*100., 2),
+                       self.statistics['Main']['Overall'].laterality_midline_crossing])
+        column_names.extend(['Left laterality (%)', 'Right laterality (%)', 'Midline crossing'])
+
+        values.extend([np.round(self.statistics['Main']['Overall'].mni_space_expected_resectable_tumor_volume, 2),
+                       np.round(self.statistics['Main']['Overall'].mni_space_expected_residual_tumor_volume, 2),
+                       np.round(self.statistics['Main']['Overall'].mni_space_resectability_index, 3),
+                       np.round(self.statistics['Main']['Overall'].mni_space_complexity_index, 3)])
+        column_names.extend(['ExpectedResectableVolume (ml)', 'ExpectedResidualVolume (ml)', 'ResectionIndex', 'ComplexityIndex'])
 
         for l in self.statistics['Main']['Overall'].mni_space_lobes_overlap.keys():
             values.extend([self.statistics['Main']['Overall'].mni_space_lobes_overlap[l]])
@@ -82,6 +91,10 @@ class NeuroDiagnosisParameters:
             values.extend([self.statistics['Main']['Overall'].mni_space_tracts_disconnection_max[t]])
             column_names.extend([t.split('.')[0][:-4] + '_disconnection'])
 
+        # for t in self.statistics['Main']['Overall'].mni_space_tracts_disconnection_prob.keys():
+        #     values.extend([self.statistics['Main']['Overall'].mni_space_tracts_disconnection_prob[t]])
+        #     column_names.extend([t.split('.')[0][:-4] + '_disconnection'])
+
         values_df = pd.DataFrame(np.asarray(values).reshape((1, len(values))), columns=column_names)
         values_df.to_csv(filename)
 
@@ -92,7 +105,8 @@ class TumorStatistics():
         self.right_laterality_percentage = None
         self.laterality_midline_crossing = None
         self.mni_space_tumor_volume = None
-        self.mni_space_residual_tumor_volume = None
+        self.mni_space_expected_resectable_tumor_volume = None
+        self.mni_space_expected_residual_tumor_volume = None
         self.mni_space_resectability_index = None
         self.mni_space_complexity_index = None
         self.mni_space_lobes_overlap = {}

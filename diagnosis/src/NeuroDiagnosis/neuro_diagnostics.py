@@ -82,11 +82,11 @@ class NeuroDiagnostics:
         # Computing tumor location and statistics
         print('SLICERLOG: Generate report - Begin')
         self.__compute_statistics()
-        # self.diagnosis_parameters.to_txt(self.output_report_filepath)
-        # self.diagnosis_parameters.to_csv(self.output_report_filepath[:-4] + '.csv')
+        self.diagnosis_parameters.to_txt(self.output_report_filepath)
+        self.diagnosis_parameters.to_csv(self.output_report_filepath[:-4] + '.csv')
         print('SLICERLOG: Generate report - End')
 
-        # # Cleaning the temporary files
+        # Cleaning the temporary files
         # self.registration_runner.clean()
         # if not ResourcesConfiguration.getInstance().diagnosis_full_trace:
         #     tmp_folder = os.path.join(self.output_path, 'tmp')
@@ -321,7 +321,8 @@ class NeuroDiagnostics:
         total_complexity = np.sum(complexity_probability_map[volume != 0])
         avg_complexity = total_complexity / tumor_voxels_count
 
-        self.diagnosis_parameters.statistics[category]['Overall'].mni_space_residual_tumor_volume = residual_tumor_volume
+        self.diagnosis_parameters.statistics[category]['Overall'].mni_space_expected_residual_tumor_volume = residual_tumor_volume
+        self.diagnosis_parameters.statistics[category]['Overall'].mni_space_expected_resectable_tumor_volume = resectable_volume
         self.diagnosis_parameters.statistics[category]['Overall'].mni_space_resectability_index = avg_resectability
         self.diagnosis_parameters.statistics[category]['Overall'].mni_space_complexity_index = avg_complexity
 
