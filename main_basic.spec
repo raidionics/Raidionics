@@ -4,7 +4,7 @@ block_cipher = None
 
 
 a = Analysis(['main.py'],
-             pathex=['/Users/medtek/workspace/neuro_rads_prototype'],
+             pathex=['./venv/lib/python3.6/site-packages/ants', '/Users/medtek/workspace/neuro_rads_prototype'],
              binaries=[],
              datas=[],
              hiddenimports=[],
@@ -26,7 +26,7 @@ exe = EXE(pyz,
           bootloader_ignore_signals=False,
           strip=False,
           upx=True,
-          console=False )
+          console=True )
 coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,
@@ -35,7 +35,3 @@ coll = COLLECT(exe,
                upx=True,
                upx_exclude=[],
                name='main')
-app = BUNDLE(coll,
-             name='main.app',
-             icon=None,
-             bundle_identifier=None)
