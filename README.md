@@ -61,12 +61,12 @@ On Windows the virtual environment can be activate by:
 
 The extension of the software varies depending on the OS. On Windows run:
 ```
-./dist/NeuroRADS.app
+./dist/NeuroRADS.exe
 ```
 
-and on MacOS:
+and on Linux/MacOS (UNIX):
 ```
-./dist/NeuroRADS.app
+./dist/NeuroRADS
 ```
 
 
