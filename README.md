@@ -7,7 +7,7 @@ Simple project for building binary releases of Python code for Ubuntu/MacOS/Wind
 
 1. Create virtual environment, activate it, and install dependencies:
 ```
-virtualenv -ppython3 venv --clear
+virtualenv -p python3 venv --clear
 source venv/bin/activate
 pip install -r requirements.txt
 ```
