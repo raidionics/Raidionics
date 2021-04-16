@@ -16,7 +16,6 @@ pip install -r requirements.txt
 ```
 mkdir segmentation/resources/models/MRI_Brain/
 mv path-to-some-model-data project-dir-path/segmentation/resources/models/MRI_Brain/
-
 ```
 
 3. Install pyinstaller, if it is not already installed:
