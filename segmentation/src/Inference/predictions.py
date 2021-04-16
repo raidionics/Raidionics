@@ -3,7 +3,6 @@ from nibabel.processing import resample_to_output, resample_from_to
 from skimage.measure import regionprops, label
 from skimage.transform import resize
 from tensorflow.python.keras.models import load_model
-import matplotlib.pyplot as plt
 from scipy.ndimage import zoom
 import os
 import nibabel as nib

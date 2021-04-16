@@ -24,7 +24,7 @@ class ANTsRegistration:
         os.makedirs(self.registration_folder, exist_ok=True)
         self.transform_names = []
         self.inverse_transform_names = []
-        self.backend = 'cpp'  # cpp, python
+        self.backend = 'python'  # cpp, python
 
     def clean(self):
         shutil.copyfile(src=os.path.join(self.registration_folder, 'Warped.nii.gz'),
@@ -66,7 +66,8 @@ class ANTsRegistration:
                 self.transform_names = ['1Warp.nii.gz', '0GenericAffine.mat']
                 self.inverse_transform_names = ['1InverseWarp.nii.gz', '0GenericAffine.mat']
 
-            os.rename(src='Warped.nii.gz', dst=os.path.join(self.registration_folder, 'input_volume_to_MNI.nii.gz'))
+            os.rename(src=os.path.join(self.registration_folder, 'Warped.nii.gz'),
+                      dst=os.path.join(self.registration_folder, 'input_volume_to_MNI.nii.gz'))
         except Exception as e:
             print('Exception caught during registration. Error message: {}'.format(e))
 
@@ -116,8 +117,7 @@ class ANTsRegistration:
         script_path = os.path.join(self.ants_apply_dir, 'antsApplyTransforms')
 
         transform_filenames = [os.path.join(self.registration_folder, x) for x in self.transform_names]
-        moving_registered_filename = os.path.join(self.registration_folder,
-                                                  os.path.basename(moving).split('.')[0] + '_reg_atlas.nii.gz')
+        moving_registered_filename = os.path.join(self.registration_folder, 'input_segmentation_to_MNI.nii.gz')  #os.path.join(self.registration_folder, os.path.basename(moving).split('.')[0] + '_reg_atlas.nii.gz')
 
         if len(transform_filenames) == 4:
             args = ("{script}".format(script=script_path),
@@ -240,8 +240,7 @@ class ANTsRegistration:
         script_path = os.path.join(self.ants_apply_dir, 'antsApplyTransforms')
 
         transform_filenames = [os.path.join(self.registration_folder, x) for x in self.inverse_transform_names]
-        moving_registered_filename = os.path.join(self.registration_folder,
-                                                  os.path.basename(moving).split('.')[0] + '_reg_input.nii.gz')
+        moving_registered_filename = os.path.join(self.registration_folder, 'input_anatomical_regions.nii.gz') #os.path.join(self.registration_folder, os.path.basename(moving).split('.')[0] + '_reg_input.nii.gz')
 
         if len(transform_filenames) == 4:  # Combined case?
             args = ("{script}".format(script=script_path),

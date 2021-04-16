@@ -11,7 +11,11 @@ numpy
 *.h5
 *.mhd
 *.raw
-/venv
+venv/
+tmp_dependencies/
+build/
+dist/
+segmentation/resources/
 *.ini
 *.sqlite3
 *.idea
