@@ -1,6 +1,6 @@
 # NeuroRADS
 
-Simple project for building binary releases of Python code for Ubuntu/MacOS/Windows using [PyInstaller](https://github.com/pyinstaller/pyinstaller).
+Simple project for building binary releases of Python code for Ubuntu/MacOSX/Windows using [PyInstaller](https://github.com/pyinstaller/pyinstaller).
 
 
 ## How to build:
@@ -64,7 +64,7 @@ The extension of the software varies depending on the OS. On Windows run:
 ./dist/NeuroRADS.exe
 ```
 
-and on Linux/MacOS (UNIX):
+and on Linux/MacOSX (UNIX):
 ```
 ./dist/NeuroRADS
 ```
