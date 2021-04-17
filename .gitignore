@@ -1,6 +1,7 @@
 # use glob syntax.
 syntax: glob
 
+.DS_Store
 *.elc
 *.pyc
 *~

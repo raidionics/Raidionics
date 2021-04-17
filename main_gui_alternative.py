@@ -35,18 +35,19 @@ class MainWindow(QWidget):
         self.app.setStyle("Fusion")
 
         self.name = None
+        self.prompt = None
         self.mri_loc = None
         self.seg_loc = None
         self.out_loc = None
         self.getScreenDimensions()
 
+        self.MRIText = None
+        self.SegText = None
+        self.OutputText = None
+
         self.button_width = 0.17
         self.button_height = 0.05
 
-        # Install the custom output stream
-        sys.stdout = EmittingStream(textWritten=self.standardOutputWritten)
-        # @TODO: Need to find way for gracefully close this thread when program is closed through the X in the GUI (regular close event works fine)
-    
     def initUI(self):
         # create Window @TODO: Should I use MainWindow instead?
         widget = QWidget()
@@ -159,6 +160,10 @@ class MainWindow(QWidget):
 
         widget.setLayout(vbox)
         widget.show()
+
+        # Install the custom output stream
+        sys.stdout = EmittingStream(textWritten=self.standardOutputWritten)
+        # @TODO: Need to find way for gracefully close this thread when program is closed through the X in the GUI (regular close event works fine)
 
         return widget
 

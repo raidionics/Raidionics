@@ -1,24 +1,35 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+# necessary for MacOS
+import os 
+os.environ['LC_CTYPE'] = "en_US.UTF-8"
+os.environ['LANG'] = "en_US.UTF-8"
+
+# work-around for https://github.com/pyinstaller/pyinstaller/issues/4064
+import distutils
+if distutils.distutils_path.endswith('__init__.py'):
+    distutils.distutils_path = os.path.dirname(distutils.distutils_path)
+
 from PyInstaller.utils.hooks import collect_data_files
 from numpy import loadtxt
 import ants
-import distutils
-from distutils import dir_util
+import shutil
 
 block_cipher = None
 
 #@TODO: This is stupid, but it works. It solves some issues with dependencies not properly included
 hidden_imports = loadtxt("requirements.txt", comments="#", delimiter=",", unpack=False, dtype=str)
-hidden_imports = [x.split("=")[0] for x in hidden_imports] + ["medpy", "ants", "sklearn", "scikit-learn", "statsmodels"]
+hidden_imports = [x.split("=")[0] for x in hidden_imports] + ["medpy", "ants", "sklearn", "scikit-learn", "statsmodels", "gevent", "distutils", "PyQt5"]
 hidden_imports = [x.lower() for x in hidden_imports]
 
 print("hidden imports: ")
 print(hidden_imports)
 
 # copy dependencies and overwrite if already exists
-distutils.dir_util.copy_tree("./diagnosis/", "./tmp_dependencies/diagnosis/")
-distutils.dir_util.copy_tree("./segmentation/", "./tmp_dependencies/segmentation/")
+if os.path.exists("./tmp_dependencies/"):
+    shutil.rmtree("./tmp_dependencies/")
+shutil.copytree("./diagnosis/", "./tmp_dependencies/diagnosis/")
+shutil.copytree("./segmentation/", "./tmp_dependencies/segmentation/")
 
 a = Analysis(['./main.py'],
              pathex=['.'],
@@ -40,13 +51,12 @@ pyz = PYZ(a.pure, a.zipped_data,
 exe = EXE(pyz,
           a.scripts,
           a.binaries,
-          #Tree("./stuff/"),
           Tree("./tmp_dependencies/"),
           a.zipfiles,
           a.datas,
           [],
           name='NeuroRADS',
-          debug=False,
+          debug=False,  # should be set to False, but needed to debug on MacOSX
           bootloader_ignore_signals=False,
           strip=False,
           upx=True,
