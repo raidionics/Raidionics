@@ -25,13 +25,13 @@ class EmittingStream(QObject):
 # GUI
 class MainWindow(QWidget):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, application, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
 
         self.title = 'NeuroRADS'
         self.setWindowTitle(self.title) 
 
-        self.app = QApplication(sys.argv)
+        self.app = application
         self.app.setStyle("Fusion")
 
         self.name = None
@@ -90,13 +90,13 @@ class MainWindow(QWidget):
         closeButton = QPushButton("Exit", parent=widget)
         closeButton.setFixedHeight(self.height * self.button_height)
         closeButton.setFixedWidth(self.width * self.button_width)
-        closeButton.setStyleSheet("background-color: red")
+        closeButton.setStyleSheet("background-color: red; color: white")
         closeButton.clicked.connect(self.exitProgram)
 
         runButton = QPushButton("Run diagnosis", parent=widget)
         runButton.setFixedHeight(self.height * self.button_height)
         runButton.setFixedWidth(self.width * self.button_width)
-        runButton.setStyleSheet("background-color: green")
+        runButton.setStyleSheet("background-color: green; color: white")
         runButton.clicked.connect(self.run_diagnosis)
 
         self.prompt = QPlainTextEdit("", parent=widget)

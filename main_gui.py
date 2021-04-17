@@ -26,7 +26,7 @@ class MainWindow(QMainWindow):
         # Install the custom output stream
         sys.stdout = EmittingStream(textWritten=self.standardOutputWritten)
         self.app = application
-        self.app.setStyle("Windows")
+        self.app.setStyle("Windows")  # ugly af :'( Fusion4theWin
         self.__set_interface()
         self.__set_connections()
         self.__set_params()
