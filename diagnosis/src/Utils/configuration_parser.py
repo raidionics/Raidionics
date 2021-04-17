@@ -35,8 +35,8 @@ class ResourcesConfiguration:
         self.__set_white_matter_tract_parameters()
         self.__set_default_parameters()
 
-        date = datetime.date.today().strftime('%d-%m-%Y')
-        hour = time.strftime("%H:%M:%S")
+        date = datetime.date.today().strftime('%d%m%Y')
+        hour = time.strftime("%H%M%S")
         # date = datetime.date.today().strftime('%d%m%Y')
         # hour = time.strftime("%H%M%S")
         timestamp = date + '_' + hour
@@ -146,7 +146,8 @@ class ResourcesConfiguration:
             self.white_matter_tracts['MNI']['BrainLab'][n] = tract_fn
 
     def __set_default_parameters(self):
-        self.ants_root = '/home/dbouget/Documents/Libraries/ANTsX'
+        # @TODO: This should not be hard-coded. Add a method for setting these paths
+        self.ants_root = '/home/dbouget/Documents/Libraries/ANTsX' 
         # self.ants_root = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../', 'ANTsX')
         os.environ["ANTSPATH"] = os.path.join(self.ants_root, "build/bin/")
         self.ants_reg_dir = os.path.join(self.ants_root, 'src', 'Scripts')

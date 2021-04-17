@@ -1,14 +1,9 @@
 # -*- mode: python ; coding: utf-8 -*-
 
-# necessary for MacOS?
+# necessary for MacOS
 import os 
-#os.environ['LC_CTYPE'] = "en_US.UTF-8"
-
 os.environ['LC_CTYPE'] = "en_US.UTF-8"
 os.environ['LANG'] = "en_US.UTF-8"
-
-#export LC_ALL=en_US.UTF-8
-#export LANG=en_US.UTF-8
 
 # work-around for https://github.com/pyinstaller/pyinstaller/issues/4064
 import distutils
@@ -56,13 +51,12 @@ pyz = PYZ(a.pure, a.zipped_data,
 exe = EXE(pyz,
           a.scripts,
           a.binaries,
-          #Tree("./stuff/"),
           Tree("./tmp_dependencies/"),
           a.zipfiles,
           a.datas,
           [],
           name='NeuroRADS',
-          debug=True,  # should be set to False, but needed to debug on MacOSX
+          debug=False,  # should be set to False, but needed to debug on MacOSX
           bootloader_ignore_signals=False,
           strip=False,
           upx=True,

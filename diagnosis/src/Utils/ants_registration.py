@@ -24,7 +24,7 @@ class ANTsRegistration:
         os.makedirs(self.registration_folder, exist_ok=True)
         self.transform_names = []
         self.inverse_transform_names = []
-        self.backend = 'python'  # cpp, python
+        self.backend = 'python'  # cpp, python  # @TODO: This should be possible to set from the main.py
 
     def clean(self):
         shutil.copyfile(src=os.path.join(self.registration_folder, 'Warped.nii.gz'),
