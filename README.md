@@ -8,7 +8,7 @@ Using PyInstaller for building Python projects on various operating systems work
 
 ### Dependencies
 
-1. Need to have installed Python3.6 on your machine (for Ubuntu/MacOSX, on Windows install Python3.7), and added to the environmental variables. Essentially Python3==Python3.6.
+1. Need to have installed Python on your machine (Python3.6 for Ubuntu/MacOSX, on Windows install Python3.7), and added to the environmental variables.
 2. Also should have [**virtualenv**](https://pypi.org/project/virtualenv/) installed, in order to make virtual environments (pip install virtualenv).
 3. CMake need to be installed on the machine, as ANTsPy depends on it for being built/installed through pip. This is the warning you might get otherwise:
 ```
