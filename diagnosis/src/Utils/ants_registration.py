@@ -77,6 +77,8 @@ class ANTsRegistration:
         moving_ants = ants.image_read(moving, dimension=3)
         fixed_ants = ants.image_read(fixed, dimension=3)
         try:
+            # @FIXME: "antsRegistrationSyNQuick[s]" does not work across all platforms, so I temporarily swapped with "SyN".
+            #   Read docs for supported transforms: https://antspy.readthedocs.io/en/latest/_modules/ants/registration/interface.html
             self.reg_transform = ants.registration(fixed_ants, moving_ants, 'SyN')
             warped_input = ants.apply_transforms(fixed=fixed_ants,
                                                   moving=moving_ants,
