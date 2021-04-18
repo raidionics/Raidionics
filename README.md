@@ -2,6 +2,8 @@
 
 Simple project for building binary releases of Python code for Ubuntu/MacOSX/Windows using [PyInstaller](https://github.com/pyinstaller/pyinstaller).
 
+## How to use?
+Download binary release form the **tags** section. We currently support Ubuntu Linux (v18), MacOSX (>= high-sierra) and Windows (v10).
 
 ## How to build:
 Using PyInstaller for building Python projects on various operating systems works well. However, [ANTs](https://github.com/ANTsX/ANTs) has limited support for Windows. Currently, the only stable way to use ANTs, is to use [ANTsPy](https://github.com/ANTsX/ANTsPy). Even still, on Windows, one have to install ANTsPy in a different way. Thus, read carefully through this tutorial before starting, to avoid having to start all over.
@@ -59,6 +61,14 @@ The binary release will be place in dist/.
 Ubuntu and MacOSX > ./dist/NeuroRADS
 Windows > ./dist/NeuroRADS.exe
 ```
+
+## TODOs (most important from top to bottom):
+
+- [x] Use PyInstaller to produce release that encrypts the code and trained models into **one** file
+- [x] Achieve multi-OS support for Ubuntu Linux, MacOSX and Windows
+- [ ] Finish the GUI for release
+- [ ] Re-build and produce binary releases for all relevant operating systems
+- [ ] Publish release in open repository
 
 ## TIPS
 
