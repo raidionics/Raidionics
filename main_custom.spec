@@ -6,9 +6,11 @@ os.environ['LC_CTYPE'] = "en_US.UTF-8"
 os.environ['LANG'] = "en_US.UTF-8"
 
 # work-around for https://github.com/pyinstaller/pyinstaller/issues/4064
+'''
 import distutils
 if distutils.distutils_path.endswith('__init__.py'):
     distutils.distutils_path = os.path.dirname(distutils.distutils_path)
+'''
 
 from PyInstaller.utils.hooks import collect_data_files
 from numpy import loadtxt

@@ -77,7 +77,7 @@ class ANTsRegistration:
         moving_ants = ants.image_read(moving, dimension=3)
         fixed_ants = ants.image_read(fixed, dimension=3)
         try:
-            self.reg_transform = ants.registration(fixed_ants, moving_ants, 'antsRegistrationSyNQuick[s]')
+            self.reg_transform = ants.registration(fixed_ants, moving_ants, 'SyN')
             warped_input = ants.apply_transforms(fixed=fixed_ants,
                                                   moving=moving_ants,
                                                   transformlist=self.reg_transform['fwdtransforms'],
