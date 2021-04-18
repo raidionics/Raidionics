@@ -69,6 +69,8 @@ Windows > ./dist/NeuroRADS.exe
 - [ ] Finish the GUI for release
 - [ ] Re-build and produce binary releases for all relevant operating systems
 - [ ] Publish release in open repository
+- [ ] Add MenuBar to make software more natural?
+- [ ] Add option to set input, segmentation and output path from command line? Simple way to support batch mode
 
 ## TIPS
 
