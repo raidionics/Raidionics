@@ -4,10 +4,11 @@ Simple project for building binary releases of Python code for Ubuntu/MacOSX/Win
 
 
 ## How to build:
+Using PyInstaller for building Python projects on various operating systems works well. However, [ANTs](https://github.com/ANTsX/ANTs) has limited support for Windows. Currently, the only stable way to use ANTs, is to use [ANTsPy](https://github.com/ANTsX/ANTsPy). Even still, on Windows, one have to install ANTsPy in a different way. Thus, read carefully through this tutorial before starting, to avoid having to start all over.
 
 ### Dependencies
 
-1. Need to have installed Python3.6 on your machine, and added to the environmental variables. Essentially Python3==Python3.6.
+1. Need to have installed Python3.6 on your machine (for Ubuntu/MacOSX, on Windows install Python3.7), and added to the environmental variables. Essentially Python3==Python3.6.
 2. Also should have [**virtualenv**](https://pypi.org/project/virtualenv/) installed, in order to make virtual environments (pip install virtualenv).
 3. CMake need to be installed on the machine, as ANTsPy depends on it for being built/installed through pip. This is the warning you might get otherwise:
 ```
@@ -27,6 +28,12 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
+2. Install ANTs. Recommended way is to install ANTsPy, due to issues with Windows, and also simplifies packaging of software for deployment (note that different OS may have different OS, depending on what is available for the specific OS):
+```
+Ubuntu and MaxOSX: > pip install antspyx
+Windows: > pip install https://github.com/SGotla/ANTsPy/releases/download/0.1.7Win64/antspy-0.1.7-cp37-cp37m-win_amd64.whl
+```
+
 2. Download model/config data, create the specified folder structure inside segmentation/ and place it there:
 ```
 mkdir segmentation/resources/models/MRI_Brain/
@@ -38,16 +45,19 @@ mv path-to-some-model-data project-dir-path/segmentation/resources/models/MRI_Br
 pip install pyinstaller==4.2
 ```
 
-4. Build binary release, from the folder directory:
+4. Build binary release, from the folder directory (note that Windows should have a Python3.7 virtual environment here):
 ```
-pyinstaller --noconfirm --clean --onefile --paths=./venv/lib/python3.6/site-packages/ants main_custom.spec
+Ubuntu > pyinstaller --noconform --clean --onefile --paths=./venv/lib/python3.6/site-packages/ants main_custom.spec
+MacOSX > pyinstaller --noconfirm --clean --onefile --paths=./venv/lib/python3.6/site-packages/ants main_custom.spec
+Windows > pyinstaller --noconfirm --clean --onefile --paths=./venv/lib/site-packages/ants main_custom.spec
 ```
 
 The binary release will be place in dist/.
 
 5. Run the release:
 ```
-./dist/NeuroRADS
+Ubuntu and MacOSX > ./dist/NeuroRADS
+Windows > ./dist/NeuroRADS.exe
 ```
 
 ## TIPS
@@ -59,15 +69,12 @@ On Windows the virtual environment can be activate by:
 ./venv/Scripts/activate.ps1
 ```
 
-The extension of the software varies depending on the OS. On Windows run:
+Create virtual environment using specific Python version (example from Win10 machine):
 ```
-./dist/NeuroRADS.exe
+virtualenv --python=C:\Users\andrp\AppData\local\Programs\Python\python37\python.exe venv37 --clear
 ```
 
-and on Linux/MacOSX (UNIX):
-```
-./dist/NeuroRADS
-```
+I was able to build ANTs on Win10, but I had issues with 32-bit/64-bit. I couldn't make that work. Thus, use ANTsPy instead, and for Windows use [SGotla's fix](https://github.com/SGotla/ANTsPy/releases). Future work should be to adapt what SGotla did to see if one could do the same for the most recent versions of ANTs.
 
 
 
