@@ -71,6 +71,7 @@ Windows > ./dist/NeuroRADS.exe
 - [ ] Publish release in open repository
 - [ ] Add MenuBar to make software more natural?
 - [ ] Add option to set input, segmentation and output path from command line? Simple way to support batch mode
+- [ ] Bug: Unable to run analysis again (after initial run has been made) - prompted (This class is a singleton!)
 
 ## TIPS
 
