@@ -36,33 +36,32 @@ class NeuroDiagnostics:
 
     def run(self):
         # Generating the brain mask for the input file
-        print('LOG: Brain extraction - Begin (Step 1/?)')
+        print('LOG: Brain extraction - Begin (Step 1/6)')
         brain_mask_filepath = perform_brain_extraction(image_filepath=self.input_filename)
-        print('LOG: Brain extraction - End (Step 1/?)')
+        print('LOG: Brain extraction - End (Step 1/6)')
 
         # Generating brain-masked fixed and moving images
-        print('LOG: Registration preprocessing - Begin (Step 2/?)')
+        print('LOG: Registration preprocessing - Begin (Step 2/6)')
         input_masked_filepath = perform_brain_masking(image_filepath=self.input_filename,
                                                       mask_filepath=brain_mask_filepath)
         atlas_masked_filepath = perform_brain_masking(image_filepath=self.atlas_brain_filepath,
                                                       mask_filepath=ResourcesConfiguration.getInstance().mni_atlas_brain_mask_filepath)
-        print('LOG: Registration preprocessing - End (Step 2/?)')
+        print('LOG: Registration preprocessing - End (Step 2/6)')
 
         # Performing registration
-        print('LOG: Registration - Begin (Step 3/?)')
+        print('LOG: Registration - Begin (Step 3/6)')
         self.registration_runner.compute_registration(fixed=atlas_masked_filepath, moving=input_masked_filepath,
                                                       registration_method='sq')
-        print('LOG: Registration - End (Step 3/?)')
+        print('LOG: Registration - End (Step 3/6)')
 
         # Performing tumor segmentation
-        # if self.from_slicer:
-        #     print('SLICERLOG: Tumor segmentation - Begin')
-        # seg_fn = self.__perform_tumor_segmentation()
-        # if self.from_slicer:
-        #     print('SLICERLOG: Tumor segmentation - End')
+        if not os.path.exists(self.input_segmentation):
+            print('LOG: Tumor segmentation - Begin (Step 4/6)')
+            self.input_segmentation = self.__perform_tumor_segmentation()
+            print('LOG: Tumor segmentation - End (Step 4/6)')
 
         # Registering the tumor to the atlas
-        print('LOG: Apply registration - Begin (Step 4/?)')
+        print('LOG: Apply registration - Begin (Step 5/6)')
         self.registration_runner.apply_registration_transform(moving=self.input_segmentation,
                                                               fixed=self.atlas_brain_filepath,
                                                               interpolation='nearestNeighbor')
@@ -71,20 +70,18 @@ class NeuroDiagnostics:
         self.registration_runner.apply_registration_inverse_transform(moving=ResourcesConfiguration.getInstance().mni_atlas_lobes_mask_filepath,
                                                                       fixed=self.input_filename,
                                                                       interpolation='nearestNeighbor')
-        print('LOG: Apply registration - End (Step 4/?)')
+        print('LOG: Apply registration - End (Step 5/6)')
 
-        if self.from_slicer:
-            print('SLICERLOG: White matter tracts registration - Begin')
+        # print('LOG: White matter tracts registration - Begin')
         # self.__generate_tracts_masks()
-        if self.from_slicer:
-            print('SLICERLOG: White matter tracts registration - End')
+        # print('LOG: White matter tracts registration - End')
 
         # Computing tumor location and statistics
-        print('SLICERLOG: Generate report - Begin')
+        print('LOG: Generate report - Begin (Step 6/6)')
         self.__compute_statistics()
         self.diagnosis_parameters.to_txt(self.output_report_filepath)
         self.diagnosis_parameters.to_csv(self.output_report_filepath[:-4] + '.csv')
-        print('SLICERLOG: Generate report - End')
+        print('LOG: Generate report - End (Step 6/6)')
 
         # Cleaning the temporary files
         # self.registration_runner.clean()
@@ -96,31 +93,24 @@ class NeuroDiagnostics:
         # self.__generate_tract_description_file_slicer()
 
     def __perform_tumor_segmentation(self):
-        if not ResourcesConfiguration.getInstance().neuro_diagnosis_preexisting_tumor_filename is None \
-                and os.path.exists(ResourcesConfiguration.getInstance().neuro_diagnosis_preexisting_tumor_filename):
-            tumor_predictions_file = ResourcesConfiguration.getInstance().neuro_diagnosis_preexisting_tumor_filename
-        else:
-            tumor_predictions_file = os.path.join(self.output_path, 'tmp', 'Tumor')
-            script_path = os.path.join(ResourcesConfiguration.getInstance().sintef_segmenter_path, 'main.py')
-            subprocess.call(['python3', '{script}'.format(script=script_path),
-                             '-t{task}'.format(task='segmentation'),
-                             '-i{input}'.format(input=self.input_filename),
-                             '-o{output}'.format(output=tumor_predictions_file),
-                             '-m{model}'.format(model=self.selected_model),
-                             '-g{gpu}'.format(gpu=os.environ["CUDA_VISIBLE_DEVICES"])])
+        predictions_file = None
+        output_folder = os.path.join(self.output_path, '')
+        main_segmentation(self.input_filename, output_folder, 'MRI_HGGlioma')
+        out_files = []
+        for _, _, files in os.walk(output_folder):
+            for f in files:
+                out_files.append(f)
+            break
 
-            out_files = []
-            for _, _, files in os.walk(os.path.dirname(tumor_predictions_file)):
-                for f in files:
-                    out_files.append(f)
+        for f in out_files:
+            if 'Tumor' in f:
+                predictions_file = os.path.join(output_folder, f)
                 break
 
-            for f in out_files:
-                if 'Tumor' in f:
-                    tumor_predictions_file = os.path.join(os.path.dirname(tumor_predictions_file), f)
-                    break
+        if not os.path.exists(predictions_file):
+            return None
 
-        tumor_pred_ni = load_nifti_volume(tumor_predictions_file)
+        tumor_pred_ni = load_nifti_volume(predictions_file)
         tumor_pred = tumor_pred_ni.get_data()[:]
 
         final_tumor_mask = np.zeros(tumor_pred.shape)
@@ -167,26 +157,23 @@ class NeuroDiagnostics:
         self.__compute_lobe_location(volume=refined_image, category='Main')
         self.__compute_tumor_volume(volume=refined_image, spacing=registered_tumor_ni.header.get_zooms(), category='Main')
         self.__compute_resection_features(volume=refined_image, category='Main')
-        self.__compute_distance_to_tracts(volume=refined_image, spacing=registered_tumor_ni.header.get_zooms(), category='Main')
-        self.__compute_tract_disconnection_probability(volume=refined_image, spacing=registered_tumor_ni.header.get_zooms(), category='Main')
+        # self.__compute_distance_to_tracts(volume=refined_image, spacing=registered_tumor_ni.header.get_zooms(), category='Main')
+        # self.__compute_tract_disconnection_probability(volume=refined_image, spacing=registered_tumor_ni.header.get_zooms(), category='Main')
 
         # If the tumor is multifocal, we recompute everything for each piece of the tumor
-        if self.tumor_multifocal:
-            for c, clus in enumerate(tumor_clusters_labels):
-                # pfile = open(self.output_report_filepath, 'a')
-                # pfile.write('\n\nPart {}\n'.format(c+1))
-                # pfile.close()
-                cluster_image = np.zeros(refined_image.shape)
-                cluster_image[tumor_clusters == (c+1)] = 1
-                self.__compute_lateralisation(volume=cluster_image, category=str(c+1))
-                self.__compute_lobe_location(volume=cluster_image, category=str(c+1))
-                self.__compute_tumor_volume(volume=cluster_image, spacing=registered_tumor_ni.header.get_zooms(),
-                                            category=str(c+1))
-                self.__compute_resection_features(volume=cluster_image, category=str(c+1))
-                self.__compute_distance_to_tracts(volume=cluster_image, spacing=registered_tumor_ni.header.get_zooms(),
-                                                  category=str(c+1))
-                self.__compute_tract_disconnection_probability(volume=cluster_image, spacing=registered_tumor_ni.header.get_zooms(),
-                                                               category=str(c+1))
+        if self.diagnosis_parameters.tumor_multifocal:
+        #     for c, clus in enumerate(tumor_clusters_labels):
+        #         cluster_image = np.zeros(refined_image.shape)
+        #         cluster_image[tumor_clusters == (c+1)] = 1
+        #         self.__compute_lateralisation(volume=cluster_image, category=str(c+1))
+        #         self.__compute_lobe_location(volume=cluster_image, category=str(c+1))
+        #         self.__compute_tumor_volume(volume=cluster_image, spacing=registered_tumor_ni.header.get_zooms(),
+        #                                     category=str(c+1))
+        #         self.__compute_resection_features(volume=cluster_image, category=str(c+1))
+        #         self.__compute_distance_to_tracts(volume=cluster_image, spacing=registered_tumor_ni.header.get_zooms(),
+        #                                           category=str(c+1))
+        #         self.__compute_tract_disconnection_probability(volume=cluster_image, spacing=registered_tumor_ni.header.get_zooms(),
+        #                                                        category=str(c+1))
 
             # Generate the same clusters on the original segmentation mask
             tumor_mask_ni = nib.load(os.path.join(self.output_path, 'input_tumor_mask.nii.gz'))
@@ -200,7 +187,7 @@ class NeuroDiagnostics:
             refined_image[refined_image != 0] = 1
             tumor_clusters = measurements.label(refined_image)[0]
             cluster_ni = nib.Nifti1Image(tumor_clusters, affine=tumor_mask_ni.affine)
-            nib.save(cluster_ni, os.path.join(self.output_path, 'input_tumor_mask.nii.gz'))
+            nib.save(cluster_ni, os.path.join(self.output_path, 'input_tumor_mask_clustered.nii.gz'))
 
     def __compute_multifocality(self, volume, spacing):
         multifocality = None

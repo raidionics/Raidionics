@@ -26,7 +26,7 @@ class MainWindow(QMainWindow):
         # Install the custom output stream
         sys.stdout = EmittingStream(textWritten=self.standardOutputWritten)
         self.app = application
-        self.app.setStyle("Windows")  # ugly af :'( Fusion4theWin
+        self.app.setStyle("Fusion")  # ugly af :'( Fusion4theWin
         self.__set_interface()
         self.__set_connections()
         self.__set_params()
@@ -75,6 +75,8 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.output_folder_pushbutton, 3, 1, 1, 1)
 
         self.run_button = QPushButton('Run diagnosis')
+        # self.run_button.setFixedWidth(self.button_width)
+        # self.run_button.setFixedHeight(self.button_height)
         layout.addWidget(self.run_button, 4, 0, 1, 1)
 
         self.prompt_lineedit = QPlainTextEdit()
@@ -134,8 +136,8 @@ class MainWindow(QMainWindow):
         popup.exec_()
 
     def run_diagnosis(self):
-        if not os.path.exists(self.input_image_filepath) or not os.path.exists(self.input_annotation_filepath) or not os.path.exists(self.output_folderpath):
-            self.standardOutputWritten('Process could not be started - The three above-fields must be filled in.\n')
+        if not os.path.exists(self.input_image_filepath) or not os.path.exists(self.output_folderpath):
+            self.standardOutputWritten('Process could not be started - The 1st and 3rd above-fields must be filled in.\n')
             return
 
         self.run_button.setEnabled(False)

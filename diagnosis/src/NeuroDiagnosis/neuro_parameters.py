@@ -47,13 +47,23 @@ class NeuroDiagnosisParameters:
 
     def to_txt(self, filename):
         pfile = open(filename, 'a')
-        pfile.write('######### Glioma RADS report #########\n')
+        pfile.write('######### GSI-RADS report #########\n')
         pfile.write('Tumor found: {}\n'.format(self.tumor_presence_state))
         if not self.tumor_presence_state:
             pfile.close()
             return
         pfile.write('Tumor multifocality: {}\n'.format(self.tumor_multifocal))
+        pfile.write('\tNumber tumor parts: {}\n'.format(self.tumor_parts))
+        pfile.write('\tLargest distance between components: {} (mm)\n'.format(np.round(self.tumor_multifocal_distance, 2)))
 
+        pfile.write('Volumes\n')
+        pfile.write('\tOriginal space: {} (ml)\n'.format(-1.))
+        pfile.write('\tMNI space: {} (ml)\n'.format(self.statistics['Main']['Overall'].mni_space_tumor_volume))
+
+        pfile.write('Laterality\n')
+        pfile.write('\tLeft hemisphere: {}%\n'.format(np.round(self.statistics['Main']['Overall'].left_laterality_percentage * 100., 2)))
+        pfile.write('\tRight hemisphere: {}%\n'.format(np.round(self.statistics['Main']['Overall'].right_laterality_percentage * 100., 2)))
+        pfile.write('\tMidline crossing: {}\n'.format(self.statistics['Main']['Overall'].laterality_midline_crossing))
         pfile.close()
         return
 
@@ -61,7 +71,7 @@ class NeuroDiagnosisParameters:
         values = [self.tumor_multifocal, self.tumor_parts, np.round(self.tumor_multifocal_distance, 2)]
         column_names = ['Multifocality', 'Tumor parts nb', 'Multifocal distance (mm)']
 
-        values.extend([self.statistics['Main']['Overall'].mni_space_tumor_volume, -1.])
+        values.extend([-1., self.statistics['Main']['Overall'].mni_space_tumor_volume])
         column_names.extend(['Volume original (ml)', 'Volume in MNI (ml)'])
 
         values.extend([np.round(self.statistics['Main']['Overall'].left_laterality_percentage*100., 2),

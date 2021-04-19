@@ -20,7 +20,7 @@ def perform_brain_extraction(image_filepath):
 def perform_custom_brain_extraction(image_filepath, folder):
     brain_predictions_file = None
     output_folder = os.path.join(folder, '')
-    main_segmentation(image_filepath, output_folder)
+    main_segmentation(image_filepath, output_folder, 'MRI_Brain')
     out_files = []
     for _, _, files in os.walk(folder):
         for f in files:
