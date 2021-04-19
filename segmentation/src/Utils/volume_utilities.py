@@ -13,7 +13,7 @@ def crop_MR(volume, parameters):
     volume = binary_fill_holes(volume).astype(np.uint8)
     regions = regionprops(volume)
     min_row, min_col, min_depth, max_row, max_col, max_depth = regions[0].bbox
-    print('cropping params', min_row, min_col, min_depth, max_row, max_col, max_depth)
+    print('Cropping params', min_row, min_col, min_depth, max_row, max_col, max_depth)
 
     cropped_volume = original_volume[min_row:max_row, min_col:max_col, min_depth:max_depth]
     bbox = [min_row, min_col, min_depth, max_row, max_col, max_depth]

@@ -12,7 +12,8 @@ import sys
 from shutil import copy
 from math import ceil, floor
 from copy import deepcopy
-from segmentation.src.Utils.volume_utilities import padding_for_inference, padding_for_inference_both_ends
+from segmentation.src.Utils.volume_utilities import padding_for_inference, padding_for_inference_both_endsf
+from tqdm import tqdm
 
 
 def run_predictions(data, model_path, parameters):
@@ -81,7 +82,7 @@ def __run_predictions_slabbed(data, model, parameters, deep_supervision=False):
         data, pad_value = padding_for_inference(data=data, slab_size=slab_size, slicing_plane=slicing_plane)
         scale = ceil(upper_boundary / slab_size)
         unpad = False
-        for chunk in range(scale):
+        for chunk in tqdm(range(scale)):
             if chunk == scale-1 and pad_value != 0:
                 unpad = True
 
@@ -124,11 +125,10 @@ def __run_predictions_slabbed(data, model, parameters, deep_supervision=False):
                         final_result[:, int(chunk * slab_size):, :, c] = \
                             slab_CT_pred[0][:, :, :slab_size-pad_value, c].transpose((0, 2, 1))
 
-            print(count)
             count = count + 1
     else:
         if slab_size == 1:
-            for slice in range(0, data.shape[2]):
+            for slice in tqdm(range(0, data.shape[2])):
                 slab_CT = data[:, :, slice, 0]
                 if np.sum(slab_CT > 0.1) == 0:
                     continue
@@ -140,7 +140,7 @@ def __run_predictions_slabbed(data, model, parameters, deep_supervision=False):
             data = padding_for_inference_both_ends(data=data, slab_size=slab_size, slicing_plane=slicing_plane)
             half_slab_size = int(slab_size / 2)
             #for slice in range(half_slab_size, upper_boundary - half_slab_size):
-            for slice in range(half_slab_size, upper_boundary):
+            for slice in tqdm(range(half_slab_size, upper_boundary)):
                 if slicing_plane == 'axial':
                     slab_CT = data[:, :, slice - half_slab_size:slice + half_slab_size, 0]
                 elif slicing_plane == 'sagittal':
@@ -169,7 +169,6 @@ def __run_predictions_slabbed(data, model, parameters, deep_supervision=False):
                     elif slicing_plane == 'coronal':
                         final_result[:, slice, :, c] = slab_CT_pred[0][:, :, half_slab_size, c]
 
-                print(count)
                 count = count + 1
 
     return final_result
