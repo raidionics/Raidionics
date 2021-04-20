@@ -16,7 +16,7 @@ def load_nifti_volume(volume_path):
 
 
 def dump_predictions(predictions, parameters, nib_volume, storage_prefix):
-    print("Writing predictions to files...")
+    # print("Writing predictions to files...")
     naming_suffix = 'pred' if parameters.predictions_reconstruction_method == 'probabilities' else 'labels'
     class_names = parameters.training_class_names
 

@@ -7,10 +7,10 @@ from segmentation.src.Utils.io import load_nifti_volume
 
 
 def run_pre_processing(filename, pre_processing_parameters, storage_prefix):
-    print("Extracting data...")
+    # print("Extracting data...")
     nib_volume = load_nifti_volume(filename)
 
-    print("Pre-processing...")
+    # print("Pre-processing...")
     # Normalize spacing
     new_spacing = pre_processing_parameters.output_spacing
     if pre_processing_parameters.output_spacing == None:

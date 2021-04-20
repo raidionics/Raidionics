@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 from copy import deepcopy
 import operator
@@ -86,15 +87,16 @@ class NeuroDiagnostics:
         # Cleaning the temporary files
         # self.registration_runner.clean()
         # if not ResourcesConfiguration.getInstance().diagnosis_full_trace:
-        #     tmp_folder = os.path.join(self.output_path, 'tmp')
-        #     shutil.rmtree(tmp_folder)
-        #
+        tmp_folder = os.path.join(self.output_path, 'tmp')
+        shutil.rmtree(tmp_folder)
+
         # self.__generate_lobe_description_file_slicer()
         # self.__generate_tract_description_file_slicer()
 
     def __perform_tumor_segmentation(self):
         predictions_file = None
-        output_folder = os.path.join(self.output_path, '')
+        output_folder = os.path.join(self.output_path, 'tmp', '')
+        os.makedirs(output_folder, exist_ok=True)
         main_segmentation(self.input_filename, output_folder, 'MRI_HGGlioma')
         out_files = []
         for _, _, files in os.walk(output_folder):
@@ -114,7 +116,7 @@ class NeuroDiagnostics:
         tumor_pred = tumor_pred_ni.get_data()[:]
 
         final_tumor_mask = np.zeros(tumor_pred.shape)
-        # @TODO. Have to retrieve the optimal threshold corresponding to the model used?
+        # Hard-coded probability threshold value for this specific model
         final_tumor_mask[tumor_pred >= 0.5] = 1
         final_tumor_mask = final_tumor_mask.astype('uint8')
         final_tumor_mask_filename = os.path.join(self.output_path, 'input_tumor_mask.nii.gz')
@@ -152,42 +154,54 @@ class NeuroDiagnostics:
         self.diagnosis_parameters.tumor_type = None
 
         # Computing localisation and lateralisation for the whole tumoral extent
+        self.__compute_original_volume()
         self.__compute_multifocality(volume=refined_image, spacing=registered_tumor_ni.header.get_zooms())
         self.__compute_lateralisation(volume=refined_image, category='Main')
-        self.__compute_lobe_location(volume=refined_image, category='Main')
-        self.__compute_tumor_volume(volume=refined_image, spacing=registered_tumor_ni.header.get_zooms(), category='Main')
+        self.__compute_tumor_volume(volume=refined_image, spacing=registered_tumor_ni.header.get_zooms(),
+                                    category='Main')
         self.__compute_resection_features(volume=refined_image, category='Main')
-        # self.__compute_distance_to_tracts(volume=refined_image, spacing=registered_tumor_ni.header.get_zooms(), category='Main')
-        # self.__compute_tract_disconnection_probability(volume=refined_image, spacing=registered_tumor_ni.header.get_zooms(), category='Main')
+        # self.__compute_lobe_location(volume=refined_image, category='Main')
+        self.__compute_anatomical_region_location(volume=refined_image, category='Main', reference='MNI')
+        self.__compute_anatomical_region_location(volume=refined_image, category='Main', reference='Harvard-Oxford')
+        self.__compute_anatomical_region_location(volume=refined_image, category='Main', reference='Schaefer7')
+        self.__compute_anatomical_region_location(volume=refined_image, category='Main', reference='Schaefer17')
+        self.__compute_distance_to_tracts(volume=refined_image, spacing=registered_tumor_ni.header.get_zooms(), category='Main')
+        self.__compute_tract_disconnection_probability(volume=refined_image, spacing=registered_tumor_ni.header.get_zooms(), category='Main')
 
         # If the tumor is multifocal, we recompute everything for each piece of the tumor
-        if self.diagnosis_parameters.tumor_multifocal:
-        #     for c, clus in enumerate(tumor_clusters_labels):
-        #         cluster_image = np.zeros(refined_image.shape)
-        #         cluster_image[tumor_clusters == (c+1)] = 1
-        #         self.__compute_lateralisation(volume=cluster_image, category=str(c+1))
-        #         self.__compute_lobe_location(volume=cluster_image, category=str(c+1))
-        #         self.__compute_tumor_volume(volume=cluster_image, spacing=registered_tumor_ni.header.get_zooms(),
-        #                                     category=str(c+1))
-        #         self.__compute_resection_features(volume=cluster_image, category=str(c+1))
-        #         self.__compute_distance_to_tracts(volume=cluster_image, spacing=registered_tumor_ni.header.get_zooms(),
-        #                                           category=str(c+1))
-        #         self.__compute_tract_disconnection_probability(volume=cluster_image, spacing=registered_tumor_ni.header.get_zooms(),
-        #                                                        category=str(c+1))
+        # if self.diagnosis_parameters.tumor_multifocal:
+        # #     for c, clus in enumerate(tumor_clusters_labels):
+        # #         cluster_image = np.zeros(refined_image.shape)
+        # #         cluster_image[tumor_clusters == (c+1)] = 1
+        # #         self.__compute_lateralisation(volume=cluster_image, category=str(c+1))
+        # #         self.__compute_lobe_location(volume=cluster_image, category=str(c+1))
+        # #         self.__compute_tumor_volume(volume=cluster_image, spacing=registered_tumor_ni.header.get_zooms(),
+        # #                                     category=str(c+1))
+        # #         self.__compute_resection_features(volume=cluster_image, category=str(c+1))
+        # #         self.__compute_distance_to_tracts(volume=cluster_image, spacing=registered_tumor_ni.header.get_zooms(),
+        # #                                           category=str(c+1))
+        # #         self.__compute_tract_disconnection_probability(volume=cluster_image, spacing=registered_tumor_ni.header.get_zooms(),
+        # #                                                        category=str(c+1))
+        #
+        #     # Generate the same clusters on the original segmentation mask
+        #     tumor_mask_ni = nib.load(os.path.join(self.output_path, 'input_tumor_mask.nii.gz'))
+        #     tumor_mask = tumor_mask_ni.get_data()[:]
+        #     img_ero = binary_closing(tumor_mask, structure=kernel, iterations=1)
+        #     tumor_clusters = measurements.label(img_ero)[0]
+        #     refined_image = deepcopy(tumor_clusters)
+        #     for c in range(1, np.max(tumor_clusters) + 1):
+        #         if np.count_nonzero(tumor_clusters == c) < cluster_size_cutoff_in_pixels:
+        #             refined_image[refined_image == c] = 0
+        #     refined_image[refined_image != 0] = 1
+        #     tumor_clusters = measurements.label(refined_image)[0]
+        #     cluster_ni = nib.Nifti1Image(tumor_clusters, affine=tumor_mask_ni.affine)
+        #     nib.save(cluster_ni, os.path.join(self.output_path, 'input_tumor_mask_clustered.nii.gz'))
 
-            # Generate the same clusters on the original segmentation mask
-            tumor_mask_ni = nib.load(os.path.join(self.output_path, 'input_tumor_mask.nii.gz'))
-            tumor_mask = tumor_mask_ni.get_data()[:]
-            img_ero = binary_closing(tumor_mask, structure=kernel, iterations=1)
-            tumor_clusters = measurements.label(img_ero)[0]
-            refined_image = deepcopy(tumor_clusters)
-            for c in range(1, np.max(tumor_clusters) + 1):
-                if np.count_nonzero(tumor_clusters == c) < cluster_size_cutoff_in_pixels:
-                    refined_image[refined_image == c] = 0
-            refined_image[refined_image != 0] = 1
-            tumor_clusters = measurements.label(refined_image)[0]
-            cluster_ni = nib.Nifti1Image(tumor_clusters, affine=tumor_mask_ni.affine)
-            nib.save(cluster_ni, os.path.join(self.output_path, 'input_tumor_mask_clustered.nii.gz'))
+    def __compute_original_volume(self):
+        segmentation_ni = nib.load(self.input_segmentation)
+        segmentation_mask = segmentation_ni.get_data()[:]
+        volume = np.count_nonzero(segmentation_mask) * 1e-3
+        self.diagnosis_parameters.statistics['Main']['Overall'].original_space_tumor_volume = volume
 
     def __compute_multifocality(self, volume, spacing):
         multifocality = None
@@ -201,21 +215,23 @@ class NeuroDiagnostics:
             multifocal_elements = 0
             # Computing the radius of the largest component
             radiuses = []
+            parts_labels = []
             for l in range(len(tumor_clusters_labels)):
-                radiuses.append(tumor_clusters_labels[l].equivalent_diameter / 2.)
                 volume_ml = np.count_nonzero(tumor_clusters == (l + 1)) * np.prod(spacing[0:3]) * 1e-3
-                if volume_ml >= 0.1:
+                if volume_ml >= 0.1:  # Discarding tumor parts smaller than 0.1 ml
                     multifocal_elements = multifocal_elements + 1
+                    radiuses.append(tumor_clusters_labels[l].equivalent_diameter / 2.)
+                    parts_labels.append(l)
             max_radius = np.max(radiuses)
-            max_radius_index = radiuses.index(max_radius)
+            max_radius_index = parts_labels[radiuses.index(max_radius)]
 
             # Computing the minimum distances between each component?
             main_tumor_label = np.zeros(volume.shape)
             main_tumor_label[tumor_clusters == (max_radius_index + 1)] = 1
-            for l in range(len(tumor_clusters_labels)):
-                if l != max_radius_index:
+            for l, lab in enumerate(parts_labels):
+                if lab != max_radius_index:
                     satellite_label = np.zeros(volume.shape)
-                    satellite_label[tumor_clusters == (l + 1)] = 1
+                    satellite_label[tumor_clusters == (lab + 1)] = 1
                     dist = hd95(satellite_label, main_tumor_label, voxelspacing=spacing, connectivity=1)
                     # hd1 = medpy_sd(satellite_label, main_tumor_label, voxelspacing=spacing, connectivity=1).min()
                     # hd2 = medpy_sd(main_tumor_label, satellite_label, voxelspacing=spacing, connectivity=1).min()
@@ -267,6 +283,31 @@ class NeuroDiagnostics:
             overlap_per_lobe[lobes_description.loc[lobes_description['Label'] == li]['Region'].values[0] + '_' + lobes_description.loc[lobes_description['Label'] == li]['Laterality'].values[0]] = np.round(ratio_in_lobe * 100., 2)
 
         self.diagnosis_parameters.statistics[category]['Overall'].mni_space_lobes_overlap = overlap_per_lobe
+
+    def __compute_anatomical_region_location(self, volume, category=None, reference='MNI'):
+        regions_data = ResourcesConfiguration.getInstance().regions_data['MNI'][reference]
+        region_mask_ni = nib.load(regions_data['Mask'])
+        region_mask = region_mask_ni.get_data()
+        lobes_description = pd.read_csv(regions_data['Description'])
+
+        # Computing the lobe location for the total volume extent
+        total_lobes_labels = np.unique(region_mask)[1:]  # Removing the background label with value 0.
+        overlap_per_lobe = {}
+        for li in total_lobes_labels:
+            overlap = volume[region_mask == li]
+            ratio_in_lobe = np.count_nonzero(overlap) / np.count_nonzero(volume)
+            overlap = np.round(ratio_in_lobe * 100., 2)
+            region_name = ''
+            if reference == 'MNI':
+                region_name = reference + '_' + lobes_description.loc[lobes_description['Label'] == li]['Region'].values[0] + '_' + lobes_description.loc[lobes_description['Label'] == li]['Laterality'].values[0] + '_' + category
+            elif reference == 'Harvard-Oxford':
+                region_name = reference + '_' + lobes_description.loc[lobes_description['Label'] == li]['Region-short'].values[
+                        0] + '_' + category
+            else:
+                region_name = reference + '_' + lobes_description.loc[lobes_description['Label'] == li]['Region'].values[
+                        0] + '_' + category
+            overlap_per_lobe[region_name] = overlap
+        self.diagnosis_parameters.statistics[category]['Overall'].mni_space_lobes_overlap[reference] = overlap_per_lobe
 
     def __compute_tumor_volume(self, volume, spacing, category=None):
         voxel_size = np.prod(spacing[0:3])
@@ -333,7 +374,7 @@ class NeuroDiagnostics:
             overlaps_columns.append('overlap_' + tfn.split('.')[0][:-4] + '_' + category)
             if np.count_nonzero(overlap_volume) != 0:
                 distances[tfn] = -1.
-                overlaps[tfn] = np.count_nonzero(overlap_volume) / np.count_nonzero(volume)
+                overlaps[tfn] = (np.count_nonzero(overlap_volume) / np.count_nonzero(volume)) * 100.
             else:
                 dist = -1.
                 if np.count_nonzero(reg_tract) > 0:

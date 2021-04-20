@@ -112,7 +112,7 @@ class MainWindow(QWidget):
             "NeuroRADS: This tool performes analysis of **something**. \n"
             "Developed by André Pedersen and David Bouget at SINTEF Health Research. \n"
             " \n"
-            "HOW TO USE SOFTWARE: \n"
+            "HOW TO USE THE SOFTWARE: \n"
             "1) Click 'Input MRI' to choose which MRI use in the analysis from the file explorer \n"
             "2) Click 'Input segmentation' to choose which filename and location to save the result \n"
             "3) Click 'Output destination' to choose which output directory to save the results \n"

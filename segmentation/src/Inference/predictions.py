@@ -12,7 +12,7 @@ import sys
 from shutil import copy
 from math import ceil, floor
 from copy import deepcopy
-from segmentation.src.Utils.volume_utilities import padding_for_inference, padding_for_inference_both_endsf
+from segmentation.src.Utils.volume_utilities import padding_for_inference, padding_for_inference_both_ends
 from tqdm import tqdm
 
 
@@ -26,7 +26,7 @@ def run_predictions(data, model_path, parameters):
 
 
 def __run_predictions_tensorflow(data, model_path, parameters):
-    print("Loading model...")
+    # print("Loading model...")
     model = load_model(model_path, compile=False)
 
     whole_input_at_once = False

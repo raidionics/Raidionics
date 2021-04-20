@@ -19,17 +19,18 @@ def perform_brain_extraction(image_filepath):
 
 def perform_custom_brain_extraction(image_filepath, folder):
     brain_predictions_file = None
-    output_folder = os.path.join(folder, '')
+    output_folder = os.path.join(folder, 'tmp', '')
+    os.makedirs(output_folder, exist_ok=True)
     main_segmentation(image_filepath, output_folder, 'MRI_Brain')
     out_files = []
-    for _, _, files in os.walk(folder):
+    for _, _, files in os.walk(output_folder):
         for f in files:
             out_files.append(f)
         break
 
     for f in out_files:
         if 'Brain' in f:
-            brain_predictions_file = os.path.join(folder, f)
+            brain_predictions_file = os.path.join(output_folder, f)
             break
 
     if not os.path.exists(brain_predictions_file):
@@ -53,7 +54,7 @@ def perform_custom_brain_extraction(image_filepath, folder):
 
     dump_brain_mask = final_brain_mask & brain_component
     dump_brain_mask_ni = nib.Nifti1Image(dump_brain_mask, affine=brain_mask_ni.affine)
-    dump_brain_mask_filepath = os.path.join(folder, 'binary_brain_mask.nii.gz')
+    dump_brain_mask_filepath = os.path.join(folder, 'input_brain_mask.nii.gz')
     nib.save(dump_brain_mask_ni, dump_brain_mask_filepath)
     return dump_brain_mask_filepath
 

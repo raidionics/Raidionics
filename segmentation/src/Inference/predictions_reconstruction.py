@@ -15,7 +15,7 @@ from copy import deepcopy
 
 
 def reconstruct_post_predictions(predictions, parameters, crop_bbox, nib_volume, resampled_volume):
-    print("Resampling predictions...")
+    # print("Resampling predictions...")
     reconstruction_method = parameters.predictions_reconstruction_method
     probability_thresholds = parameters.training_optimal_thresholds #parameters.predictions_probability_thresholds
     swap_input = parameters.swap_training_input
