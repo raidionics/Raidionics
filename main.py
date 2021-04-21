@@ -1,7 +1,10 @@
-# MacOS relevant
+# macOS relevant
 import os 
 os.environ['LC_CTYPE'] = "en_US.UTF-8"
 os.environ['LANG'] = "en_US.UTF-8"
+
+# macOS Big Sur related: https://stackoverflow.com/questions/64818879/is-there-any-solution-regarding-to-pyqt-library-doesnt-work-in-mac-os-big-sur/64856281
+os.environ['QT_MAC_WANTS_LAYER'] = '1'
 
 # relevant for PySide, Qt stuff. See issue here: https://www.programmersought.com/article/8605863159/
 import PySide2
