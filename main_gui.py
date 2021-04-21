@@ -1,8 +1,8 @@
 import sys, os
 from PySide2.QtWidgets import QApplication, QLabel, QMainWindow, QPushButton, QFileDialog, QGridLayout, QLineEdit,\
-    QMenuBar, QPlainTextEdit, QAction, QMessageBox, QTabWidget, QHBoxLayout, QVBoxLayout
-from PySide2.QtCore import Qt, QObject, Signal, QThread
-from PySide2.QtGui import QTextCursor, QPixmap, QIcon
+    QMenuBar, QPlainTextEdit, QAction, QMessageBox, QTabWidget, QHBoxLayout, QVBoxLayout, QSizePolicy, QTextEdit
+from PySide2.QtCore import Qt, QObject, Signal, QThread, QUrl
+from PySide2.QtGui import QTextCursor, QPixmap, QIcon, QDesktopServices
 from diagnosis.main import diagnose_main
 from diagnosis.src.Utils.configuration_parser import ResourcesConfiguration
 from gui_stylesheets import get_stylesheet
@@ -13,16 +13,16 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 
 
 class WorkerThread(QThread):
-  message = Signal(str)
+    message = Signal(str)
 
-  def run(self):
-    sys.stdout = self
+    def run(self):
+        sys.stdout = self
 
     for i in range(10):
-      time.sleep(1)
+        time.sleep(1)  # ? @TODO: Does it need to sleep that long though?
 
-  def write(self, text):
-    self.message.emit(text)
+    def write(self, text):
+        self.message.emit(text)
 
 
 # Subclass QMainWindow to customise your application's main window
@@ -51,7 +51,7 @@ class MainWindow(QMainWindow):
 
         self.setGeometry(self.left, self.top, self.width, self.height)
         self.setMaximumWidth(self.width)
-        self.setMaximumHeight(self.height)
+        #self.setMaximumHeight(self.height)
         self.setMinimumWidth(self.width)
         self.setMinimumHeight(self.height)
         self.move(self.width / 2, self.height / 2)
@@ -59,28 +59,29 @@ class MainWindow(QMainWindow):
         self.menu_bar = QMenuBar(self)
         self.menu_bar.setNativeMenuBar(False)  # https://stackoverflow.com/questions/25261760/menubar-not-showing-for-simple-qmainwindow-code-qt-creator-mac-os
         self.file_menu = self.menu_bar.addMenu('File')
-        self.import_dicom_action = QAction(QIcon('database-icon.png'), 'Import DICOM...', self)
+        self.import_dicom_action = QAction(QIcon('database-icon.png'), 'Import DICOM', self)
         self.import_dicom_action.setShortcut('Ctrl+D')
         self.file_menu.addAction(self.import_dicom_action)
         self.quit_action = QAction('Quit', self)
         self.quit_action.setShortcut("Ctrl+Q")
         self.file_menu.addAction(self.quit_action)
 
-        self.readme_menu = self.menu_bar.addMenu('README')
+        self.help_menu = self.menu_bar.addMenu('Help')
         self.readme_action = QAction(QIcon('readme-icon.jpeg'), 'Tutorial', self)
         self.readme_action.setShortcut("Ctrl+R")
-        self.readme_menu.addAction(self.readme_action)
-
-        self.about_menu = self.menu_bar.addMenu('About')
+        self.help_menu.addAction(self.readme_action)
         self.about_action = QAction(QIcon('about-icon.png'), 'About', self)
         self.about_action.setShortcut("Ctrl+A")
-        self.about_menu.addAction(self.about_action)
+        self.help_menu.addAction(self.about_action)
+        self.help_action = QAction(QIcon.fromTheme("help-faq"), "Help", self)  # Default icons can be found here: https://specifications.freedesktop.org/icon-naming-spec/icon-naming-spec-latest.html#guidelines
+        self.help_action.setShortcut("Ctrl+J")
+        self.help_menu.addAction(self.help_action)
 
         self.input_image_lineedit = QLineEdit()
-        self.input_image_lineedit.setReadOnly(True)
         self.input_image_lineedit.setFixedWidth(self.width * (0.93 - self.button_width/2))
         self.input_image_lineedit.setFixedHeight(self.height * self.button_height)
-        self.input_image_pushbutton = QPushButton('Input MRI...')
+        self.input_image_lineedit.setReadOnly(True)
+        self.input_image_pushbutton = QPushButton('Input MRI')
         self.input_image_pushbutton.setFixedWidth(self.height * self.button_width)
         self.input_image_pushbutton.setFixedHeight(self.height * self.button_height)
 
@@ -88,7 +89,7 @@ class MainWindow(QMainWindow):
         self.input_segmentation_lineedit.setReadOnly(True)
         self.input_segmentation_lineedit.setFixedWidth(self.width * (0.93 - self.button_width/2))
         self.input_segmentation_lineedit.setFixedHeight(self.height * self.button_height)
-        self.input_segmentation_pushbutton = QPushButton('Input segmentation...')
+        self.input_segmentation_pushbutton = QPushButton('Input segmentation')
         self.input_segmentation_pushbutton.setFixedWidth(self.height * self.button_width)
         self.input_segmentation_pushbutton.setFixedHeight(self.height * self.button_height)
 
@@ -96,7 +97,7 @@ class MainWindow(QMainWindow):
         self.output_folder_lineedit.setReadOnly(True)
         self.output_folder_lineedit.setFixedWidth(self.width * (0.93 - self.button_width/2))
         self.output_folder_lineedit.setFixedHeight(self.height * self.button_height)
-        self.output_folder_pushbutton = QPushButton('Output destination...')
+        self.output_folder_pushbutton = QPushButton('Output destination')
         self.output_folder_pushbutton.setFixedWidth(self.height * self.button_width)
         self.output_folder_pushbutton.setFixedHeight(self.height * self.button_height)
 
@@ -131,7 +132,6 @@ class MainWindow(QMainWindow):
         self.amsterdam_logo_label.setFixedHeight(1 * (self.height * self.button_height))
         self.amsterdam_logo_label.setScaledContents(True)
 
-
     def __set_layouts(self):
         self.input_volume_hbox = QHBoxLayout()
         self.input_volume_hbox.addWidget(self.input_image_lineedit)
@@ -155,6 +155,7 @@ class MainWindow(QMainWindow):
 
         self.dump_area_hbox = QHBoxLayout()
         self.dump_area_hbox.addWidget(self.main_display_tabwidget)
+        self.dump_area_hbox.addStretch(1)
 
         self.logos_hbox = QHBoxLayout()
         self.logos_hbox.addWidget(self.sintef_logo_label)
@@ -164,15 +165,15 @@ class MainWindow(QMainWindow):
 
         self.main_vbox = QVBoxLayout()
         self.main_vbox.addWidget(self.menu_bar)
-        self.main_vbox.addStretch(1)
+        #self.main_vbox.addStretch(1)
         self.main_vbox.addLayout(self.input_volume_hbox)
         self.main_vbox.addLayout(self.output_dir_hbox)
         self.main_vbox.addLayout(self.input_seg_hbox)
         self.main_vbox.addLayout(self.run_action_hbox)
-        self.main_vbox.addStretch(1)
+        #self.main_vbox.addStretch(1)
         self.main_vbox.addLayout(self.dump_area_hbox)
         self.main_vbox.addLayout(self.logos_hbox)
-        self.main_vbox.addStretch(1)
+        #self.main_vbox.addStretch(1)
 
         self.central_label = QLabel()
         self.central_label.setLayout(self.main_vbox)
@@ -205,6 +206,7 @@ class MainWindow(QMainWindow):
         self.about_action.triggered.connect(self.about_action_triggered)
         self.quit_action.triggered.connect(self.quit_action_triggered)
         self.import_dicom_action.triggered.connect(self.import_dicom_action_triggered)
+        self.help_action.triggered.connect(self.help_action_triggered)
 
     def __set_params(self):
         self.input_image_filepath = ''
@@ -242,9 +244,9 @@ class MainWindow(QMainWindow):
         popup = QMessageBox()
         popup.setWindowTitle('About')
         popup.setText('Software developed as part of a collaboration between: \n'
-                      '  * the Departement of Health Research from SINTEF\n'
-                      '  * the St.Olavs University hospital from Trondheim\n'
-                      '  * the University Hospital from Amsterdam\n\n'
+                      '  * Departement of Health Research, SINTEF\n'
+                      '  * St. Olavs hospital, Trondheim University Hospital\n'
+                      '  * Amsterdam University Medical Center\n\n'
                       'Contact: David Bouget, Andre Pedersen\n\n'
                       'For questions about the software, please visit https://github.com/SINTEFMedtek/GSI-RADS \n'
                       'For questions about the methodological aspect, please refer to the original publication: .\n')
@@ -305,4 +307,8 @@ class MainWindow(QMainWindow):
         self.prompt_lineedit.insertPlainText(text)
 
         QApplication.processEvents()
+
+    def help_action_triggered(self):
+        # opens browser with specified url, directs user to Issues section of GitHub repo
+        QDesktopServices.openUrl(QUrl("https://github.com/SINTEFMedtek/GSI-RADS/issues"))
 
