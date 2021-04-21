@@ -27,11 +27,13 @@ hidden_imports = [x.lower() for x in hidden_imports]
 print("hidden imports: ")
 print(hidden_imports)
 
-# copy dependencies and overwrite if already exists
+# copy dependencies and overwrite if already exists (as well as images)
 if os.path.exists("./tmp_dependencies/"):
     shutil.rmtree("./tmp_dependencies/")
 shutil.copytree("./diagnosis/", "./tmp_dependencies/diagnosis/")
 shutil.copytree("./segmentation/", "./tmp_dependencies/segmentation/")
+shutil.copytree("./images/", "./tmp_dependencies/images/")
+
 
 a = Analysis(['./main.py'],
              pathex=['.'],
@@ -64,7 +66,8 @@ exe = EXE(pyz,
           upx=True,
           upx_exclude=[],
           runtime_tmpdir=None,
-          console=True )
+          console=False  # True, tried to set This to False now for sanity checking stuff...
+)
 
 # separate exe-file from dlls and everything else
 '''
