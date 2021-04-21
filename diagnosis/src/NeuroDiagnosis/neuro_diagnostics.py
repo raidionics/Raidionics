@@ -11,7 +11,7 @@ from diagnosis.src.Processing.brain_processing import *
 from diagnosis.src.NeuroDiagnosis.neuro_parameters import NeuroDiagnosisParameters
 from diagnosis.src.Utils.ants_registration import *
 from diagnosis.src.Utils.configuration_parser import ResourcesConfiguration
-from diagnosis.src.Utils.io import generate_brain_lobe_labels_for_slicer, generate_white_matter_tracts_labels_for_slicer
+from diagnosis.src.Utils.io import adjust_input_volume_for_nifti
 
 
 class NeuroDiagnostics:
@@ -36,33 +36,35 @@ class NeuroDiagnostics:
         self.tumor_multifocal = None
 
     def run(self):
+        self.input_filename = adjust_input_volume_for_nifti(self.input_filename, self.output_path)
+
         # Generating the brain mask for the input file
-        print('LOG: Brain extraction - Begin (Step 1/6)')
+        print('Brain extraction - Begin (Step 1/6)')
         brain_mask_filepath = perform_brain_extraction(image_filepath=self.input_filename)
-        print('LOG: Brain extraction - End (Step 1/6)')
+        print('Brain extraction - End (Step 1/6)')
 
         # Generating brain-masked fixed and moving images
-        print('LOG: Registration preprocessing - Begin (Step 2/6)')
+        print('Registration preprocessing - Begin (Step 2/6)')
         input_masked_filepath = perform_brain_masking(image_filepath=self.input_filename,
                                                       mask_filepath=brain_mask_filepath)
         atlas_masked_filepath = perform_brain_masking(image_filepath=self.atlas_brain_filepath,
                                                       mask_filepath=ResourcesConfiguration.getInstance().mni_atlas_brain_mask_filepath)
-        print('LOG: Registration preprocessing - End (Step 2/6)')
+        print('Registration preprocessing - End (Step 2/6)')
 
         # Performing registration
-        print('LOG: Registration - Begin (Step 3/6)')
+        print('Registration - Begin (Step 3/6)')
         self.registration_runner.compute_registration(fixed=atlas_masked_filepath, moving=input_masked_filepath,
                                                       registration_method='sq')
-        print('LOG: Registration - End (Step 3/6)')
+        print('Registration - End (Step 3/6)')
 
         # Performing tumor segmentation
         if not os.path.exists(self.input_segmentation):
-            print('LOG: Tumor segmentation - Begin (Step 4/6)')
+            print('Tumor segmentation - Begin (Step 4/6)')
             self.input_segmentation = self.__perform_tumor_segmentation()
-            print('LOG: Tumor segmentation - End (Step 4/6)')
+            print('Tumor segmentation - End (Step 4/6)')
 
         # Registering the tumor to the atlas
-        print('LOG: Apply registration - Begin (Step 5/6)')
+        print('Apply registration - Begin (Step 5/6)')
         self.registration_runner.apply_registration_transform(moving=self.input_segmentation,
                                                               fixed=self.atlas_brain_filepath,
                                                               interpolation='nearestNeighbor')
@@ -71,18 +73,19 @@ class NeuroDiagnostics:
         self.registration_runner.apply_registration_inverse_transform(moving=ResourcesConfiguration.getInstance().mni_atlas_lobes_mask_filepath,
                                                                       fixed=self.input_filename,
                                                                       interpolation='nearestNeighbor')
-        print('LOG: Apply registration - End (Step 5/6)')
+        print('Apply registration - End (Step 5/6)')
 
         # print('LOG: White matter tracts registration - Begin')
         # self.__generate_tracts_masks()
         # print('LOG: White matter tracts registration - End')
 
         # Computing tumor location and statistics
-        print('LOG: Generate report - Begin (Step 6/6)')
+        print('Generate report - Begin (Step 6/6)')
         self.__compute_statistics()
         self.diagnosis_parameters.to_txt(self.output_report_filepath)
         self.diagnosis_parameters.to_csv(self.output_report_filepath[:-4] + '.csv')
-        print('LOG: Generate report - End (Step 6/6)')
+        print('Generate report - End (Step 6/6)')
+        print('--------------------------------')
 
         # Cleaning the temporary files
         # self.registration_runner.clean()
@@ -249,9 +252,9 @@ class NeuroDiagnostics:
             multifocal_elements = 1
             multifocal_largest_minimum_distance = -1.
 
-        self.diagnosis_parameters.statistics['Main']['Overall'].tumor_multifocal = multifocality
-        self.diagnosis_parameters.statistics['Main']['Overall'].tumor_parts = multifocal_elements
-        self.diagnosis_parameters.statistics['Main']['Overall'].tumor_multifocal_distance = multifocal_largest_minimum_distance
+        self.diagnosis_parameters.tumor_multifocal = multifocality
+        self.diagnosis_parameters.tumor_parts = multifocal_elements
+        self.diagnosis_parameters.tumor_multifocal_distance = multifocal_largest_minimum_distance
 
     def __compute_lateralisation(self, volume, category=None):
         brain_lateralisation_mask_ni = load_nifti_volume(ResourcesConfiguration.getInstance().mni_atlas_lateralisation_mask_filepath)
@@ -301,7 +304,9 @@ class NeuroDiagnostics:
             if reference == 'MNI':
                 region_name = reference + '_' + lobes_description.loc[lobes_description['Label'] == li]['Region'].values[0] + '_' + lobes_description.loc[lobes_description['Label'] == li]['Laterality'].values[0] + '_' + category
             elif reference == 'Harvard-Oxford':
-                region_name = reference + '_' + lobes_description.loc[lobes_description['Label'] == li]['Region-short'].values[
+                # region_name = reference + '_' + lobes_description.loc[lobes_description['Label'] == li]['Region-short'].values[
+                #         0] + '_' + category
+                region_name = reference + '_' + lobes_description.loc[lobes_description['Label'] == li]['Region'].values[
                         0] + '_' + category
             else:
                 region_name = reference + '_' + lobes_description.loc[lobes_description['Label'] == li]['Region'].values[

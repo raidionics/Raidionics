@@ -35,7 +35,7 @@ def __run_predictions_tensorflow(data, model_path, parameters):
 
     final_result = None
 
-    print("Predicting...")
+    # print("Predicting...")
     if whole_input_at_once:
         final_result = __run_predictions_whole(data=data, model=model,
                                                deep_supervision=parameters.training_deep_supervision)

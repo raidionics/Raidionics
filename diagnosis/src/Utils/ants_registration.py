@@ -72,7 +72,7 @@ class ANTsRegistration:
             print('Exception caught during registration. Error message: {}'.format(e))
 
     def compute_registration_python(self, moving, fixed, registration_method):
-        print("STARTING REGISTRATION FOR PATIENT.")
+        # print("STARTING REGISTRATION FOR PATIENT.")
 
         moving_ants = ants.image_read(moving, dimension=3)
         fixed_ants = ants.image_read(fixed, dimension=3)
@@ -170,7 +170,8 @@ class ANTsRegistration:
                                                  transformlist=self.reg_transform['invtransforms'],
                                                  interpolator=interpolation,
                                                  whichtoinvert=[True, False])
-            warped_input_filename = os.path.join(self.registration_folder, 'input_anatomical_regions.nii.gz')
+            warped_input_filename = os.path.join(ResourcesConfiguration.getInstance().output_folder,
+                                                 'input_anatomical_regions_mask.nii.gz')
             ants.image_write(warped_input, warped_input_filename)
         except Exception as e:
             print('Exception caught during applying registration inverse transform. Error message: {}'.format(e))
@@ -242,7 +243,8 @@ class ANTsRegistration:
         script_path = os.path.join(self.ants_apply_dir, 'antsApplyTransforms')
 
         transform_filenames = [os.path.join(self.registration_folder, x) for x in self.inverse_transform_names]
-        moving_registered_filename = os.path.join(self.registration_folder, 'input_anatomical_regions.nii.gz') #os.path.join(self.registration_folder, os.path.basename(moving).split('.')[0] + '_reg_input.nii.gz')
+        moving_registered_filename = os.path.join(ResourcesConfiguration.getInstance().output_folder,
+                                                  'input_anatomical_regions_mask.nii.gz') #os.path.join(self.registration_folder, os.path.basename(moving).split('.')[0] + '_reg_input.nii.gz')
 
         if len(transform_filenames) == 4:  # Combined case?
             args = ("{script}".format(script=script_path),

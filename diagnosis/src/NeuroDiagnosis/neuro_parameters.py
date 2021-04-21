@@ -56,54 +56,56 @@ class NeuroDiagnosisParameters:
         if not self.tumor_presence_state:
             pfile.close()
             return
-        pfile.write('Tumor multifocality: {}\n'.format(self.statistics['Main']['Overall'].tumor_multifocal))
-        pfile.write('\tNumber tumor parts: {}\n'.format(self.statistics['Main']['Overall'].tumor_parts))
-        pfile.write('\tLargest distance between components: {} (mm)\n'.format(np.round(self.statistics['Main']['Overall'].tumor_multifocal_distance, 2)))
+        pfile.write('Tumor multifocality: {}\n'.format(self.tumor_multifocal))
+        pfile.write('  * Number tumor parts: {}\n'.format(self.tumor_parts))
+        pfile.write('  * Largest distance between components: {} (mm)\n'.format(np.round(self.tumor_multifocal_distance, 2)))
 
-        pfile.write('Volumes\n')
-        pfile.write('\tOriginal space: {} (ml)\n'.format(self.statistics['Main']['Overall'].original_space_tumor_volume))
-        pfile.write('\tMNI space: {} (ml)\n'.format(self.statistics['Main']['Overall'].mni_space_tumor_volume))
+        pfile.write('\nVolumes\n')
+        pfile.write('  * Original space: {} (ml)\n'.format(self.statistics['Main']['Overall'].original_space_tumor_volume))
+        pfile.write('  * MNI space: {} (ml)\n'.format(self.statistics['Main']['Overall'].mni_space_tumor_volume))
 
-        pfile.write('Laterality\n')
-        pfile.write('\tLeft hemisphere: {}%\n'.format(np.round(self.statistics['Main']['Overall'].left_laterality_percentage * 100., 2)))
-        pfile.write('\tRight hemisphere: {}%\n'.format(np.round(self.statistics['Main']['Overall'].right_laterality_percentage * 100., 2)))
-        pfile.write('\tMidline crossing: {}\n'.format(self.statistics['Main']['Overall'].laterality_midline_crossing))
+        pfile.write('\nLaterality\n')
+        pfile.write('  * Left hemisphere: {}%\n'.format(np.round(self.statistics['Main']['Overall'].left_laterality_percentage * 100., 2)))
+        pfile.write('  * Right hemisphere: {}%\n'.format(np.round(self.statistics['Main']['Overall'].right_laterality_percentage * 100., 2)))
+        pfile.write('  * Midline crossing: {}\n'.format(self.statistics['Main']['Overall'].laterality_midline_crossing))
 
-        pfile.write('Resectability\n')
-        pfile.write('\tExpected resectable volume: {} (ml)\n'.format(np.round(self.statistics['Main']['Overall'].mni_space_expected_resectable_tumor_volume, 2)))
-        pfile.write('\tExpected residual volume: {} (ml)\n'.format(np.round(self.statistics['Main']['Overall'].mni_space_expected_residual_tumor_volume, 2)))
-        pfile.write('\tResection index: {}\n'.format(np.round(self.statistics['Main']['Overall'].mni_space_resectability_index, 3)))
-        pfile.write('\tComplexity index: {}\n'.format(np.round(self.statistics['Main']['Overall'].mni_space_complexity_index, 3)))
+        pfile.write('\nResectability\n')
+        pfile.write('  * Expected resectable volume: {} (ml)\n'.format(np.round(self.statistics['Main']['Overall'].mni_space_expected_resectable_tumor_volume, 2)))
+        pfile.write('  * Expected residual volume: {} (ml)\n'.format(np.round(self.statistics['Main']['Overall'].mni_space_expected_residual_tumor_volume, 2)))
+        pfile.write('  * Resection index: {}\n'.format(np.round(self.statistics['Main']['Overall'].mni_space_resectability_index, 3)))
+        pfile.write('  * Complexity index: {}\n'.format(np.round(self.statistics['Main']['Overall'].mni_space_complexity_index, 3)))
 
-        pfile.write('Subcortical structures overlap\n')
+        pfile.write('\nSubcortical structures overlap\n')
         for t in self.statistics['Main']['Overall'].mni_space_lobes_overlap.keys():
-            pfile.write('\t{} atlas\n'.format(t))
+            pfile.write('  * {} atlas\n'.format(t))
             lobes_ordered = collections.OrderedDict(sorted(self.statistics['Main']['Overall'].mni_space_lobes_overlap[t].items(), key=operator.itemgetter(1), reverse=True))
             for r in lobes_ordered.keys():
                 if lobes_ordered[r] != 0:
                     lobe_name = ' '.join(r.lower().replace('main', '').split('_')[1:])
-                    pfile.write('\t\t{}: {}%\n'.format(lobe_name, lobes_ordered[r]))
+                    pfile.write('    - {}: {}%\n'.format(lobe_name, lobes_ordered[r]))
 
-        pfile.write('White matter tracts overlap or distance\n')
-        pfile.write('\tBrainLab atlas\n')
+        pfile.write('\nWhite matter tracts overlap or distance\n')
+        pfile.write('  * BrainLab atlas\n')
         tracts_ordered = collections.OrderedDict(sorted(self.statistics['Main']['Overall'].mni_space_tracts_overlap.items(), key=operator.itemgetter(1), reverse=True))
         for r in tracts_ordered.keys():
             if tracts_ordered[r] != 0:
                 tract_name = ' '.join(r.lower().replace('main', '').replace('mni', '').split('.')[0].split('_'))
-                pfile.write('\t\t{}: {}% overlap\n'.format(tract_name, np.round(tracts_ordered[r], 2)))
+                pfile.write('    - {}: {}% overlap\n'.format(tract_name, np.round(tracts_ordered[r], 2)))
 
         pfile.write('\n')
         tracts_ordered = collections.OrderedDict(sorted(self.statistics['Main']['Overall'].mni_space_tracts_distance.items(), key=operator.itemgetter(1), reverse=False))
         for r in tracts_ordered.keys():
             if tracts_ordered[r] != -1.:
                 tract_name = ' '.join(r.lower().replace('main', '').replace('mni', '').split('.')[0].split('_'))
-                pfile.write('\t\t{}: {}mm away\n'.format(tract_name, np.round(tracts_ordered[r], 2)))
+                pfile.write('    - {}: {}mm away\n'.format(tract_name, np.round(tracts_ordered[r], 2)))
         pfile.close()
         return
 
     def to_csv(self, filename):
-        values = [self.statistics['Main']['Overall'].tumor_multifocal, self.statistics['Main']['Overall'].tumor_parts,
-                  np.round(self.statistics['Main']['Overall'].tumor_multifocal_distance, 2)]
+        if not self.tumor_presence_state:
+            return
+
+        values = [self.tumor_multifocal, self.tumor_parts, np.round(self.tumor_multifocal_distance, 2)]
         column_names = ['Multifocality', 'Tumor parts nb', 'Multifocal distance (mm)']
 
         values.extend([self.statistics['Main']['Overall'].original_space_tumor_volume, self.statistics['Main']['Overall'].mni_space_tumor_volume])
