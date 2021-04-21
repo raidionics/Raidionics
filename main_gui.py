@@ -57,6 +57,7 @@ class MainWindow(QMainWindow):
         self.move(self.width / 2, self.height / 2)
 
         self.menu_bar = QMenuBar(self)
+        self.menu_bar.setNativeMenuBar(False)  # https://stackoverflow.com/questions/25261760/menubar-not-showing-for-simple-qmainwindow-code-qt-creator-mac-os
         self.file_menu = self.menu_bar.addMenu('File')
         self.import_dicom_action = QAction(QIcon('database-icon.png'), 'Import DICOM...', self)
         self.import_dicom_action.setShortcut('Ctrl+D')
