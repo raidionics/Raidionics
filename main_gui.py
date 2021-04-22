@@ -24,6 +24,9 @@ class WorkerThread(QThread):
     def write(self, text):
         self.message.emit(text)
 
+    def stop(self):
+        sys.stdout = sys.__stdout__
+
 
 # Subclass QMainWindow to customise your application's main window
 class MainWindow(QMainWindow):
@@ -41,6 +44,9 @@ class MainWindow(QMainWindow):
         self.__set_stylesheet()
         self.__set_connections()
         self.__set_params()
+
+    def closeEvent(self, event):
+        self.printer_thread.stop()
 
     def __set_interface(self):
         self.button_width = 0.35
@@ -258,6 +264,7 @@ class MainWindow(QMainWindow):
         popup.exec_()
 
     def quit_action_triggered(self):
+        self.printer_thread.stop()
         sys.exit()
 
     def run_diagnosis(self):
