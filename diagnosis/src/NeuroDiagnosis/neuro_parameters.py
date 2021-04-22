@@ -61,7 +61,7 @@ class NeuroDiagnosisParameters:
         pfile.write('  * Largest distance between components: {} (mm)\n'.format(np.round(self.tumor_multifocal_distance, 2)))
 
         pfile.write('\nVolumes\n')
-        pfile.write('  * Original space: {} (ml)\n'.format(self.statistics['Main']['Overall'].original_space_tumor_volume))
+        pfile.write('  * Original space: {} (ml)\n'.format(np.round(self.statistics['Main']['Overall'].original_space_tumor_volume, 2)))
         pfile.write('  * MNI space: {} (ml)\n'.format(self.statistics['Main']['Overall'].mni_space_tumor_volume))
 
         pfile.write('\nLaterality\n')
