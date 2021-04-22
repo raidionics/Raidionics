@@ -203,7 +203,7 @@ class NeuroDiagnostics:
     def __compute_original_volume(self):
         segmentation_ni = nib.load(self.input_segmentation)
         segmentation_mask = segmentation_ni.get_data()[:]
-        volume = np.count_nonzero(segmentation_mask) * 1e-3
+        volume = np.count_nonzero(segmentation_mask) * np.prod(segmentation_ni.header.get_zooms()) * 1e-3
         self.diagnosis_parameters.statistics['Main']['Overall'].original_space_tumor_volume = volume
 
     def __compute_multifocality(self, volume, spacing):
