@@ -46,12 +46,15 @@ a = Analysis(['./main.py'],
              win_no_prefer_redirects=False,
              win_private_assemblies=False,
              cipher=block_cipher,
-             noarchive=False)
+             noarchive=False
+)
 pyz = PYZ(a.pure, a.zipped_data,
-             cipher=block_cipher)
+             cipher=block_cipher
+)
 
 
 # one large exe-file with everything included
+'''
 exe = EXE(pyz,
           a.scripts,
           a.binaries,
@@ -68,26 +71,29 @@ exe = EXE(pyz,
           runtime_tmpdir=None,
           console=False  # True, tried to set This to False now for sanity checking stuff...
 )
+'''
 
 # separate exe-file from dlls and everything else
-'''
+# '''
 exe = EXE(pyz,
           a.scripts,
           [],
           exclude_binaries=True,
-          name='deploy',
+          name='GSI-RADS',
           debug=False,
           bootloader_ignore_signals=False,
           strip=False,
           upx=True,
-          console=True )
+          console=True
+)
 coll = COLLECT(exe,
                a.binaries,
-               Tree("./resources/"),
+               Tree("./tmp_dependencies/"),
                a.zipfiles,
                a.datas,
                strip=False,
                upx=True,
                upx_exclude=[],
-               name='deploy')
-'''
+               name='GSI-RADS'
+)
+# '''
