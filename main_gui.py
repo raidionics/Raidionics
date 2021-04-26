@@ -18,8 +18,7 @@ class WorkerThread(QThread):
     def run(self):
         sys.stdout = self
 
-    for i in range(10):
-        time.sleep(0.1)  # ? @TODO: Does it need to sleep that long though?
+    time.sleep(0.01)
 
     def write(self, text):
         self.message.emit(text)
