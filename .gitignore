@@ -10,6 +10,8 @@ syntax: glob
 os
 numpy
 *.h5
+*.hd5
+*.ckpt
 *.mhd
 *.raw
 venv/
