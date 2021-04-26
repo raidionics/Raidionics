@@ -113,6 +113,23 @@ class MainWindow(QMainWindow):
 
         self.main_display_tabwidget = QTabWidget()
 
+        self.tutorial_textedit = QPlainTextEdit()
+        self.tutorial_textedit.setReadOnly(True)
+        self.tutorial_textedit.setFixedWidth(self.width * 0.97)
+        self.tutorial_textedit.setPlainText(
+            "HOW TO USE THE SOFTWARE: \n"
+            "  1) Click 'Input MRI...' to select from your file explorer the MRI scan to process (unique file).\n"
+            "  1*) Alternatively, Click File > Import DICOM... if you wish to process an MRI scan as a DICOM sequence.\n"
+            "  2) Click 'Output destination' to choose a directory where to save the results \n"
+            "  3) (OPTIONAL) Click 'Input segmentation' to choose a tumor segmentation mask file, if nothing is provided the internal model with generate the segmentation automatically \n"
+            "  4) Click 'Run diagnosis' to perform the analysis. The human-readable version will be displayed in the interface.\n"
+            " \n"
+            "NOTE: \n"
+            "The output folder is populated automatically with the following: \n"
+            "  * The diagnosis results in human-readable text (report.txt) and Excel-ready format (report.csv).\n"
+            "  * The automatic segmentation masks of the brain and the tumor in the original patient space (input_brain_mask.nii.gz and input_tumor_mask.nii.gz).\n"
+            "  * The input volume and tumor segmentation mask in MNI space in the sub-directory named \'registration\'.\n")
+        self.main_display_tabwidget.addTab(self.tutorial_textedit, 'Tutorial')
         self.prompt_lineedit = QPlainTextEdit()
         self.prompt_lineedit.setReadOnly(True)
         self.prompt_lineedit.setFixedWidth(self.width * 0.97)
@@ -274,7 +291,7 @@ class MainWindow(QMainWindow):
 
         self.run_button.setEnabled(False)
         self.prompt_lineedit.clear()
-        self.main_display_tabwidget.setCurrentIndex(0)
+        self.main_display_tabwidget.setCurrentIndex(1)
         try:
             diagnose_main(input_volume_filename=self.input_image_filepath,
                           input_segmentation_filename=self.input_annotation_filepath,
@@ -287,7 +304,7 @@ class MainWindow(QMainWindow):
         self.run_button.setEnabled(True)
         results_filepath = os.path.join(ResourcesConfiguration.getInstance().output_folder, 'report.txt')
         self.results_textedit.setPlainText(open(results_filepath, 'r').read())
-        self.main_display_tabwidget.setCurrentIndex(1)
+        self.main_display_tabwidget.setCurrentIndex(2)
 
     def run_select_input_image(self):
         input_image_filedialog = QFileDialog()
