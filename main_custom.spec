@@ -33,7 +33,7 @@ if os.path.exists("./tmp_dependencies/"):
 shutil.copytree("./diagnosis/", "./tmp_dependencies/diagnosis/")
 shutil.copytree("./segmentation/", "./tmp_dependencies/segmentation/")
 shutil.copytree("./images/", "./tmp_dependencies/images/")
-
+shutil.copytree("./resources/", "./tmp_dependencies/resources/")
 
 a = Analysis(['./main.py'],
              pathex=['.'],
@@ -54,7 +54,7 @@ pyz = PYZ(a.pure, a.zipped_data,
 
 
 # one large exe-file with everything included
-'''
+# '''
 exe = EXE(pyz,
           a.scripts,
           a.binaries,
@@ -69,12 +69,12 @@ exe = EXE(pyz,
           upx=True,
           upx_exclude=[],
           runtime_tmpdir=None,
-          console=False  # True, tried to set This to False now for sanity checking stuff...
+          console=True  # True, tried to set This to False now for sanity checking stuff...
 )
-'''
+# '''
 
 # separate exe-file from dlls and everything else
-# '''
+'''
 exe = EXE(pyz,
           a.scripts,
           [],
@@ -96,4 +96,4 @@ coll = COLLECT(exe,
                upx_exclude=[],
                name='GSI-RADS'
 )
-# '''
+'''
