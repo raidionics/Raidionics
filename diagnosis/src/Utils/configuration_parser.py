@@ -44,59 +44,59 @@ class ResourcesConfiguration:
         os.makedirs(self.output_folder, exist_ok=True)
 
     def __set_atlases_parameters(self):
-        self.mni_atlas_filepath_T1 = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../',
-                                                  'Atlases/mni_icbm152_nlin_sym_09a/mni_icbm152_t1_tal_nlin_sym_09a.nii')
-        self.mni_atlas_filepath_T2 = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../',
-                                                  'Atlases/mni_icbm152_nlin_sym_09a/mni_icbm152_t2_relx_tal_nlin_sym_09a.nii')
-        self.mni_atlas_mask_filepath = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../',
-                                                    'Atlases/mni_icbm152_nlin_sym_09a/mni_icbm152_t1_tal_nlin_sym_09a_mask.nii')
-        self.mni_atlas_brain_mask_filepath = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../',
-                                                          'Atlases/mni_icbm152_nlin_sym_09a/mni_icbm152_t1_tal_nlin_sym_09a_mask.nii')
-        self.mni_atlas_lobes_mask_filepath = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../',
-                                                          'Atlases/mni_icbm152_nlin_sym_09a/reduced_lobes_brain.nii')
-        self.mni_atlas_lobes_description_filepath = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../',
-                                                                 'Atlases/mni_icbm152_nlin_sym_09a/lobe_labels_description.csv')
-        self.mni_atlas_lateralisation_mask_filepath = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../',
-                                                                   'Atlases/mni_icbm152_nlin_sym_09a/extended_lateralisation_mask.nii.gz')
+        self.mni_atlas_filepath_T1 = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../',
+                                                  'resources/Atlases/mni_icbm152_nlin_sym_09a/mni_icbm152_t1_tal_nlin_sym_09a.nii')
+        self.mni_atlas_filepath_T2 = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../',
+                                                  'resources/Atlases/mni_icbm152_nlin_sym_09a/mni_icbm152_t2_relx_tal_nlin_sym_09a.nii')
+        self.mni_atlas_mask_filepath = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../',
+                                                    'resources/Atlases/mni_icbm152_nlin_sym_09a/mni_icbm152_t1_tal_nlin_sym_09a_mask.nii')
+        self.mni_atlas_brain_mask_filepath = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../',
+                                                          'resources/Atlases/mni_icbm152_nlin_sym_09a/mni_icbm152_t1_tal_nlin_sym_09a_mask.nii')
+        self.mni_atlas_lobes_mask_filepath = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../',
+                                                          'resources/Atlases/mni_icbm152_nlin_sym_09a/reduced_lobes_brain.nii')
+        self.mni_atlas_lobes_description_filepath = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../',
+                                                                 'resources/Atlases/mni_icbm152_nlin_sym_09a/lobe_labels_description.csv')
+        self.mni_atlas_lateralisation_mask_filepath = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../',
+                                                                   'resources/Atlases/mni_icbm152_nlin_sym_09a/extended_lateralisation_mask.nii.gz')
 
     def __set_anatomical_regions_parameters(self):
         self.regions_data = {}
         self.regions_data['MNI'] = {}
 
         self.regions_data['MNI']['MNI'] = {}
-        self.regions_data['MNI']['MNI']['Mask'] = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../',
-                                                               'Atlases/mni_icbm152_nlin_sym_09a/reduced_lobes_brain.nii')
+        self.regions_data['MNI']['MNI']['Mask'] = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../',
+                                                               'resources/Atlases/mni_icbm152_nlin_sym_09a/reduced_lobes_brain.nii')
         self.regions_data['MNI']['MNI']['Description'] = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                                                      '../../',
-                                                                      'Atlases/mni_icbm152_nlin_sym_09a/lobe_labels_description.csv')
+                                                                      '../../../',
+                                                                      'resources/Atlases/mni_icbm152_nlin_sym_09a/lobe_labels_description.csv')
         self.regions_data['MNI']['Harvard-Oxford'] = {}
         self.regions_data['MNI']['Harvard-Oxford']['Mask'] = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                                                          '../../',
-                                                                          'Atlases/Harvard-Oxford/HarvardOxford-cort-maxprob-thr0-1mm_mni.nii.gz')
+                                                                          '../../../',
+                                                                          'resources/Atlases/Harvard-Oxford/HarvardOxford-cort-maxprob-thr0-1mm_mni.nii.gz')
         self.regions_data['MNI']['Harvard-Oxford']['Description'] = os.path.join(
-            os.path.dirname(os.path.realpath(__file__)), '../../',
-            'Atlases/Harvard-Oxford/regions_description.csv')
+            os.path.dirname(os.path.realpath(__file__)), '../../../',
+            'resources/Atlases/Harvard-Oxford/regions_description.csv')
 
         self.regions_data['MNI']['Schaefer400'] = {}
         self.regions_data['MNI']['Schaefer400']['Mask'] = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                                                       '../../',
-                                                                       'Atlases/Schaefer400/schaefer400MNI_mni.nii.gz')
+                                                                       '../../../',
+                                                                       'resources/Atlases/Schaefer400/schaefer400MNI_mni.nii.gz')
         self.regions_data['MNI']['Schaefer400']['Description'] = os.path.join(
-            os.path.dirname(os.path.realpath(__file__)), '../../',
-            'Atlases/Schaefer400/400regions_description.csv')
+            os.path.dirname(os.path.realpath(__file__)), '../../../',
+            'resources/Atlases/Schaefer400/400regions_description.csv')
         self.regions_data['MNI']['Schaefer17'] = {}
         self.regions_data['MNI']['Schaefer17']['Mask'] = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                                                      '../../',
-                                                                      'Atlases/Schaefer400/schaefer17MNI_mni.nii.gz')
+                                                                      '../../../',
+                                                                      'resources/Atlases/Schaefer400/schaefer17MNI_mni.nii.gz')
         self.regions_data['MNI']['Schaefer17']['Description'] = os.path.join(
-            os.path.dirname(os.path.realpath(__file__)), '../../',
-            'Atlases/Schaefer400/17regions_description.csv')
+            os.path.dirname(os.path.realpath(__file__)), '../../../',
+            'resources/Atlases/Schaefer400/17regions_description.csv')
         self.regions_data['MNI']['Schaefer7'] = {}
-        self.regions_data['MNI']['Schaefer7']['Mask'] = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../',
-                                                                     'Atlases/Schaefer400/schaefer7MNI_mni.nii.gz')
+        self.regions_data['MNI']['Schaefer7']['Mask'] = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../',
+                                                                     'resources/Atlases/Schaefer400/schaefer7MNI_mni.nii.gz')
         self.regions_data['MNI']['Schaefer7']['Description'] = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                                                            '../../',
-                                                                            'Atlases/Schaefer400/7regions_description.csv')
+                                                                            '../../../',
+                                                                            'resources/Atlases/Schaefer400/7regions_description.csv')
 
     def __set_resection_maps_parameters(self):
         self.mni_resection_maps = {}
@@ -124,7 +124,7 @@ class ResourcesConfiguration:
         self.white_matter_tracts = {}
         self.white_matter_tracts['MNI'] = {}
         self.white_matter_tracts['MNI']['BCB'] = {}
-        tracts_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../', 'Atlases/bcb_tracts/')
+        tracts_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../', 'resources/Atlases/bcb_tracts/')
         tract_names = []
         for _, _, files in os.walk(tracts_folder):
             for f in files:
@@ -135,7 +135,7 @@ class ResourcesConfiguration:
             self.white_matter_tracts['MNI']['BCB'][n] = tract_fn
 
         self.white_matter_tracts['MNI']['BrainLab'] = {}
-        tracts_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../', 'Atlases/brainlab_tracts/')
+        tracts_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../', 'resources/Atlases/brainlab_tracts/')
         tract_names = []
         for _, _, files in os.walk(tracts_folder):
             for f in files:
