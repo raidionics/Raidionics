@@ -169,7 +169,7 @@ class NeuroDiagnostics:
         self.__compute_anatomical_region_location(volume=refined_image, category='Main', reference='Schaefer7')
         self.__compute_anatomical_region_location(volume=refined_image, category='Main', reference='Schaefer17')
         self.__compute_distance_to_tracts(volume=refined_image, spacing=registered_tumor_ni.header.get_zooms(), category='Main')
-        self.__compute_tract_disconnection_probability(volume=refined_image, spacing=registered_tumor_ni.header.get_zooms(), category='Main')
+        # self.__compute_tract_disconnection_probability(volume=refined_image, spacing=registered_tumor_ni.header.get_zooms(), category='Main')
 
         # If the tumor is multifocal, we recompute everything for each piece of the tumor
         # if self.diagnosis_parameters.tumor_multifocal:

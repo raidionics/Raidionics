@@ -73,7 +73,7 @@ class NeuroDiagnosisParameters:
         pfile.write('  * Expected resectable volume: {} (ml)\n'.format(np.round(self.statistics['Main']['Overall'].mni_space_expected_resectable_tumor_volume, 2)))
         pfile.write('  * Expected residual volume: {} (ml)\n'.format(np.round(self.statistics['Main']['Overall'].mni_space_expected_residual_tumor_volume, 2)))
         pfile.write('  * Resection index: {}\n'.format(np.round(self.statistics['Main']['Overall'].mni_space_resectability_index, 3)))
-        pfile.write('  * Complexity index: {}\n'.format(np.round(self.statistics['Main']['Overall'].mni_space_complexity_index, 3)))
+        # pfile.write('  * Complexity index: {}\n'.format(np.round(self.statistics['Main']['Overall'].mni_space_complexity_index, 3)))
 
         pfile.write('\nSubcortical structures overlap\n')
         for t in self.statistics['Main']['Overall'].mni_space_lobes_overlap.keys():
@@ -119,8 +119,11 @@ class NeuroDiagnosisParameters:
         values.extend([np.round(self.statistics['Main']['Overall'].mni_space_expected_resectable_tumor_volume, 2),
                        np.round(self.statistics['Main']['Overall'].mni_space_expected_residual_tumor_volume, 2),
                        np.round(self.statistics['Main']['Overall'].mni_space_resectability_index, 3),
-                       np.round(self.statistics['Main']['Overall'].mni_space_complexity_index, 3)])
-        column_names.extend(['ExpectedResectableVolume (ml)', 'ExpectedResidualVolume (ml)', 'ResectionIndex', 'ComplexityIndex'])
+                       # np.round(self.statistics['Main']['Overall'].mni_space_complexity_index, 3)
+                       ])
+        column_names.extend(['ExpectedResectableVolume (ml)', 'ExpectedResidualVolume (ml)', 'ResectionIndex',
+                             # 'ComplexityIndex'
+                             ])
 
         for t in self.statistics['Main']['Overall'].mni_space_lobes_overlap.keys():
             for r in self.statistics['Main']['Overall'].mni_space_lobes_overlap[t].keys():
@@ -135,9 +138,9 @@ class NeuroDiagnosisParameters:
             values.extend([self.statistics['Main']['Overall'].mni_space_tracts_distance[t]])
             column_names.extend([t.split('.')[0][:-4] + '_distance'])
 
-        for t in self.statistics['Main']['Overall'].mni_space_tracts_disconnection_max.keys():
-            values.extend([self.statistics['Main']['Overall'].mni_space_tracts_disconnection_max[t]])
-            column_names.extend([t.split('.')[0][:-4] + '_disconnection'])
+        # for t in self.statistics['Main']['Overall'].mni_space_tracts_disconnection_max.keys():
+        #     values.extend([self.statistics['Main']['Overall'].mni_space_tracts_disconnection_max[t]])
+        #     column_names.extend([t.split('.')[0][:-4] + '_disconnection'])
 
         # for t in self.statistics['Main']['Overall'].mni_space_tracts_disconnection_prob.keys():
         #     values.extend([self.statistics['Main']['Overall'].mni_space_tracts_disconnection_prob[t]])
