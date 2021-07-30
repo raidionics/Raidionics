@@ -1,8 +1,17 @@
 import numpy as np
+import nibabel as nib
+from nibabel.processing import resample_to_output
 from copy import deepcopy
 from skimage.transform import resize
 from scipy.ndimage import binary_fill_holes
 from skimage.measure import regionprops
+
+
+def crop_MR_background(volume, parameters, new_spacing, brain_mask_filename):
+    if parameters.crop_background == 'minimum':
+        return crop_MR(volume, parameters)
+    elif parameters.crop_background == 'brain_clip' or parameters.crop_background == 'brain_mask':
+        return advanced_crop_exclude_background(volume, parameters.crop_background, new_spacing, brain_mask_filename)
 
 
 def crop_MR(volume, parameters):
@@ -13,12 +22,27 @@ def crop_MR(volume, parameters):
     volume = binary_fill_holes(volume).astype(np.uint8)
     regions = regionprops(volume)
     min_row, min_col, min_depth, max_row, max_col, max_depth = regions[0].bbox
-    # print('Cropping params', min_row, min_col, min_depth, max_row, max_col, max_depth)
 
     cropped_volume = original_volume[min_row:max_row, min_col:max_col, min_depth:max_depth]
     bbox = [min_row, min_col, min_depth, max_row, max_col, max_depth]
 
     return cropped_volume, bbox
+
+
+def advanced_crop_exclude_background(data, crop_mode, spacing, brain_mask_filename):
+    brain_mask_ni = nib.load(brain_mask_filename)
+    resampled_brain = resample_to_output(brain_mask_ni, spacing, order=0)
+    brain_mask = resampled_brain.get_data().astype('uint8')
+
+    original_data = np.copy(data)
+    regions = regionprops(brain_mask)
+    min_row, min_col, min_depth, max_row, max_col, max_depth = regions[0].bbox
+
+    if crop_mode == 'brain_mask':
+        original_data[brain_mask == 0] = 0
+    cropped_data = original_data[min_row:max_row, min_col:max_col, min_depth:max_depth]
+    bbox = [min_row, min_col, min_depth, max_row, max_col, max_depth]
+    return cropped_data, bbox
 
 
 def resize_volume(volume, new_slice_size, slicing_plane, order=1):
@@ -38,10 +62,8 @@ def resize_volume(volume, new_slice_size, slicing_plane, order=1):
     return new_volume
 
 def __intensity_normalization_MRI(volume, parameters):
-    #result = np.zeros(shape=volume.shape)
-    #original = np.copy(volume)
-
     result = deepcopy(volume).astype('float32')
+    result[result < 0] = 0  # Soft clipping at 0 for MRI
     if parameters.intensity_clipping_range[1] - parameters.intensity_clipping_range[0] != 100:
         limits = np.percentile(volume, q=parameters.intensity_clipping_range)
         result[volume < limits[0]] = limits[0]

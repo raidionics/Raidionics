@@ -15,9 +15,8 @@ from copy import deepcopy
 
 
 def reconstruct_post_predictions(predictions, parameters, crop_bbox, nib_volume, resampled_volume):
-    # print("Resampling predictions...")
     reconstruction_method = parameters.predictions_reconstruction_method
-    probability_thresholds = parameters.training_optimal_thresholds #parameters.predictions_probability_thresholds
+    probability_thresholds = parameters.training_optimal_thresholds
     swap_input = parameters.swap_training_input
 
     if parameters.predictions_reconstruction_order == 'resample_first':
@@ -90,8 +89,6 @@ def __resample_predictions(predictions, crop_bbox, nib_volume, resampled_volume,
             new_data = np.zeros((resampled_volume.get_data().shape), dtype=labels_type)
         new_data[crop_bbox[0]:crop_bbox[3], crop_bbox[1]:crop_bbox[4], crop_bbox[2]:crop_bbox[5]] = data
     else:
-        # new_data = resize(data, resampled_volume.get_data().shape, order=order,
-        #                   preserve_range=True)
         resize_ratio = resampled_volume.get_data().shape / np.asarray(data.shape)[0:3]
         if len(data.shape) == 4:
             resize_ratio = list(resize_ratio) + [1.]

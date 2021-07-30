@@ -2,16 +2,12 @@ import numpy as np
 import nibabel as nib
 from nibabel.processing import resample_to_output
 from dipy.align.reslice import reslice
-from segmentation.src.Utils.volume_utilities import intensity_normalization, resize_volume, crop_MR
+from segmentation.src.Utils.volume_utilities import intensity_normalization, resize_volume, crop_MR_background
 from segmentation.src.Utils.io import load_nifti_volume
 
 
-def run_pre_processing(filename, pre_processing_parameters, storage_prefix):
-    # print("Extracting data...")
+def run_pre_processing(filename, pre_processing_parameters, storage_prefix, brain_mask_filename):
     nib_volume = load_nifti_volume(filename)
-
-    # print("Pre-processing...")
-    # Normalize spacing
     new_spacing = pre_processing_parameters.output_spacing
     if pre_processing_parameters.output_spacing == None:
         tmp = np.min(nib_volume.header.get_zooms())
@@ -28,8 +24,9 @@ def run_pre_processing(filename, pre_processing_parameters, storage_prefix):
     crop_bbox = None
     data = intensity_normalization(volume=data, parameters=pre_processing_parameters)
     # Exclude background
-    if pre_processing_parameters.crop_background:
-        data, crop_bbox = crop_MR(data, parameters=pre_processing_parameters)
+    if pre_processing_parameters.crop_background is not None:
+        data, crop_bbox = crop_MR_background(data, parameters=pre_processing_parameters, new_spacing=new_spacing,
+                                             brain_mask_filename=brain_mask_filename)
 
     data = resize_volume(data, pre_processing_parameters.new_axial_size, pre_processing_parameters.slicing_plane,
                          order=1)

@@ -22,6 +22,7 @@ class ANTsRegistration:
         self.ants_apply_dir = ResourcesConfiguration.getInstance().ants_apply_dir
         self.registration_folder = os.path.join(ResourcesConfiguration.getInstance().output_folder, 'registration/')
         os.makedirs(self.registration_folder, exist_ok=True)
+        self.reg_transform = []
         self.transform_names = []
         self.inverse_transform_names = []
         self.backend = 'python'  # cpp, python  # @TODO: This should be possible to set from the main.py
@@ -161,7 +162,7 @@ class ANTsRegistration:
         except Exception as e:
             print('Failed to apply transforms on input image with {}'.format(e))
 
-    def apply_registration_inverse_transform_python(self, moving, fixed, interpolation='nearestNeighbor'):
+    def apply_registration_inverse_transform_python(self, moving, fixed, interpolation='nearestNeighbor', label=''):
         moving_ants = ants.image_read(moving, dimension=3)
         fixed_ants = ants.image_read(fixed, dimension=3)
         try:
@@ -171,7 +172,7 @@ class ANTsRegistration:
                                                  interpolator=interpolation,
                                                  whichtoinvert=[True, False])
             warped_input_filename = os.path.join(ResourcesConfiguration.getInstance().output_folder,
-                                                 'input_anatomical_regions_mask.nii.gz')
+                                                 'input_cortical_structures_mask' + label + '.nii.gz')
             ants.image_write(warped_input, warped_input_filename)
         except Exception as e:
             print('Exception caught during applying registration inverse transform. Error message: {}'.format(e))
@@ -228,13 +229,13 @@ class ANTsRegistration:
         except Exception as e:
             print('Failed to apply transforms on input image with {}'.format(e))
 
-    def apply_registration_inverse_transform(self, moving, fixed, interpolation='nearestNeighbor'):
+    def apply_registration_inverse_transform(self, moving, fixed, interpolation='nearestNeighbor', label=''):
         if self.backend == 'python':
-            self.apply_registration_inverse_transform_python(moving, fixed, interpolation)
+            self.apply_registration_inverse_transform_python(moving, fixed, interpolation, label)
         elif self.backend == 'cpp':
-            self.apply_registration_inverse_transform_cpp(moving, fixed, interpolation)
+            self.apply_registration_inverse_transform_cpp(moving, fixed, interpolation, label)
 
-    def apply_registration_inverse_transform_cpp(self, moving, fixed, interpolation='NearestNeighbor'):
+    def apply_registration_inverse_transform_cpp(self, moving, fixed, interpolation='NearestNeighbor', label=''):
         """
         Apply an inverse registration transform onto the corresponding moving labels.
         """
@@ -244,7 +245,7 @@ class ANTsRegistration:
 
         transform_filenames = [os.path.join(self.registration_folder, x) for x in self.inverse_transform_names]
         moving_registered_filename = os.path.join(ResourcesConfiguration.getInstance().output_folder,
-                                                  'input_anatomical_regions_mask.nii.gz') #os.path.join(self.registration_folder, os.path.basename(moving).split('.')[0] + '_reg_input.nii.gz')
+                                                  'input_cortical_structures_mask' + label + '.nii.gz')
 
         if len(transform_filenames) == 4:  # Combined case?
             args = ("{script}".format(script=script_path),
@@ -285,3 +286,24 @@ class ANTsRegistration:
             output = popen.stdout.read()
         except Exception as e:
             print('Failed to apply inverse transforms on input image with {}'.format(e))
+
+    def dump_mni_atlas_labels(self):
+        cortical_structures_folder = os.path.join(self.registration_folder, 'Cortical-structures')
+        os.makedirs(cortical_structures_folder, exist_ok=True)
+
+        shutil.copyfile(src=ResourcesConfiguration.getInstance().regions_data['MNI']['MNI']['Mask'],
+                        dst=os.path.join(cortical_structures_folder, 'MNI_cortical_structures_mask_mni.nii.gz'))
+        shutil.copyfile(src=ResourcesConfiguration.getInstance().regions_data['MNI']['MNI']['Description'],
+                        dst=os.path.join(cortical_structures_folder, 'MNI_cortical_structures_description.csv'))
+        shutil.copyfile(src=ResourcesConfiguration.getInstance().regions_data['MNI']['Harvard-Oxford']['Mask'],
+                        dst=os.path.join(cortical_structures_folder, 'Harvard-Oxford_cortical_structures_mask_mni.nii.gz'))
+        shutil.copyfile(src=ResourcesConfiguration.getInstance().regions_data['MNI']['Harvard-Oxford']['Description'],
+                        dst=os.path.join(cortical_structures_folder, 'Harvard-Oxford_cortical_structures_description.csv'))
+        shutil.copyfile(src=ResourcesConfiguration.getInstance().regions_data['MNI']['Schaefer17']['Mask'],
+                        dst=os.path.join(cortical_structures_folder, 'Schaefer17_cortical_structures_mask_mni.nii.gz'))
+        shutil.copyfile(src=ResourcesConfiguration.getInstance().regions_data['MNI']['Schaefer17']['Description'],
+                        dst=os.path.join(cortical_structures_folder, 'Schaefer17_cortical_structures_description.csv'))
+        shutil.copyfile(src=ResourcesConfiguration.getInstance().regions_data['MNI']['Schaefer7']['Mask'],
+                        dst=os.path.join(cortical_structures_folder, 'Schaefer7_cortical_structures_mask_mni.nii.gz'))
+        shutil.copyfile(src=ResourcesConfiguration.getInstance().regions_data['MNI']['Schaefer7']['Description'],
+                        dst=os.path.join(cortical_structures_folder, 'Schaefer7_cortical_structures_description.csv'))

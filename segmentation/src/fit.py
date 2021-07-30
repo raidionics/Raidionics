@@ -9,7 +9,7 @@ MODELS_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../'
 sys.path.insert(1, MODELS_PATH)
 
 
-def predict(input_filename, output_path, selected_model):
+def predict(input_filename, output_path, selected_model, brain_mask_filename=None):
     """
 
     """
@@ -26,7 +26,8 @@ def predict(input_filename, output_path, selected_model):
 
     nib_volume, resampled_volume, data, crop_bbox = run_pre_processing(filename=input_filename,
                                                                        pre_processing_parameters=pre_processing_parameters,
-                                                                       storage_prefix=output_path)
+                                                                       storage_prefix=output_path,
+                                                                       brain_mask_filename=brain_mask_filename)
     predictions = run_predictions(data=data, model_path=model_path, parameters=pre_processing_parameters)
     final_predictions = reconstruct_post_predictions(predictions=predictions, parameters=pre_processing_parameters,
                                                      crop_bbox=crop_bbox, nib_volume=nib_volume, resampled_volume=resampled_volume)

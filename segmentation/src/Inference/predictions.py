@@ -26,7 +26,6 @@ def run_predictions(data, model_path, parameters):
 
 
 def __run_predictions_tensorflow(data, model_path, parameters):
-    # print("Loading model...")
     model = load_model(model_path, compile=False)
 
     whole_input_at_once = False
@@ -35,7 +34,6 @@ def __run_predictions_tensorflow(data, model_path, parameters):
 
     final_result = None
 
-    # print("Predicting...")
     if whole_input_at_once:
         final_result = __run_predictions_whole(data=data, model=model,
                                                deep_supervision=parameters.training_deep_supervision)
@@ -162,7 +160,6 @@ def __run_predictions_slabbed(data, model, parameters, deep_supervision=False):
 
                 for c in range(0, slab_CT_pred.shape[-1]):
                     if slicing_plane == 'axial':
-                        #final_result[:, :, slice, c] = slab_CT_pred[0][:, :, half_slab_size, c]
                         final_result[:, :, slice - half_slab_size, c] = slab_CT_pred[0][:, :, half_slab_size, c]
                     elif slicing_plane == 'sagittal':
                         final_result[slice, :, :, c] = slab_CT_pred[0][:, :, half_slab_size, c]

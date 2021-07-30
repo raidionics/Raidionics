@@ -64,7 +64,7 @@ class PreProcessingParser:
     def __parse_pre_processing_content(self):
         self.preprocessing_library = 'nibabel'
         self.output_spacing = None
-        self.crop_background = False
+        self.crop_background = None
         self.intensity_clipping_values = None
         self.intensity_clipping_range = [0.0, 100.0]
         self.intensity_target_range = [0.0, 1.0]
@@ -94,8 +94,8 @@ class PreProcessingParser:
                 self.intensity_target_range = [float(x) for x in self.pre_processing_config['PreProcessing']['intensity_final_range'].split('#')[0].split(',')]
 
         if self.pre_processing_config.has_option('PreProcessing', 'background_cropping'):
-            self.crop_background = True if self.pre_processing_config['PreProcessing']['background_cropping'].split('#')[0].lower()\
-                                           == 'true' else False
+            if self.pre_processing_config['PreProcessing']['background_cropping'].split('#')[0].strip() != '':
+                self.crop_background = self.pre_processing_config['PreProcessing']['background_cropping'].split('#')[0].strip().lower()
 
         if self.pre_processing_config.has_option('PreProcessing', 'new_axial_size'):
             if self.pre_processing_config['PreProcessing']['new_axial_size'].split('#')[0].strip() != '':
@@ -109,7 +109,8 @@ class PreProcessingParser:
             self.swap_training_input = True if self.pre_processing_config['PreProcessing']['swap_training_input'].split('#')[0].lower()\
                                                    == 'true' else False
         if self.pre_processing_config.has_option('PreProcessing', 'normalization_method'):
-            self.normalization_method = self.pre_processing_config['PreProcessing']['normalization_method'].split('#')[0]
+            if self.pre_processing_config['PreProcessing']['normalization_method'].split('#')[0].strip() != '':
+                self.normalization_method = self.pre_processing_config['PreProcessing']['normalization_method'].split('#')[0].strip().lower()
 
     def __parse_MRI_content(self):
         self.perform_bias_correction = False
