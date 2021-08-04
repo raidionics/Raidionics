@@ -3,7 +3,7 @@
 Simple project for building binary releases of Python code for Ubuntu Linux/macOS/Windows using [PyInstaller](https://github.com/pyinstaller/pyinstaller).
 
 ## How to use?
-Download binary release from the **tags** section. We currently support Ubuntu Linux (>= 18), macOS (>= high-sierra) and Windows (>= Vista).
+Download binary release from the **tags** section. We currently support Ubuntu Linux (>= 18), macOS (>= high-sierra) and Windows (>= Vista; 64-bit).
 
 ## How to build:
 Using PyInstaller for building Python projects on various operating systems works well. However, [ANTs](https://github.com/ANTsX/ANTs) has limited support for Windows. Currently, the only stable way to use ANTs, is to use [ANTsPy](https://github.com/ANTsX/ANTsPy). Even still, on Windows, one have to install ANTsPy in a different way. Thus, read carefully through this tutorial before starting, to avoid having to start all over.
@@ -66,7 +66,7 @@ Windows > ./dist/NeuroRADS.exe
 
 Produces package that properly installs the application on the specific OS in a more user-friendly manner. This is done differently for different OS, as each operating system has their own installers.
 
-## macOS
+#### macOS
 1. Download quickpkg dependency:
 ```
 cd ${Project_Dir}
@@ -83,8 +83,10 @@ quickpkg/quickpkg dist/GSI-RADS.app --output GSI-RADS-{version}-{OS}.pkg
 installer -pkg GSI-RADS-{version}_{OS}.pkg -target CurrentUserHomeDirectory
 ```
 
-## Windows
-1. Install NSIS dependency and add the paths to the Path environmental variable
+Regarding the usage of quickpkg. See [here](https://scriptingosx.com/2017/05/relocatable-package-installers-and-quickpkg-update/) for information on which problem it solves.
+
+#### Windows
+1. Install NSIS dependency and add the paths to the Path environmental variable (IMPORTANT!).
 
 2. Build package (using makensis CLI and predefined NSI-file):
 ```
@@ -96,7 +98,7 @@ makensis.exe .\GSI-RADS.nsi
 .\GSI-RADS-{version}-{OS}.exe
 ```
 
-## Ubuntu Linux
+#### Ubuntu Linux
 Based on [this](https://www.internalpointers.com/post/build-binary-deb-package-practical-guide) tutorial.
 
 1. Move application/executable to the Project directory:
@@ -129,7 +131,7 @@ GSI-RADS
 - [x] Bug: Unable to run analysis again (after initial run has been made) - prompted (This class is a singleton!)
 - [x] Add support for building package installers for each respective OS
 - [ ] Add simple way to support batch mode?
-- [ ] Install the dependencies (.dll/.so) outside the executable to enable faster initialization of the software 
+- [ ] Install the dependencies (.dll/.so) outside the executable to enable faster initialization of the software ([x]: Done for macOS)
 
 
 ## TIPS
