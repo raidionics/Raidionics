@@ -26,3 +26,8 @@ segmentation/resources/
 /home
 /Atlases
 ANTs/
+*.exe
+*.pkg
+*.deb
+GSI-RADS
+quickpkg/

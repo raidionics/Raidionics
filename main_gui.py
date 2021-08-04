@@ -285,7 +285,8 @@ class MainWindow(QMainWindow):
                       '  * Amsterdam University Medical Center\n\n'
                       'Contact: David Bouget, Andre Pedersen\n\n'
                       'For questions about the software, please visit https://github.com/SINTEFMedtek/GSI-RADS \n'
-                      'For questions about the methodological aspect, please refer to the original publication: .\n')
+                      'For questions about the methodological aspect, please refer to the original publication: .\n'
+                      'https://www.mdpi.com/2072-6694/13/12/2854/review_report\n')
         popup.exec_()
 
     def quit_action_triggered(self):
