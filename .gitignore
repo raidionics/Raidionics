@@ -31,3 +31,4 @@ ANTs/
 *.deb
 GSI-RADS
 quickpkg/
+*.nii.gz
