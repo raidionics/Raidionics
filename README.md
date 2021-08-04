@@ -62,9 +62,9 @@ Ubuntu and macOS > ./dist/NeuroRADS
 Windows > ./dist/NeuroRADS.exe
 ```
 
-### Building package/installer (produces proper applications which may be installed using the package)
+### Building package/installer
 
-This is done differently for different OS, as each operating system has their own installers.
+Produces package that properly installs the application on the specific OS in a more user-friendly manner. This is done differently for different OS, as each operating system has their own installers.
 
 ## macOS
 1. Download quickpkg dependency:
