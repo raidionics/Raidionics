@@ -202,7 +202,7 @@ class NeuroDiagnostics:
         if len(tumor_clusters_labels) > 1:
             multifocality = False
             multifocal_elements = 0
-            # Computing the radius of the largest component, @TODO. Why not volume?
+            # Computing the radius of the largest component.
             radiuses = []
             parts_labels = []
             for l in range(len(tumor_clusters_labels)):

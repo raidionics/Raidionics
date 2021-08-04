@@ -130,10 +130,8 @@ class ResourcesConfiguration:
         #     self.subcortical_structures['MNI']['BrainLab'][n] = tract_fn
 
     def __set_default_parameters(self):
-        # @TODO: This should not be hard-coded. Add a method for setting these paths
-        #self.ants_root = '/home/dbouget/Documents/Libraries/ANTsX' 
+        # @TODO: This should not be hard-coded, but not necessary with the python ANTs version.
         self.ants_root = "C:/Users/andrp/ANTs"
-        #self.ants_root = "C:/Users/workspace/neuro_rads_diagnosis"
         # self.ants_root = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../', 'ANTsX')
         os.environ["ANTSPATH"] = os.path.join(self.ants_root, "bin/")
         self.ants_reg_dir = os.path.join(self.ants_root, 'bin')
