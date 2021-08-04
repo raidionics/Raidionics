@@ -74,7 +74,7 @@ exe = EXE(pyz,
 '''
 
 # separate exe-file from dlls and everything else
-# '''
+'''
 exe = EXE(pyz,
           a.scripts,
           [],
@@ -96,10 +96,10 @@ coll = COLLECT(exe,
                upx_exclude=[],
                name='GSI-RADS'
 )
-# '''
-
-
 '''
+
+
+# '''
 # to compile everything into a macOS Bundle (.APP)
 exe = EXE(pyz,
           a.scripts,
@@ -127,7 +127,7 @@ app = BUNDLE(coll,
              icon=None,
              bundle_identifier=None,
 )
-'''
+# '''
 
 
 

@@ -27,3 +27,5 @@ segmentation/resources/
 /Atlases
 ANTs/
 *.exe
+*.pkg
+quickpkg/
