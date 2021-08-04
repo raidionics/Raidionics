@@ -1,6 +1,6 @@
 # NeuroRADS
 
-Simple project for building binary releases of Python code for Ubuntu Linux/macOS/Windows using [PyInstaller](https://github.com/pyinstaller/pyinstaller).
+Simple project for building binary releases and package installers of Python code for Ubuntu Linux/macOS/Windows using [PyInstaller](https://github.com/pyinstaller/pyinstaller).
 
 ## How to use?
 Download binary release from the **tags** section. We currently support Ubuntu Linux (>= 18), macOS (>= high-sierra) and Windows (>= Vista; 64-bit).
@@ -17,7 +17,7 @@ Using PyInstaller for building Python projects on various operating systems work
 RuntimeError: CMake must be installed to build the following extensions: ants
 ```
 
-### Building the binary release
+## Building the binary release
 
 First of all, PyInstaller cannot [cross compile](https://realpython.com/pyinstaller-python/#limitations). Which simply means that an executable has to be built in a Windows operative system. The dependencies have to be met before building, and please use a fresh virtual environment to build, to minimize the size of the release as well as ensuring stability of the produced software. However, macOS is perfectly forward compatible and Windows is surprisingly backwards compatible (Win10 to Vista using Python 3.7).
 
@@ -62,9 +62,9 @@ Ubuntu and macOS > ./dist/NeuroRADS
 Windows > ./dist/NeuroRADS.exe
 ```
 
-### Building package (installer)
+## Building package installer
 
-Produces package that properly installs the application on the specific OS in a more user-friendly manner. This is done differently for different OS, as each operating system has their own installers.
+Produces package that properly installs the application on the specific OS in a more user-friendly manner. This is done differently for each OS, as each OS has their own application structures and package installer solutions.
 
 #### macOS
 1. Download quickpkg dependency:
@@ -122,15 +122,16 @@ GSI-RADS
 ## TODOs (most important from top to bottom):
 
 - [x] Use PyInstaller to produce release that encrypts the code and trained models into **one** file
-- [x] Achieve multi-OS support for Ubuntu Linux, macOS and Windows
+- [x] Achieve multi-OS support for Ubuntu Linux, macOS, and Windows
 - [x] Finish the GUI for release
 - [x] Re-build and produce binary releases for all relevant operating systems
 - [x] Publish release in open repository
-- [x] Add MenuBar to make software more natural?
-- [x] Add option to set input, segmentation and output path from command line?
+- [x] Add MenuBar to make software more natural
+- [x] Add option to set input, segmentation and output path from command line
 - [x] Bug: Unable to run analysis again (after initial run has been made) - prompted (This class is a singleton!)
 - [x] Add support for building package installers for each respective OS
-- [ ] Add simple way to support batch mode?
+- [ ] Add source code from this repository to the [GSI-RADS](https://github.com/SINTEFMedtek/GSI-RADS) repository
+- [ ] Add simple way to support batch mode
 - [ ] Install the dependencies (.dll/.so) outside the executable to enable faster initialization of the software ([x]: Done for macOS)
 
 
