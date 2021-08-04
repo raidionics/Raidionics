@@ -98,7 +98,7 @@ makensis.exe .\GSI-RADS.nsi
 .\GSI-RADS-{version}-{OS}.exe
 ```
 
-See [here](https://nsis.sourceforge.io/Simple_tutorials) for an example and [here](http://sfriederichs.github.io/how-to/nsis/2018/05/16/NSIS.html) for a tutorial on how to build installers using NSIS.
+See [here](https://nsis.sourceforge.io/Simple_tutorials) for an example and [here](http://sfriederichs.github.io/how-to/nsis/2018/05/16/NSIS.html) for a tutorial on how to build installers using NSIS. [This](https://github.com/huggle/huggle3-qt-lx/blob/master/windows/Huggle.nsi) is what I used as inspiration for my implementation.
 
 #### Ubuntu Linux
 Based on [this](https://www.internalpointers.com/post/build-binary-deb-package-practical-guide) tutorial.
