@@ -1,6 +1,6 @@
 import sys, os
 from PySide2.QtWidgets import QApplication, QLabel, QMainWindow, QPushButton, QFileDialog, QGridLayout, QLineEdit,\
-    QMenuBar, QPlainTextEdit, QAction, QMessageBox, QTabWidget, QHBoxLayout, QVBoxLayout, QSizePolicy, QTextEdit
+    QMenuBar, QPlainTextEdit, QAction, QMessageBox, QTabWidget, QHBoxLayout, QVBoxLayout, QSizePolicy, QTextEdit, QDialog
 from PySide2.QtCore import Qt, QObject, Signal, QThread, QUrl
 from PySide2.QtGui import QTextCursor, QPixmap, QIcon, QDesktopServices
 from diagnosis.main import diagnose_main
@@ -70,6 +70,15 @@ class MainWindow(QMainWindow):
         self.quit_action = QAction('Quit', self)
         self.quit_action.setShortcut("Ctrl+Q")
         self.file_menu.addAction(self.quit_action)
+
+        self.settings_menu = self.menu_bar.addMenu('Settings')
+        self.settings_seg_menu = self.settings_menu.addMenu("Segmentation...")
+        self.settings_seg_preproc_menu = self.settings_seg_menu.addMenu("Preprocessing...")
+        self.settings_seg_preproc_menu_p1_action = QAction("Brain-masking off (P1)", checkable=True)
+        self.settings_seg_preproc_menu_p2_action = QAction("Brain-masking on (P2)", checkable=True)
+        self.settings_seg_preproc_menu_p2_action.setChecked(True)
+        self.settings_seg_preproc_menu.addAction(self.settings_seg_preproc_menu_p1_action)
+        self.settings_seg_preproc_menu.addAction(self.settings_seg_preproc_menu_p2_action)
 
         self.help_menu = self.menu_bar.addMenu('Help')
         self.readme_action = QAction(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'images/readme-icon.jpeg')), 'Tutorial', self)
@@ -208,8 +217,6 @@ class MainWindow(QMainWindow):
 
     def __set_stylesheet(self):
         self.central_label.setStyleSheet('QLabel{background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0 rgba(207, 209, 207, 255), stop:1 rgba(230, 229, 230, 255));}')
-        #self.menu_bar.setStyleSheet('QMenuBar{background-color:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 rgba(25,25,25,127),stop:1 rgba(53,53,53,75));border-bottom:2px solid rgba(25,25,25,75);}')
-        # self.menu_bar.setStyleSheet('QMenuBar{background-color:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 rgba(125,225,250,127),stop:1 rgba(153,253,253,75));border-bottom:2px solid rgba(125,225,250,75);}')
         self.menu_bar.setStyleSheet(get_stylesheet('QMenuBar'))
         self.input_image_lineedit.setStyleSheet(get_stylesheet('QLineEdit'))
         self.input_image_pushbutton.setStyleSheet(get_stylesheet('QPushButton'))
@@ -234,6 +241,8 @@ class MainWindow(QMainWindow):
         self.quit_action.triggered.connect(self.quit_action_triggered)
         self.import_dicom_action.triggered.connect(self.import_dicom_action_triggered)
         self.help_action.triggered.connect(self.help_action_triggered)
+        self.settings_seg_preproc_menu_p1_action.triggered.connect(self.settings_seg_preproc_menu_p1_action_triggered)
+        self.settings_seg_preproc_menu_p2_action.triggered.connect(self.settings_seg_preproc_menu_p2_action_triggered)
 
     def __set_params(self):
         self.input_image_filepath = ''
@@ -291,10 +300,11 @@ class MainWindow(QMainWindow):
         self.run_button.setEnabled(False)
         self.prompt_lineedit.clear()
         self.main_display_tabwidget.setCurrentIndex(1)
+        seg_preprocessing_scheme = 'P1' if self.settings_seg_preproc_menu_p1_action.isChecked() else 'P2'
         try:
             diagnose_main(input_volume_filename=self.input_image_filepath,
                           input_segmentation_filename=self.input_annotation_filepath,
-                          output_folder=self.output_folderpath)
+                          output_folder=self.output_folderpath, preprocessing_scheme=seg_preprocessing_scheme)
         except Exception as e:
             print('{}'.format(traceback.format_exc()))
             self.run_button.setEnabled(True)
@@ -330,7 +340,6 @@ class MainWindow(QMainWindow):
         self.output_folder_lineedit.setText(self.output_folderpath)
 
     def standardOutputWritten(self, text):
-        # append text to the QPlainTextEdit.
         self.prompt_lineedit.moveCursor(QTextCursor.End)
         self.prompt_lineedit.insertPlainText(text)
 
@@ -340,3 +349,14 @@ class MainWindow(QMainWindow):
         # opens browser with specified url, directs user to Issues section of GitHub repo
         QDesktopServices.openUrl(QUrl("https://github.com/SINTEFMedtek/GSI-RADS/issues"))
 
+    def settings_seg_preproc_menu_p1_action_triggered(self, status):
+        if status:
+            self.settings_seg_preproc_menu_p2_action.setChecked(False)
+        else:
+            self.settings_seg_preproc_menu_p2_action.setChecked(True)
+
+    def settings_seg_preproc_menu_p2_action_triggered(self, status):
+        if status:
+            self.settings_seg_preproc_menu_p1_action.setChecked(False)
+        else:
+            self.settings_seg_preproc_menu_p1_action.setChecked(True)

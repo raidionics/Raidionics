@@ -73,8 +73,6 @@ class ANTsRegistration:
             print('Exception caught during registration. Error message: {}'.format(e))
 
     def compute_registration_python(self, moving, fixed, registration_method):
-        # print("STARTING REGISTRATION FOR PATIENT.")
-
         moving_ants = ants.image_read(moving, dimension=3)
         fixed_ants = ants.image_read(fixed, dimension=3)
         try:
@@ -120,7 +118,7 @@ class ANTsRegistration:
         script_path = os.path.join(self.ants_apply_dir, 'antsApplyTransforms')
 
         transform_filenames = [os.path.join(self.registration_folder, x) for x in self.transform_names]
-        moving_registered_filename = os.path.join(self.registration_folder, 'input_segmentation_to_MNI.nii.gz')  #os.path.join(self.registration_folder, os.path.basename(moving).split('.')[0] + '_reg_atlas.nii.gz')
+        moving_registered_filename = os.path.join(self.registration_folder, 'input_segmentation_to_MNI.nii.gz')
 
         if len(transform_filenames) == 4:
             args = ("{script}".format(script=script_path),
@@ -291,19 +289,19 @@ class ANTsRegistration:
         cortical_structures_folder = os.path.join(self.registration_folder, 'Cortical-structures')
         os.makedirs(cortical_structures_folder, exist_ok=True)
 
-        shutil.copyfile(src=ResourcesConfiguration.getInstance().regions_data['MNI']['MNI']['Mask'],
+        shutil.copyfile(src=ResourcesConfiguration.getInstance().cortical_structures['MNI']['MNI']['Mask'],
                         dst=os.path.join(cortical_structures_folder, 'MNI_cortical_structures_mask_mni.nii.gz'))
-        shutil.copyfile(src=ResourcesConfiguration.getInstance().regions_data['MNI']['MNI']['Description'],
+        shutil.copyfile(src=ResourcesConfiguration.getInstance().cortical_structures['MNI']['MNI']['Description'],
                         dst=os.path.join(cortical_structures_folder, 'MNI_cortical_structures_description.csv'))
-        shutil.copyfile(src=ResourcesConfiguration.getInstance().regions_data['MNI']['Harvard-Oxford']['Mask'],
+        shutil.copyfile(src=ResourcesConfiguration.getInstance().cortical_structures['MNI']['Harvard-Oxford']['Mask'],
                         dst=os.path.join(cortical_structures_folder, 'Harvard-Oxford_cortical_structures_mask_mni.nii.gz'))
-        shutil.copyfile(src=ResourcesConfiguration.getInstance().regions_data['MNI']['Harvard-Oxford']['Description'],
+        shutil.copyfile(src=ResourcesConfiguration.getInstance().cortical_structures['MNI']['Harvard-Oxford']['Description'],
                         dst=os.path.join(cortical_structures_folder, 'Harvard-Oxford_cortical_structures_description.csv'))
-        shutil.copyfile(src=ResourcesConfiguration.getInstance().regions_data['MNI']['Schaefer17']['Mask'],
+        shutil.copyfile(src=ResourcesConfiguration.getInstance().cortical_structures['MNI']['Schaefer17']['Mask'],
                         dst=os.path.join(cortical_structures_folder, 'Schaefer17_cortical_structures_mask_mni.nii.gz'))
-        shutil.copyfile(src=ResourcesConfiguration.getInstance().regions_data['MNI']['Schaefer17']['Description'],
+        shutil.copyfile(src=ResourcesConfiguration.getInstance().cortical_structures['MNI']['Schaefer17']['Description'],
                         dst=os.path.join(cortical_structures_folder, 'Schaefer17_cortical_structures_description.csv'))
-        shutil.copyfile(src=ResourcesConfiguration.getInstance().regions_data['MNI']['Schaefer7']['Mask'],
+        shutil.copyfile(src=ResourcesConfiguration.getInstance().cortical_structures['MNI']['Schaefer7']['Mask'],
                         dst=os.path.join(cortical_structures_folder, 'Schaefer7_cortical_structures_mask_mni.nii.gz'))
-        shutil.copyfile(src=ResourcesConfiguration.getInstance().regions_data['MNI']['Schaefer7']['Description'],
+        shutil.copyfile(src=ResourcesConfiguration.getInstance().cortical_structures['MNI']['Schaefer7']['Description'],
                         dst=os.path.join(cortical_structures_folder, 'Schaefer7_cortical_structures_description.csv'))

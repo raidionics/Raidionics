@@ -23,17 +23,16 @@ class PreProcessingParser:
         self.__parse_content()
 
     def __parse_content(self):
-        if self.pre_processing_config.has_option('Default', 'imaging_modality'):
-            param = self.pre_processing_config['Default']['imaging_modality'].split('#')[0].strip()
-            self.imaging_modality = 'MRI'
-        else:
-            raise AttributeError('')
-
+        # if self.pre_processing_config.has_option('Default', 'imaging_modality'):
+        #     param = self.pre_processing_config['Default']['imaging_modality'].split('#')[0].strip()
+        #     self.imaging_modality = 'MRI'
+        # else:
+        #     raise AttributeError('')
+        self.imaging_modality = 'MRI'
         self.__parse_pre_processing_content()
         self.__parse_training_content()
         self.__parse_MRI_content()
         self.__parse_CT_content()
-
         self.__parse_runtime_content()
 
     def __parse_training_content(self):

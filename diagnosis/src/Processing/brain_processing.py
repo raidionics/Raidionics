@@ -44,7 +44,7 @@ def perform_custom_brain_extraction(image_filepath, folder):
     final_brain_mask = final_brain_mask.astype('uint8')
 
     labels, nb_components = label(final_brain_mask)
-    brain_objects_properties = regionprops(labels)
+    brain_objects_properties = sorted(regionprops(labels), key=lambda r: r.area, reverse=True)
 
     brain_object = brain_objects_properties[0]
     brain_component = np.zeros(brain_mask.shape).astype('uint8')
@@ -62,8 +62,8 @@ def perform_custom_brain_extraction(image_filepath, folder):
 def perform_brain_masking(image_filepath, mask_filepath):
     """
     Set to 0 any voxel that does not belong to the brain mask.
-    :param image_filepath:
-    :param mask_filepath:
+    :param image_filepath: path to the main MRI volume
+    :param mask_filepath: path to the brain segmentation mask
     :return: masked_image_filepath
     """
     image_ni = load_nifti_volume(image_filepath)
@@ -78,13 +78,3 @@ def perform_brain_masking(image_filepath, mask_filepath):
     masked_input_filepath = os.path.join(tmp_folder, os.path.basename(image_filepath).split('.')[0] + '_masked.nii.gz')
     nib.save(nib.Nifti1Image(image, affine=image_ni.affine), masked_input_filepath)
     return masked_input_filepath
-
-
-def perform_brain_clipping(image_filepath, mask_filepath):
-    """
-    Identify the tighest bounding box around the brain mask and set to 0 any voxel outside that bounding box.
-    :param image_filepath:
-    :param mask_filepath:
-    :return: masked_image_filepath
-    """
-    pass

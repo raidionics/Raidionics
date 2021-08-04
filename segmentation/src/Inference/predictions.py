@@ -55,7 +55,6 @@ def __run_predictions_whole(data, model, deep_supervision=False):
         return predictions[0]
 
 
-#@TODO. Should handle the deep_supervision case also for slabbed input
 def __run_predictions_slabbed(data, model, parameters, deep_supervision=False):
     slicing_plane = parameters.slicing_plane
     slab_size = parameters.training_slab_size
@@ -71,7 +70,6 @@ def __run_predictions_slabbed(data, model, parameters, deep_supervision=False):
     elif slicing_plane == 'coronal':
         upper_boundary = data.shape[1]
 
-    # Placeholder for the final predictions -- the actual probabilities
     final_result = np.zeros(data.shape + (parameters.training_nb_classes,))
     data = np.expand_dims(data, axis=-1)
     count = 0
@@ -134,10 +132,8 @@ def __run_predictions_slabbed(data, model, parameters, deep_supervision=False):
                 for c in range(0, slab_CT_pred.shape[-1]):
                     final_result[:, :, slice, c] = slab_CT_pred[:, :, c]
         else:
-            #@TODO. Should pad also to make sure all the initial slices have a prediction
             data = padding_for_inference_both_ends(data=data, slab_size=slab_size, slicing_plane=slicing_plane)
             half_slab_size = int(slab_size / 2)
-            #for slice in range(half_slab_size, upper_boundary - half_slab_size):
             for slice in tqdm(range(half_slab_size, upper_boundary)):
                 if slicing_plane == 'axial':
                     slab_CT = data[:, :, slice - half_slab_size:slice + half_slab_size, 0]

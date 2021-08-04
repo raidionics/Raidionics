@@ -1,6 +1,4 @@
-import configparser
-import os, sys
-import datetime, time
+import os, datetime, time
 
 
 class ResourcesConfiguration:
@@ -30,15 +28,13 @@ class ResourcesConfiguration:
 
         self.scripts_root = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Scripts')
         self.__set_atlases_parameters()
-        self.__set_anatomical_regions_parameters()
+        self.__set_cortical_structures_parameters()
         self.__set_resection_maps_parameters()
-        self.__set_white_matter_tract_parameters()
+        self.__set_subcortical_structures_parameters()
         self.__set_default_parameters()
 
         date = datetime.date.today().strftime('%d%m%Y')
         hour = time.strftime("%H%M%S")
-        # date = datetime.date.today().strftime('%d%m%Y')
-        # hour = time.strftime("%H%M%S")
         timestamp = date + '_' + hour
         self.output_folder = os.path.join(output_dir, timestamp)
         os.makedirs(self.output_folder, exist_ok=True)
@@ -59,91 +55,79 @@ class ResourcesConfiguration:
         self.mni_atlas_lateralisation_mask_filepath = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../',
                                                                    'resources/Atlases/mni_icbm152_nlin_sym_09a/extended_lateralisation_mask.nii.gz')
 
-    def __set_anatomical_regions_parameters(self):
-        self.regions_data = {}
-        self.regions_data['MNI'] = {}
+    def __set_cortical_structures_parameters(self):
+        self.cortical_structures = {}
+        self.cortical_structures['MNI'] = {}
 
-        self.regions_data['MNI']['MNI'] = {}
-        self.regions_data['MNI']['MNI']['Mask'] = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../',
+        self.cortical_structures['MNI']['MNI'] = {}
+        self.cortical_structures['MNI']['MNI']['Mask'] = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../',
                                                                'resources/Atlases/mni_icbm152_nlin_sym_09a/reduced_lobes_brain.nii')
-        self.regions_data['MNI']['MNI']['Description'] = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+        self.cortical_structures['MNI']['MNI']['Description'] = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                                       '../../../',
                                                                       'resources/Atlases/mni_icbm152_nlin_sym_09a/lobe_labels_description.csv')
-        self.regions_data['MNI']['Harvard-Oxford'] = {}
-        self.regions_data['MNI']['Harvard-Oxford']['Mask'] = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+        self.cortical_structures['MNI']['Harvard-Oxford'] = {}
+        self.cortical_structures['MNI']['Harvard-Oxford']['Mask'] = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                                           '../../../',
                                                                           'resources/Atlases/Harvard-Oxford/HarvardOxford-cort-maxprob-thr0-1mm_mni.nii.gz')
-        self.regions_data['MNI']['Harvard-Oxford']['Description'] = os.path.join(
+        self.cortical_structures['MNI']['Harvard-Oxford']['Description'] = os.path.join(
             os.path.dirname(os.path.realpath(__file__)), '../../../',
             'resources/Atlases/Harvard-Oxford/regions_description.csv')
 
-        self.regions_data['MNI']['Schaefer400'] = {}
-        self.regions_data['MNI']['Schaefer400']['Mask'] = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+        self.cortical_structures['MNI']['Schaefer400'] = {}
+        self.cortical_structures['MNI']['Schaefer400']['Mask'] = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                                        '../../../',
                                                                        'resources/Atlases/Schaefer400/schaefer400MNI_mni.nii.gz')
-        self.regions_data['MNI']['Schaefer400']['Description'] = os.path.join(
+        self.cortical_structures['MNI']['Schaefer400']['Description'] = os.path.join(
             os.path.dirname(os.path.realpath(__file__)), '../../../',
             'resources/Atlases/Schaefer400/400regions_description.csv')
-        self.regions_data['MNI']['Schaefer17'] = {}
-        self.regions_data['MNI']['Schaefer17']['Mask'] = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+        self.cortical_structures['MNI']['Schaefer17'] = {}
+        self.cortical_structures['MNI']['Schaefer17']['Mask'] = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                                       '../../../',
                                                                       'resources/Atlases/Schaefer400/schaefer17MNI_mni.nii.gz')
-        self.regions_data['MNI']['Schaefer17']['Description'] = os.path.join(
+        self.cortical_structures['MNI']['Schaefer17']['Description'] = os.path.join(
             os.path.dirname(os.path.realpath(__file__)), '../../../',
             'resources/Atlases/Schaefer400/17regions_description.csv')
-        self.regions_data['MNI']['Schaefer7'] = {}
-        self.regions_data['MNI']['Schaefer7']['Mask'] = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../',
+        self.cortical_structures['MNI']['Schaefer7'] = {}
+        self.cortical_structures['MNI']['Schaefer7']['Mask'] = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../',
                                                                      'resources/Atlases/Schaefer400/schaefer7MNI_mni.nii.gz')
-        self.regions_data['MNI']['Schaefer7']['Description'] = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+        self.cortical_structures['MNI']['Schaefer7']['Description'] = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                                             '../../../',
                                                                             'resources/Atlases/Schaefer400/7regions_description.csv')
 
     def __set_resection_maps_parameters(self):
         self.mni_resection_maps = {}
         self.mni_resection_maps['Probability'] = {}
-        self.mni_resection_maps['Probability']['Global'] = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                                                        '../../',
-                                                                        'Atlases/resectability_maps/Resection_probability_map_global_mni.nii.gz')
         self.mni_resection_maps['Probability']['Left'] = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                                                      '../../',
-                                                                      'Atlases/resectability_maps/Resection_probability_map_left_mni.nii.gz')
+                                                                      '../../../',
+                                                                      'resources/Atlases/resectability_maps/Resection_probability_map_left_mni.nii.gz')
         self.mni_resection_maps['Probability']['Right'] = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                                                       '../../',
-                                                                       'Atlases/resectability_maps/Resection_probability_map_right_mni.nii.gz')
-        self.mni_resection_maps['Complexity'] = {}
-        self.mni_resection_maps['Complexity']['Global'] = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                                                       '../../',
-                                                                       'Atlases/resectability_maps/Surgical_complexity_map_global_mni.nii.gz')
-        self.mni_resection_maps['Complexity']['Left'] = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../',
-                                                                     'Atlases/resectability_maps/Surgical_complexity_map_left_mni.nii.gz')
-        self.mni_resection_maps['Complexity']['Right'] = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                                                      '../../',
-                                                                      'Atlases/resectability_maps/Surgical_complexity_map_right_mni.nii.gz')
+                                                                       '../../../',
+                                                                       'resources/Atlases/resectability_maps/Resection_probability_map_right_mni.nii.gz')
 
-    def __set_white_matter_tract_parameters(self):
-        self.white_matter_tracts = {}
-        self.white_matter_tracts['MNI'] = {}
-        self.white_matter_tracts['MNI']['BCB'] = {}
-        tracts_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../', 'resources/Atlases/bcb_tracts/')
-        tract_names = []
-        for _, _, files in os.walk(tracts_folder):
+    def __set_subcortical_structures_parameters(self):
+        self.subcortical_structures = {}
+        self.subcortical_structures['MNI'] = {}
+        self.subcortical_structures['MNI']['BCB'] = {}
+        substruc_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../', 'resources/Atlases/bcb_tracts/')
+        substruc_names = []
+        for _, _, files in os.walk(substruc_folder):
             for f in files:
-                tract_names.append(f)
+                substruc_names.append(f)
             break
-        for n in tract_names:
-            tract_fn = os.path.join(tracts_folder, n)
-            self.white_matter_tracts['MNI']['BCB'][n] = tract_fn
+        for n in substruc_names:
+            substruc_fn = os.path.join(substruc_folder, n)
+            self.subcortical_structures['MNI']['BCB'][n] = substruc_fn
 
-        self.white_matter_tracts['MNI']['BrainLab'] = {}
-        tracts_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../', 'resources/Atlases/brainlab_tracts/')
-        tract_names = []
-        for _, _, files in os.walk(tracts_folder):
-            for f in files:
-                tract_names.append(f)
-            break
-        for n in tract_names:
-            tract_fn = os.path.join(tracts_folder, n)
-            self.white_matter_tracts['MNI']['BrainLab'][n] = tract_fn
+        # self.subcortical_structures['MNI']['BrainLab'] = {}
+        # tracts_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../', 'resources/Atlases/brainlab_tracts/')
+        # tract_names = []
+        # for _, _, files in os.walk(tracts_folder):
+        #     for f in files:
+        #         tract_names.append(f)
+        #     break
+        # for n in tract_names:
+        #     tract_fn = os.path.join(tracts_folder, n)
+        #     self.subcortical_structures['MNI']['BrainLab'][n] = tract_fn
 
     def __set_default_parameters(self):
         # @TODO: This should not be hard-coded. Add a method for setting these paths

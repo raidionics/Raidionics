@@ -11,7 +11,9 @@ cycler==0.10.0
 decorator==4.4.2
 dipy==1.4.0
 Django==3.2
+filelock==3.0.12
 gast==0.4.0
+gdown==3.13.0
 gevent==21.1.2
 greenlet==1.0.0
 grpcio==1.37.0
@@ -41,6 +43,7 @@ pyinstaller==4.2
 pyinstaller-hooks-contrib==2021.1
 pyparsing==2.4.7
 PySide2==5.15.2
+PySocks==1.7.1
 python-dateutil==2.8.1
 pytz==2021.1
 PyWavelets==1.1.1

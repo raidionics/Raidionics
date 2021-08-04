@@ -61,6 +61,7 @@ def resize_volume(volume, new_slice_size, slicing_plane, order=1):
         new_volume = resize(volume, new_slice_size, order=order)
     return new_volume
 
+
 def __intensity_normalization_MRI(volume, parameters):
     result = deepcopy(volume).astype('float32')
     result[result < 0] = 0  # Soft clipping at 0 for MRI

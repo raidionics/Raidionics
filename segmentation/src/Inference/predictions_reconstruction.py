@@ -74,8 +74,6 @@ def __resample_predictions(predictions, crop_bbox, nib_volume, resampled_volume,
 
     # Undo resizing (which is performed in function crop())
     if crop_bbox is not None:
-        # data = resize(data, (crop_bbox[3] - crop_bbox[0], crop_bbox[4] - crop_bbox[1], crop_bbox[5] - crop_bbox[2]),
-        #               order=order, preserve_range=True)
         resize_ratio = (crop_bbox[3] - crop_bbox[0], crop_bbox[4] - crop_bbox[1], crop_bbox[5] - crop_bbox[2]) / np.asarray(data.shape[0:3])
         if len(data.shape) == 4:
             resize_ratio = list(resize_ratio) + [1.]
@@ -110,7 +108,6 @@ def __resample_predictions(predictions, crop_bbox, nib_volume, resampled_volume,
         resampled_channel = resample_from_to(img, nib_volume, order=order)
         resampled_predictions = resampled_channel.get_data()
 
-    # Range has to be set to [0, 1] again after resampling with order 0
     if order == 3:
         for c in range(0, nb_classes):
             min_val = np.min(resampled_predictions[..., c])

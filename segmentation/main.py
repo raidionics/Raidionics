@@ -1,6 +1,4 @@
-import getopt
 import os
-import sys
 from segmentation.src.fit import predict
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 

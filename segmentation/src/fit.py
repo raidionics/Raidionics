@@ -1,4 +1,3 @@
-import os, sys, time
 from segmentation.src.Utils.configuration_parser import *
 from segmentation.src.PreProcessing.pre_processing import run_pre_processing
 from segmentation.src.Inference.predictions import run_predictions
