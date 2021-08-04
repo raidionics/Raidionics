@@ -73,17 +73,29 @@ cd ${Project_Dir}
 git clone https://github.com/scriptingosx/quickpkg.git
 ```
 
-2. Build package:
+2. Build package (OS can be {Windows, macOS, Ubuntu}):
 ```
-quickpkg/quickpkg dist/GSI-RADS.app --output GSI-RADS_{OS}_{version}.pkg
+quickpkg/quickpkg dist/GSI-RADS.app --output GSI-RADS-{version}-{OS}.pkg
 ```
 
-3. (optional) Installing application (without sudo - installs in the user's local /Applications folder):
+3. (optional) Install application (without sudo - installs in the user's local /Applications folder):
 ```
-installer -pkg GSI-RADS-{OS}_{version}.pkg -target CurrentUserHomeDirectory
+installer -pkg GSI-RADS-{version}_{OS}.pkg -target CurrentUserHomeDirectory
 ```
 
 ## Windows
+1. Install NSIS dependency and add the paths to the Path environmental variable
+
+2. Build package (using makensis CLI and predefined NSI-file):
+```
+makensis.exe .\GSI-RADS.nsi
+```
+
+3. (optional) Install application:
+```
+.\GSI-RADS-{version}-{OS}.exe
+```
+
 
 ## Ubuntu Linux
 
