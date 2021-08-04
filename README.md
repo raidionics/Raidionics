@@ -62,7 +62,7 @@ Ubuntu and macOS > ./dist/NeuroRADS
 Windows > ./dist/NeuroRADS.exe
 ```
 
-### Building package/installer
+### Building package (installer)
 
 Produces package that properly installs the application on the specific OS in a more user-friendly manner. This is done differently for different OS, as each operating system has their own installers.
 
@@ -92,12 +92,15 @@ installer -pkg GSI-RADS-{OS}_{version}.pkg -target CurrentUserHomeDirectory
 
 - [x] Use PyInstaller to produce release that encrypts the code and trained models into **one** file
 - [x] Achieve multi-OS support for Ubuntu Linux, macOS and Windows
-- [ ] Finish the GUI for release
-- [ ] Re-build and produce binary releases for all relevant operating systems
-- [ ] Publish release in open repository
-- [ ] Add MenuBar to make software more natural?
-- [ ] Add option to set input, segmentation and output path from command line? Simple way to support batch mode
+- [x] Finish the GUI for release
+- [x] Re-build and produce binary releases for all relevant operating systems
+- [x] Publish release in open repository
+- [x] Add MenuBar to make software more natural?
+- [x] Add option to set input, segmentation and output path from command line?
 - [ ] Bug: Unable to run analysis again (after initial run has been made) - prompted (This class is a singleton!)
+- [ ] Add simple way to support batch mode?
+- [ ] Add support for building package installers for each respective OS
+- [ ] Install the dependencies (.dll/.so) outside the executable to enable faster initialization of the software 
 
 ## TIPS
 
