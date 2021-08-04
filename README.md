@@ -96,8 +96,25 @@ makensis.exe .\GSI-RADS.nsi
 .\GSI-RADS-{version}-{OS}.exe
 ```
 
-
 ## Ubuntu Linux
+Based on [this](https://www.internalpointers.com/post/build-binary-deb-package-practical-guide) tutorial.
+
+1. Move application/executable to the Project directory:
+```
+cp dist/GSI-RADS GSI-RADS-{version}-{OS}/usr/local/bin
+```
+2. Build package:
+```
+dpkg-deb --build --root-owner-group GSI-RADS-{version}_{OS}
+```
+3. (optional) Install application:
+```
+sudo dpkg -i GSI-RADS-{version}_{OS}.deb
+```
+4. (optional) execute the application (open a new terminal and simply run the software):
+```
+GSI-RADS
+```
 
 
 ## TODOs (most important from top to bottom):
@@ -109,10 +126,11 @@ makensis.exe .\GSI-RADS.nsi
 - [x] Publish release in open repository
 - [x] Add MenuBar to make software more natural?
 - [x] Add option to set input, segmentation and output path from command line?
-- [ ] Bug: Unable to run analysis again (after initial run has been made) - prompted (This class is a singleton!)
+- [x] Bug: Unable to run analysis again (after initial run has been made) - prompted (This class is a singleton!)
+- [x] Add support for building package installers for each respective OS
 - [ ] Add simple way to support batch mode?
-- [ ] Add support for building package installers for each respective OS
 - [ ] Install the dependencies (.dll/.so) outside the executable to enable faster initialization of the software 
+
 
 ## TIPS
 
