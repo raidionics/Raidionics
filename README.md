@@ -50,7 +50,7 @@ pip install pyinstaller==4.2
 4. Build binary release, from the folder directory (note that Windows should have a Python3.7 virtual environment here):
 ```
 Ubuntu > pyinstaller --noconform --clean --onefile --paths=./venv/lib/python3.6/site-packages/ants main_custom.spec
-macOS > pyinstaller --noconfirm --clean --onefile --paths=./venv/lib/python3.6/site-packages/ants main_custom.spec
+macOS > pyinstaller --noconfirm --clean --onefile --paths=./venv/lib/python3.6/site-packages/ants main_custom_macOS.spec
 Windows > pyinstaller --noconfirm --clean --onefile --paths=./venv/lib/site-packages/ants main_custom.spec
 ```
 
@@ -61,6 +61,32 @@ The binary release will be place in dist/.
 Ubuntu and macOS > ./dist/NeuroRADS
 Windows > ./dist/NeuroRADS.exe
 ```
+
+### Building package/installer (produces proper applications which may be installed using the package)
+
+This is done differently for different OS, as each operating system has their own installers.
+
+## macOS
+1. Download quickpkg dependency:
+```
+cd ${Project_Dir}
+git clone https://github.com/scriptingosx/quickpkg.git
+```
+
+2. Build package:
+```
+quickpkg/quickpkg dist/GSI-RADS.app --output GSI-RADS_{OS}_{version}.pkg
+```
+
+3. (optional) Installing application (without sudo - installs in the user's local /Applications folder):
+```
+installer -pkg GSI-RADS-{OS}_{version}.pkg -target CurrentUserHomeDirectory
+```
+
+## Windows
+
+## Ubuntu Linux
+
 
 ## TODOs (most important from top to bottom):
 
