@@ -28,4 +28,6 @@ segmentation/resources/
 ANTs/
 *.exe
 *.pkg
+*.deb
+GSI-RADS
 quickpkg/
