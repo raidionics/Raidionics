@@ -37,14 +37,16 @@ class NeuroDiagnostics:
         self.tumor_multifocal = None
 
     def run(self):
+        tmp_timer = 0
         start_time = time.time()
         self.input_filename = adjust_input_volume_for_nifti(self.input_filename, self.output_path)
 
         # Generating the brain mask for the input file
         print('Brain extraction - Begin (Step 1/6)')
         brain_mask_filepath = perform_brain_extraction(image_filepath=self.input_filename)
-        print('Time: {} seconds.\n'.format(time.time() - start_time))
         print('Brain extraction - End (Step 1/6)')
+        print('Step runtime: {} seconds.'.format(time.time() - start_time - tmp_timer) + "\n")
+        tmp_timer = time.time()
 
         # Generating brain-masked fixed and moving images
         print('Registration preprocessing - Begin (Step 2/6)')
@@ -52,22 +54,25 @@ class NeuroDiagnostics:
                                                       mask_filepath=brain_mask_filepath)
         atlas_masked_filepath = perform_brain_masking(image_filepath=self.atlas_brain_filepath,
                                                       mask_filepath=ResourcesConfiguration.getInstance().mni_atlas_brain_mask_filepath)
-        print('Time: {} seconds.\n'.format(time.time() - start_time))
         print('Registration preprocessing - End (Step 2/6)')
+        print('Step runtime: {} seconds.'.format(time.time() - tmp_timer) + "\n")
+        tmp_timer = time.time()
 
         # Performing registration
         print('Registration - Begin (Step 3/6)')
         self.registration_runner.compute_registration(fixed=atlas_masked_filepath, moving=input_masked_filepath,
                                                       registration_method='sq')
-        print('Time: {} seconds.\n'.format(time.time() - start_time))
         print('Registration - End (Step 3/6)')
+        print('Step runtime: {} seconds.'.format(time.time() - tmp_timer) + "\n")
+        tmp_timer = time.time()
 
         # Performing tumor segmentation
         if not os.path.exists(self.input_segmentation):
             print('Tumor segmentation - Begin (Step 4/6)')
             self.input_segmentation = self.__perform_tumor_segmentation(brain_mask_filepath)
-            print('Time: {} seconds.\n'.format(time.time() - start_time))
             print('Tumor segmentation - End (Step 4/6)')
+            print('Step runtime: {} seconds.'.format(time.time() - tmp_timer) + "\n")
+            tmp_timer = time.time()
 
         print('Apply registration - Begin (Step 5/6)')
         # Registering the tumor to the atlas
@@ -94,8 +99,9 @@ class NeuroDiagnostics:
                                                                       fixed=self.input_filename,
                                                                       interpolation='nearestNeighbor',
                                                                       label='Harvard-Oxford')
-        print('Time: {} seconds.\n'.format(time.time() - start_time))
         print('Apply registration - End (Step 5/6)')
+        print('Step runtime: {} seconds.'.format(time.time() - tmp_timer) + "\n")
+        tmp_timer = time.time()
 
         # Computing tumor location and statistics
         print('Generate report - Begin (Step 6/6)')
@@ -103,7 +109,8 @@ class NeuroDiagnostics:
         self.diagnosis_parameters.to_txt(self.output_report_filepath)
         self.diagnosis_parameters.to_csv(self.output_report_filepath[:-4] + '.csv')
         print('Generate report - End (Step 6/6)')
-        print('Total processing time: {} seconds.\n'.format(time.time() - start_time))
+        print('Step runtime: {} seconds.'.format(time.time() - tmp_timer) + "\n")
+        print('Total processing time: {} seconds.'.format(time.time() - start_time))
         print('--------------------------------')
 
         # Cleaning the temporary files

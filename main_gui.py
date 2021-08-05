@@ -7,6 +7,7 @@ from diagnosis.main import diagnose_main
 from diagnosis.src.Utils.configuration_parser import ResourcesConfiguration
 from gui_stylesheets import get_stylesheet
 import traceback, time
+import threading
 
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
@@ -36,8 +37,10 @@ class MainWindow(QMainWindow):
         self.printer_thread = WorkerThread()
         self.printer_thread.message.connect(self.standardOutputWritten)
         self.printer_thread.start()
+
         self.app = application
         self.app.setStyle("Fusion")
+
         self.__set_interface()
         self.__set_layouts()
         self.__set_stylesheet()
@@ -231,7 +234,7 @@ class MainWindow(QMainWindow):
         self.run_button.setStyleSheet(get_stylesheet('QPushButton'))
 
     def __set_connections(self):
-        self.run_button.clicked.connect(self.run_diagnosis)
+        self.run_button.clicked.connect(self.diagnose_main_wrapper)
         self.input_image_pushbutton.clicked.connect(self.run_select_input_image)
         self.input_segmentation_pushbutton.clicked.connect(self.run_select_input_segmentation)
         self.output_folder_pushbutton.clicked.connect(self.run_select_output_folder)
@@ -284,14 +287,20 @@ class MainWindow(QMainWindow):
                       '  * St. Olavs hospital, Trondheim University Hospital\n'
                       '  * Amsterdam University Medical Center\n\n'
                       'Contact: David Bouget, Andre Pedersen\n\n'
-                      'For questions about the software, please visit https://github.com/SINTEFMedtek/GSI-RADS \n'
-                      'For questions about the methodological aspect, please refer to the original publication: .\n'
-                      'https://www.mdpi.com/2072-6694/13/12/2854/review_report\n')
+                      'For questions about the software, please visit:\n' 
+                      'https://github.com/SINTEFMedtek/GSI-RADS\n'
+                      'For questions about the methodological aspect, please refer to the original publication:\n'
+                      'https://www.mdpi.com/2072-6694/13/12/2854/review_report')
         popup.exec_()
 
     def quit_action_triggered(self):
         self.printer_thread.stop()
         sys.exit()
+
+    def diagnose_main_wrapper(self):
+        self.run_diagnosis_thread = threading.Thread(target=self.run_diagnosis)
+        self.run_diagnosis_thread.daemon = True  # using daemon thread the thread is killed gracefully if program is abruptly closed
+        self.run_diagnosis_thread.start()
 
     def run_diagnosis(self):
         if not os.path.exists(self.input_image_filepath) or not os.path.exists(self.output_folderpath):
@@ -301,16 +310,20 @@ class MainWindow(QMainWindow):
         self.run_button.setEnabled(False)
         self.prompt_lineedit.clear()
         self.main_display_tabwidget.setCurrentIndex(1)
-        seg_preprocessing_scheme = 'P1' if self.settings_seg_preproc_menu_p1_action.isChecked() else 'P2'
+        QApplication.processEvents()  # to immidiently update GUI after button is clicked
+        self.seg_preprocessing_scheme = 'P1' if self.settings_seg_preproc_menu_p1_action.isChecked() else 'P2'
+
         try:
             diagnose_main(input_volume_filename=self.input_image_filepath,
                           input_segmentation_filename=self.input_annotation_filepath,
-                          output_folder=self.output_folderpath, preprocessing_scheme=seg_preprocessing_scheme)
+                          output_folder=self.output_folderpath, preprocessing_scheme=self.seg_preprocessing_scheme)
         except Exception as e:
             print('{}'.format(traceback.format_exc()))
             self.run_button.setEnabled(True)
             self.standardOutputWritten('Process could not be completed - Issue arose.\n')
+            QApplication.processEvents()
             return
+        
         self.run_button.setEnabled(True)
         results_filepath = os.path.join(ResourcesConfiguration.getInstance().output_folder, 'report.txt')
         self.results_textedit.setPlainText(open(results_filepath, 'r').read())
