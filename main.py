@@ -16,7 +16,6 @@ os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = plugin_path
 import sys
 from PySide2.QtWidgets import QApplication
 from main_gui import MainWindow
-from diagnosis.main import diagnose_main
 
 
 def main(argv):
@@ -53,6 +52,7 @@ def main(argv):
 
             app.exec_()
         else:
+            from diagnosis.main import diagnose_main
             diagnose_main(input_volume_filename=input_filename,
                           input_segmentation_filename=input_tumor_segmentation_filename,
                           output_folder=output_folder, gpu_id=gpu_id)

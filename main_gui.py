@@ -3,7 +3,6 @@ from PySide2.QtWidgets import QApplication, QLabel, QMainWindow, QPushButton, QF
     QMenuBar, QPlainTextEdit, QAction, QMessageBox, QTabWidget, QHBoxLayout, QVBoxLayout, QSizePolicy, QTextEdit, QDialog
 from PySide2.QtCore import Qt, QObject, Signal, QThread, QUrl
 from PySide2.QtGui import QTextCursor, QPixmap, QIcon, QDesktopServices
-from diagnosis.main import diagnose_main
 from diagnosis.src.Utils.configuration_parser import ResourcesConfiguration
 from gui_stylesheets import get_stylesheet
 import traceback, time
@@ -314,6 +313,7 @@ class MainWindow(QMainWindow):
         self.seg_preprocessing_scheme = 'P1' if self.settings_seg_preproc_menu_p1_action.isChecked() else 'P2'
 
         try:
+            from diagnosis.main import diagnose_main
             diagnose_main(input_volume_filename=self.input_image_filepath,
                           input_segmentation_filename=self.input_annotation_filepath,
                           output_folder=self.output_folderpath, preprocessing_scheme=self.seg_preprocessing_scheme)
