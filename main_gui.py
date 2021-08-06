@@ -313,7 +313,11 @@ class MainWindow(QMainWindow):
         self.seg_preprocessing_scheme = 'P1' if self.settings_seg_preproc_menu_p1_action.isChecked() else 'P2'
 
         try:
+            start_time = time.time()
+            print('Initialize - Begin (Step 0/6)')
             from diagnosis.main import diagnose_main
+            print('Initialize - End (Step 0/6)')
+            print('Step runtime: {} seconds.'.format(time.time() - start_time) + "\n")
             diagnose_main(input_volume_filename=self.input_image_filepath,
                           input_segmentation_filename=self.input_annotation_filepath,
                           output_folder=self.output_folderpath, preprocessing_scheme=self.seg_preprocessing_scheme)
