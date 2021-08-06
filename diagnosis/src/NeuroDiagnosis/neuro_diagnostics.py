@@ -45,7 +45,7 @@ class NeuroDiagnostics:
         print('Brain extraction - Begin (Step 1/6)')
         brain_mask_filepath = perform_brain_extraction(image_filepath=self.input_filename)
         print('Brain extraction - End (Step 1/6)')
-        print('Step runtime: {} seconds.'.format(time.time() - start_time - tmp_timer) + "\n")
+        print('Step runtime: {} seconds.'.format(round(time.time() - start_time - tmp_timer, 3)) + "\n")
         tmp_timer = time.time()
 
         # Generating brain-masked fixed and moving images
@@ -55,7 +55,7 @@ class NeuroDiagnostics:
         atlas_masked_filepath = perform_brain_masking(image_filepath=self.atlas_brain_filepath,
                                                       mask_filepath=ResourcesConfiguration.getInstance().mni_atlas_brain_mask_filepath)
         print('Registration preprocessing - End (Step 2/6)')
-        print('Step runtime: {} seconds.'.format(time.time() - tmp_timer) + "\n")
+        print('Step runtime: {} seconds.'.format(round(time.time() - tmp_timer, 3)) + "\n")
         tmp_timer = time.time()
 
         # Performing registration
@@ -63,7 +63,7 @@ class NeuroDiagnostics:
         self.registration_runner.compute_registration(fixed=atlas_masked_filepath, moving=input_masked_filepath,
                                                       registration_method='sq')
         print('Registration - End (Step 3/6)')
-        print('Step runtime: {} seconds.'.format(time.time() - tmp_timer) + "\n")
+        print('Step runtime: {} seconds.'.format(round(time.time() - tmp_timer, 3)) + "\n")
         tmp_timer = time.time()
 
         # Performing tumor segmentation
@@ -71,7 +71,7 @@ class NeuroDiagnostics:
             print('Tumor segmentation - Begin (Step 4/6)')
             self.input_segmentation = self.__perform_tumor_segmentation(brain_mask_filepath)
             print('Tumor segmentation - End (Step 4/6)')
-            print('Step runtime: {} seconds.'.format(time.time() - tmp_timer) + "\n")
+            print('Step runtime: {} seconds.'.format(round(time.time() - tmp_timer, 3)) + "\n")
             tmp_timer = time.time()
 
         print('Apply registration - Begin (Step 5/6)')
@@ -100,7 +100,7 @@ class NeuroDiagnostics:
                                                                       interpolation='nearestNeighbor',
                                                                       label='Harvard-Oxford')
         print('Apply registration - End (Step 5/6)')
-        print('Step runtime: {} seconds.'.format(time.time() - tmp_timer) + "\n")
+        print('Step runtime: {} seconds.'.format(round(time.time() - tmp_timer, 3)) + "\n")
         tmp_timer = time.time()
 
         # Computing tumor location and statistics
@@ -110,7 +110,7 @@ class NeuroDiagnostics:
         self.diagnosis_parameters.to_csv(self.output_report_filepath[:-4] + '.csv')
         print('Generate report - End (Step 6/6)')
         print('Step runtime: {} seconds.'.format(time.time() - tmp_timer) + "\n")
-        print('Total processing time: {} seconds.'.format(time.time() - start_time))
+        print('Total processing time: {} seconds.'.format(round(time.time() - start_time, 3)))
         print('--------------------------------')
 
         # Cleaning the temporary files

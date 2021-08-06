@@ -118,17 +118,6 @@ class ResourcesConfiguration:
             substruc_fn = os.path.join(substruc_folder, n)
             self.subcortical_structures['MNI']['BCB'][n] = substruc_fn
 
-        # self.subcortical_structures['MNI']['BrainLab'] = {}
-        # tracts_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../', 'resources/Atlases/brainlab_tracts/')
-        # tract_names = []
-        # for _, _, files in os.walk(tracts_folder):
-        #     for f in files:
-        #         tract_names.append(f)
-        #     break
-        # for n in tract_names:
-        #     tract_fn = os.path.join(tracts_folder, n)
-        #     self.subcortical_structures['MNI']['BrainLab'][n] = tract_fn
-
     def __set_default_parameters(self):
         # @TODO: This should not be hard-coded, but not necessary with the python ANTs version.
         self.ants_root = "C:/Users/andrp/ANTs"
