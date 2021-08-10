@@ -106,7 +106,7 @@ Based on [this](https://www.internalpointers.com/post/build-binary-deb-package-p
 
 1. Move application/executable to the Project directory:
 ```
-cp dist/GSI-RADS GSI-RADS-{version}-{OS}/usr/local/bin
+cp -r dist/GSI-RADS GSI-RADS-{version}-{OS}/usr/local/bin
 ```
 2. Build package:
 ```
