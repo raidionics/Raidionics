@@ -7,6 +7,7 @@ from diagnosis.src.Utils.configuration_parser import ResourcesConfiguration
 from gui_stylesheets import get_stylesheet
 import traceback, time
 import threading
+import numpy as np
 
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
@@ -317,7 +318,7 @@ class MainWindow(QMainWindow):
             print('Initialize - Begin (Step 0/6)')
             from diagnosis.main import diagnose_main
             print('Initialize - End (Step 0/6)')
-            print('Step runtime: {} seconds.'.format(time.time() - start_time) + "\n")
+            print('Step runtime: {} seconds.'.format(np.round(time.time() - start_time, 3)) + "\n")
             diagnose_main(input_volume_filename=self.input_image_filepath,
                           input_segmentation_filename=self.input_annotation_filepath,
                           output_folder=self.output_folderpath, preprocessing_scheme=self.seg_preprocessing_scheme)
