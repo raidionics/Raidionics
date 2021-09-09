@@ -49,9 +49,9 @@ pip install pyinstaller==4.2
 
 4. Build binary release, from the folder directory (note that Windows should have a Python3.7 virtual environment here):
 ```
-Ubuntu > pyinstaller --noconfirm --clean --onefile --paths=./venv/lib/python3.6/site-packages/ants main_custom.spec
+Ubuntu > pyinstaller --noconfirm --clean --onefile --paths=./venv/lib/python3.6/site-packages/ants main_custom_bundle.spec
 macOS > pyinstaller --noconfirm --clean --onefile --paths=./venv/lib/python3.6/site-packages/ants main_custom_macos.spec
-Windows > pyinstaller --noconfirm --clean --onefile --paths=./venv/lib/site-packages/ants main_custom_windows_bundle.spec
+Windows > pyinstaller --noconfirm --clean --onefile --paths=./venv/lib/site-packages/ants main_custom_bundle.spec
 ```
 
 The binary release will be placed in dist/.
