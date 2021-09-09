@@ -51,7 +51,7 @@ pip install pyinstaller==4.2
 ```
 Ubuntu > pyinstaller --noconfirm --clean --onefile --paths=./venv/lib/python3.6/site-packages/ants main_custom.spec
 macOS > pyinstaller --noconfirm --clean --onefile --paths=./venv/lib/python3.6/site-packages/ants main_custom_macos.spec
-Windows > pyinstaller --noconfirm --clean --onefile --paths=./venv/lib/site-packages/ants main_custom.spec
+Windows > pyinstaller --noconfirm --clean --onefile --paths=./venv/lib/site-packages/ants main_custom_windows_bundle.spec
 ```
 
 The binary release will be placed in dist/.
@@ -133,9 +133,9 @@ GSI-RADS
 - [x] Add option to set input, segmentation and output path from command line
 - [x] Bug: Unable to run analysis again (after initial run has been made) - prompted (This class is a singleton!)
 - [x] Add support for building package installers for each respective OS
-- [ ] Add source code from this repository to the [GSI-RADS](https://github.com/SINTEFMedtek/GSI-RADS) repository
+- [x] Install the dependencies (.dll/.so) outside the executable to enable faster initialization of the software ([x]: Done for macOS and Windows)
+- [x] Add source code from this repository to the [GSI-RADS](https://github.com/SINTEFMedtek/GSI-RADS) repository
 - [ ] Add simple way to support batch mode
-- [ ] Install the dependencies (.dll/.so) outside the executable to enable faster initialization of the software ([x]: Done for macOS)
 
 
 ## TIPS
