@@ -15,7 +15,8 @@ os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = plugin_path
 
 import sys
 from PySide2.QtWidgets import QApplication
-from main_gui import MainWindow
+# from main_gui import MainWindow
+from gui.GSIRADSMainWindow import MainWindow
 
 
 def main(argv):

@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import nibabel as nib
 from nibabel.processing import resample_to_output
@@ -5,13 +6,16 @@ from copy import deepcopy
 from skimage.transform import resize
 from scipy.ndimage import binary_fill_holes
 from skimage.measure import regionprops
+from diagnosis.src.Processing.brain_processing import perform_custom_brain_extraction
+from diagnosis.src.Utils.configuration_parser import ResourcesConfiguration
 
 
-def crop_MR_background(volume, parameters, new_spacing, brain_mask_filename):
+def crop_MR_background(volume, parameters, new_spacing, brain_mask_filename, input_filename=None):
     if parameters.crop_background == 'minimum':
         return crop_MR(volume, parameters)
     elif parameters.crop_background == 'brain_clip' or parameters.crop_background == 'brain_mask':
-        return advanced_crop_exclude_background(volume, parameters.crop_background, new_spacing, brain_mask_filename)
+        return advanced_crop_exclude_background(volume, parameters.crop_background, new_spacing, brain_mask_filename,
+                                                input_filename)
 
 
 def crop_MR(volume, parameters):
@@ -29,7 +33,10 @@ def crop_MR(volume, parameters):
     return cropped_volume, bbox
 
 
-def advanced_crop_exclude_background(data, crop_mode, spacing, brain_mask_filename):
+def advanced_crop_exclude_background(data, crop_mode, spacing, brain_mask_filename, input_filename):
+    if not os.path.exists(brain_mask_filename):
+        perform_custom_brain_extraction(image_filepath=input_filename,
+                                        folder=ResourcesConfiguration.getInstance().output_folder)
     brain_mask_ni = nib.load(brain_mask_filename)
     resampled_brain = resample_to_output(brain_mask_ni, spacing, order=0)
     brain_mask = resampled_brain.get_data().astype('uint8')

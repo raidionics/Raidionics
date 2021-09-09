@@ -26,7 +26,7 @@ def run_pre_processing(filename, pre_processing_parameters, storage_prefix, brai
     # Exclude background
     if pre_processing_parameters.crop_background is not None:
         data, crop_bbox = crop_MR_background(data, parameters=pre_processing_parameters, new_spacing=new_spacing,
-                                             brain_mask_filename=brain_mask_filename)
+                                             brain_mask_filename=brain_mask_filename, input_filename=filename)
 
     data = resize_volume(data, pre_processing_parameters.new_axial_size, pre_processing_parameters.slicing_plane,
                          order=1)

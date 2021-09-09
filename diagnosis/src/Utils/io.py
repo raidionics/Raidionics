@@ -21,7 +21,7 @@ def adjust_input_volume_for_nifti(volume_path, output_folder):
             image_sitk = sitk.ReadImage(volume_path)
             output_path = os.path.join(output_folder, 'tmp',
                                        os.path.basename(volume_path).split('.')[0] + '.nii.gz')
-            os.makedirs(os.path.dirname(output_path))
+            os.makedirs(os.path.dirname(output_path), exist_ok=True)
             sitk.WriteImage(image_sitk, output_path)
     else:  # DICOM folder case
         reader = sitk.ImageSeriesReader()
@@ -29,7 +29,7 @@ def adjust_input_volume_for_nifti(volume_path, output_folder):
         reader.SetFileNames(dicom_names)
         image = reader.Execute()
         output_path = os.path.join(output_folder, 'tmp', 'converted_input.nii.gz')
-        os.makedirs(os.path.dirname(output_path))
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
         sitk.WriteImage(image, output_path)
 
     return output_path
