@@ -1,6 +1,6 @@
 Package: GSI-RADS
-Version: 0.1.1
+Version: 1.1
 Architecture: i386
 Maintainer: Andre Pedersen <andre.pedersen@sintef.no>
 Description: Glioblastoma Surgery Imaging—Reporting and Data System.
- Software to automatically compute glioblastoma's features from a T1-wighted MRI pre-operative MRI, and report them in a standardized manner
+ Software to automatically compute glioblastoma's features from a T1-wighted MRI pre-operative MRI, and report them in a standardized manner.

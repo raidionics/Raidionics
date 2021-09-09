@@ -49,7 +49,7 @@ pip install pyinstaller==4.2
 
 4. Build binary release, from the folder directory (note that Windows should have a Python3.7 virtual environment here):
 ```
-Ubuntu > pyinstaller --noconform --clean --onefile --paths=./venv/lib/python3.6/site-packages/ants main_custom.spec
+Ubuntu > pyinstaller --noconfirm --clean --onefile --paths=./venv/lib/python3.6/site-packages/ants main_custom.spec
 macOS > pyinstaller --noconfirm --clean --onefile --paths=./venv/lib/python3.6/site-packages/ants main_custom_macos.spec
 Windows > pyinstaller --noconfirm --clean --onefile --paths=./venv/lib/site-packages/ants main_custom.spec
 ```
@@ -87,6 +87,7 @@ Regarding the usage of quickpkg. See [here](https://scriptingosx.com/2017/05/rel
 
 #### Windows
 1. Install NSIS dependency and add the paths to the Path environmental variable (IMPORTANT!).
+2. Copy the dist/ directory with corresponding compiled GSI-RADS executable and directory to the same level as GSI-RADS.nsi. 
 
 2. Build package (using makensis CLI and predefined NSI-file):
 ```
@@ -105,7 +106,7 @@ Based on [this](https://www.internalpointers.com/post/build-binary-deb-package-p
 
 1. Move application/executable to the Project directory:
 ```
-cp dist/GSI-RADS GSI-RADS-{version}-{OS}/usr/local/bin
+cp -r dist/GSI-RADS GSI-RADS-{version}-{OS}/usr/local/bin
 ```
 2. Build package:
 ```
