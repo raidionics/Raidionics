@@ -6,7 +6,7 @@ from copy import deepcopy
 from skimage.transform import resize
 from scipy.ndimage import binary_fill_holes
 from skimage.measure import regionprops
-from diagnosis.src.Processing.brain_processing import perform_custom_brain_extraction
+# from diagnosis.src.Processing.brain_processing import perform_custom_brain_extraction
 from diagnosis.src.Utils.configuration_parser import ResourcesConfiguration
 
 
@@ -34,9 +34,9 @@ def crop_MR(volume, parameters):
 
 
 def advanced_crop_exclude_background(data, crop_mode, spacing, brain_mask_filename, input_filename):
-    if not os.path.exists(brain_mask_filename):
-        perform_custom_brain_extraction(image_filepath=input_filename,
-                                        folder=ResourcesConfiguration.getInstance().output_folder)
+    # if brain_mask_filename is None or not os.path.exists(brain_mask_filename):
+    #     perform_custom_brain_extraction(image_filepath=input_filename,
+    #                                     folder=ResourcesConfiguration.getInstance().output_folder)
     brain_mask_ni = nib.load(brain_mask_filename)
     resampled_brain = resample_to_output(brain_mask_ni, spacing, order=0)
     brain_mask = resampled_brain.get_data().astype('uint8')

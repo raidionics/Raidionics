@@ -21,6 +21,18 @@ def perform_custom_brain_extraction(image_filepath, folder):
     brain_predictions_file = None
     output_folder = os.path.join(folder, 'tmp', '')
     os.makedirs(output_folder, exist_ok=True)
+    # execute_filepath = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../main.py')
+    # try:
+    #     subprocess.call(
+    #         ["python",
+    #          "{script}".format(script=execute_filepath),
+    #          "-g{use_gui}".format(use_gui='0'),
+    #          "-i{input}".format(input=image_filepath),
+    #          "-m{model}".format(model='MRI_Brain'),
+    #          "-o{output}".format(output=output_folder),
+    #          "-t{task}".format(task='segmentation')])
+    # except Exception:
+    #     raise ValueError("Deep learning brain extraction failed: {}".format(traceback.format_exc()))
     main_segmentation(image_filepath, output_folder, 'MRI_Brain')
     out_files = []
     for _, _, files in os.walk(output_folder):

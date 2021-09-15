@@ -49,7 +49,7 @@ class ResourcesConfiguration:
         self.mni_atlas_brain_mask_filepath = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../',
                                                           'resources/Atlases/mni_icbm152_nlin_sym_09a/mni_icbm152_t1_tal_nlin_sym_09a_mask.nii')
         self.mni_atlas_lobes_mask_filepath = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../',
-                                                          'resources/Atlases/mni_icbm152_nlin_sym_09a/reduced_lobes_brain.nii')
+                                                          'resources/Atlases/mni_icbm152_nlin_sym_09a/reduced_lobes_brain.nii.gz')
         self.mni_atlas_lobes_description_filepath = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../',
                                                                  'resources/Atlases/mni_icbm152_nlin_sym_09a/lobe_labels_description.csv')
         self.mni_atlas_lateralisation_mask_filepath = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../',

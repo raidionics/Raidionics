@@ -35,6 +35,10 @@ class InputImageSelectedSignal(QObject):
     input_image_selection = Signal(str)
 
 
+class ProcessingThreadSignal(QObject):
+    processing_thread_finished = Signal(bool)
+
+
 class MainWindow(QMainWindow):
 
     def __init__(self, application, *args, **kwargs):
@@ -44,6 +48,7 @@ class MainWindow(QMainWindow):
         self.app.setStyle("Fusion")
         self.input_image_selected_signal = InputImageSelectedSignal()
         self.input_image_segmentation_selected_signal = InputImageSelectedSignal()
+        self.processing_thread_signal = ProcessingThreadSignal()
         self.__set_interface()
         self.__set_layouts()
         self.__set_stylesheet()
@@ -53,6 +58,8 @@ class MainWindow(QMainWindow):
         self.printer_thread = WorkerThread()
         self.printer_thread.message.connect(self.standardOutputWritten)
         self.printer_thread.start()
+
+        self.processing_thread_signal.processing_thread_finished.connect(self.__postprocessing_process)
 
     def closeEvent(self, event):
         self.printer_thread.stop()
@@ -160,8 +167,7 @@ class MainWindow(QMainWindow):
         self.run_segmentation_button = QPushButton('Run segmentation')
         self.run_segmentation_button.setFixedWidth(self.height * self.button_width)
         self.run_segmentation_button.setFixedHeight(self.height * self.button_height)
-        self.run_segmentation_button.setEnabled(False)
-
+        self.run_segmentation_button.setEnabled(True)
 
         self.main_display_tabwidget = QTabWidget()
         self.tutorial_textedit = QPlainTextEdit()
@@ -237,17 +243,17 @@ class MainWindow(QMainWindow):
         self.input_volume_hbox.addSpacerItem(QSpacerItem(150, 10, QSizePolicy.Expanding, QSizePolicy.Minimum))
         self.mainexecution_layout.addLayout(self.input_volume_hbox)
 
-        self.input_seg_hbox = QHBoxLayout()
-        self.input_seg_hbox.addWidget(self.input_segmentation_lineedit)
-        self.input_seg_hbox.addWidget(self.input_segmentation_pushbutton)
-        self.input_seg_hbox.addSpacerItem(QSpacerItem(150, 10, QSizePolicy.Expanding, QSizePolicy.Minimum))
-        self.mainexecution_layout.addLayout(self.input_seg_hbox)
-
         self.output_dir_hbox = QHBoxLayout()
         self.output_dir_hbox.addWidget(self.output_folder_lineedit)
         self.output_dir_hbox.addWidget(self.output_folder_pushbutton)
         self.output_dir_hbox.addSpacerItem(QSpacerItem(150, 10, QSizePolicy.Expanding, QSizePolicy.Minimum))
         self.mainexecution_layout.addLayout(self.output_dir_hbox)
+
+        self.input_seg_hbox = QHBoxLayout()
+        self.input_seg_hbox.addWidget(self.input_segmentation_lineedit)
+        self.input_seg_hbox.addWidget(self.input_segmentation_pushbutton)
+        self.input_seg_hbox.addSpacerItem(QSpacerItem(150, 10, QSizePolicy.Expanding, QSizePolicy.Minimum))
+        self.mainexecution_layout.addLayout(self.input_seg_hbox)
 
         self.select_tumor_type_hbox = QHBoxLayout()
         self.select_tumor_type_hbox.addWidget(self.select_tumor_type_combobox)
@@ -278,12 +284,16 @@ class MainWindow(QMainWindow):
     def __set_maindisplay_layout(self):
         self.maindisplay_layout = QHBoxLayout()
         self.display_area_widget = DisplayAreaWidget(self)
+        # self.display_area_widget.setStyleSheet("color:red;background-color:red")
         # self.setMaximumWidth(self.width)
         # #self.setMaximumHeight(self.height)
         # self.display_area_widget.setMinimumWidth(self.height/2)
         # self.display_area_widget.setMinimumHeight(self.height/2)
-        self.maindisplay_layout.addWidget(self.display_area_widget)
-        self.main_window_layout.addLayout(self.maindisplay_layout)
+        # self.display_area_widget.setFixedSize(self.width, self.height*2)
+
+        # self.maindisplay_layout.addWidget(self.display_area_widget)
+        # self.main_window_layout.addLayout(self.maindisplay_layout)
+        self.main_window_layout.addWidget(self.display_area_widget)
 
     def __set_stylesheet(self):
         self.central_label.setStyleSheet(
@@ -331,10 +341,10 @@ class MainWindow(QMainWindow):
         screen = self.app.primaryScreen()
         size = screen.size()
 
-        self.left = size.width() / 2
-        self.top = size.height() / 2
-        self.width = 0.4 * size.width()
-        self.height = 0.4 * size.height()
+        self.left = size.width() / 1.5
+        self.top = size.height() / 1.5
+        self.width = 0.5 * size.width()
+        self.height = 0.5 * size.height()
 
     def readme_action_triggered(self):
         popup = QMessageBox()
@@ -395,6 +405,8 @@ class MainWindow(QMainWindow):
         QApplication.processEvents()  # to immediatly update GUI after button is clicked
         self.seg_preprocessing_scheme = 'P1' if self.settings_seg_preproc_menu_p1_action.isChecked() else 'P2'
 
+        # env = ResourcesConfiguration.getInstance()
+        # env.set_environment(output_dir=self.output_folderpath)
         try:
             start_time = time.time()
             print('Initialize - Begin (Step 0/6)')
@@ -437,9 +449,10 @@ class MainWindow(QMainWindow):
             from diagnosis.main import diagnose_main
             print('Initialize - End (Step 0/6)')
             print('Step runtime: {} seconds.'.format(np.round(time.time() - start_time, 3)) + "\n")
-            diagnose_main(input_volume_filename=self.input_image_filepath,
-                          input_segmentation_filename=self.input_annotation_filepath,
-                          output_folder=self.output_folderpath, preprocessing_scheme=self.seg_preprocessing_scheme)
+            # diagnose_main(input_volume_filename=self.input_image_filepath,
+            #               input_segmentation_filename=self.input_annotation_filepath,
+            #               output_folder=self.output_folderpath, preprocessing_scheme=self.seg_preprocessing_scheme)
+            ResourcesConfiguration.getInstance().output_folder = '/home/dbouget/Desktop/13092021_170252'
         except Exception as e:
             print('{}'.format(traceback.format_exc()))
             self.run_button.setEnabled(True)
@@ -447,10 +460,12 @@ class MainWindow(QMainWindow):
             QApplication.processEvents()
             return
 
-        self.run_button.setEnabled(True)
-        results_filepath = os.path.join(ResourcesConfiguration.getInstance().output_folder, 'report.txt')
-        self.results_textedit.setPlainText(open(results_filepath, 'r').read())
-        self.main_display_tabwidget.setCurrentIndex(2)
+        self.processing_thread_signal.processing_thread_finished.emit(True)
+        # self.run_button.setEnabled(True)
+        # results_filepath = os.path.join(ResourcesConfiguration.getInstance().output_folder, 'report.txt')
+        # self.results_textedit.setPlainText(open(results_filepath, 'r').read())
+        # self.main_display_tabwidget.setCurrentIndex(2)
+        # self.display_area_widget.load_results(ResourcesConfiguration.getInstance().output_folder)
 
     def run_select_input_image(self):
         input_image_filedialog = QFileDialog()
@@ -501,3 +516,11 @@ class MainWindow(QMainWindow):
             self.settings_seg_preproc_menu_p1_action.setChecked(False)
         else:
             self.settings_seg_preproc_menu_p1_action.setChecked(True)
+
+    def __postprocessing_process(self, status):
+        if status:
+            self.run_button.setEnabled(True)
+            results_filepath = os.path.join(ResourcesConfiguration.getInstance().output_folder, 'report.txt')
+            self.results_textedit.setPlainText(open(results_filepath, 'r').read())
+            self.main_display_tabwidget.setCurrentIndex(2)
+            self.display_area_widget.load_results(ResourcesConfiguration.getInstance().output_folder)

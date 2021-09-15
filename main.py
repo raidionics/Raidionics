@@ -19,14 +19,17 @@ from PySide2.QtWidgets import QApplication
 from gui.GSIRADSMainWindow import MainWindow
 
 
+#-i /media/dbouget/ihdb/Data/NeuroDatabase/1/1/volumes/1_MR_T1_pre_1.nii.gz -o /home/dbouget/Desktop/ -m MRI_HGGlioma_P2 -g 0 -t segmentation
 def main(argv):
     gui_usage = 1
     input_filename = ''
     input_tumor_segmentation_filename = ''
     output_folder = ''
     gpu_id = '-1'
+    task = ''
+    model_segmentation = ''
     try:
-        opts, args = getopt.getopt(argv, "hg:i:s:o:d:", ["gui=1"])
+        opts, args = getopt.getopt(argv, "hg:i:s:o:m:d:t:", ["gui=1"])
     except getopt.GetoptError:
         print('main.py -g <use_gui> [-i <input_filename> -s <input_tumor_segmentation_filename> -o <output_folder> -d <gpu_id>]')
         sys.exit(2)
@@ -42,8 +45,12 @@ def main(argv):
             input_tumor_segmentation_filename = arg
         elif opt in ("-o", "--output_folder"):
             output_folder = arg
+        elif opt in ("-m", "--model_segmentation"):
+            model_segmentation = arg
         elif opt in ("-d", "--gpu_id"):
             gpu_id = arg
+        elif opt in ("-t", "--task"):
+            task = arg
     try:
         if gui_usage == 1:
             app = QApplication(sys.argv)
@@ -52,11 +59,14 @@ def main(argv):
             window.show()
 
             app.exec_()
-        else:
+        elif task == 'diagnosis':
             from diagnosis.main import diagnose_main
             diagnose_main(input_volume_filename=input_filename,
                           input_segmentation_filename=input_tumor_segmentation_filename,
                           output_folder=output_folder, gpu_id=gpu_id)
+        elif task == 'segmentation':
+            from segmentation.main import main_segmentation
+            main_segmentation(input_filename=input_filename, output_folder=output_folder, model_name=model_segmentation, gpu_device=gpu_id)
     except Exception as e:
         print('Process could not proceed. Caught error: {}'.format(e.args[0]))
         print('{}'.format(traceback.format_exc()))
