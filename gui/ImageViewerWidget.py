@@ -61,6 +61,7 @@ class ImageViewerWidget(QWidget):
         # self.display_label_scrollarea.setWidgetResizable(True)
         # self.display_label_scrollarea.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self.display_label = ImageDisplayLabel(view_type=self.view_type, parent=self)
+        self.display_label.setAlignment(Qt.AlignCenter)
         # self.display_label.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
         # self.display_label.setFixedSize(QSize(200, 100))
         # self.display_label.resize(QSize(50, 200))

@@ -2,6 +2,8 @@
 def get_stylesheet(object_type):
     if object_type == 'QGroupBox':
         return get_qgroupbox_stylesheet()
+    elif object_type == 'QPushButton':
+        return get_qpushbutton_stylesheet()
 
 
 def get_qgroupbox_stylesheet():
@@ -20,6 +22,17 @@ def get_qgroupbox_stylesheet():
              "subcontrol-position:top left;"
              "background-color: #FF17365D;"
              "color: rgb(255, 255, 255);"
+             "}")
+
+    return ss
+
+
+def get_qpushbutton_stylesheet():
+    ss = str("QPushButton{"
+             "border: 1px solid #FF17365D;"
+             "border-color: #FF17365D;"
+             "border-radius: 1px;"
+             "background-color: rgb(229, 235, 235);"
              "}")
 
     return ss

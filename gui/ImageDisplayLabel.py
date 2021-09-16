@@ -1,5 +1,5 @@
 from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QSlider, QVBoxLayout, QSizePolicy, QSpacerItem, QScrollArea, QApplication, QFrame
-from PySide2.QtGui import QPixmap, QImage, QColor, QPainter
+from PySide2.QtGui import QPixmap, QImage, QColor, QPainter, QTransform
 from PySide2.QtCore import Qt, QSize, QPoint
 import numpy as np
 from skimage import color
@@ -17,8 +17,11 @@ class ImageDisplayLabel(QLabel):
         self.view_type = view_type
         self.input_volume = None
         self.input_labels_volume = None
+        self.toggle_opacity = True
         self.labels_opacity = 0.5
         self.zoom_scale_factor = 1.0
+        self.translation_x = 0
+        self.translation_y = 0
         self.input_volume = None
         self.input_labels_volume = None
         self.display_image_2d = None
@@ -60,8 +63,9 @@ class ImageDisplayLabel(QLabel):
         # self.display_label_scrollarea.setWidgetResizable(True)
         # self.display_label_scrollarea.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self.display_label = QLabel()
+        self.display_label.setAlignment(Qt.AlignCenter)
         # self.display_label.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
-        QApplication.instance().processEvents()
+        # QApplication.instance().processEvents()
         # self.display_label.setFixedSize(QSize(200, 100))
         # self.display_label.resize(QSize(50, 200))
         # self.display_label.adjustSize()
@@ -80,7 +84,7 @@ class ImageDisplayLabel(QLabel):
         self.main_layout = QVBoxLayout(self)
         # self.display_label_scrollarea.setWidget(self.display_label)
         # self.main_layout.addWidget(self.display_label_scrollarea)
-        self.main_layout.addWidget(self.display_label)
+        self.main_layout.addWidget(self.display_label, alignment=Qt.AlignCenter)
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         # self.main_layout.addSpacerItem(QSpacerItem(150, 10, QSizePolicy.Expanding, QSizePolicy.Minimum))
         # self.setLayout(self.main_layout)
@@ -117,14 +121,41 @@ class ImageDisplayLabel(QLabel):
                 new_zoom_factor = min(8.0, self.zoom_scale_factor + 0.05)
             else:
                 new_zoom_factor = max(0.25, self.zoom_scale_factor - 0.05)
+
+            # if new_zoom_factor > 1:
+            #     if new_zoom_factor > self.zoom_scale_factor:
+            #         self.translation_x += 5
+            #         self.translation_y += 5
+            #     else:
+            #         self.translation_x -= 5
+            #         self.translation_y -= 5
             # self.zoom_scale_factor = min(0.25, self.zoom_scale_factor)
             # self.zoom_scale_factor = max(self.zoom_scale_factor, 3.0)
             self.click_y_pos = event.globalY()
             self.zoom_scale_factor = new_zoom_factor
             self.__rescale()
         elif event.buttons() & Qt.LeftButton:
+            if self.click_x_pos - event.globalX() > 0:
+                self.translation_x -= 2
+            elif self.click_x_pos - event.globalX() < 0:
+                self.translation_x += 2
+
+            if self.click_y_pos - event.globalY() > 0:
+                self.translation_y -= 2
+            elif self.click_y_pos - event.globalY() < 0:
+                self.translation_y += 2
+            self.click_x_pos = event.globalX()
+            self.click_y_pos = event.globalY()
+            self.__rescale()
             # print("Pos:({}, {})".format(event.globalX(), event.globalY()))
-            pass
+            # print('Translation: {}, {}'.format(self.translation_x, self.translation_y))
+
+    # def keyPressEvent(self, event):
+    #     print('any key pressed: {}'.format(event.key()))
+    #     if event.key() == Qt.Key_S:
+    #         print("S pressed")
+    #         self.toggle_opacity = not self.toggle_opacity
+    #         self.__repaint_view()
 
     def __set_connections(self):
         self.parent.qpixmap_display_update_signal.new_qpixmap_to_display.connect(self.__update_pixmap)
@@ -134,9 +165,32 @@ class ImageDisplayLabel(QLabel):
 
     def __rescale(self):
         if self.display_pixmap is not None:
-            display_pixmap = self.display_pixmap.scaled(self.display_label.width()*self.zoom_scale_factor,
-                                                        self.display_label.height()*self.zoom_scale_factor, Qt.KeepAspectRatio)
+            # display_pixmap = self.display_pixmap.scaled(self.display_label.width()*self.zoom_scale_factor,
+            #                                             self.display_label.height()*self.zoom_scale_factor, Qt.KeepAspectRatio)
+            display_pixmap = self.display_pixmap.scaled(self.display_image_2d.shape[1] * self.zoom_scale_factor,
+                                                        self.display_image_2d.shape[0] * self.zoom_scale_factor)
+            # translation = QTransform()
+            # translation.translate(self.translation_x, self.translation_y)
+            # final_pixmap = display_pixmap.transformed(translation, mode=Qt.SmoothTransformation)
+            # painter = QPainter(display_pixmap)
+            # painter.setTransform(translation)
+            # painter.end()
+            self.display_label.setFixedSize(display_pixmap.size())
             self.display_label.setPixmap(display_pixmap)
+            if (self.display_label.height() > self.parent.height()) or (self.display_label.width() > self.parent.width()):
+                max_trx = abs(self.display_label.width() - self.parent.width())
+                max_try = abs(self.display_label.height() - self.parent.height())
+                if self.translation_x < 0:
+                    trx = max(-max_trx, self.translation_x)
+                else:
+                    trx = min(max_trx, self.translation_x)
+                self.translation_x = trx
+                if self.translation_y < 0:
+                    tr_y = max(-max_try, self.translation_y)
+                else:
+                    tr_y = min(max_try, self.translation_y)
+                self.translation_y = tr_y
+                self.display_label.move(self.translation_x, self.translation_y)
 
     def __update_pixmap(self, pixmap):
         # display_pixmap = pixmap.scaled(self.display_pixmap.width() * self.zoom_scale_factor,
@@ -176,7 +230,7 @@ class ImageDisplayLabel(QLabel):
         self.display_qimage = img
         self.display_pixmap = QPixmap.fromImage(img)
 
-        if self.display_anno_2d is not None:
+        if self.display_anno_2d is not None and self.toggle_opacity:
             h, w = self.display_anno_2d.shape
             color_anno_overlay = np.stack([np.zeros(self.display_anno_2d.shape, dtype=np.uint8)] * 4, axis=-1)
             for i, key in enumerate(self.labels_palette.keys()):

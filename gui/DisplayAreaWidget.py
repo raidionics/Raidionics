@@ -2,6 +2,7 @@ import pandas as pd
 from PySide2.QtWidgets import QWidget, QLabel, QGridLayout, QPushButton, QHBoxLayout, QVBoxLayout, QSpacerItem,\
     QSizePolicy, QSlider, QGroupBox
 from PySide2.QtCore import QSize, Qt, QRect
+from PySide2.QtGui import QPixmap, QIcon
 from gui.ImageViewerWidget import ImageViewerWidget
 import nibabel as nib
 from nibabel.processing import resample_to_output
@@ -86,6 +87,27 @@ class DisplayAreaWidget(QWidget):
         self.mni_space_pushbutton.setFixedWidth((self.parent.width * self.parent.button_width)/6)
         self.mni_space_pushbutton.setFixedHeight(self.parent.height * self.parent.button_height)
 
+        self.display_options_groupbox = QGroupBox()
+        self.display_options_groupbox.setTitle('Options')
+
+        self.options_contrast_pushbutton = QPushButton()
+        self.options_contrast_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Images/contrast-icon.png'))))
+        self.options_contrast_pushbutton.setCheckable(True)
+        self.options_contrast_pushbutton.setChecked(False)
+        self.options_contrast_pushbutton.setDisabled(True)
+        self.options_contrast_pushbutton.setFixedWidth((self.parent.width * self.parent.button_width)/6)
+        self.options_contrast_pushbutton.setFixedHeight(self.parent.height * self.parent.button_height)
+        self.options_contrast_pushbutton.setToolTip("Adjust image contrast.")
+
+        self.options_reset_pushbutton = QPushButton()
+        self.options_reset_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Images/reset-icon.png'))))
+        self.options_reset_pushbutton.setCheckable(True)
+        self.options_reset_pushbutton.setChecked(False)
+        self.options_reset_pushbutton.setDisabled(True)
+        self.options_reset_pushbutton.setFixedWidth((self.parent.width * self.parent.button_width)/6)
+        self.options_reset_pushbutton.setFixedHeight(self.parent.height * self.parent.button_height)
+        self.options_reset_pushbutton.setToolTip("Reset viewpoint to default.")
+
         self.annotations_groupbox = QGroupBox()
         self.annotations_groupbox.setTitle('Annotations')
         self.annotations_groupbox.setVisible(False)
@@ -127,7 +149,7 @@ class DisplayAreaWidget(QWidget):
         self.anno_sc7_structures_pushbutton.setCheckable(True)
         self.anno_sc7_structures_pushbutton.setChecked(False)
         self.anno_sc7_structures_pushbutton.setDisabled(True)
-        self.anno_sc7_structures_pushbutton.setFixedWidth((self.parent.width * self.parent.button_width) / 5)
+        self.anno_sc7_structures_pushbutton.setFixedWidth((self.parent.width * self.parent.button_width) / 4)
         self.anno_sc7_structures_pushbutton.setFixedHeight(self.parent.height * self.parent.button_height)
 
         self.anno_sc17_structures_pushbutton = QPushButton('Schaefer17')
@@ -135,7 +157,7 @@ class DisplayAreaWidget(QWidget):
         self.anno_sc17_structures_pushbutton.setCheckable(True)
         self.anno_sc17_structures_pushbutton.setChecked(False)
         self.anno_sc17_structures_pushbutton.setDisabled(True)
-        self.anno_sc17_structures_pushbutton.setFixedWidth((self.parent.width * self.parent.button_width) / 5)
+        self.anno_sc17_structures_pushbutton.setFixedWidth((self.parent.width * self.parent.button_width) / 4)
         self.anno_sc17_structures_pushbutton.setFixedHeight(self.parent.height * self.parent.button_height)
 
         self.segmentation_opacity_label = QLabel()
@@ -157,7 +179,7 @@ class DisplayAreaWidget(QWidget):
         self.viewer_sagittal = ImageViewerWidget(view_type='sagittal', parent=self)
 
         self.labels_display_groupbox = QGroupBox()
-        self.labels_display_groupbox.setTitle('Labels')
+        self.labels_display_groupbox.setTitle('Structures')
         self.labels_display_groupbox.setAlignment(Qt.AlignTop)
         self.labels_display_groupbox.setVisible(False)
         self.display_groupbox_labels = []
@@ -181,6 +203,13 @@ class DisplayAreaWidget(QWidget):
         self.anatomical_planes_groupbox.setLayout(self.mini_menu_boxlayout)
         self.anatomical_planes_groupbox.setStyleSheet(get_stylesheet('QGroupBox'))
 
+        self.options_boxlayout = QHBoxLayout()
+        self.options_boxlayout.addWidget(self.options_contrast_pushbutton)
+        self.options_boxlayout.addWidget(self.options_reset_pushbutton)
+        self.options_boxlayout.addStretch(1)
+        self.options_boxlayout.setContentsMargins(5, 5, 5, 5)
+        self.display_options_groupbox.setLayout(self.options_boxlayout)
+        self.display_options_groupbox.setStyleSheet(get_stylesheet('QGroupBox'))
         # self.mini_menu_boxlayout.addWidget(self.segmentation_opacity_slider)
         # self.mini_menu_boxlayout.addSpacerItem(QSpacerItem(150, 10, QSizePolicy.Expanding, QSizePolicy.Minimum))
 
@@ -218,6 +247,7 @@ class DisplayAreaWidget(QWidget):
         self.combined_top_layout = QHBoxLayout()
         self.combined_top_layout.addWidget(self.anatomical_planes_groupbox)
         self.combined_top_layout.addWidget(self.reference_space_groupbox)
+        self.combined_top_layout.addWidget(self.display_options_groupbox)
         # self.main_layout.addWidget(self.anatomical_planes_groupbox)
         # self.main_layout.addWidget(self.reference_space_groupbox)
         self.main_layout.addLayout(self.combined_top_layout)
