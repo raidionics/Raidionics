@@ -61,7 +61,7 @@ class ResourcesConfiguration:
 
         self.cortical_structures['MNI']['MNI'] = {}
         self.cortical_structures['MNI']['MNI']['Mask'] = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../',
-                                                               'resources/Atlases/mni_icbm152_nlin_sym_09a/reduced_lobes_brain.nii')
+                                                               'resources/Atlases/mni_icbm152_nlin_sym_09a/reduced_lobes_brain.nii.gz')
         self.cortical_structures['MNI']['MNI']['Description'] = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                                       '../../../',
                                                                       'resources/Atlases/mni_icbm152_nlin_sym_09a/lobe_labels_description.csv')

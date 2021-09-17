@@ -28,6 +28,7 @@ class ImageDisplayLabel(QLabel):
         self.display_anno_2d = None
         self.display_pixmap = None
         self.labels_palette = {}
+        # self.setMouseTracking(True)
 
         self.__set_interface()
         self.__set_layout()
@@ -149,6 +150,7 @@ class ImageDisplayLabel(QLabel):
             self.__rescale()
             # print("Pos:({}, {})".format(event.globalX(), event.globalY()))
             # print('Translation: {}, {}'.format(self.translation_x, self.translation_y))
+        # self.__highlight_label(event.pos())
 
     # def keyPressEvent(self, event):
     #     print('any key pressed: {}'.format(event.key()))
@@ -253,6 +255,10 @@ class ImageDisplayLabel(QLabel):
         # self.display_label.setPixmap(self.display_pixmap.scaled(self.display_label.width(), self.display_label.height(), Qt.KeepAspectRatio))
         self.__draw_pixmap()
 
+    def __highlight_label(self, position):
+        label_value = self.display_anno_2d[position.x(), position.y()]
+        print('Hovered label is {}'.format(label_value))
+
     def view_slice_change_slot(self):
         position = self.parent.scroll_slider.value()
         self.__select_view_slice(position)
@@ -278,6 +284,7 @@ class ImageDisplayLabel(QLabel):
         self.input_labels_volume = deepcopy(input_labels_volume)
         self.__select_view_slice(self.parent.scroll_slider.value())
         self.__repaint_view()
+        # self.setMouseTracking(True)
 
     def set_labels_palette(self, palette):
         self.labels_palette = palette

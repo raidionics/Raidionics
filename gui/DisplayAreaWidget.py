@@ -11,6 +11,14 @@ import os
 from gui.Styles.default_stylesheets import get_stylesheet
 
 
+def get_annotation_labels_stylesheet():
+    ss = str("QLabel{"
+             "font: 8pt;"
+             "}")
+
+    return ss
+
+
 class DisplayAreaWidget(QWidget):
     """
 
@@ -172,6 +180,7 @@ class DisplayAreaWidget(QWidget):
         self.segmentation_opacity_slider.setFixedHeight(self.parent.height * self.parent.button_height)
         self.segmentation_opacity_slider.setFixedWidth((self.parent.width * self.parent.button_width)/2)
         self.segmentation_opacity_slider.setEnabled(False)
+        self.segmentation_opacity_slider.setStyleSheet(get_stylesheet('QSlider'))
 
         self.viewer_axial = ImageViewerWidget(view_type='axial', parent=self)
         # self.viewer_axial.setFixedSize(QSize(int(self.parent.size().width() / 2), int(self.parent.size().height() / 2)))
@@ -191,6 +200,7 @@ class DisplayAreaWidget(QWidget):
         self.main_view_layout = QGridLayout()
         self.labels_display_groupbox_layout = QVBoxLayout()
         self.labels_display_groupbox_layout.setAlignment(Qt.AlignTop)
+        self.labels_display_groupbox_layout.setContentsMargins(1, 1, 1, 1)
         self.labels_display_groupbox.setLayout(self.labels_display_groupbox_layout)
 
         self.mini_menu_boxlayout = QHBoxLayout()
@@ -263,8 +273,10 @@ class DisplayAreaWidget(QWidget):
         #self.resize(QSize(int(self.parent.height/2), int(self.parent.height/2)))
 
     def __set_connections(self):
-        self.parent.input_image_selected_signal.input_image_selection.connect(self.__input_image_selected_slot)
-        self.parent.input_image_segmentation_selected_signal.input_image_selection.connect(self.__input_image_segmentation_selected_slot)
+        # self.parent.input_image_selected_signal.input_image_selection.connect(self.__input_image_selected_slot)
+        # self.parent.input_image_segmentation_selected_signal.input_image_selection.connect(self.__input_image_segmentation_selected_slot)
+        self.parent.processing_area_widget.input_image_selected_signal.input_image_selection.connect(self.__input_image_selected_slot)
+        self.parent.processing_area_widget.input_image_segmentation_selected_signal.input_image_selection.connect(self.__input_image_segmentation_selected_slot)
         self.axial_view_pushbutton.clicked.connect(self.__axial_view_clicked_slot)
         self.coronal_view_pushbutton.clicked.connect(self.__coronal_view_clicked_slot)
         self.sagittal_view_pushbutton.clicked.connect(self.__sagittal_view_clicked_slot)
@@ -485,12 +497,13 @@ class DisplayAreaWidget(QWidget):
         # Should have the csv file describing the labels.
         for i, key in enumerate(self.labels_palette.keys()):
             color_label = QLabel()
-            color_label.setFixedSize(QSize(10, 10))
+            color_label.setFixedSize(QSize(self.parent.height * self.parent.button_height * 0.8,
+                                           self.parent.height * self.parent.button_height * 0.8))
             color_label.setStyleSheet("color: rgb({r},{g},{b});background-color: rgb({r},{g},{b})".format(r=self.labels_palette[key][0],
                                                                                                     g=self.labels_palette[key][1],
                                                                                                     b=self.labels_palette[key][2]))
             text_label = QLabel()
-            text_label.setFixedHeight(self.parent.height * self.parent.button_height)
+            text_label.setFixedHeight(self.parent.height * self.parent.button_height * 0.8)
             if name_list is None:
                 text_label.setText('{}'.format(key))
             else:
@@ -503,10 +516,14 @@ class DisplayAreaWidget(QWidget):
                     text += '_' + name_list.loc[name_list['Label'] == key]['Laterality'].values[0]
                 # text_label.setText('{}'.format(name_list[i]))
                 text_label.setText('{}'.format(text))
+                text_label.setAlignment(Qt.AlignCenter)
+                text_label.setStyleSheet(get_annotation_labels_stylesheet())
 
             box_layout = QHBoxLayout()
             box_layout.addWidget(color_label)
             box_layout.addWidget(text_label)
+            box_layout.setContentsMargins(0, 0, 0, 0)
+            box_layout.setSpacing(0)
             # box_layout.addSpacerItem(QSpacerItem(150, 10, QSizePolicy.Expanding, QSizePolicy.Minimum))
             self.labels_display_groupbox_layout.addLayout(box_layout)
             self.display_groupbox_labels.append(color_label)
