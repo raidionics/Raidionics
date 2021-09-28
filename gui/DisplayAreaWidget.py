@@ -298,6 +298,8 @@ class DisplayAreaWidget(QWidget):
         patient_tumor_mask = nib.load(os.path.join(output_folder, 'input_tumor_mask.nii.gz')).get_data()[:]
         self.results_annotations['patient']['tumor'] = patient_tumor_mask
 
+        # patient_space_brain_mask_filename = os.path.join(output_folder, 'input_brain_mask.nii.gz')
+        # if patient_space_brain_mask_filename is not None and os.path.exists(patient_space_brain_mask_filename):
         patient_brain_mask = nib.load(os.path.join(output_folder, 'input_brain_mask.nii.gz')).get_data()[:]
         self.results_annotations['patient']['brain'] = patient_brain_mask
 
@@ -356,6 +358,34 @@ class DisplayAreaWidget(QWidget):
         self.anno_sc7_structures_pushbutton.setEnabled(True)
         self.anno_sc17_structures_pushbutton.setVisible(True)
         self.anno_sc17_structures_pushbutton.setEnabled(True)
+        self.__define_labels_palette()
+        self.__update_labels_display_view()
+        self.viewer_axial.set_input_labels_volume(self.input_segmentation.astype('uint8'))
+        self.viewer_coronal.set_input_labels_volume(self.input_segmentation.astype('uint8'))
+        self.viewer_sagittal.set_input_labels_volume(self.input_segmentation.astype('uint8'))
+        self.segmentation_opacity_slider.setSliderPosition(50)
+        self.segmentation_opacity_slider.setEnabled(True)
+        self.annotations_groupbox.setVisible(True)
+        self.labels_display_groupbox.setVisible(True)
+
+    def load_segmentation_results_only(self, output_folder):
+        """
+        Load the segmentation results only, which will be available for display
+        """
+        patient_tumor_mask = nib.load(os.path.join(output_folder, 'input_tumor_mask.nii.gz')).get_data()[:]
+        self.results_annotations['patient']['tumor'] = patient_tumor_mask
+
+        patient_space_brain_mask_filename = os.path.join(output_folder, 'input_brain_mask.nii.gz')
+        if patient_space_brain_mask_filename is not None and os.path.exists(patient_space_brain_mask_filename):
+            patient_brain_mask = nib.load(os.path.join(output_folder, 'input_brain_mask.nii.gz')).get_data()[:]
+            self.results_annotations['patient']['brain'] = patient_brain_mask
+            self.anno_brain_pushbutton.setEnabled(True)
+            self.anno_brain_pushbutton.setVisible(True)
+        self.input_segmentation = self.results_annotations['patient']['tumor']
+        self.anno_tumor_pushbutton.setVisible(True)
+        self.anno_tumor_pushbutton.setChecked(True)
+        self.anno_tumor_pushbutton.setEnabled(True)
+
         self.__define_labels_palette()
         self.__update_labels_display_view()
         self.viewer_axial.set_input_labels_volume(self.input_segmentation.astype('uint8'))

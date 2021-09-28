@@ -20,12 +20,20 @@ class ANTsRegistration:
     def __init__(self):
         self.ants_reg_dir = ResourcesConfiguration.getInstance().ants_reg_dir
         self.ants_apply_dir = ResourcesConfiguration.getInstance().ants_apply_dir
+        self.registration_folder = None
+        # self.registration_folder = os.path.join(ResourcesConfiguration.getInstance().output_folder, 'registration/')
+        # os.makedirs(self.registration_folder, exist_ok=True)
+        self.reg_transform = []
+        self.transform_names = []
+        self.inverse_transform_names = []
+        self.backend = 'python'  # cpp, python  # @TODO: This should be possible to set from the main.py
+
+    def prepare_to_run(self):
         self.registration_folder = os.path.join(ResourcesConfiguration.getInstance().output_folder, 'registration/')
         os.makedirs(self.registration_folder, exist_ok=True)
         self.reg_transform = []
         self.transform_names = []
         self.inverse_transform_names = []
-        self.backend = 'python'  # cpp, python  # @TODO: This should be possible to set from the main.py
 
     def clean(self):
         shutil.copyfile(src=os.path.join(self.registration_folder, 'Warped.nii.gz'),

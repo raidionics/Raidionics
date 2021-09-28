@@ -1,11 +1,12 @@
 import sys, os
 from PySide2.QtWidgets import QApplication, QLabel, QMainWindow, QFileDialog, QMenuBar, QAction, QMessageBox,\
-    QHBoxLayout, QVBoxLayout
-from PySide2.QtCore import QUrl
-from PySide2.QtGui import QIcon, QDesktopServices, QCloseEvent
+    QHBoxLayout, QVBoxLayout, QStackedWidget, QWidget, QPushButton
+from PySide2.QtCore import QUrl, QSize
+from PySide2.QtGui import QIcon, QDesktopServices, QCloseEvent, QPixmap
 from gui_stylesheets import get_stylesheet
 from gui.ProcessingAreaWidget import ProcessingAreaWidget
 from gui.DisplayAreaWidget import DisplayAreaWidget
+from gui.BatchModeWidget import BatchModeWidget
 import traceback, time
 import threading
 import numpy as np
@@ -39,6 +40,7 @@ class MainWindow(QMainWindow):
         self.move(self.width / 2, self.height / 2)
 
         self.__set_mainmenu_interface()
+        self.__set_centralwidget_interface()
 
     def __set_mainmenu_interface(self):
         self.menu_bar = QMenuBar()
@@ -52,6 +54,12 @@ class MainWindow(QMainWindow):
         self.quit_action = QAction('Quit', self)
         self.quit_action.setShortcut("Ctrl+Q")
         self.file_menu.addAction(self.quit_action)
+
+        self.mode_menu = self.menu_bar.addMenu('Mode')
+        self.single_use_action = QAction('Single-use', self)
+        self.mode_menu.addAction(self.single_use_action)
+        self.batch_mode_action = QAction('Batch-mode', self)
+        self.mode_menu.addAction(self.batch_mode_action)
 
         self.settings_menu = self.menu_bar.addMenu('Settings')
         self.settings_seg_menu = self.settings_menu.addMenu("Segmentation...")
@@ -77,6 +85,34 @@ class MainWindow(QMainWindow):
         self.help_action.setShortcut("Ctrl+J")
         self.help_menu.addAction(self.help_action)
 
+    def __set_centralwidget_interface(self):
+        self.central_stackedwidget = QStackedWidget()
+        self.main_selection_layout = QHBoxLayout()
+        self.main_selection_pushbutton1 = QPushButton()
+        self.main_selection_pushbutton1_icon = QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Images/single-use-mode-icon.png')))
+        self.main_selection_pushbutton1.setIcon(self.main_selection_pushbutton1_icon)
+        self.main_selection_pushbutton1.setIconSize(QSize(self.size().width() / 2, self.size().height() / 1.5))
+        self.main_selection_layout.addWidget(self.main_selection_pushbutton1)
+        self.main_selection_pushbutton2 = QPushButton()
+        self.main_selection_pushbutton2_icon = QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Images/batch-mode-icon.png')))
+        self.main_selection_pushbutton2.setIcon(self.main_selection_pushbutton2_icon)
+        self.main_selection_pushbutton2.setIconSize(QSize(self.size().width() / 2, self.size().height() / 1.5))
+        self.main_selection_layout.addWidget(self.main_selection_pushbutton2)
+        self.main_selection_widget = QWidget()
+        self.main_selection_widget.setLayout(self.main_selection_layout)
+        self.central_stackedwidget.addWidget(self.main_selection_widget)
+        self.dummy_singleuse_widget = QWidget()
+        self.processing_area_widget = ProcessingAreaWidget(self)
+        self.display_area_widget = DisplayAreaWidget(self)
+        self.dummy_singleuse_layout = QHBoxLayout()
+        self.dummy_singleuse_layout.addWidget(self.processing_area_widget)
+        self.dummy_singleuse_layout.addWidget(self.display_area_widget)
+        self.dummy_singleuse_widget.setLayout(self.dummy_singleuse_layout)
+        self.central_stackedwidget.addWidget(self.dummy_singleuse_widget)
+        self.batch_mode_widget = BatchModeWidget(self)
+        self.central_stackedwidget.addWidget(self.batch_mode_widget)
+        self.central_stackedwidget.setMinimumSize(self.size())
+
     def __set_layouts(self):
         self.setMenuBar(self.menu_bar)
         self.main_window_layout = QHBoxLayout()
@@ -86,17 +122,16 @@ class MainWindow(QMainWindow):
         self.central_label = QLabel()
         self.central_label.setLayout(self.main_window_layout)
         self.central_label.setMinimumSize(self.main_window_layout.minimumSize())
-        self.setCentralWidget(self.central_label)
+        # self.setCentralWidget(self.central_label)
+        self.setCentralWidget(self.central_stackedwidget)
 
     def __set_mainexecution_layout(self):
         self.mainexecution_layout = QVBoxLayout()
-        self.processing_area_widget = ProcessingAreaWidget(self)
-        self.main_window_layout.addWidget(self.processing_area_widget)
+        # self.main_window_layout.addWidget(self.processing_area_widget)
 
     def __set_maindisplay_layout(self):
         self.maindisplay_layout = QHBoxLayout()
-        self.display_area_widget = DisplayAreaWidget(self)
-        self.main_window_layout.addWidget(self.display_area_widget)
+        # self.main_window_layout.addWidget(self.display_area_widget)
 
     def __set_stylesheet(self):
         self.central_label.setStyleSheet(
@@ -105,15 +140,22 @@ class MainWindow(QMainWindow):
 
     def __set_connections(self):
         self.__set_menubar_connections()
+        self.__set_mode_selection_connections()
 
     def __set_menubar_connections(self):
+        self.import_dicom_action.triggered.connect(self.import_dicom_action_triggered)
+        self.single_use_action.triggered.connect(self.singleuse_mode_triggered)
+        self.batch_mode_action.triggered.connect(self.batch_mode_triggered)
         self.readme_action.triggered.connect(self.readme_action_triggered)
         self.about_action.triggered.connect(self.about_action_triggered)
         self.quit_action.triggered.connect(self.quit_action_triggered)
-        self.import_dicom_action.triggered.connect(self.import_dicom_action_triggered)
         self.help_action.triggered.connect(self.help_action_triggered)
         self.settings_seg_preproc_menu_p1_action.triggered.connect(self.settings_seg_preproc_menu_p1_action_triggered)
         self.settings_seg_preproc_menu_p2_action.triggered.connect(self.settings_seg_preproc_menu_p2_action_triggered)
+
+    def __set_mode_selection_connections(self):
+        self.main_selection_pushbutton1.clicked.connect(self.singleuse_mode_triggered)
+        self.main_selection_pushbutton2.clicked.connect(self.batch_mode_triggered)
 
     def __set_params(self):
         self.input_image_filepath = ''
@@ -210,6 +252,12 @@ class MainWindow(QMainWindow):
         filedialog.setFileMode(QFileDialog.DirectoryOnly)
         self.input_image_filepath = filedialog.getExistingDirectory(self, 'Select DICOM folder', '~')
         self.input_image_lineedit.setText(self.input_image_filepath)
+
+    def singleuse_mode_triggered(self):
+        self.central_stackedwidget.setCurrentIndex(1)
+
+    def batch_mode_triggered(self):
+        self.central_stackedwidget.setCurrentIndex(2)
 
     def help_action_triggered(self):
         # opens browser with specified url, directs user to Issues section of GitHub repo

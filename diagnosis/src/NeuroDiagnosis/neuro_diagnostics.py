@@ -18,23 +18,42 @@ class NeuroDiagnostics:
     """
 
     """
-    def __init__(self, input_filename, input_segmentation, preprocessing_scheme):
+    def __init__(self, input_filename=None, input_segmentation=None, preprocessing_scheme=None):
         self.input_filename = input_filename
         self.input_segmentation = input_segmentation
         self.preprocessing_scheme = preprocessing_scheme
-        self.output_path = ResourcesConfiguration.getInstance().output_folder
+        self.output_path = None  # ResourcesConfiguration.getInstance().output_folder
+        self.tumor_type = None
 
         # Working with Gd-enhanced T1-weighted MRI volume as input for now.
+        # @TODO. Have to adjust for FLAIR in case of LGGs.
         self.atlas_brain_filepath = ResourcesConfiguration.getInstance().mni_atlas_filepath_T1
         self.from_slicer = ResourcesConfiguration.getInstance().from_slicer
         self.registration_runner = ANTsRegistration()
         self.diagnosis_parameters = NeuroDiagnosisParameters()
 
+        # self.output_report_filepath = os.path.join(self.output_path, 'report.txt')
+        # if os.path.exists(self.output_report_filepath):
+        #     os.remove(self.output_report_filepath)
+
+        self.tumor_multifocal = None
+
+    def load_new_inputs(self, input_filename=None, input_segmentation=None):
+        self.input_filename = input_filename
+        self.input_segmentation = input_segmentation
+
+    def select_preprocessing_scheme(self, scheme):
+        self.preprocessing_scheme = scheme
+
+    def select_tumor_type(self, tumor_type):
+        self.tumor_type = tumor_type
+
+    def prepare_to_run(self):
+        self.output_path = ResourcesConfiguration.getInstance().output_folder
         self.output_report_filepath = os.path.join(self.output_path, 'report.txt')
         if os.path.exists(self.output_report_filepath):
             os.remove(self.output_report_filepath)
-
-        self.tumor_multifocal = None
+        self.registration_runner.prepare_to_run()
 
     def run(self):
         tmp_timer = 0
@@ -117,11 +136,50 @@ class NeuroDiagnostics:
         tmp_folder = os.path.join(self.output_path, 'tmp')
         shutil.rmtree(tmp_folder)
 
+    def run_segmentation_only(self):
+        tmp_timer = 0
+        start_time = time.time()
+        self.input_filename = adjust_input_volume_for_nifti(self.input_filename, self.output_path)
+
+        brain_mask_filepath = None
+        if self.preprocessing_scheme == 'P2':
+            # Generating the brain mask for the input file
+            print('Brain extraction - Begin (Step 1/2)')
+            brain_mask_filepath = perform_brain_extraction(image_filepath=self.input_filename)
+            print('Brain extraction - End (Step 1/2)')
+            print('Step runtime: {} seconds.'.format(round(time.time() - start_time - tmp_timer, 3)) + "\n")
+            tmp_timer = time.time()
+
+        # Performing tumor segmentation
+        if not os.path.exists(self.input_segmentation):
+            print('Tumor segmentation - Begin (Step 2/2)')
+            self.input_segmentation = self.__perform_tumor_segmentation(brain_mask_filepath)
+            print('Tumor segmentation - End (Step 2/2)')
+            print('Step runtime: {} seconds.'.format(round(time.time() - tmp_timer, 3)) + "\n")
+        print('Total processing time: {} seconds.'.format(round(time.time() - start_time, 3)))
+        print('--------------------------------')
+
+        # Cleaning the temporary files
+        tmp_folder = os.path.join(self.output_path, 'tmp')
+        shutil.rmtree(tmp_folder)
+
     def __perform_tumor_segmentation(self, brain_mask_filepath=None):
         predictions_file = None
         output_folder = os.path.join(self.output_path, 'tmp', '')
         os.makedirs(output_folder, exist_ok=True)
-        segmentation_model_name = 'MRI_HGGlioma_' + self.preprocessing_scheme
+        segmentation_model_name = None
+        if self.tumor_type == 'High-Grade Glioma':
+            segmentation_model_name = 'MRI_HGGlioma_' + self.preprocessing_scheme
+        elif self.tumor_type == 'Low-Grade Glioma':
+            segmentation_model_name = 'MRI_LGGlioma'
+        elif self.tumor_type == 'Meningioma':
+            segmentation_model_name = 'MRI_Meningioma'
+        elif self.tumor_type == 'Metastase':
+            segmentation_model_name = 'MRI_Metastase'
+
+        if segmentation_model_name is None:
+            raise AttributeError('Could not find any satisfactory segmentation model -- aborting.\n')
+
         main_segmentation(self.input_filename, output_folder, segmentation_model_name, brain_mask_filepath)
         out_files = []
         for _, _, files in os.walk(output_folder):
@@ -154,7 +212,7 @@ class NeuroDiagnostics:
         registered_tumor = registered_tumor_ni.get_data()[:]
 
         if np.count_nonzero(registered_tumor) == 0:
-            self.diagnosis_parameters.setup(type=None, tumor_elements=0)
+            self.diagnosis_parameters.setup(type=self.tumor_type, tumor_elements=0)
             return
 
         # Cleaning the segmentation mask just in case, removing potential small and noisy areas
@@ -169,14 +227,14 @@ class NeuroDiagnostics:
         refined_image[refined_image != 0] = 1
 
         if np.count_nonzero(refined_image) == 0:
-            self.diagnosis_parameters.setup(type=None, tumor_elements=0)
+            self.diagnosis_parameters.setup(type=self.tumor_type, tumor_elements=0)
             return
 
         # Assessing if the tumor is multifocal
         tumor_clusters = measurements.label(refined_image)[0]
         tumor_clusters_labels = regionprops(tumor_clusters)
-        self.diagnosis_parameters.setup(type=None, tumor_elements=len(tumor_clusters_labels))
-        self.diagnosis_parameters.tumor_type = None
+        self.diagnosis_parameters.setup(type=self.tumor_type, tumor_elements=len(tumor_clusters_labels))
+        # self.diagnosis_parameters.tumor_type = None
 
         # Computing tumor features for the whole extent.
         self.__compute_original_volume()
@@ -294,7 +352,7 @@ class NeuroDiagnostics:
 
     def __compute_resection_features(self, volume, category=None):
         resection_probability_map_filepath = None
-        if self.diagnosis_parameters.statistics[category]['Overall'].left_laterality_percentage >= 50.:  # Tumor in the left hemi-sphere
+        if self.diagnosis_parameters.statistics[category]['Overall'].left_laterality_percentage >= 0.5:  # Tumor in the left hemi-sphere
             resection_probability_map_filepath = ResourcesConfiguration.getInstance().mni_resection_maps['Probability']['Left']
         else:
             resection_probability_map_filepath = ResourcesConfiguration.getInstance().mni_resection_maps['Probability']['Right']

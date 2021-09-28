@@ -7,6 +7,7 @@ import os, sys, time, threading, traceback
 from gui.Styles.default_stylesheets import get_stylesheet
 from diagnosis.src.Utils.configuration_parser import ResourcesConfiguration
 from diagnosis.src.Utils.io import adjust_input_volume_for_nifti
+from diagnosis.src.NeuroDiagnosis.neuro_diagnostics import NeuroDiagnostics
 
 
 class WorkerThread(QThread):
@@ -29,7 +30,7 @@ class InputImageSelectedSignal(QObject):
 
 
 class ProcessingThreadSignal(QObject):
-    processing_thread_finished = Signal(bool)
+    processing_thread_finished = Signal(bool, str)
 
 
 class ProcessingAreaWidget(QWidget):
@@ -54,6 +55,8 @@ class ProcessingAreaWidget(QWidget):
         self.printer_thread.start()
 
         self.processing_thread_signal.processing_thread_finished.connect(self.__postprocessing_process)
+        ResourcesConfiguration.getInstance().set_environment()
+        self.diagnostics_runner = NeuroDiagnostics()
 
     def closeEvent(self, event):
         self.printer_thread.stop()
@@ -76,9 +79,10 @@ class ProcessingAreaWidget(QWidget):
         self.input_image_pushbutton.clicked.connect(self.__run_select_input_image)
         self.output_folder_pushbutton.clicked.connect(self.__run_select_output_folder)
         # self.input_segmentation_pushbutton.clicked.connect(self.run_select_input_segmentation)
+        self.select_tumor_type_combobox.currentTextChanged.connect(self.__tumor_type_changed_slot)
         #
         self.run_button.clicked.connect(self.diagnose_main_wrapper)
-        # self.run_segmentation_button.clicked.connect(self.segmentation_main_wrapper)
+        self.run_segmentation_button.clicked.connect(self.segmentation_main_wrapper)
 
     def __set_params(self):
         self.input_image_filepath = ''
@@ -280,8 +284,12 @@ class ProcessingAreaWidget(QWidget):
         QApplication.processEvents()  # to immediatly update GUI after button is clicked
         # self.seg_preprocessing_scheme = 'P1' if self.settings_seg_preproc_menu_p1_action.isChecked() else 'P2'
         self.seg_preprocessing_scheme = 'P2'
-        env = ResourcesConfiguration.getInstance()
-        env.set_environment(output_dir=self.output_folderpath)
+        ResourcesConfiguration.getInstance().set_execution_environment(output_dir=self.output_folderpath)
+        self.diagnostics_runner.load_new_inputs(input_filename=self.input_image_filepath,
+                                                input_segmentation=self.input_annotation_filepath)
+        self.diagnostics_runner.select_preprocessing_scheme(scheme=self.seg_preprocessing_scheme)
+        self.diagnostics_runner.prepare_to_run()
+
         self.input_image_filepath = adjust_input_volume_for_nifti(self.input_image_filepath, self.output_folderpath)
         self.input_image_selected_signal.input_image_selection.emit(self.input_image_filepath)
 
@@ -291,9 +299,10 @@ class ProcessingAreaWidget(QWidget):
             from diagnosis.main import diagnose_main
             print('Initialize - End (Step 0/6)')
             print('Step runtime: {} seconds.'.format(np.round(time.time() - start_time, 3)) + "\n")
-            diagnose_main(input_volume_filename=self.input_image_filepath,
-                          input_segmentation_filename=self.input_annotation_filepath,
-                          output_folder=self.output_folderpath, preprocessing_scheme=self.seg_preprocessing_scheme)
+            self.diagnostics_runner.run()
+            # diagnose_main(input_volume_filename=self.input_image_filepath,
+            #               input_segmentation_filename=self.input_annotation_filepath,
+            #               output_folder=self.output_folderpath, preprocessing_scheme=self.seg_preprocessing_scheme)
             # ResourcesConfiguration.getInstance().output_folder = '/home/dbouget/Desktop/13092021_170252'
         except Exception as e:
             print('{}'.format(traceback.format_exc()))
@@ -302,7 +311,55 @@ class ProcessingAreaWidget(QWidget):
             QApplication.processEvents()
             return
 
-        self.processing_thread_signal.processing_thread_finished.emit(True)
+        self.processing_thread_signal.processing_thread_finished.emit(True, 'diagnosis')
+        # self.run_button.setEnabled(True)
+        # results_filepath = os.path.join(ResourcesConfiguration.getInstance().output_folder, 'report.txt')
+        # self.results_textedit.setPlainText(open(results_filepath, 'r').read())
+        # self.main_display_tabwidget.setCurrentIndex(2)
+        # self.display_area_widget.load_results(ResourcesConfiguration.getInstance().output_folder)
+
+    def segmentation_main_wrapper(self):
+        self.run_segmentation_thread = threading.Thread(target=self.run_segmentation)
+        self.run_segmentation_thread.daemon = True  # using daemon thread the thread is killed gracefully if program is abruptly closed
+        self.run_segmentation_thread.start()
+
+    def run_segmentation(self):
+        if not os.path.exists(self.input_image_filepath) or not os.path.exists(self.output_folderpath):
+            self.standardOutputWritten(
+                'Process could not be started - The 1st and 2nd above-fields must be filled in.\n')
+            return
+
+        self.run_button.setEnabled(False)
+        self.run_segmentation_button.setEnabled(False)
+        self.prompt_lineedit.clear()
+        self.main_display_tabwidget.setCurrentIndex(1)
+        QApplication.processEvents()  # to immediatly update GUI after button is clicked
+        # self.seg_preprocessing_scheme = 'P1' if self.settings_seg_preproc_menu_p1_action.isChecked() else 'P2'
+        self.seg_preprocessing_scheme = 'P2'
+        ResourcesConfiguration.getInstance().set_execution_environment(output_dir=self.output_folderpath)
+        self.diagnostics_runner.load_new_inputs(input_filename=self.input_image_filepath,
+                                                input_segmentation=self.input_annotation_filepath)
+        self.diagnostics_runner.select_preprocessing_scheme(scheme=self.seg_preprocessing_scheme)
+        self.diagnostics_runner.prepare_to_run()
+
+        self.input_image_filepath = adjust_input_volume_for_nifti(self.input_image_filepath, self.output_folderpath)
+        self.input_image_selected_signal.input_image_selection.emit(self.input_image_filepath)
+
+        try:
+            start_time = time.time()
+            print('Initialize - Begin (Step 0/2)')
+            print('Initialize - End (Step 0/2)')
+            print('Step runtime: {} seconds.'.format(np.round(time.time() - start_time, 3)) + "\n")
+            self.diagnostics_runner.run_segmentation_only()
+        except Exception as e:
+            print('{}'.format(traceback.format_exc()))
+            self.run_button.setEnabled(True)
+            self.run_segmentation_button.setEnabled(True)
+            self.standardOutputWritten('Process could not be completed - Issue arose.\n')
+            QApplication.processEvents()
+            return
+
+        self.processing_thread_signal.processing_thread_finished.emit(True, 'segmentation')
         # self.run_button.setEnabled(True)
         # results_filepath = os.path.join(ResourcesConfiguration.getInstance().output_folder, 'report.txt')
         # self.results_textedit.setPlainText(open(results_filepath, 'r').read())
@@ -315,10 +372,17 @@ class ProcessingAreaWidget(QWidget):
 
         QApplication.processEvents()
 
-    def __postprocessing_process(self, status):
+    def __postprocessing_process(self, status, task):
         if status:
             self.run_button.setEnabled(True)
-            results_filepath = os.path.join(ResourcesConfiguration.getInstance().output_folder, 'report.txt')
-            self.results_textedit.setPlainText(open(results_filepath, 'r').read())
+            self.run_segmentation_button.setEnabled(True)
+            if task == 'diagnosis':
+                results_filepath = os.path.join(ResourcesConfiguration.getInstance().output_folder, 'report.txt')
+                self.results_textedit.setPlainText(open(results_filepath, 'r').read())
+                self.parent.display_area_widget.load_results(ResourcesConfiguration.getInstance().output_folder)
+            else:
+                self.parent.display_area_widget.load_segmentation_results_only(ResourcesConfiguration.getInstance().output_folder)
             self.main_display_tabwidget.setCurrentIndex(2)
-            self.parent.display_area_widget.load_results(ResourcesConfiguration.getInstance().output_folder)
+
+    def __tumor_type_changed_slot(self, tumor_type):
+        self.diagnostics_runner.select_tumor_type(tumor_type=tumor_type)

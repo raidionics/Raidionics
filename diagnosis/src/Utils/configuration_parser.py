@@ -20,19 +20,29 @@ class ResourcesConfiguration:
             raise Exception("This class is a singleton!")
         else:
             ResourcesConfiguration.__instance = self
+            self.set_environment()
 
-    def set_environment(self, output_dir):
+    def set_environment(self, output_dir=None):
         self.home_path = ''
         if os.name == 'posix':  # Linux system
             self.home_path = os.path.expanduser("~")
 
         self.scripts_root = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Scripts')
+        self.output_folder = None
+
         self.__set_atlases_parameters()
         self.__set_cortical_structures_parameters()
         self.__set_resection_maps_parameters()
         self.__set_subcortical_structures_parameters()
         self.__set_default_parameters()
 
+        # date = datetime.date.today().strftime('%d%m%Y')
+        # hour = time.strftime("%H%M%S")
+        # timestamp = date + '_' + hour
+        # self.output_folder = os.path.join(output_dir, timestamp)
+        # os.makedirs(self.output_folder, exist_ok=True)
+
+    def set_execution_environment(self, output_dir):
         date = datetime.date.today().strftime('%d%m%Y')
         hour = time.strftime("%H%M%S")
         timestamp = date + '_' + hour
