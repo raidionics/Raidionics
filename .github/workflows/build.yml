@@ -89,12 +89,12 @@ jobs:
     - if: matrix.os == 'windows-latest'
       name: Build application
       run: |
-        "pip install https://github.com/SGotla/ANTsPy/releases/download/0.1.7Win64/antspy-0.1.7-cp37-cp37m-win_amd64.whl &&
-         pyinstaller --noconfirm --clean --onefile main_custom_bundle.spec &&
-         cp -r dist/ win_installer/dist &&
-         cd win_installer &&
-         makensis.exe GSI-RADS.nsi &&
-         cp -r GSI-RADS-installed.exe ../dist/GSI-RADS-1.3-win.exe"
+        pip install https://github.com/SGotla/ANTsPy/releases/download/0.1.7Win64/antspy-0.1.7-cp37-cp37m-win_amd64.whl
+        pyinstaller --noconfirm --clean --onefile main_custom_bundle.spec
+        cp -r dist/ win_installer/dist
+        cd win_installer
+        makensis.exe GSI-RADS.nsi
+        cp -r GSI-RADS-installed.exe ../dist/GSI-RADS-1.3-win.exe
     - if: matrix.os == 'windows-latest'
       name: Setup NSIS
       uses: joncloud/makensis-action@v3.6
