@@ -40,22 +40,32 @@ jobs:
           - os: ubuntu-18.04
             TARGET: ubuntu
             CMD_BUILD: "pip install antspyx &&
-                       pyinstaller --noconfirm --clean --onefile main_custom_bundle.spec &&
-                       cd dist/ &&
-                       zip -r GSI-RADS_ubuntu.zip GSI-RADS/"
+                       pyinstaller --noconfirm --clean --onefile main_custom_bundle.spec
+                       cp -r dist/GSI-RADS GSI-RADS-0.1.1_Ubuntu/usr/local/bin
+                       dpkg-deb --build --root-owner-group GSI-RADS-0.1.1_Ubuntu/usr/local/bin
+                       "
+                       #cd dist/ &&
+                       #zip -r GSI-RADS_ubuntu.zip GSI-RADS/"
               #pyinstaller -F -w -n clipster -i resources/clipster.icns cli.py && cd dist/ && zip -r9 clipster clipster.app/
-            OUT_FILE_NAME: GSI-RADS_ubuntu.zip
-            ASSET_MIME: application/zip
+            OUT_FILE_NAME: GSI-RADS-1.3-ubuntu.deb
+              #GSI-RADS_ubuntu.zip
+            ASSET_MIME: application/vnd.debian.binary-package
+              #application/zip
           - os: macos-10.15
             TARGET: macos
             CMD_BUILD: "pip install https://github.com/ANTsX/ANTsPy/releases/download/v0.1.8/antspyx-0.1.8-cp37-cp37m-macosx_10_14_x86_64.whl &&
                        pyinstaller --noconfirm --clean --onefile main_custom_macos.spec &&
-                       cd dist/ &&
-                       zip -r GSI-RADS_macOS.zip GSI-RADS.app/"
+                       git clone https://github.com/scriptingosx/quickpkg.git &&
+                       quickpkg/quickpkg dist/GSI-RADS.app --output GSI-RADS-1.3-macOS.pkg
+                       "
+                       #cd dist/ &&
+                       #zip -r GSI-RADS_macOS.zip GSI-RADS.app/"
               #git clone https://github.com/ANTsX/ANTsPy && cd ANTsPy && python setup.py install && pyinstaller --noconfirm --clean --onefile main_custom_macos.spec && cd dist/ && zip -r GSI-RADS_macOS.zip GSI-RADS.app/
               #pyinstaller -F -w -n clipster -i resources/clipster.icns cli.py && cd dist/ && zip -r9 clipster clipster.app/
-            OUT_FILE_NAME: GSI-RADS_macOS.zip
-            ASSET_MIME: application/zip
+            OUT_FILE_NAME: GSI-RADS-1.3-macOS.pkg
+              #GSI-RADS_macOS.zip
+            ASSET_MIME: application/x-newton-compatible-pkg
+              #application/zip
           - os: windows-latest
             TARGET: windows
             CMD_BUILD: "pip install https://github.com/SGotla/ANTsPy/releases/download/0.1.7Win64/antspy-0.1.7-cp37-cp37m-win_amd64.whl &&

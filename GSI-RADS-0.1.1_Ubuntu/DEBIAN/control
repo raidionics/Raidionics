@@ -1,5 +1,5 @@
 Package: GSI-RADS
-Version: 1.1
+Version: 1.3
 Architecture: i386
 Maintainer: Andre Pedersen <andre.pedersen@sintef.no>
 Description: Glioblastoma Surgery Imaging—Reporting and Data System.
