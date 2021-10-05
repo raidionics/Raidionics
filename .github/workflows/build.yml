@@ -91,8 +91,11 @@ jobs:
       #  pip install pyantsx
 
     - name: Setup NSIS
-      if: matrix.os == 'windows-latest'
-      uses: joncloud/makensis-action@v3.6
+      if: ${{ matrix.os}} == 'windows-latest'
+      uses: joncloud/makensis-action@v3.7
+      with:
+        arguments: "/V3"
+        script-file: dist/GSI-RADS.nsi
 
     - name: Build with pyinstaller for ${{matrix.TARGET}}
       run: ${{matrix.CMD_BUILD}}
