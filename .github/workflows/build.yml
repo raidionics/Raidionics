@@ -39,7 +39,7 @@ jobs:
         include:
           - os: ubuntu-latest
             TARGET: ubuntu
-            CMD_BUILD: pip install antspyx && pyinstaller --noconfirm --clean --onefile main_custom_bundle.spec && cd dist/ && zip -r9 GSI-RADS.app/
+            CMD_BUILD: pip install antspyx && pyinstaller --noconfirm --clean --onefile main_custom_bundle.spec && cd dist/ && zip -r GSI-RADS.zip GSI-RADS.app/
               #pyinstaller -F -w -n clipster -i resources/clipster.icns cli.py && cd dist/ && zip -r9 clipster clipster.app/
             OUT_FILE_NAME: GSI-RADS.zip
             ASSET_MIME: application/zip
