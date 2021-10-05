@@ -3,7 +3,8 @@ name: Build
 on:
   push:
     tags:
-      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+      - '*'  # for every push, run build
+      #- 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
 
 jobs:
 
@@ -38,13 +39,13 @@ jobs:
         include:
           #- os: ubuntu-latest
           #  TARGET: ubuntu
-          #  CMD_BUILD: pyinstaller --noconfirm --clean --onefile main_custom_bundle.spec && cd dist/ && zip -r9 GSI-RADS.app/
+          #  CMD_BUILD: pip install antspyx && pyinstaller --noconfirm --clean --onefile main_custom_bundle.spec && cd dist/ && zip -r9 GSI-RADS.app/
           #    #pyinstaller -F -w -n clipster -i resources/clipster.icns cli.py && cd dist/ && zip -r9 clipster clipster.app/
           #  OUT_FILE_NAME: GSI-RADS.zip
           #  ASSET_MIME: application/zip
           #- os: macos-latest
           #  TARGET: macos
-          #  CMD_BUILD: pyinstaller --noconfirm --clean --onefile main_custom_macos.spec && cd dist/ && zip -r9 GSI-RADS.app/
+          #  CMD_BUILD: pip install antspyx && pyinstaller --noconfirm --clean --onefile main_custom_macos.spec && cd dist/ && zip -r9 GSI-RADS.app/
           #    #pyinstaller -F -w -n clipster -i resources/clipster.icns cli.py && cd dist/ && zip -r9 clipster clipster.app/
           #  OUT_FILE_NAME: GSI-RADS.app
           #  ASSET_MIME: application/zip
@@ -64,8 +65,13 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install antspyx
         pip install pyinstaller==4.2
+      runs-on windows:
+        pip install https://github.com/SGotla/ANTsPy/releases/download/0.1.7Win64/antspy-0.1.7-cp37-cp37m-win_amd64.whl
+      runs-on ubuntu:
+        pip install pyantsx
+      runs-on macos:
+        pip install pyantsx
     - name: Build with pyinstaller for ${{matrix.TARGET}}
       run: ${{matrix.CMD_BUILD}}
     - name: Load Release URL File from release job
