@@ -1,5 +1,7 @@
 # NeuroRADS
 
+[![Build Actions Status](https://github.com/dbouget/neuro_rads_prototype/workflows/Build/badge.svg)](https://github.com/dbouget/neuro_rads_prototype/actions)
+
 Simple project for building binary releases and package installers of Python code for Ubuntu Linux/macOS/Windows using [PyInstaller](https://github.com/pyinstaller/pyinstaller).
 
 ## How to use?
