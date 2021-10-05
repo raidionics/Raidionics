@@ -43,7 +43,7 @@ jobs:
                        pyinstaller --noconfirm --clean --onefile main_custom_bundle.spec &&
                        mkdir -p GSI-RADS-0.1.1_Ubuntu/usr/local/bin &&
                        cp -r dist/GSI-RADS GSI-RADS-0.1.1_Ubuntu/usr/local/bin &&
-                       dpkg-deb --build --root-owner-group GSI-RADS-0.1.1_Ubuntu/usr/local/bin
+                       dpkg-deb --build --root-owner-group GSI-RADS-0.1.1_Ubuntu
                        "
                        #cd dist/ &&
                        #zip -r GSI-RADS_ubuntu.zip GSI-RADS/"
