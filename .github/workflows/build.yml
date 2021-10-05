@@ -51,10 +51,12 @@ jobs:
           #  ASSET_MIME: application/zip
           - os: windows-latest
             TARGET: windows
-            CMD_BUILD: pip install https://github.com/SGotla/ANTsPy/releases/download/0.1.7Win64/antspy-0.1.7-cp37-cp37m-win_amd64.whl && pyinstaller --noconfirm --clean --onefile main_custom_bundle.spec
+            CMD_BUILD: pip install https://github.com/SGotla/ANTsPy/releases/download/0.1.7Win64/antspy-0.1.7-cp37-cp37m-win_amd64.whl && pyinstaller --noconfirm --clean --onefile main_custom_bundle.spec && cd dist/ && zip -r9 GSI-RADS.app/
               #pyinstaller -F -w -n clipster -i resources/clipster.ico cli.py
-            OUT_FILE_NAME: GSI-RADS.exe
-            ASSET_MIME: application/vnd.microsoft.portable-executable
+            OUT_FILE_NAME: GSI-RADS.zip
+             #GSI-RADS.exe
+            ASSET_MIME: application/zip
+              #application/vnd.microsoft.portable-executable
     steps:
     - uses: actions/checkout@v1
     - name: Set up Python 3.7
@@ -91,6 +93,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.get_release_info.outputs.upload_url }}
-        asset_path: ./dist/${{ matrix.OUT_FILE_NAME}}
+        asset_path: build\main_custom_bundle\GSI-RADS.exe
+        #./dist/${{ matrix.OUT_FILE_NAME}}
         asset_name: ${{ matrix.OUT_FILE_NAME}}
         asset_content_type: ${{ matrix.ASSET_MIME}}
