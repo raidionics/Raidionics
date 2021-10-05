@@ -45,7 +45,7 @@ jobs:
             ASSET_MIME: application/zip
           - os: macos-latest
             TARGET: macos
-            CMD_BUILD: pip install antspyx-0.2.2-cp37-cp37m-macosx_10_15_x86_64.whl && pyinstaller --noconfirm --clean --onefile main_custom_macos.spec && cd dist/ && zip -r GSI-RADS_macOS.zip GSI-RADS.app/
+            CMD_BUILD: git clone https://github.com/ANTsX/ANTsPy && cd ANTsPy && python setup.py install && pyinstaller --noconfirm --clean --onefile main_custom_macos.spec && cd dist/ && zip -r GSI-RADS_macOS.zip GSI-RADS.app/
               #pyinstaller -F -w -n clipster -i resources/clipster.icns cli.py && cd dist/ && zip -r9 clipster clipster.app/
             OUT_FILE_NAME: GSI-RADS_macOS.zip
             ASSET_MIME: application/zip
