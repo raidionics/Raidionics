@@ -3,8 +3,8 @@ name: Build
 on:
   push:
     tags:
-      - '*'  # for every push, run build
-      #- 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+      #- '*'  # for every push, run build
 
 jobs:
 
@@ -66,11 +66,11 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install pyinstaller==4.2
-      runs-on windows:
+      runs-on: windows
         pip install https://github.com/SGotla/ANTsPy/releases/download/0.1.7Win64/antspy-0.1.7-cp37-cp37m-win_amd64.whl
-      runs-on ubuntu:
+      runs-on: ubuntu
         pip install pyantsx
-      runs-on macos:
+      runs-on: macos
         pip install pyantsx
     - name: Build with pyinstaller for ${{matrix.TARGET}}
       run: ${{matrix.CMD_BUILD}}
