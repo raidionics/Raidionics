@@ -8,21 +8,22 @@ from gui.Styles.default_stylesheets import get_stylesheet
 from diagnosis.src.Utils.configuration_parser import ResourcesConfiguration
 from diagnosis.src.Utils.io import adjust_input_volume_for_nifti
 from diagnosis.src.NeuroDiagnosis.neuro_diagnostics import NeuroDiagnostics
+# from gui.GSIRADSMainWindow import WorkerThread
 
 
-class WorkerThread(QThread):
-    message = Signal(str)
-
-    def run(self):
-        sys.stdout = self
-
-    time.sleep(0.01)
-
-    def write(self, text):
-        self.message.emit(text)
-
-    def stop(self):
-        sys.stdout = sys.__stdout__
+# class WorkerThread(QThread):
+#     message = Signal(str)
+#
+#     def run(self):
+#         sys.stdout = self
+#
+#     time.sleep(0.01)
+#
+#     def write(self, text):
+#         self.message.emit(text)
+#
+#     def stop(self):
+#         sys.stdout = sys.__stdout__
 
 
 class InputImageSelectedSignal(QObject):
@@ -50,16 +51,19 @@ class ProcessingAreaWidget(QWidget):
         self.__set_connections()
         self.__set_params()
 
-        self.printer_thread = WorkerThread()
-        self.printer_thread.message.connect(self.standardOutputWritten)
-        self.printer_thread.start()
+        # self.printer_thread = WorkerThread()
+        # self.printer_thread.message.connect(self.standardOutputWritten)
+        # self.printer_thread.start()
 
         self.processing_thread_signal.processing_thread_finished.connect(self.__postprocessing_process)
         ResourcesConfiguration.getInstance().set_environment()
         self.diagnostics_runner = NeuroDiagnostics()
 
     def closeEvent(self, event):
-        self.printer_thread.stop()
+        pass
+        # self.printer_thread.stop()
+
+    # def resize(self, size):
 
     def __set_interface(self):
         self.__set_inputs_interface()
@@ -77,6 +81,7 @@ class ProcessingAreaWidget(QWidget):
 
     def __set_connections(self):
         self.input_image_pushbutton.clicked.connect(self.__run_select_input_image)
+        self.input_dicom_image_pushbutton.clicked.connect(self.__run_select_input_dicom_image)
         self.output_folder_pushbutton.clicked.connect(self.__run_select_output_folder)
         # self.input_segmentation_pushbutton.clicked.connect(self.run_select_input_segmentation)
         self.select_tumor_type_combobox.currentTextChanged.connect(self.__tumor_type_changed_slot)
@@ -99,8 +104,11 @@ class ProcessingAreaWidget(QWidget):
         self.input_image_lineedit.setFixedHeight(self.parent.size().height() * self.parent.button_height)
         self.input_image_lineedit.setReadOnly(True)
         self.input_image_pushbutton = QPushButton('Input MRI')
-        self.input_image_pushbutton.setFixedWidth(self.parent.size().width() * self.widget_base_width)
+        self.input_image_pushbutton.setFixedWidth(self.parent.size().width() * self.widget_base_width / 2.08)
         self.input_image_pushbutton.setFixedHeight(self.parent.size().height() * self.parent.button_height)
+        self.input_dicom_image_pushbutton = QPushButton('DICOM')
+        self.input_dicom_image_pushbutton.setFixedWidth(self.parent.size().width() * self.widget_base_width / 2.08)
+        self.input_dicom_image_pushbutton.setFixedHeight(self.parent.size().height() * self.parent.button_height)
 
         self.input_segmentation_lineedit = QLineEdit()
         self.input_segmentation_lineedit.setReadOnly(True)
@@ -195,6 +203,8 @@ class ProcessingAreaWidget(QWidget):
         self.input_volume_hbox = QHBoxLayout()
         self.input_volume_hbox.addWidget(self.input_image_lineedit)
         self.input_volume_hbox.addWidget(self.input_image_pushbutton)
+        self.input_volume_hbox.addWidget(self.input_dicom_image_pushbutton)
+        # self.input_volume_hbox.addStretch(1)
         # self.input_volume_hbox.addSpacerItem(QSpacerItem(150, 10, QSizePolicy.Expanding, QSizePolicy.Minimum))
         # self.main_layout.addLayout(self.input_volume_hbox)
 
@@ -261,6 +271,14 @@ class ProcessingAreaWidget(QWidget):
         self.input_image_filepath = adjust_input_volume_for_nifti(self.input_image_filepath, self.output_folderpath)
         self.input_image_selected_signal.input_image_selection.emit(self.input_image_filepath)
 
+    def __run_select_input_dicom_image(self):
+        filedialog = QFileDialog()
+        filedialog.setFileMode(QFileDialog.DirectoryOnly)
+        self.input_image_filepath = filedialog.getExistingDirectory(self, 'Select DICOM folder', '~')
+        self.input_image_lineedit.setText(self.input_image_filepath)
+        self.input_image_filepath = adjust_input_volume_for_nifti(self.input_image_filepath, self.output_folderpath)
+        self.input_image_selected_signal.input_image_selection.emit(self.input_image_filepath)
+
     def __run_select_output_folder(self):
         filedialog = QFileDialog()
         filedialog.setFileMode(QFileDialog.DirectoryOnly)
@@ -279,6 +297,7 @@ class ProcessingAreaWidget(QWidget):
             return
 
         self.run_button.setEnabled(False)
+        self.run_segmentation_button.setEnabled(False)
         self.prompt_lineedit.clear()
         self.main_display_tabwidget.setCurrentIndex(1)
         QApplication.processEvents()  # to immediatly update GUI after button is clicked
@@ -307,10 +326,13 @@ class ProcessingAreaWidget(QWidget):
         except Exception as e:
             print('{}'.format(traceback.format_exc()))
             self.run_button.setEnabled(True)
+            self.run_segmentation_button.setEnabled(True)
             self.standardOutputWritten('Process could not be completed - Issue arose.\n')
             QApplication.processEvents()
             return
 
+        # self.run_button.setEnabled(True)
+        # self.run_segmentation_button.setEnabled(True)
         self.processing_thread_signal.processing_thread_finished.emit(True, 'diagnosis')
         # self.run_button.setEnabled(True)
         # results_filepath = os.path.join(ResourcesConfiguration.getInstance().output_folder, 'report.txt')

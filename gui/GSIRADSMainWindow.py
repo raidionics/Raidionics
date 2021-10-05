@@ -1,9 +1,10 @@
 import sys, os
 from PySide2.QtWidgets import QApplication, QLabel, QMainWindow, QFileDialog, QMenuBar, QAction, QMessageBox,\
-    QHBoxLayout, QVBoxLayout, QStackedWidget, QWidget, QPushButton
-from PySide2.QtCore import QUrl, QSize
+    QHBoxLayout, QVBoxLayout, QStackedWidget, QWidget, QPushButton, QSizePolicy
+from PySide2.QtCore import QUrl, QSize, QThread, Signal
 from PySide2.QtGui import QIcon, QDesktopServices, QCloseEvent, QPixmap
 from gui_stylesheets import get_stylesheet
+from gui.SingleUseModeWidget import SingleUseModeWidget
 from gui.ProcessingAreaWidget import ProcessingAreaWidget
 from gui.DisplayAreaWidget import DisplayAreaWidget
 from gui.BatchModeWidget import BatchModeWidget
@@ -13,6 +14,21 @@ import numpy as np
 import warnings
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
+
+
+class WorkerThread(QThread):
+    message = Signal(str)
+
+    def run(self):
+        sys.stdout = self
+
+    time.sleep(0.01)
+
+    def write(self, text):
+        self.message.emit(text)
+
+    def stop(self):
+        sys.stdout = sys.__stdout__
 
 
 class MainWindow(QMainWindow):
@@ -27,8 +43,13 @@ class MainWindow(QMainWindow):
         self.__set_stylesheet()
         self.__set_connections()
 
+        self.printer_thread = WorkerThread()
+        self.printer_thread.message.connect(self.standardOutputWritten)
+        self.printer_thread.start()
+
     def closeEvent(self, event):
         self.processing_area_widget.closeEvent(event)
+        self.printer_thread.stop()
 
     def __set_interface(self):
         self.setWindowTitle("Neuro-RADS")
@@ -104,11 +125,15 @@ class MainWindow(QMainWindow):
         self.dummy_singleuse_widget = QWidget()
         self.processing_area_widget = ProcessingAreaWidget(self)
         self.display_area_widget = DisplayAreaWidget(self)
+        # self.singleuse_mode_widget = SingleUseModeWidget(self)
         self.dummy_singleuse_layout = QHBoxLayout()
         self.dummy_singleuse_layout.addWidget(self.processing_area_widget)
+        # self.dummy_singleuse_layout.addStretch(1)
         self.dummy_singleuse_layout.addWidget(self.display_area_widget)
+        # self.dummy_singleuse_layout.addStretch(1)
         self.dummy_singleuse_widget.setLayout(self.dummy_singleuse_layout)
         self.central_stackedwidget.addWidget(self.dummy_singleuse_widget)
+        # self.central_stackedwidget.addWidget(self.singleuse_mode_widget)
         self.batch_mode_widget = BatchModeWidget(self)
         self.central_stackedwidget.addWidget(self.batch_mode_widget)
         self.central_stackedwidget.setMinimumSize(self.size())
@@ -205,6 +230,7 @@ class MainWindow(QMainWindow):
 
     def quit_action_triggered(self):
         self.processing_area_widget.closeEvent(QCloseEvent())
+        self.printer_thread.stop()
         sys.exit()
 
     def segmentation_main_wrapper(self):
@@ -246,7 +272,6 @@ class MainWindow(QMainWindow):
         self.run_button.setEnabled(True)
         self.run_segmentation_button.setEnabled(True)
 
-
     def import_dicom_action_triggered(self):
         filedialog = QFileDialog()
         filedialog.setFileMode(QFileDialog.DirectoryOnly)
@@ -255,9 +280,19 @@ class MainWindow(QMainWindow):
 
     def singleuse_mode_triggered(self):
         self.central_stackedwidget.setCurrentIndex(1)
+        self.dummy_singleuse_widget.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        self.batch_mode_widget.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
+
+        self.central_stackedwidget.adjustSize()
+        self.adjustSize()
 
     def batch_mode_triggered(self):
         self.central_stackedwidget.setCurrentIndex(2)
+        self.batch_mode_widget.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        self.dummy_singleuse_widget.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
+
+        self.central_stackedwidget.adjustSize()
+        self.adjustSize()
 
     def help_action_triggered(self):
         # opens browser with specified url, directs user to Issues section of GitHub repo
@@ -274,3 +309,12 @@ class MainWindow(QMainWindow):
             self.settings_seg_preproc_menu_p1_action.setChecked(False)
         else:
             self.settings_seg_preproc_menu_p1_action.setChecked(True)
+
+    def standardOutputWritten(self, text):
+        """
+        Redirecting standard output prints to the (correct) displayed widget
+        """
+        if self.central_stackedwidget.currentIndex() == 1:
+            self.processing_area_widget.standardOutputWritten(text)
+        elif self.central_stackedwidget.currentIndex() == 2:
+            self.batch_mode_widget.standardOutputWritten(text)

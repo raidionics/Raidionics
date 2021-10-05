@@ -49,9 +49,10 @@ class NeuroDiagnosisParameters:
         pfile.write('  * Right hemisphere: {}%\n'.format(np.round(self.statistics['Main']['Overall'].right_laterality_percentage * 100., 2)))
         pfile.write('  * Midline crossing: {}\n'.format(self.statistics['Main']['Overall'].laterality_midline_crossing))
 
-        pfile.write('\nResectability\n')
-        pfile.write('  * Expected residual volume: {} (ml)\n'.format(np.round(self.statistics['Main']['Overall'].mni_space_expected_residual_tumor_volume, 2)))
-        pfile.write('  * Resection index: {}\n'.format(np.round(self.statistics['Main']['Overall'].mni_space_resectability_index, 3)))
+        if self.tumor_type == 'High-Grade Glioma':
+            pfile.write('\nResectability\n')
+            pfile.write('  * Expected residual volume: {} (ml)\n'.format(np.round(self.statistics['Main']['Overall'].mni_space_expected_residual_tumor_volume, 2)))
+            pfile.write('  * Resection index: {}\n'.format(np.round(self.statistics['Main']['Overall'].mni_space_resectability_index, 3)))
 
         pfile.write('\nCortical structures overlap\n')
         for t in self.statistics['Main']['Overall'].mni_space_cortical_structures_overlap.keys():
@@ -95,9 +96,10 @@ class NeuroDiagnosisParameters:
                        self.statistics['Main']['Overall'].laterality_midline_crossing])
         column_names.extend(['Left laterality (%)', 'Right laterality (%)', 'Midline crossing'])
 
-        values.extend([np.round(self.statistics['Main']['Overall'].mni_space_expected_residual_tumor_volume, 2),
-                       np.round(self.statistics['Main']['Overall'].mni_space_resectability_index, 3)])
-        column_names.extend(['ExpectedResidualVolume (ml)', 'ResectionIndex'])
+        if self.tumor_type == 'High-Grade Glioma':
+            values.extend([np.round(self.statistics['Main']['Overall'].mni_space_expected_residual_tumor_volume, 2),
+                           np.round(self.statistics['Main']['Overall'].mni_space_resectability_index, 3)])
+            column_names.extend(['ExpectedResidualVolume (ml)', 'ResectionIndex'])
 
         for t in self.statistics['Main']['Overall'].mni_space_cortical_structures_overlap.keys():
             for r in self.statistics['Main']['Overall'].mni_space_cortical_structures_overlap[t].keys():

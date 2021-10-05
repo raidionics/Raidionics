@@ -459,9 +459,9 @@ class DisplayAreaWidget(QWidget):
         # Should be done after the check has been done in the diagnosis file, to convert the input to nifti if need be
         # self.input_volume = nib.load(image_path).get_data()[:]
         input_volume_ni = nib.load(image_path)
-        # resampled_input_ni = resample_to_output(input_volume_ni, (1.0, 1.0, 1.0), order=1)
-        # self.input_volume = resampled_input_ni.get_data()[:]
-        self.input_volume = input_volume_ni.get_data()[:]
+        resampled_input_ni = resample_to_output(input_volume_ni, (1.0, 1.0, 1.0), order=1)
+        self.input_volume = resampled_input_ni.get_data()[:]
+        # self.input_volume = input_volume_ni.get_data()[:]
         min_val = np.min(self.input_volume)
         max_val = np.max(self.input_volume)
         if (max_val - min_val) != 0:

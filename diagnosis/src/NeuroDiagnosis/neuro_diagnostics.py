@@ -1,3 +1,5 @@
+import os
+from tqdm import tqdm
 import numpy as np
 import pandas as pd
 from copy import deepcopy
@@ -55,45 +57,54 @@ class NeuroDiagnostics:
             os.remove(self.output_report_filepath)
         self.registration_runner.prepare_to_run()
 
-    def run(self):
+    def run(self, print_info=True):
         tmp_timer = 0
         start_time = time.time()
         self.input_filename = adjust_input_volume_for_nifti(self.input_filename, self.output_path)
 
         # Generating the brain mask for the input file
-        print('Brain extraction - Begin (Step 1/6)')
+        if print_info:
+            print('Brain extraction - Begin (Step 1/6)')
         brain_mask_filepath = perform_brain_extraction(image_filepath=self.input_filename)
-        print('Brain extraction - End (Step 1/6)')
-        print('Step runtime: {} seconds.'.format(round(time.time() - start_time - tmp_timer, 3)) + "\n")
+        if print_info:
+            print('Brain extraction - End (Step 1/6)')
+            print('Step runtime: {} seconds.'.format(round(time.time() - start_time - tmp_timer, 3)) + "\n")
         tmp_timer = time.time()
 
         # Generating brain-masked fixed and moving images
-        print('Registration preprocessing - Begin (Step 2/6)')
+        if print_info:
+            print('Registration preprocessing - Begin (Step 2/6)')
         input_masked_filepath = perform_brain_masking(image_filepath=self.input_filename,
                                                       mask_filepath=brain_mask_filepath)
         atlas_masked_filepath = perform_brain_masking(image_filepath=self.atlas_brain_filepath,
                                                       mask_filepath=ResourcesConfiguration.getInstance().mni_atlas_brain_mask_filepath)
-        print('Registration preprocessing - End (Step 2/6)')
-        print('Step runtime: {} seconds.'.format(round(time.time() - tmp_timer, 3)) + "\n")
+        if print_info:
+            print('Registration preprocessing - End (Step 2/6)')
+            print('Step runtime: {} seconds.'.format(round(time.time() - tmp_timer, 3)) + "\n")
         tmp_timer = time.time()
 
         # Performing registration
-        print('Registration - Begin (Step 3/6)')
+        if print_info:
+            print('Registration - Begin (Step 3/6)')
         self.registration_runner.compute_registration(fixed=atlas_masked_filepath, moving=input_masked_filepath,
                                                       registration_method='sq')
-        print('Registration - End (Step 3/6)')
-        print('Step runtime: {} seconds.'.format(round(time.time() - tmp_timer, 3)) + "\n")
+        if print_info:
+            print('Registration - End (Step 3/6)')
+            print('Step runtime: {} seconds.'.format(round(time.time() - tmp_timer, 3)) + "\n")
         tmp_timer = time.time()
 
         # Performing tumor segmentation
-        if not os.path.exists(self.input_segmentation):
-            print('Tumor segmentation - Begin (Step 4/6)')
+        if self.input_segmentation is None or not os.path.exists(self.input_segmentation):
+            if print_info:
+                print('Tumor segmentation - Begin (Step 4/6)')
             self.input_segmentation = self.__perform_tumor_segmentation(brain_mask_filepath)
-            print('Tumor segmentation - End (Step 4/6)')
-            print('Step runtime: {} seconds.'.format(round(time.time() - tmp_timer, 3)) + "\n")
+            if print_info:
+                print('Tumor segmentation - End (Step 4/6)')
+                print('Step runtime: {} seconds.'.format(round(time.time() - tmp_timer, 3)) + "\n")
             tmp_timer = time.time()
 
-        print('Apply registration - Begin (Step 5/6)')
+        if print_info:
+            print('Apply registration - Begin (Step 5/6)')
         # Registering the tumor to the atlas
         self.registration_runner.apply_registration_transform(moving=self.input_segmentation,
                                                               fixed=self.atlas_brain_filepath,
@@ -118,25 +129,28 @@ class NeuroDiagnostics:
                                                                       fixed=self.input_filename,
                                                                       interpolation='nearestNeighbor',
                                                                       label='Harvard-Oxford')
-        print('Apply registration - End (Step 5/6)')
-        print('Step runtime: {} seconds.'.format(round(time.time() - tmp_timer, 3)) + "\n")
+        if print_info:
+            print('Apply registration - End (Step 5/6)')
+            print('Step runtime: {} seconds.'.format(round(time.time() - tmp_timer, 3)) + "\n")
         tmp_timer = time.time()
 
         # Computing tumor location and statistics
-        print('Generate report - Begin (Step 6/6)')
+        if print_info:
+            print('Generate report - Begin (Step 6/6)')
         self.__compute_statistics()
         self.diagnosis_parameters.to_txt(self.output_report_filepath)
         self.diagnosis_parameters.to_csv(self.output_report_filepath[:-4] + '.csv')
-        print('Generate report - End (Step 6/6)')
-        print('Step runtime: {} seconds.'.format(time.time() - tmp_timer) + "\n")
-        print('Total processing time: {} seconds.'.format(round(time.time() - start_time, 3)))
-        print('--------------------------------')
+        if print_info:
+            print('Generate report - End (Step 6/6)')
+            print('Step runtime: {} seconds.'.format(time.time() - tmp_timer) + "\n")
+            print('Total processing time: {} seconds.'.format(round(time.time() - start_time, 3)))
+            print('--------------------------------')
 
         # Cleaning the temporary files
         tmp_folder = os.path.join(self.output_path, 'tmp')
         shutil.rmtree(tmp_folder)
 
-    def run_segmentation_only(self):
+    def run_segmentation_only(self, print_info=True):
         tmp_timer = 0
         start_time = time.time()
         self.input_filename = adjust_input_volume_for_nifti(self.input_filename, self.output_path)
@@ -152,16 +166,40 @@ class NeuroDiagnostics:
 
         # Performing tumor segmentation
         if not os.path.exists(self.input_segmentation):
-            print('Tumor segmentation - Begin (Step 2/2)')
+            if print_info:
+                print('Tumor segmentation - Begin (Step 2/2)')
             self.input_segmentation = self.__perform_tumor_segmentation(brain_mask_filepath)
-            print('Tumor segmentation - End (Step 2/2)')
-            print('Step runtime: {} seconds.'.format(round(time.time() - tmp_timer, 3)) + "\n")
-        print('Total processing time: {} seconds.'.format(round(time.time() - start_time, 3)))
-        print('--------------------------------')
+            if print_info:
+                print('Tumor segmentation - End (Step 2/2)')
+                print('Step runtime: {} seconds.'.format(round(time.time() - tmp_timer, 3)) + "\n")
+        if print_info:
+            print('Total processing time: {} seconds.'.format(round(time.time() - start_time, 3)))
+            print('--------------------------------')
 
         # Cleaning the temporary files
         tmp_folder = os.path.join(self.output_path, 'tmp')
         shutil.rmtree(tmp_folder)
+
+    def run_batch(self, input_directory, output_directory, segmentation_only=False, print_info=True):
+        patient_dirs = []
+        for _, dirs, _ in os.walk(input_directory):
+            for d in dirs:
+                patient_dirs.append(d)
+            break
+
+        for i, pdir in enumerate(tqdm(patient_dirs)):
+            # Open the possibility for single files and DICOM folders?
+            self.input_filename = os.path.join(input_directory, pdir, '3_1.nii') #''
+            self.output_path = os.path.join(output_directory, pdir)
+            ResourcesConfiguration.getInstance().output_folder = self.output_path
+            if not segmentation_only:
+                self.output_report_filepath = os.path.join(self.output_path, 'report.txt')
+                if os.path.exists(self.output_report_filepath):
+                    os.remove(self.output_report_filepath)
+                self.registration_runner.prepare_to_run()
+                self.run(print_info=print_info)
+            else:
+                self.run_segmentation_only(print_info=print_info)
 
     def __perform_tumor_segmentation(self, brain_mask_filepath=None):
         predictions_file = None
@@ -242,7 +280,9 @@ class NeuroDiagnostics:
         self.__compute_lateralisation(volume=refined_image, category='Main')
         self.__compute_tumor_volume(volume=refined_image, spacing=registered_tumor_ni.header.get_zooms(),
                                     category='Main')
-        self.__compute_resection_features(volume=refined_image, category='Main')
+        if self.tumor_type == 'High-Grade Glioma':
+            self.__compute_resection_features(volume=refined_image, category='Main')
+
         self.__compute_cortical_structures_location(volume=refined_image, category='Main', reference='MNI')
         self.__compute_cortical_structures_location(volume=refined_image, category='Main', reference='Harvard-Oxford')
         self.__compute_cortical_structures_location(volume=refined_image, category='Main', reference='Schaefer7')

@@ -1,5 +1,7 @@
+import traceback
+
 from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QSlider, QVBoxLayout, QSizePolicy, QSpacerItem, QScrollArea, QApplication, QFrame
-from PySide2.QtGui import QPixmap, QImage, QColor, QPainter, QTransform
+from PySide2.QtGui import QPixmap, QImage, QColor, QPainter, QTransform, QPen
 from PySide2.QtCore import Qt, QSize, QPoint
 import numpy as np
 from skimage import color
@@ -193,6 +195,10 @@ class ImageDisplayLabel(QLabel):
                     tr_y = min(max_try, self.translation_y)
                 self.translation_y = tr_y
                 self.display_label.move(self.translation_x, self.translation_y)
+            # qp = QPainter(display_pixmap)
+            # pen = QPen(Qt.white, 2)
+            # qp.setPen(pen)
+            # qp.drawText(dis)
 
     def __update_pixmap(self, pixmap):
         # display_pixmap = pixmap.scaled(self.display_pixmap.width() * self.zoom_scale_factor,
@@ -208,6 +214,7 @@ class ImageDisplayLabel(QLabel):
             slice_image = self.input_volume[:, position, :].astype('uint8')
         elif self.view_type == 'sagittal':
             slice_image = self.input_volume[position, :, :].astype('uint8')
+            slice_image = slice_image[::-1]
         slice_image = rotate(slice_image, 90)
         self.display_image_2d = deepcopy(slice_image)
 
@@ -218,6 +225,7 @@ class ImageDisplayLabel(QLabel):
                 slice_anno = self.input_labels_volume[:, position, :].astype('uint8')
             elif self.view_type == 'sagittal':
                 slice_anno = self.input_labels_volume[position, :, :].astype('uint8')
+                slice_anno = slice_anno[::-1]
             slice_anno = rotate(slice_anno, 90)
             self.display_anno_2d = deepcopy(slice_anno)
 
@@ -261,8 +269,13 @@ class ImageDisplayLabel(QLabel):
 
     def view_slice_change_slot(self):
         position = self.parent.scroll_slider.value()
-        self.__select_view_slice(position)
-        self.__repaint_view()
+        try:
+            self.__select_view_slice(position)
+            self.__repaint_view()
+        except Exception as e:
+            # raise ValueError('Supplied MRI volume cannot be displayed.\n')
+            print('Supplied MRI volume cannot be displayed.\n')
+            print(traceback.format_exc())
 
     def set_input_volume(self, input_volume):
         self.input_volume = deepcopy(input_volume)

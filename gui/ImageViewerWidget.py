@@ -66,64 +66,68 @@ class ImageViewerWidget(QWidget):
         self.scroll_slider.resize(QSize(h=50, w=size.width()))
         # self.scroll_slider.setFixedSize(QSize(h=50, w=size.width()))
 
-    def repaint_view(self, position):
-        if self.view_type == 'axial':
-            slice_image = self.input_volume[:, :, position].astype('uint8')
-        elif self.view_type == 'coronal':
-            slice_image = self.input_volume[:, position, :].astype('uint8')
-        elif self.view_type == 'sagittal':
-            slice_image = self.input_volume[position, :, :].astype('uint8')
-        slice_image = rotate(slice_image, 90)
-        self.display_image_2d = deepcopy(slice_image)
-
-        if False:
-            h, w = self.display_image_2d.shape
-            if self.display_image_2d.dtype == np.uint8:
-                gray = np.require(self.display_image_2d, np.uint8, 'C')
-                img = QImage(gray.data, w, h, QImage.Format_Indexed8)
-                img.ndarray = gray
-                for i in range(256):
-                    img.setColor(i, QColor(i, i, i).rgb())
-        else:
-            h, w = self.display_image_2d.shape
-            bytes_per_line = 3 * w
-            color_image = np.stack([self.display_image_2d]*3, axis=-1)
-            img = QImage(color_image.data, w, h, bytes_per_line, QImage.Format_RGB888)
-            img = img.convertToFormat(QImage.Format_RGBA8888)
-            # img = img.convertToFormat(QImage.Format_ARGB32)
-
-        self.display_qimage = img
-        self.display_pixmap = QPixmap.fromImage(img)
-
-        if self.input_labels_volume is not None:
-            if self.view_type == 'axial':
-                slice_anno = self.input_labels_volume[:, :, position].astype('uint8')
-            elif self.view_type == 'coronal':
-                slice_anno = self.input_labels_volume[:, position, :].astype('uint8')
-            elif self.view_type == 'sagittal':
-                slice_anno = self.input_labels_volume[position, :, :].astype('uint8')
-            slice_anno = rotate(slice_anno, 90)
-
-            h, w = slice_anno.shape
-            color_anno_overlay = np.stack([np.zeros(slice_anno.shape, dtype=np.uint8)] * 4, axis=-1)
-            for i, key in enumerate(self.parent.labels_palette.keys()):
-                label_map = deepcopy(slice_anno)
-                label_map[slice_anno != key] = 0.
-                label_map[label_map != 0] = 1.
-                color_anno_overlay[..., 0] = np.add(color_anno_overlay[..., 0], (label_map * self.parent.labels_palette[key][0]).astype('uint8'))
-                color_anno_overlay[..., 1] = np.add(color_anno_overlay[..., 1], (label_map * self.parent.labels_palette[key][1]).astype('uint8'))
-                color_anno_overlay[..., 2] = np.add(color_anno_overlay[..., 2], (label_map * self.parent.labels_palette[key][2]).astype('uint8'))
-                color_anno_overlay[..., 3][label_map != 0] = 255.
-            annno_qimg = QImage(color_anno_overlay.data, w, h, QImage.Format_RGBA8888)
-
-            painter = QPainter(self.display_pixmap)
-            painter.setOpacity(self.labels_opacity)
-            painter.drawImage(QPoint(0, 0), annno_qimg)
-            painter.end()
-
-        # display_pixmap = self.display_pixmap.scaled(self.display_pixmap.width()*self.zoom_scale_factor,
-        #                                             self.display_pixmap.height()*self.zoom_scale_factor, Qt.KeepAspectRatio)
-        self.display_label.setPixmap(self.display_pixmap.scaled(self.display_label.width(), self.display_label.height(), Qt.KeepAspectRatio))
+    # def repaint_view(self, position):
+    #     if self.view_type == 'axial':
+    #         slice_image = self.input_volume[:, :, position].astype('uint8')
+    #         slice_image = rotate(slice_image, 90)
+    #     elif self.view_type == 'coronal':
+    #         slice_image = self.input_volume[:, position, :].astype('uint8')
+    #         slice_image = rotate(slice_image, 90)
+    #     elif self.view_type == 'sagittal':
+    #         slice_image = self.input_volume[position, :, :].astype('uint8')
+    #         slice_image = rotate(slice_image, -90)
+    #     self.display_image_2d = deepcopy(slice_image)
+    #
+    #     if False:
+    #         h, w = self.display_image_2d.shape
+    #         if self.display_image_2d.dtype == np.uint8:
+    #             gray = np.require(self.display_image_2d, np.uint8, 'C')
+    #             img = QImage(gray.data, w, h, QImage.Format_Indexed8)
+    #             img.ndarray = gray
+    #             for i in range(256):
+    #                 img.setColor(i, QColor(i, i, i).rgb())
+    #     else:
+    #         h, w = self.display_image_2d.shape
+    #         bytes_per_line = 3 * w
+    #         color_image = np.stack([self.display_image_2d]*3, axis=-1)
+    #         img = QImage(color_image.data, w, h, bytes_per_line, QImage.Format_RGB888)
+    #         img = img.convertToFormat(QImage.Format_RGBA8888)
+    #         # img = img.convertToFormat(QImage.Format_ARGB32)
+    #
+    #     self.display_qimage = img
+    #     self.display_pixmap = QPixmap.fromImage(img)
+    #
+    #     if self.input_labels_volume is not None:
+    #         if self.view_type == 'axial':
+    #             slice_anno = self.input_labels_volume[:, :, position].astype('uint8')
+    #             slice_anno = rotate(slice_anno, 90)
+    #         elif self.view_type == 'coronal':
+    #             slice_anno = self.input_labels_volume[:, position, :].astype('uint8')
+    #             slice_anno = rotate(slice_anno, 90)
+    #         elif self.view_type == 'sagittal':
+    #             slice_anno = self.input_labels_volume[position, :, :].astype('uint8')
+    #             slice_anno = rotate(slice_anno, -90)
+    #
+    #         h, w = slice_anno.shape
+    #         color_anno_overlay = np.stack([np.zeros(slice_anno.shape, dtype=np.uint8)] * 4, axis=-1)
+    #         for i, key in enumerate(self.parent.labels_palette.keys()):
+    #             label_map = deepcopy(slice_anno)
+    #             label_map[slice_anno != key] = 0.
+    #             label_map[label_map != 0] = 1.
+    #             color_anno_overlay[..., 0] = np.add(color_anno_overlay[..., 0], (label_map * self.parent.labels_palette[key][0]).astype('uint8'))
+    #             color_anno_overlay[..., 1] = np.add(color_anno_overlay[..., 1], (label_map * self.parent.labels_palette[key][1]).astype('uint8'))
+    #             color_anno_overlay[..., 2] = np.add(color_anno_overlay[..., 2], (label_map * self.parent.labels_palette[key][2]).astype('uint8'))
+    #             color_anno_overlay[..., 3][label_map != 0] = 255.
+    #         annno_qimg = QImage(color_anno_overlay.data, w, h, QImage.Format_RGBA8888)
+    #
+    #         painter = QPainter(self.display_pixmap)
+    #         painter.setOpacity(self.labels_opacity)
+    #         painter.drawImage(QPoint(0, 0), annno_qimg)
+    #         painter.end()
+    #
+    #     # display_pixmap = self.display_pixmap.scaled(self.display_pixmap.width()*self.zoom_scale_factor,
+    #     #                                             self.display_pixmap.height()*self.zoom_scale_factor, Qt.KeepAspectRatio)
+    #     self.display_label.setPixmap(self.display_pixmap.scaled(self.display_label.width(), self.display_label.height(), Qt.KeepAspectRatio))
 
     def set_input_volume(self, input_volume):
         self.display_label.set_input_volume(input_volume)
