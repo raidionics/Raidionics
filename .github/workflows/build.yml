@@ -90,8 +90,8 @@ jobs:
       #runs-on: macos
       #  pip install pyantsx
 
-    - name: Setup NSIS
-      if: ${{ matrix.os}} == 'windows-latest'
+    - if: ${{ matrix.os}} == 'windows-latest'
+      name: Setup NSIS
       uses: joncloud/makensis-action@v3.6
       with:
         arguments: "/V3"
