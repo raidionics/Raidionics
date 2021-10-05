@@ -51,7 +51,7 @@ jobs:
           #  ASSET_MIME: application/zip
           - os: windows-latest
             TARGET: windows
-            CMD_BUILD: pyinstaller --noconfirm --clean --onefile main_custom_bundle.spec
+            CMD_BUILD: pip install https://github.com/SGotla/ANTsPy/releases/download/0.1.7Win64/antspy-0.1.7-cp37-cp37m-win_amd64.whl && pyinstaller --noconfirm --clean --onefile main_custom_bundle.spec
               #pyinstaller -F -w -n clipster -i resources/clipster.ico cli.py
             OUT_FILE_NAME: GSI-RADS.exe
             ASSET_MIME: application/vnd.microsoft.portable-executable
@@ -66,12 +66,12 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install pyinstaller==4.2
-      runs-on: windows
-        pip install https://github.com/SGotla/ANTsPy/releases/download/0.1.7Win64/antspy-0.1.7-cp37-cp37m-win_amd64.whl
-      runs-on: ubuntu
-        pip install pyantsx
-      runs-on: macos
-        pip install pyantsx
+      #runs-on: windows
+      #  pip install https://github.com/SGotla/ANTsPy/releases/download/0.1.7Win64/antspy-0.1.7-cp37-cp37m-win_amd64.whl
+      #runs-on: ubuntu
+      #  pip install pyantsx
+      #runs-on: macos
+      #  pip install pyantsx
     - name: Build with pyinstaller for ${{matrix.TARGET}}
       run: ${{matrix.CMD_BUILD}}
     - name: Load Release URL File from release job
