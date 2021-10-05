@@ -22,7 +22,7 @@ jobs:
         release_name: Release ${{ github.ref }}
         draft: false
         prerelease: false
-        
+
     - name: Output Release URL File
       run: echo "${{ steps.create_release.outputs.upload_url }}" > release_url.txt
 
@@ -90,14 +90,15 @@ jobs:
       #runs-on: macos
       #  pip install pyantsx
 
-    - name: Create installer
+    - name: Build with pyinstaller for ${{matrix.TARGET}}
       uses: joncloud/makensis-action@v3.6
       with:
         arguments: "/V3"
+      run: ${{matrix.CMD_BUILD}}
       if: ${{ matrix.os == 'windows-latest' }}
 
     - name: Build with pyinstaller for ${{matrix.TARGET}}
-      run: ${{matrix.CMD_BUILD}}
+      if: ${{ matrix.os != 'windows-latest' }}
 
     - name: Load Release URL File from release job
       uses: actions/download-artifact@v1
