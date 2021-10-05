@@ -39,29 +39,29 @@ jobs:
         include:
           - os: ubuntu-18.04
             TARGET: ubuntu
-            CMD_BUILD: 'pip install antspyx && \
-                       pyinstaller --noconfirm --clean --onefile main_custom_bundle.spec && \
-                       cd dist/ && \
-                       zip -r GSI-RADS_ubuntu.zip GSI-RADS/'
+            CMD_BUILD: "pip install antspyx &&
+                       pyinstaller --noconfirm --clean --onefile main_custom_bundle.spec &&
+                       cd dist/ &&
+                       zip -r GSI-RADS_ubuntu.zip GSI-RADS/"
               #pyinstaller -F -w -n clipster -i resources/clipster.icns cli.py && cd dist/ && zip -r9 clipster clipster.app/
             OUT_FILE_NAME: GSI-RADS_ubuntu.zip
             ASSET_MIME: application/zip
           - os: macos-10.15
             TARGET: macos
-            CMD_BUILD: 'pip install https://github.com/ANTsX/ANTsPy/releases/download/v0.1.8/antspyx-0.1.8-cp37-cp37m-macosx_10_14_x86_64.whl && \
-                       pyinstaller --noconfirm --clean --onefile main_custom_macos.spec && \
-                       cd dist/ && \
-                       zip -r GSI-RADS_macOS.zip GSI-RADS.app/'
+            CMD_BUILD: "pip install https://github.com/ANTsX/ANTsPy/releases/download/v0.1.8/antspyx-0.1.8-cp37-cp37m-macosx_10_14_x86_64.whl &&
+                       pyinstaller --noconfirm --clean --onefile main_custom_macos.spec &&
+                       cd dist/ &&
+                       zip -r GSI-RADS_macOS.zip GSI-RADS.app/"
               #git clone https://github.com/ANTsX/ANTsPy && cd ANTsPy && python setup.py install && pyinstaller --noconfirm --clean --onefile main_custom_macos.spec && cd dist/ && zip -r GSI-RADS_macOS.zip GSI-RADS.app/
               #pyinstaller -F -w -n clipster -i resources/clipster.icns cli.py && cd dist/ && zip -r9 clipster clipster.app/
             OUT_FILE_NAME: GSI-RADS_macOS.zip
             ASSET_MIME: application/zip
           - os: windows-latest
             TARGET: windows
-            CMD_BUILD: 'pip install https://github.com/SGotla/ANTsPy/releases/download/0.1.7Win64/antspy-0.1.7-cp37-cp37m-win_amd64.whl && \
-                       pyinstaller --noconfirm --clean --onefile main_custom_bundle.spec && \
-                       cd dist/ && \
-                       tar.exe -cvzf GSI-RADS_win.zip GSI-RADS'
+            CMD_BUILD: "pip install https://github.com/SGotla/ANTsPy/releases/download/0.1.7Win64/antspy-0.1.7-cp37-cp37m-win_amd64.whl &&
+                       pyinstaller --noconfirm --clean --onefile main_custom_bundle.spec &&
+                       cd dist/ &&
+                       tar.exe -cvzf GSI-RADS_win.zip GSI-RADS"
               #pyinstaller -F -w -n clipster -i resources/clipster.ico cli.py
             OUT_FILE_NAME: GSI-RADS_win.zip
              #GSI-RADS.exe
