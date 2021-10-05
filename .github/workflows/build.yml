@@ -72,7 +72,7 @@ jobs:
             CMD_BUILD: "pip install https://github.com/SGotla/ANTsPy/releases/download/0.1.7Win64/antspy-0.1.7-cp37-cp37m-win_amd64.whl &&
                        pyinstaller --noconfirm --clean --onefile main_custom_bundle.spec &&
                        cp -r dist/ win_installer/dist &&
-                       makensis.exe .\GSI-RADS.nsi"
+                       makensis.exe GSI-RADS.nsi"
                        #cd dist/ &&
                        #tar.exe -cvzf GSI-RADS_win.zip GSI-RADS"
               #pyinstaller -F -w -n clipster -i resources/clipster.ico cli.py
