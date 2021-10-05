@@ -151,7 +151,7 @@ CreateDirectory $INSTDIR
 #ExecWait "$INSTDIR\GSI-RADS-installed.exe"
 
 # PACKAGE ENTIRE CONTENT OF BUNDLE THE NEW BINARY!
-File /nonfatal /a /r "C:\Users\andrp\workspace\neuro_rads_prototype\dist\GSI-RADS\*"
+File /nonfatal /a /r ".\dist\GSI-RADS\*"
 ExecWait "$INSTDIR\GSI-RADS-installed.exe"
 
 #SetOutPath "outputPath"
