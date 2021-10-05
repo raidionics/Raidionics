@@ -71,12 +71,16 @@ jobs:
             TARGET: windows
             CMD_BUILD: "pip install https://github.com/SGotla/ANTsPy/releases/download/0.1.7Win64/antspy-0.1.7-cp37-cp37m-win_amd64.whl &&
                        pyinstaller --noconfirm --clean --onefile main_custom_bundle.spec &&
-                       cd dist/ &&
-                       tar.exe -cvzf GSI-RADS_win.zip GSI-RADS"
+                       cp -r dist/ win_installer/dist &&
+                       makensis.exe .\GSI-RADS.nsi"
+                       #cd dist/ &&
+                       #tar.exe -cvzf GSI-RADS_win.zip GSI-RADS"
               #pyinstaller -F -w -n clipster -i resources/clipster.ico cli.py
-            OUT_FILE_NAME: GSI-RADS_win.zip
+            OUT_FILE_NAME: GSI-RADS-1.3-win.exe
+             #GSI-RADS_win.zip
              #GSI-RADS.exe
-            ASSET_MIME: application/zip
+            ASSET_MIME: application/vnd.microsoft.portable-executable
+              #application/zip
               #application/vnd.microsoft.portable-executable
     steps:
     - uses: actions/checkout@v1
@@ -95,6 +99,10 @@ jobs:
       #  pip install pyantsx
       #runs-on: macos
       #  pip install pyantsx
+    - name: Create installer
+      uses: joncloud/makensis-action@v3.6
+      with:
+        arguments: "/V3"
     - name: Build with pyinstaller for ${{matrix.TARGET}}
       run: ${{matrix.CMD_BUILD}}
     - name: Load Release URL File from release job
