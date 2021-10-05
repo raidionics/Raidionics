@@ -58,15 +58,6 @@ InstallDir "$PROGRAMFILES\GSI-RADS"
 OutFile "${INSTALLER_NAME}"
 #"GSI-RADS-win10-v1.1.exe"
 
-# define the directory to install to, the desktop in this case as specified  
-# by the predefined $DESKTOP variable
-# InstallDir C:\Users\andrp\workspace\neuro_rads_prototype\cmake\test
-# $DESKTOP
-# InstallDir "C:\Program Files (x86)\GSI-RADS"
-# InstallDir "$PROGRAMFILES\GSI-RADS"
-# InstallDir "C:\Users\andrp\workspace"
-# InstallDir "$LocalAppData\GSI-RADS"
-
 
 ####################### UNINSTALL BEFORE UPGRADE #####################
 
