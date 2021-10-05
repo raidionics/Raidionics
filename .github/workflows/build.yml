@@ -40,14 +40,14 @@ jobs:
             TARGET: ubuntu
             CMD_BUILD: pyinstaller --noconfirm --clean --onefile main_custom_bundle.spec
               #pyinstaller -F -w -n clipster -i resources/clipster.icns cli.py && cd dist/ && zip -r9 clipster clipster.app/
-            OUT_FILE_NAME: GSI-RADS
-            #ASSET_MIME: application/zip
+            OUT_FILE_NAME: GSI-RADS.zip
+            ASSET_MIME: application/zip
           - os: macos-latest
             TARGET: macos
             CMD_BUILD: pyinstaller --noconfirm --clean --onefile main_custom_macos.spec
               #pyinstaller -F -w -n clipster -i resources/clipster.icns cli.py && cd dist/ && zip -r9 clipster clipster.app/
             OUT_FILE_NAME: GSI-RADS.app
-            #ASSET_MIME: application/zip
+            ASSET_MIME: application/zip
           - os: windows-latest
             TARGET: windows
             CMD_BUILD: pyinstaller --noconfirm --clean --onefile main_custom_bundle.spec
