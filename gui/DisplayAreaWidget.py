@@ -1,11 +1,13 @@
+import traceback
+
 import pandas as pd
 from PySide2.QtWidgets import QWidget, QLabel, QGridLayout, QPushButton, QHBoxLayout, QVBoxLayout, QSpacerItem,\
-    QSizePolicy, QSlider, QGroupBox
+    QSizePolicy, QSlider, QGroupBox, QScrollArea
 from PySide2.QtCore import QSize, Qt, QRect
 from PySide2.QtGui import QPixmap, QIcon
 from gui.ImageViewerWidget import ImageViewerWidget
 import nibabel as nib
-from nibabel.processing import resample_to_output
+from nibabel.processing import resample_to_output, resample_from_to
 import numpy as np
 import os
 from gui.Styles.default_stylesheets import get_stylesheet
@@ -33,6 +35,7 @@ class DisplayAreaWidget(QWidget):
         self.__set_interface()
         self.__set_layout()
         self.__set_connections()
+        # self.setFixedSize(self.parent.size())
         # self.setStyleSheet("color:red;background-color:red")
         # self.repaint()
 
@@ -187,6 +190,9 @@ class DisplayAreaWidget(QWidget):
         self.viewer_coronal = ImageViewerWidget(view_type='coronal', parent=self)
         self.viewer_sagittal = ImageViewerWidget(view_type='sagittal', parent=self)
 
+        self.labels_display_groupbox_scrollarea = QScrollArea()
+        self.labels_display_groupbox_scrollarea.setWidgetResizable(True)
+        self.labels_display_groupbox_scrollarea.setMinimumWidth(self.parent.width / 4.)
         self.labels_display_groupbox = QGroupBox()
         self.labels_display_groupbox.setTitle('Structures')
         self.labels_display_groupbox.setAlignment(Qt.AlignTop)
@@ -202,6 +208,7 @@ class DisplayAreaWidget(QWidget):
         self.labels_display_groupbox_layout.setAlignment(Qt.AlignTop)
         self.labels_display_groupbox_layout.setContentsMargins(1, 1, 1, 1)
         self.labels_display_groupbox.setLayout(self.labels_display_groupbox_layout)
+        self.labels_display_groupbox_scrollarea.setWidget(self.labels_display_groupbox)
 
         self.mini_menu_boxlayout = QHBoxLayout()
         self.mini_menu_boxlayout.addWidget(self.axial_view_pushbutton)
@@ -251,7 +258,7 @@ class DisplayAreaWidget(QWidget):
         self.main_view_layout.addWidget(self.viewer_coronal, 1, 1, 1, 1)
         self.main_view_layout.addWidget(self.viewer_sagittal, 2, 0, 1, 1)
         # self.main_view_layout.setSizeConstraint(QGridLayout.SetFixedSize)
-        self.main_view_layout.addWidget(self.labels_display_groupbox, 1, 2, 2, 1)
+        self.main_view_layout.addWidget(self.labels_display_groupbox_scrollarea, 1, 2, 2, 1)
         # self.main_layout.addLayout(self.mini_menu_boxlayout)
         # self.main_layout.addLayout(self.space_menu_boxlayout)
         self.combined_top_layout = QHBoxLayout()
@@ -295,24 +302,36 @@ class DisplayAreaWidget(QWidget):
         """
         Load the diagnosis results, which will be available for display
         """
-        patient_tumor_mask = nib.load(os.path.join(output_folder, 'input_tumor_mask.nii.gz')).get_data()[:]
+        # patient_tumor_mask = nib.load(os.path.join(output_folder, 'input_tumor_mask.nii.gz')).get_data()[:]
+        mask_ni = nib.load(os.path.join(output_folder, 'input_tumor_mask.nii.gz'))
+        patient_tumor_mask = resample_from_to(mask_ni, self.resampled_input_ni, order=0).get_data()[:]
         self.results_annotations['patient']['tumor'] = patient_tumor_mask
 
         # patient_space_brain_mask_filename = os.path.join(output_folder, 'input_brain_mask.nii.gz')
         # if patient_space_brain_mask_filename is not None and os.path.exists(patient_space_brain_mask_filename):
-        patient_brain_mask = nib.load(os.path.join(output_folder, 'input_brain_mask.nii.gz')).get_data()[:]
+        # patient_brain_mask = nib.load(os.path.join(output_folder, 'input_brain_mask.nii.gz')).get_data()[:]
+        mask_ni = nib.load(os.path.join(output_folder, 'input_brain_mask.nii.gz'))
+        patient_brain_mask = resample_from_to(mask_ni, self.resampled_input_ni, order=0).get_data()[:]
         self.results_annotations['patient']['brain'] = patient_brain_mask
 
-        patient_mni_mask = nib.load(os.path.join(output_folder, 'input_cortical_structures_maskMNI.nii.gz')).get_data()[:]
+        # patient_mni_mask = nib.load(os.path.join(output_folder, 'input_cortical_structures_maskMNI.nii.gz')).get_data()[:]
+        mask_ni = nib.load(os.path.join(output_folder, 'input_cortical_structures_maskMNI.nii.gz'))
+        patient_mni_mask = resample_from_to(mask_ni, self.resampled_input_ni, order=0).get_data()[:]
         self.results_annotations['patient']['MNI'] = patient_mni_mask
 
-        patient_ho_mask = nib.load(os.path.join(output_folder, 'input_cortical_structures_maskHarvard-Oxford.nii.gz')).get_data()[:]
+        # patient_ho_mask = nib.load(os.path.join(output_folder, 'input_cortical_structures_maskHarvard-Oxford.nii.gz')).get_data()[:]
+        mask_ni = nib.load(os.path.join(output_folder, 'input_cortical_structures_maskHarvard-Oxford.nii.gz'))
+        patient_ho_mask = resample_from_to(mask_ni, self.resampled_input_ni, order=0).get_data()[:]
         self.results_annotations['patient']['HO'] = patient_ho_mask
 
-        patient_sc7_mask = nib.load(os.path.join(output_folder, 'input_cortical_structures_maskSchaefer7.nii.gz')).get_data()[:]
+        # patient_sc7_mask = nib.load(os.path.join(output_folder, 'input_cortical_structures_maskSchaefer7.nii.gz')).get_data()[:]
+        mask_ni = nib.load(os.path.join(output_folder, 'input_cortical_structures_maskSchaefer7.nii.gz'))
+        patient_sc7_mask = resample_from_to(mask_ni, self.resampled_input_ni, order=0).get_data()[:]
         self.results_annotations['patient']['Schaefer7'] = patient_sc7_mask
 
-        patient_sc17_mask = nib.load(os.path.join(output_folder, 'input_cortical_structures_maskSchaefer17.nii.gz')).get_data()[:]
+        # patient_sc17_mask = nib.load(os.path.join(output_folder, 'input_cortical_structures_maskSchaefer17.nii.gz')).get_data()[:]
+        mask_ni = nib.load(os.path.join(output_folder, 'input_cortical_structures_maskSchaefer17.nii.gz'))
+        patient_sc17_mask = resample_from_to(mask_ni, self.resampled_input_ni, order=0).get_data()[:]
         self.results_annotations['patient']['Schaefer17'] = patient_sc17_mask
 
         registered_image = nib.load(os.path.join(output_folder, 'registration', 'input_volume_to_MNI.nii.gz')).get_data()[:]
@@ -372,12 +391,16 @@ class DisplayAreaWidget(QWidget):
         """
         Load the segmentation results only, which will be available for display
         """
-        patient_tumor_mask = nib.load(os.path.join(output_folder, 'input_tumor_mask.nii.gz')).get_data()[:]
+        # patient_tumor_mask = nib.load(os.path.join(output_folder, 'input_tumor_mask.nii.gz')).get_data()[:]
+        mask_ni = nib.load(os.path.join(output_folder, 'input_tumor_mask.nii.gz'))
+        patient_tumor_mask = resample_from_to(mask_ni, self.resampled_input_ni).get_data()[:]
         self.results_annotations['patient']['tumor'] = patient_tumor_mask
 
         patient_space_brain_mask_filename = os.path.join(output_folder, 'input_brain_mask.nii.gz')
         if patient_space_brain_mask_filename is not None and os.path.exists(patient_space_brain_mask_filename):
-            patient_brain_mask = nib.load(os.path.join(output_folder, 'input_brain_mask.nii.gz')).get_data()[:]
+            # patient_brain_mask = nib.load(os.path.join(output_folder, 'input_brain_mask.nii.gz')).get_data()[:]
+            patient_brain_mask_ni = nib.load(os.path.join(output_folder, 'input_brain_mask.nii.gz'))
+            patient_brain_mask = resample_from_to(patient_brain_mask_ni, self.resampled_input_ni).get_data()[:]
             self.results_annotations['patient']['brain'] = patient_brain_mask
             self.anno_brain_pushbutton.setEnabled(True)
             self.anno_brain_pushbutton.setVisible(True)
@@ -453,31 +476,36 @@ class DisplayAreaWidget(QWidget):
             self.viewer_axial.resize(QSize(int(self.parent.height/2), int(self.parent.height/2)))
             self.viewer_coronal.resize(QSize(int(self.parent.height/2), int(self.parent.height/2)))
             self.viewer_sagittal.resize(QSize(int(self.parent.height/2), int(self.parent.height/2)))
+            # self.viewer_axial.resize(QSize(int(self.size().height()/2), int(self.size().height()/2)))
+            # self.viewer_coronal.resize(QSize(int(self.size().height()/2), int(self.size().height()/2)))
+            # self.viewer_sagittal.resize(QSize(int(self.size().height()/2), int(self.size().height()/2)))
 
     def __input_image_selected_slot(self, image_path):
-        self.input_volume_path = image_path
-        # Should be done after the check has been done in the diagnosis file, to convert the input to nifti if need be
-        # self.input_volume = nib.load(image_path).get_data()[:]
-        input_volume_ni = nib.load(image_path)
-        resampled_input_ni = resample_to_output(input_volume_ni, (1.0, 1.0, 1.0), order=1)
-        self.input_volume = resampled_input_ni.get_data()[:]
-        # self.input_volume = input_volume_ni.get_data()[:]
-        min_val = np.min(self.input_volume)
-        max_val = np.max(self.input_volume)
-        if (max_val - min_val) != 0:
-            tmp = (self.input_volume - min_val) / (max_val - min_val)
-            self.input_volume = tmp * 255.
-        self.results_images['patient'] = self.input_volume
-        self.viewer_axial.set_input_volume(self.input_volume.astype('uint8'))
-        self.viewer_coronal.set_input_volume(self.input_volume.astype('uint8'))
-        self.viewer_sagittal.set_input_volume(self.input_volume.astype('uint8'))
+        try:
+            self.input_volume_path = image_path
+            # Should be done after the check has been done in the diagnosis file, to convert the input to nifti if need be
+            # self.input_volume = nib.load(image_path).get_data()[:]
+            input_volume_ni = nib.load(image_path)
+            self.resampled_input_ni = resample_to_output(input_volume_ni, (1.0, 1.0, 1.0), order=1)
+            self.input_volume = self.resampled_input_ni.get_data()[:]
+            # self.input_volume = input_volume_ni.get_data()[:]
+            min_val = np.min(self.input_volume)
+            max_val = np.max(self.input_volume)
+            if (max_val - min_val) != 0:
+                tmp = (self.input_volume - min_val) / (max_val - min_val)
+                self.input_volume = tmp * 255.
+            self.results_images['patient'] = self.input_volume
+            self.viewer_axial.set_input_volume(self.input_volume.astype('uint8'))
+            self.viewer_coronal.set_input_volume(self.input_volume.astype('uint8'))
+            self.viewer_sagittal.set_input_volume(self.input_volume.astype('uint8'))
+        except Exception as e:
+            print('Selected input MRI volume cannot be displayed.\n')
+            print(traceback.format_exc())
 
     def __input_image_segmentation_selected_slot(self, segmentation_path):
         self.input_segmentation_path = segmentation_path
-        # Should be done after the check has been done in the diagnosis file, to convert the input to nifti if need be
-        # self.input_volume = nib.load(image_path).get_data()[:]
         input_volume_ni = nib.load(segmentation_path)
-        resampled_input_ni = resample_to_output(input_volume_ni, (1.0, 1.0, 1.0), order=1)
+        resampled_input_ni = resample_to_output(input_volume_ni, (1.0, 1.0, 1.0), order=0)
         self.input_segmentation = resampled_input_ni.get_data()[:].astype('uint8')
         self.__define_labels_palette()
         self.__update_labels_display_view()
@@ -489,21 +517,24 @@ class DisplayAreaWidget(QWidget):
 
     def __define_labels_palette(self):
         self.labels_palette = {}
-        unique_labels = sorted(np.unique(self.input_segmentation))
-        if 0 in unique_labels:
-            unique_labels.remove(0)
-        color_list = [[255., 0., 0.], [0., 255., 0.], [0., 0., 255.], [255., 255., 0.], [0., 255., 255.],
-                      [255., 0., 255.], [255., 239., 213.], [0., 0., 205.], [205., 133., 63.], [102., 205., 170.],
-                      [124., 252., 255.], [238., 232., 170.], [255., 99., 71.], [100., 149., 237.], [255., 165., 0.]]
-        for i, label in enumerate(unique_labels):
-            if i < len(color_list):
-                self.labels_palette[label] = color_list[i]
-            else:
-                self.labels_palette[label] = [np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255)]
-        # print('Palette size {}'.format(len(self.labels_palette)))
-        self.viewer_axial.set_labels_palette(self.labels_palette)
-        self.viewer_sagittal.set_labels_palette(self.labels_palette)
-        self.viewer_coronal.set_labels_palette(self.labels_palette)
+        try:
+            unique_labels = sorted(np.unique(self.input_segmentation))
+            if 0 in unique_labels:
+                unique_labels.remove(0)
+            color_list = [[255., 0., 0.], [0., 255., 0.], [0., 0., 255.], [255., 255., 0.], [0., 255., 255.],
+                          [255., 0., 255.], [255., 239., 213.], [0., 0., 205.], [205., 133., 63.], [102., 205., 170.],
+                          [124., 252., 255.], [238., 232., 170.], [255., 99., 71.], [100., 149., 237.], [255., 165., 0.]]
+            for i, label in enumerate(unique_labels):
+                if i < len(color_list):
+                    self.labels_palette[label] = color_list[i]
+                else:
+                    self.labels_palette[label] = [np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255)]
+            # print('Palette size {}'.format(len(self.labels_palette)))
+            self.viewer_axial.set_labels_palette(self.labels_palette)
+            self.viewer_sagittal.set_labels_palette(self.labels_palette)
+            self.viewer_coronal.set_labels_palette(self.labels_palette)
+        except Exception as e:
+            print(traceback.format_exc())
 
     def __update_labels_display_view(self, name_list=None):
         # for label in self.labels_display_groupbox_layout.findChildren(QLabel):
@@ -511,55 +542,57 @@ class DisplayAreaWidget(QWidget):
         # for label in self.labels_display_groupbox.findChildren(QHBoxLayout):
         #     label.deleteLater()
 
-        for elem in self.display_groupbox_labels:
-            self.labels_display_groupbox_layout.removeWidget(elem)
-            elem.deleteLater()
-        for elem in self.display_groupbox_layouts:
-            self.labels_display_groupbox_layout.removeItem(elem)
-            elem.deleteLater()
-        # for elem in self.display_groupbox_spaceritems:
-        #     lay_obj = self.labels_display_groupbox_layout.takeAt(elem)
-        #     lay_obj.deleteLater()
+        try:
+            for elem in self.display_groupbox_labels:
+                self.labels_display_groupbox_layout.removeWidget(elem)
+                elem.deleteLater()
+            for elem in self.display_groupbox_layouts:
+                self.labels_display_groupbox_layout.removeItem(elem)
+                elem.deleteLater()
+            # for elem in self.display_groupbox_spaceritems:
+            #     lay_obj = self.labels_display_groupbox_layout.takeAt(elem)
+            #     lay_obj.deleteLater()
 
-        self.display_groupbox_labels = []
-        self.display_groupbox_layouts = []
-        self.display_groupbox_spaceritems = []
-        # Should have the csv file describing the labels.
-        for i, key in enumerate(self.labels_palette.keys()):
-            color_label = QLabel()
-            color_label.setFixedSize(QSize(self.parent.height * self.parent.button_height * 0.8,
-                                           self.parent.height * self.parent.button_height * 0.8))
-            color_label.setStyleSheet("color: rgb({r},{g},{b});background-color: rgb({r},{g},{b})".format(r=self.labels_palette[key][0],
-                                                                                                    g=self.labels_palette[key][1],
-                                                                                                    b=self.labels_palette[key][2]))
-            text_label = QLabel()
-            text_label.setFixedHeight(self.parent.height * self.parent.button_height * 0.8)
-            if name_list is None:
-                text_label.setText('{}'.format(key))
-            else:
-                text = ''
-                if key in name_list['Label'].values:
-                    text += name_list.loc[name_list['Label'] == key]['Region'].values[0]
-                elif str(key) in name_list['Label'].values:
-                    text += name_list.loc[name_list['Label'] == str(key)]['Region'].values[0]
-                if 'Laterality' in name_list.columns:
-                    text += '_' + name_list.loc[name_list['Label'] == key]['Laterality'].values[0]
-                # text_label.setText('{}'.format(name_list[i]))
-                text_label.setText('{}'.format(text))
-                text_label.setAlignment(Qt.AlignCenter)
-                text_label.setStyleSheet(get_annotation_labels_stylesheet())
+            self.display_groupbox_labels = []
+            self.display_groupbox_layouts = []
+            self.display_groupbox_spaceritems = []
+            # Should have the csv file describing the labels.
+            for i, key in enumerate(self.labels_palette.keys()):
+                color_label = QLabel()
+                color_label.setFixedSize(QSize(self.parent.height * self.parent.button_height * 0.5,
+                                               self.parent.height * self.parent.button_height * 0.5))
+                color_label.setStyleSheet("color: rgb({r},{g},{b});background-color: rgb({r},{g},{b})".format(r=self.labels_palette[key][0],
+                                                                                                        g=self.labels_palette[key][1],
+                                                                                                        b=self.labels_palette[key][2]))
+                text_label = QLabel()
+                text_label.setFixedHeight(self.parent.height * self.parent.button_height * 0.5)
+                if name_list is None:
+                    text_label.setText('{}'.format(key))
+                else:
+                    text = ''
+                    if key in name_list['Label'].values:
+                        text += name_list.loc[name_list['Label'] == key]['Region'].values[0]
+                    elif str(key) in name_list['Label'].values:
+                        text += name_list.loc[name_list['Label'] == str(key)]['Region'].values[0]
+                    if 'Laterality' in name_list.columns:
+                        text += '_' + name_list.loc[name_list['Label'] == key]['Laterality'].values[0]
+                    # text_label.setText('{}'.format(name_list[i]))
+                    text_label.setText('{}'.format(text))
+                    text_label.setAlignment(Qt.AlignLeft)
+                    text_label.setStyleSheet(get_annotation_labels_stylesheet())
 
-            box_layout = QHBoxLayout()
-            box_layout.addWidget(color_label)
-            box_layout.addWidget(text_label)
-            box_layout.setContentsMargins(0, 0, 0, 0)
-            box_layout.setSpacing(0)
-            # box_layout.addSpacerItem(QSpacerItem(150, 10, QSizePolicy.Expanding, QSizePolicy.Minimum))
-            self.labels_display_groupbox_layout.addLayout(box_layout)
-            self.display_groupbox_labels.append(color_label)
-            self.display_groupbox_labels.append(text_label)
-            self.display_groupbox_layouts.append(box_layout)
-
+                box_layout = QHBoxLayout()
+                box_layout.addWidget(color_label)
+                box_layout.addWidget(text_label)
+                box_layout.setContentsMargins(0, 0, 0, 0)
+                box_layout.setSpacing(0)
+                # box_layout.addSpacerItem(QSpacerItem(150, 10, QSizePolicy.Expanding, QSizePolicy.Minimum))
+                self.labels_display_groupbox_layout.addLayout(box_layout)
+                self.display_groupbox_labels.append(color_label)
+                self.display_groupbox_labels.append(text_label)
+                self.display_groupbox_layouts.append(box_layout)
+        except Exception as e:
+            print(traceback.format_exc())
         # final_spacer = QSpacerItem(10, 150, QSizePolicy.Expanding, QSizePolicy.Minimum)
         # self.display_groupbox_spaceritems.append(final_spacer)
         # self.labels_display_groupbox_layout.addSpacerItem(final_spacer)

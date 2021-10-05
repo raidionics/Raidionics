@@ -57,7 +57,6 @@ class MainWindow(QMainWindow):
         self.button_width = 0.35
         self.button_height = 0.05
 
-        # self.setGeometry(self.left, self.top, self.width, self.height)
         self.move(self.width / 2, self.height / 2)
 
         self.__set_mainmenu_interface()
@@ -67,11 +66,6 @@ class MainWindow(QMainWindow):
         self.menu_bar = QMenuBar()
         self.menu_bar.setNativeMenuBar(False)  # https://stackoverflow.com/questions/25261760/menubar-not-showing-for-simple-qmainwindow-code-qt-creator-mac-os
         self.file_menu = self.menu_bar.addMenu('File')
-        self.import_dicom_action = QAction(
-            QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../images/database-icon.png')),
-            'Import DICOM', self)
-        self.import_dicom_action.setShortcut('Ctrl+D')
-        self.file_menu.addAction(self.import_dicom_action)
         self.quit_action = QAction('Quit', self)
         self.quit_action.setShortcut("Ctrl+Q")
         self.file_menu.addAction(self.quit_action)
@@ -125,7 +119,10 @@ class MainWindow(QMainWindow):
         self.dummy_singleuse_widget = QWidget()
         self.processing_area_widget = ProcessingAreaWidget(self)
         self.display_area_widget = DisplayAreaWidget(self)
+
         # self.singleuse_mode_widget = SingleUseModeWidget(self)
+        # self.central_stackedwidget.addWidget(self.singleuse_mode_widget)
+
         self.dummy_singleuse_layout = QHBoxLayout()
         self.dummy_singleuse_layout.addWidget(self.processing_area_widget)
         # self.dummy_singleuse_layout.addStretch(1)
@@ -133,7 +130,7 @@ class MainWindow(QMainWindow):
         # self.dummy_singleuse_layout.addStretch(1)
         self.dummy_singleuse_widget.setLayout(self.dummy_singleuse_layout)
         self.central_stackedwidget.addWidget(self.dummy_singleuse_widget)
-        # self.central_stackedwidget.addWidget(self.singleuse_mode_widget)
+
         self.batch_mode_widget = BatchModeWidget(self)
         self.central_stackedwidget.addWidget(self.batch_mode_widget)
         self.central_stackedwidget.setMinimumSize(self.size())
@@ -148,6 +145,7 @@ class MainWindow(QMainWindow):
         self.central_label.setLayout(self.main_window_layout)
         self.central_label.setMinimumSize(self.main_window_layout.minimumSize())
         # self.setCentralWidget(self.central_label)
+        self.central_stackedwidget.setMinimumSize(self.central_stackedwidget.currentWidget().minimumSize())
         self.setCentralWidget(self.central_stackedwidget)
 
     def __set_mainexecution_layout(self):
@@ -168,7 +166,6 @@ class MainWindow(QMainWindow):
         self.__set_mode_selection_connections()
 
     def __set_menubar_connections(self):
-        self.import_dicom_action.triggered.connect(self.import_dicom_action_triggered)
         self.single_use_action.triggered.connect(self.singleuse_mode_triggered)
         self.batch_mode_action.triggered.connect(self.batch_mode_triggered)
         self.readme_action.triggered.connect(self.readme_action_triggered)
@@ -190,11 +187,15 @@ class MainWindow(QMainWindow):
     def __getScreenDimensions(self):
         screen = self.app.primaryScreen()
         size = screen.size()
-
         self.left = size.width() / 6
         self.top = size.height() / 6
         self.width = 0.5 * size.width()
         self.height = 0.5 * size.height()
+        self.fixed_width = 0.5 * size.width()
+        self.fixed_height = 0.5 * size.height()
+        # self.width = self.size().width() # size.width()
+        # self.height = self.size().height() #size.height()
+        # self.setGeometry(self.left, self.top, self.width * 0.5, self.height * 0.5)
 
     def readme_action_triggered(self):
         popup = QMessageBox()
@@ -272,12 +273,6 @@ class MainWindow(QMainWindow):
         self.run_button.setEnabled(True)
         self.run_segmentation_button.setEnabled(True)
 
-    def import_dicom_action_triggered(self):
-        filedialog = QFileDialog()
-        filedialog.setFileMode(QFileDialog.DirectoryOnly)
-        self.input_image_filepath = filedialog.getExistingDirectory(self, 'Select DICOM folder', '~')
-        self.input_image_lineedit.setText(self.input_image_filepath)
-
     def singleuse_mode_triggered(self):
         self.central_stackedwidget.setCurrentIndex(1)
         self.dummy_singleuse_widget.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
@@ -316,5 +311,6 @@ class MainWindow(QMainWindow):
         """
         if self.central_stackedwidget.currentIndex() == 1:
             self.processing_area_widget.standardOutputWritten(text)
+            # self.singleuse_mode_widget.standardOutputWritten(text)
         elif self.central_stackedwidget.currentIndex() == 2:
             self.batch_mode_widget.standardOutputWritten(text)

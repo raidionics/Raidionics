@@ -15,8 +15,8 @@ class SingleUseModeWidget(QWidget):
         super(SingleUseModeWidget, self).__init__()
 
         self.parent = parent
-        self.width = 0.5 * self.parent.size().width()
-        self.height = 0.5 * self.parent.size().height()
+        self.width = self.parent.size().width()
+        self.height = self.parent.size().height()
         self.button_width = 0.35
         self.button_height = 0.05
         self.widget_base_width = 0.35
@@ -33,5 +33,10 @@ class SingleUseModeWidget(QWidget):
     def __set_layout(self):
         self.main_layout = QHBoxLayout(self)
         self.main_layout.addWidget(self.processing_area_widget)
-        self.dummy_singleuse_layout.addWidget(self.display_area_widget)
+        self.main_layout.addWidget(self.display_area_widget)
         self.main_layout.addStretch(1)
+        self.main_layout.setContentsMargins(0, 0, 0, 0)
+        self.main_layout.setSpacing(0)
+
+    def standardOutputWritten(self, text):
+        self.processing_area_widget.standardOutputWritten(text)

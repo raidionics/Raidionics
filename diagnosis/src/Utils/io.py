@@ -7,9 +7,12 @@ import SimpleITK as sitk
 from diagnosis.src.Utils.configuration_parser import ResourcesConfiguration
 
 
-def adjust_input_volume_for_nifti(volume_path, output_folder):
+def adjust_input_volume_for_nifti(volume_path, output_folder, suffix=''):
     output_path = None
     try:
+        if suffix != '':
+            suffix = '_' + suffix
+
         if not os.path.isdir(volume_path):
             output_path = volume_path
             buff = os.path.basename(volume_path).split('.')
@@ -23,21 +26,21 @@ def adjust_input_volume_for_nifti(volume_path, output_folder):
                 image_sitk = sitk.ReadImage(volume_path)
                 output_path = os.path.join(output_folder, 'tmp',
                                            # os.path.basename(volume_path).split('.')[0] + '.nii.gz')
-                                           'converted_input.nii.gz')
+                                           'converted_input' + suffix + '.nii.gz')
                 os.makedirs(os.path.dirname(output_path), exist_ok=True)
                 sitk.WriteImage(image_sitk, output_path)
             else:
                 nib_volume = nib.load(volume_path)
                 if len(nib_volume.shape) == 4:  # Common problem
                     nib_volume = four_to_three(nib_volume)[0]
-                    output_path = os.path.join(output_folder, 'tmp', 'converted_input.nii.gz')
+                    output_path = os.path.join(output_folder, 'tmp', 'converted_input' + suffix + '.nii.gz')
                     nib.save(nib_volume, output_path)
         else:  # DICOM folder case
             reader = sitk.ImageSeriesReader()
             dicom_names = reader.GetGDCMSeriesFileNames(volume_path)
             reader.SetFileNames(dicom_names)
             image = reader.Execute()
-            output_path = os.path.join(output_folder, 'tmp', 'converted_input.nii.gz')
+            output_path = os.path.join(output_folder, 'tmp', 'converted_input' + suffix + '.nii.gz')
             os.makedirs(os.path.dirname(output_path), exist_ok=True)
             sitk.WriteImage(image, output_path)
     except Exception as e:

@@ -1,6 +1,6 @@
 from PySide2.QtWidgets import QWidget, QLabel, QGridLayout, QPushButton, QHBoxLayout, QVBoxLayout, QSpacerItem,\
     QSizePolicy, QSlider, QGroupBox, QLineEdit, QComboBox, QTabWidget, QPlainTextEdit, QFileDialog, QApplication, QDialogButtonBox
-from PySide2.QtCore import Qt, QObject, Signal, QThread, QUrl, QSize, QRect
+from PySide2.QtCore import Qt, QObject, Signal, QThread, QUrl, QSize
 from PySide2.QtGui import QPixmap, QTextCursor
 import numpy as np
 import os, sys, time, threading, traceback
@@ -83,13 +83,14 @@ class ProcessingAreaWidget(QWidget):
         self.input_image_pushbutton.clicked.connect(self.__run_select_input_image)
         self.input_dicom_image_pushbutton.clicked.connect(self.__run_select_input_dicom_image)
         self.output_folder_pushbutton.clicked.connect(self.__run_select_output_folder)
-        # self.input_segmentation_pushbutton.clicked.connect(self.run_select_input_segmentation)
+        self.input_segmentation_pushbutton.clicked.connect(self.__run_select_input_segmentation)
         self.select_tumor_type_combobox.currentTextChanged.connect(self.__tumor_type_changed_slot)
         #
         self.run_button.clicked.connect(self.diagnose_main_wrapper)
         self.run_segmentation_button.clicked.connect(self.segmentation_main_wrapper)
 
     def __set_params(self):
+        self.raw_input_image_filepath = ''
         self.input_image_filepath = ''
         self.input_annotation_filepath = ''
         self.output_folderpath = ''
@@ -264,26 +265,41 @@ class ProcessingAreaWidget(QWidget):
 
     def __run_select_input_image(self):
         input_image_filedialog = QFileDialog()
-        self.input_image_filepath = input_image_filedialog.getOpenFileName(self, 'Select input T1 MRI', '~',
-                                                                           "Image files (*.nii *.nii.gz *.nrrd *.mha *.mhd)")[
+        self.input_image_filepath = input_image_filedialog.getOpenFileName(self, caption='Select input T1 MRI',
+                                                                           directory='~',
+                                                                           filter="Image files (*.nii *.nii.gz *.nrrd *.mha *.mhd)")[
             0]
-        self.input_image_lineedit.setText(self.input_image_filepath)
-        self.input_image_filepath = adjust_input_volume_for_nifti(self.input_image_filepath, self.output_folderpath)
-        self.input_image_selected_signal.input_image_selection.emit(self.input_image_filepath)
+        if self.input_image_filepath != '':
+            self.raw_input_image_filepath = self.input_image_filepath
+            self.input_image_lineedit.setText(self.input_image_filepath)
+            self.input_image_filepath = adjust_input_volume_for_nifti(self.input_image_filepath, self.output_folderpath)
+            self.input_image_selected_signal.input_image_selection.emit(self.input_image_filepath)
 
     def __run_select_input_dicom_image(self):
         filedialog = QFileDialog()
         filedialog.setFileMode(QFileDialog.DirectoryOnly)
         self.input_image_filepath = filedialog.getExistingDirectory(self, 'Select DICOM folder', '~')
-        self.input_image_lineedit.setText(self.input_image_filepath)
-        self.input_image_filepath = adjust_input_volume_for_nifti(self.input_image_filepath, self.output_folderpath)
-        self.input_image_selected_signal.input_image_selection.emit(self.input_image_filepath)
+        if self.input_image_filepath != '':
+            self.input_image_lineedit.setText(self.input_image_filepath)
+            self.input_image_filepath = adjust_input_volume_for_nifti(self.input_image_filepath, self.output_folderpath)
+            self.input_image_selected_signal.input_image_selection.emit(self.input_image_filepath)
 
     def __run_select_output_folder(self):
         filedialog = QFileDialog()
         filedialog.setFileMode(QFileDialog.DirectoryOnly)
         self.output_folderpath = filedialog.getExistingDirectory(self, 'Select output folder', '~')
         self.output_folder_lineedit.setText(self.output_folderpath)
+
+    def __run_select_input_segmentation(self):
+        input_annotation_filedialog = QFileDialog()
+        self.input_annotation_filepath = input_annotation_filedialog.getOpenFileName(self, 'Select input tumor segmentation', '~',
+                                                                           "Image files (*.nii *.nii.gz *.nrrd *.mha *.mhd)")[
+            0]
+        if self.input_annotation_filepath != '':
+            self.input_segmentation_lineedit.setText(self.input_annotation_filepath)
+            self.input_annotation_filepath = adjust_input_volume_for_nifti(self.input_annotation_filepath,
+                                                                           self.output_folderpath, suffix='label')
+            self.input_image_segmentation_selected_signal.input_image_selection.emit(self.input_annotation_filepath)
 
     def diagnose_main_wrapper(self):
         self.run_diagnosis_thread = threading.Thread(target=self.run_diagnosis)
@@ -322,7 +338,7 @@ class ProcessingAreaWidget(QWidget):
             # diagnose_main(input_volume_filename=self.input_image_filepath,
             #               input_segmentation_filename=self.input_annotation_filepath,
             #               output_folder=self.output_folderpath, preprocessing_scheme=self.seg_preprocessing_scheme)
-            # ResourcesConfiguration.getInstance().output_folder = '/home/dbouget/Desktop/13092021_170252'
+            # ResourcesConfiguration.getInstance().output_folder = '/media/dbouget/ihda/Data/05102021_114619'
         except Exception as e:
             print('{}'.format(traceback.format_exc()))
             self.run_button.setEnabled(True)
