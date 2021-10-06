@@ -1,4 +1,4 @@
-name: Delete Draft Releases older than k days
+name: Delete Old Draft Releases
 
 on:
   push:
