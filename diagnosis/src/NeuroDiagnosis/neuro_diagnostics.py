@@ -1,4 +1,6 @@
 import os
+import time
+
 from tqdm import tqdm
 import numpy as np
 import pandas as pd
@@ -187,19 +189,73 @@ class NeuroDiagnostics:
                 patient_dirs.append(d)
             break
 
+        processed_times = []
+        print('Starting batch-diagnosis for {} patients...\n'.format(len(patient_dirs)))
         for i, pdir in enumerate(tqdm(patient_dirs)):
-            # Open the possibility for single files and DICOM folders?
-            self.input_filename = os.path.join(input_directory, pdir, '3_1.nii') #''
-            self.output_path = os.path.join(output_directory, pdir)
-            ResourcesConfiguration.getInstance().output_folder = self.output_path
-            if not segmentation_only:
-                self.output_report_filepath = os.path.join(self.output_path, 'report.txt')
-                if os.path.exists(self.output_report_filepath):
-                    os.remove(self.output_report_filepath)
-                self.registration_runner.prepare_to_run()
-                self.run(print_info=print_info)
-            else:
-                self.run_segmentation_only(print_info=print_info)
+            try:
+                start = time.time()
+                # @TODO. Open the possibility for single files and DICOM folders? Or select a sequence if multiple in
+                # folder?
+                curr_pat_files = []
+                for _, _, files in os.walk(os.path.join(input_directory, pdir)):
+                    for f in files:
+                        curr_pat_files.append(f)
+                    break
+
+                self.input_filename = None
+                if len(curr_pat_files) == 1:
+                    self.input_filename = os.path.join(input_directory, pdir, curr_pat_files[0])
+                else:  # Only considering the DICOM possibility here for now
+                    self.input_filename = os.path.join(input_directory, pdir)
+
+                if self.input_filename is None:
+                    continue
+
+                # self.input_filename = os.path.join(input_directory, pdir, '3_1.nii') #''
+                self.output_path = os.path.join(output_directory, pdir)
+                ResourcesConfiguration.getInstance().output_folder = self.output_path
+                if not segmentation_only:
+                    self.output_report_filepath = os.path.join(self.output_path, 'report.txt')
+                    if os.path.exists(self.output_report_filepath):
+                        os.remove(self.output_report_filepath)
+                    self.registration_runner.prepare_to_run()
+                    self.run(print_info=print_info)
+                else:
+                    self.run_segmentation_only(print_info=print_info)
+                pat_proc_time = (time.time() - start)/60.
+                processed_times.append(pat_proc_time)
+                remaining_time = (sum(processed_times) / len(processed_times)) * (len(patient_dirs) - i - 1)
+                print('Processed patient {}/{} in {} minutes. Estimated remaining time: {} minutes\n'.format(i + 1, len(patient_dirs),
+                                                                        round(pat_proc_time, 3), round(remaining_time, 3)))
+            except Exception as e:
+                print("Unable to fully process patient {}/{}...\n".format(i + 1, len(patient_dirs)))
+
+        # Collate all reports into one big csv file if diagnosis was performed
+        if not segmentation_only:
+            print('Collating all result files...\n')
+            processed_patients = []
+            all_results_df = None
+            all_patient_ids = []
+            for _, dirs, _ in os.walk(output_directory):
+                for d in dirs:
+                    processed_patients.append(d)
+                break
+
+            for pat in processed_patients:
+                csv_filename = os.path.join(output_directory, pat, 'report.csv')
+                if os.path.exists(csv_filename):
+                    all_patient_ids.append(pat)
+                    if all_results_df is None:
+                        all_results_df = pd.read_csv(csv_filename)
+                    else:
+                        curr_df = pd.read_csv(csv_filename)
+                        all_results_df = all_results_df.append(curr_df, ignore_index=True)
+            all_patient_ids_df = pd.DataFrame(np.asarray(all_patient_ids), columns=['UID'])
+            all_results_df.insert(0, 'UID', all_patient_ids_df)
+            # all_results_df['UID'] = all_patient_ids
+            final_csv_filename = os.path.join(output_directory, 'all_diagnostic_results.csv')
+            all_results_df.to_csv(final_csv_filename, index=False)
+            print('Batch-diagnostics finished.\n')
 
     def __perform_tumor_segmentation(self, brain_mask_filepath=None):
         predictions_file = None

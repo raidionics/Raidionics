@@ -8,6 +8,7 @@ import nibabel as nib
 from nibabel.processing import resample_to_output
 import numpy as np
 import os
+import threading
 from gui.Styles.default_stylesheets import get_stylesheet
 # from gui.ProcessingAreaWidget import WorkerThread
 
@@ -88,7 +89,14 @@ class BatchModeWidget(QWidget):
 
         self.prompt_lineedit = QPlainTextEdit()
         self.prompt_lineedit.setReadOnly(True)
-        self.prompt_lineedit.setPlainText('Coming soon!')
+        self.prompt_lineedit.setPlainText("HOW TO USE BATCH MODE: \n"
+            "  1) Click 'Input folder' to select the directory containing all patients' files.\n"
+            "     * The folder structure is expected to be as follows: one sub-folder for each patient containing "
+            "either the converted MRI volume (e.g., Nifti file) or the raw DICOM sequence.\n"
+            "  2) Click 'Output destination' to choose a directory where to save the results.\n"
+            "  3) Select the appropriate tumor type using the drop-box from the available types.\n"
+            "  4) Click 'Run segmentation' or 'Run diagnosis' depending on the needs.\n"
+            " \n")
 
     def __set_logos_interface(self):
         self.sintef_logo_label = QLabel()
@@ -172,6 +180,7 @@ class BatchModeWidget(QWidget):
     def __set_execution_connections(self):
         self.select_tumor_type_combobox.currentTextChanged.connect(self.__tumor_type_changed_slot)
         self.run_diagnosis_button.clicked.connect(self.__run_diagnosis_clicked_slot)
+        self.run_segmentation_button.clicked.connect(self.__run_segmentation_clicked_slot)
 
     def __set_params(self):
         self.input_directory = None
@@ -196,18 +205,49 @@ class BatchModeWidget(QWidget):
     def __run_diagnosis_clicked_slot(self):
         if self.input_directory is None or self.output_directory is None:
             self.prompt_lineedit.setPlainText('Fields not filled.')
+            return
         elif not os.path.exists(self.input_directory) or not os.path.exists(self.output_directory):
             self.prompt_lineedit.setPlainText('Directories not existing on disk.')
+            return
         elif self.tumor_type is None:
             self.prompt_lineedit.setPlainText('A tumor type must be selected.')
+            return
 
+        self.run_diagnosis_thread = threading.Thread(target=self.__run_diagnosis)
+        self.run_diagnosis_thread.daemon = True  # using daemon thread the thread is killed gracefully if program is abruptly closed
+        self.run_diagnosis_thread.start()
+
+    def __run_diagnosis(self):
         from diagnosis.src.NeuroDiagnosis.neuro_diagnostics import NeuroDiagnostics
         runner = NeuroDiagnostics()
         runner.select_tumor_type(tumor_type=self.tumor_type)
         runner.run_batch(input_directory=self.input_directory, output_directory=self.output_directory,
                          segmentation_only=False, print_info=False)
-        # @TODO. At the end, might want to collate all csv files into one big file, for easier further processing
-        # in Excel or other...
+
+        del runner
+
+    def __run_segmentation_clicked_slot(self):
+        if self.input_directory is None or self.output_directory is None:
+            self.prompt_lineedit.setPlainText('Fields not filled.')
+            return
+        elif not os.path.exists(self.input_directory) or not os.path.exists(self.output_directory):
+            self.prompt_lineedit.setPlainText('Directories not existing on disk.')
+            return
+        elif self.tumor_type is None:
+            self.prompt_lineedit.setPlainText('A tumor type must be selected.')
+            return
+
+        self.run_segmentation_thread = threading.Thread(target=self.__run_segmentation)
+        self.run_segmentation_thread.daemon = True  # using daemon thread the thread is killed gracefully if program is abruptly closed
+        self.run_segmentation_thread.start()
+
+    def __run_segmentation(self):
+        from diagnosis.src.NeuroDiagnosis.neuro_diagnostics import NeuroDiagnostics
+        runner = NeuroDiagnostics()
+        runner.select_tumor_type(tumor_type=self.tumor_type)
+        runner.run_batch(input_directory=self.input_directory, output_directory=self.output_directory,
+                         segmentation_only=True, print_info=False)
+        del runner
 
     def standardOutputWritten(self, text):
         self.prompt_lineedit.moveCursor(QTextCursor.End)

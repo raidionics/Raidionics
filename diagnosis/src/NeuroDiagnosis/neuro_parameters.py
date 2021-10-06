@@ -117,7 +117,7 @@ class NeuroDiagnosisParameters:
                 column_names.extend([t + r.split('.')[0][:-4] + '_distance'])
 
         values_df = pd.DataFrame(np.asarray(values).reshape((1, len(values))), columns=column_names)
-        values_df.to_csv(filename)
+        values_df.to_csv(filename, index=False)
 
 
 class TumorStatistics():
