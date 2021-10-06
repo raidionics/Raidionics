@@ -1,9 +1,7 @@
-name: Delete-drafts
+name: Delete Draft Releases
 
 on:
   push:
-
-name: Delete Draft Releases
 
 jobs:
   build:
