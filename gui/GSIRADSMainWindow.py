@@ -193,6 +193,8 @@ class MainWindow(QMainWindow):
         self.height = 0.5 * size.height()
         self.fixed_width = 0.5 * size.width()
         self.fixed_height = 0.5 * size.height()
+        # self.setMaximumSize(size)
+
         # self.width = self.size().width() # size.width()
         # self.height = self.size().height() #size.height()
         # self.setGeometry(self.left, self.top, self.width * 0.5, self.height * 0.5)

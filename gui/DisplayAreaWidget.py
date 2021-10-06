@@ -28,6 +28,7 @@ class DisplayAreaWidget(QWidget):
     def __init__(self, parent=None):
         super(DisplayAreaWidget, self).__init__()
         self.parent = parent
+        self.controlled_size = parent.size() / 2
         # self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         # self.setBaseSize(QSize(int(self.parent.width/2), self.parent.height))
         # self.setFixedSize(QSize(int(self.parent.width / 2), self.parent.height))
@@ -49,6 +50,17 @@ class DisplayAreaWidget(QWidget):
         self.results_descriptions = {}
         self.results_annotations['patient'] = {}
         self.results_annotations['MNI'] = {}
+
+    def resizeEvent(self, event):
+        pass
+        # self.controlled_size = event.size()
+        # print('Old size: {}\n'.format(event.oldSize()))
+        # print('New size: {}\n'.format(event.size()))
+
+    def resize(self, size):
+        self.viewer_axial.resize(size)
+        self.viewer_coronal.resize(size)
+        self.viewer_sagittal.resize(size)
 
     def __set_interface(self):
         self.anatomical_planes_groupbox = QGroupBox()
@@ -192,7 +204,7 @@ class DisplayAreaWidget(QWidget):
 
         self.labels_display_groupbox_scrollarea = QScrollArea()
         self.labels_display_groupbox_scrollarea.setWidgetResizable(True)
-        self.labels_display_groupbox_scrollarea.setMinimumWidth(self.parent.width / 4.)
+        self.labels_display_groupbox_scrollarea.setFixedWidth(self.parent.width / 6.)
         self.labels_display_groupbox = QGroupBox()
         self.labels_display_groupbox.setTitle('Structures')
         self.labels_display_groupbox.setAlignment(Qt.AlignTop)
@@ -428,10 +440,17 @@ class DisplayAreaWidget(QWidget):
             self.sagittal_view_pushbutton.setEnabled(True)
             self.sagittal_view_pushbutton.setChecked(False)
             self.axial_view_pushbutton.setEnabled(False)
-            self.viewer_sagittal.hide()
-            self.viewer_coronal.hide()
-            self.viewer_axial.show()
-            self.viewer_axial.resize(QSize(int(self.parent.height), int(self.parent.height)))
+            # self.viewer_axial.resize(QSize(int(self.parent.height), int(self.parent.height)))
+            # self.viewer_axial.resize(QSize(int(self.size().height()), int(self.size().height())))
+            self.viewer_axial.resize(self.controlled_size * 2)
+            # self.viewer_axial.resize(QSize(min(self.controlled_size.height(), self.controlled_size.width()),
+            #                                min(self.controlled_size.height(), self.controlled_size.width())))
+            self.viewer_sagittal.setVisible(False)
+            self.viewer_coronal.setVisible(False)
+            self.viewer_axial.setVisible(True)
+            # self.viewer_sagittal.hide()
+            # self.viewer_coronal.hide()
+            # self.viewer_axial.show()
 
     def __coronal_view_clicked_slot(self, status):
         if status:
@@ -442,10 +461,12 @@ class DisplayAreaWidget(QWidget):
             self.sagittal_view_pushbutton.setEnabled(True)
             self.sagittal_view_pushbutton.setChecked(False)
             self.coronal_view_pushbutton.setEnabled(False)
+            # self.viewer_coronal.resize(QSize(int(self.parent.height), int(self.parent.height)))
+            # self.viewer_coronal.resize(QSize(int(self.size().height()), int(self.size().height())))
+            self.viewer_coronal.resize(self.controlled_size * 2)
             self.viewer_sagittal.hide()
             self.viewer_axial.hide()
             self.viewer_coronal.show()
-            self.viewer_coronal.resize(QSize(int(self.parent.height), int(self.parent.height)))
 
     def __sagittal_view_clicked_slot(self, status):
         if status:
@@ -456,10 +477,12 @@ class DisplayAreaWidget(QWidget):
             self.coronal_view_pushbutton.setEnabled(True)
             self.coronal_view_pushbutton.setChecked(False)
             self.sagittal_view_pushbutton.setEnabled(False)
+            # self.viewer_sagittal.resize(QSize(int(self.parent.height), int(self.parent.height)))
+            # self.viewer_sagittal.resize(QSize(int(self.size().height()), int(self.size().height())))
+            self.viewer_sagittal.resize(self.controlled_size * 2)
             self.viewer_coronal.hide()
             self.viewer_axial.hide()
             self.viewer_sagittal.show()
-            self.viewer_sagittal.resize(QSize(int(self.parent.height), int(self.parent.height)))
 
     def __all_view_clicked_slot(self, status):
         if status:
@@ -470,15 +493,24 @@ class DisplayAreaWidget(QWidget):
             self.coronal_view_pushbutton.setEnabled(True)
             self.coronal_view_pushbutton.setChecked(False)
             self.all_view_pushbutton.setEnabled(False)
-            self.viewer_sagittal.show()
-            self.viewer_axial.show()
-            self.viewer_coronal.show()
-            self.viewer_axial.resize(QSize(int(self.parent.height/2), int(self.parent.height/2)))
-            self.viewer_coronal.resize(QSize(int(self.parent.height/2), int(self.parent.height/2)))
-            self.viewer_sagittal.resize(QSize(int(self.parent.height/2), int(self.parent.height/2)))
+            # self.viewer_axial.resize(QSize(int(self.parent.height/2), int(self.parent.height/2)))
+            # self.viewer_coronal.resize(QSize(int(self.parent.height/2), int(self.parent.height/2)))
+            # self.viewer_sagittal.resize(QSize(int(self.parent.height/2), int(self.parent.height/2)))
             # self.viewer_axial.resize(QSize(int(self.size().height()/2), int(self.size().height()/2)))
             # self.viewer_coronal.resize(QSize(int(self.size().height()/2), int(self.size().height()/2)))
             # self.viewer_sagittal.resize(QSize(int(self.size().height()/2), int(self.size().height()/2)))
+            self.viewer_axial.resize(QSize(min(self.controlled_size.height(), self.controlled_size.width()) / 2,
+                                           min(self.controlled_size.height(), self.controlled_size.width()) / 2))
+            self.viewer_coronal.resize(QSize(min(self.controlled_size.height(), self.controlled_size.width()) / 2,
+                                           min(self.controlled_size.height(), self.controlled_size.width()) / 2))
+            self.viewer_sagittal.resize(QSize(min(self.controlled_size.height(), self.controlled_size.width()) / 2,
+                                           min(self.controlled_size.height(), self.controlled_size.width()) / 2))
+            # self.viewer_sagittal.show()
+            # self.viewer_axial.show()
+            # self.viewer_coronal.show()
+            self.viewer_sagittal.setVisible(True)
+            self.viewer_coronal.setVisible(True)
+            self.viewer_axial.setVisible(True)
 
     def __input_image_selected_slot(self, image_path):
         try:
