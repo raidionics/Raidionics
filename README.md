@@ -1,5 +1,7 @@
 # NeuroRADS
 
+[![Build Actions Status](https://github.com/dbouget/neuro_rads_prototype/workflows/Build/badge.svg)](https://github.com/dbouget/neuro_rads_prototype/actions)
+
 Simple project for building binary releases and package installers of Python code for Ubuntu Linux/macOS/Windows using [PyInstaller](https://github.com/pyinstaller/pyinstaller).
 
 ## How to use?
@@ -49,9 +51,9 @@ pip install pyinstaller==4.2
 
 4. Build binary release, from the folder directory (note that Windows should have a Python3.7 virtual environment here):
 ```
-Ubuntu > pyinstaller --noconfirm --clean --onefile --paths=./venv/lib/python3.6/site-packages/ants main_custom.spec
+Ubuntu > pyinstaller --noconfirm --clean --onefile --paths=./venv/lib/python3.6/site-packages/ants main_custom_bundle.spec
 macOS > pyinstaller --noconfirm --clean --onefile --paths=./venv/lib/python3.6/site-packages/ants main_custom_macos.spec
-Windows > pyinstaller --noconfirm --clean --onefile --paths=./venv/lib/site-packages/ants main_custom.spec
+Windows > pyinstaller --noconfirm --clean --onefile --paths=./venv/lib/site-packages/ants main_custom_bundle.spec
 ```
 
 The binary release will be placed in dist/.
@@ -106,7 +108,7 @@ Based on [this](https://www.internalpointers.com/post/build-binary-deb-package-p
 
 1. Move application/executable to the Project directory:
 ```
-cp dist/GSI-RADS GSI-RADS-{version}-{OS}/usr/local/bin
+cp -r dist/GSI-RADS GSI-RADS-{version}-{OS}/usr/local/bin
 ```
 2. Build package:
 ```
@@ -133,9 +135,9 @@ GSI-RADS
 - [x] Add option to set input, segmentation and output path from command line
 - [x] Bug: Unable to run analysis again (after initial run has been made) - prompted (This class is a singleton!)
 - [x] Add support for building package installers for each respective OS
-- [ ] Add source code from this repository to the [GSI-RADS](https://github.com/SINTEFMedtek/GSI-RADS) repository
+- [x] Install the dependencies (.dll/.so) outside the executable to enable faster initialization of the software ([x]: Done for macOS and Windows)
+- [x] Add source code from this repository to the [GSI-RADS](https://github.com/SINTEFMedtek/GSI-RADS) repository
 - [ ] Add simple way to support batch mode
-- [ ] Install the dependencies (.dll/.so) outside the executable to enable faster initialization of the software ([x]: Done for macOS)
 
 
 ## TIPS

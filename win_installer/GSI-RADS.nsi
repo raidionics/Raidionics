@@ -1,8 +1,8 @@
 !define APP_NAME "GSI-RADS"
 !define COMP_NAME "SINTEF"
-!define VERSION "0.1.1"
+!define VERSION "1.3"
 !define DESCRIPTION "Application"
-!define INSTALLER_NAME "GSI-RADS-win10-v0.1.1.exe"
+!define INSTALLER_NAME "GSI-RADS-1.3-win.exe"
 !define MAIN_APP_EXE "GSI-RADS.exe"
 !define INSTALL_TYPE "SetShellVarContext current"
 !define REG_ROOT "HKLM"  
@@ -56,16 +56,7 @@ InstallDir "$PROGRAMFILES\GSI-RADS"
 
 # name the installer
 OutFile "${INSTALLER_NAME}"
-#"GSI-RADS-win10-v0.1.1.exe"
-
-# define the directory to install to, the desktop in this case as specified  
-# by the predefined $DESKTOP variable
-# InstallDir C:\Users\andrp\workspace\neuro_rads_prototype\cmake\test
-# $DESKTOP
-# InstallDir "C:\Program Files (x86)\GSI-RADS"
-# InstallDir "$PROGRAMFILES\GSI-RADS"
-# InstallDir "C:\Users\andrp\workspace"
-# InstallDir "$LocalAppData\GSI-RADS"
+#"GSI-RADS-win10-v1.1.exe"
 
 
 ####################### UNINSTALL BEFORE UPGRADE #####################
@@ -146,9 +137,17 @@ WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}"  "Publisher" "${COMP_NAME}"
 # Create directory
 CreateDirectory $INSTDIR
 
-File "C:\Users\andrp\workspace\neuro_rads_prototype\cmake\GSI-RADS.exe"
+# OLD SOLUTION FOR SINGLE EXE (DONT DO THIS!)
+#File "C:\Users\andrp\workspace\neuro_rads_prototype\dist\GSI-RADS.exe"  # location of executable which it packages
+#ExecWait "$INSTDIR\GSI-RADS-installed.exe"
+
+# PACKAGE ENTIRE CONTENT OF BUNDLE THE NEW BINARY!
+File /nonfatal /a /r ".\dist\GSI-RADS\*"
 ExecWait "$INSTDIR\GSI-RADS-installed.exe"
- 
+
+#SetOutPath "outputPath"
+#File /nonfatal /a /r "myDirectory\" #note back slash at the end
+
 # default section end
 SectionEnd
 
