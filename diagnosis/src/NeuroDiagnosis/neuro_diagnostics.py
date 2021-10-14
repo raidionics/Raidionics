@@ -205,6 +205,16 @@ class NeuroDiagnostics:
                 self.input_filename = None
                 if len(curr_pat_files) == 1:
                     self.input_filename = os.path.join(input_directory, pdir, curr_pat_files[0])
+                elif len(curr_pat_files) == 2:
+                    # The segmentation labels are also provided together with the MRI volume, hence 2 files.
+                    if 'label' in curr_pat_files[0]:
+                        self.input_segmentation = os.path.join(input_directory, pdir, curr_pat_files[0])
+                        self.input_filename = os.path.join(input_directory, pdir, curr_pat_files[1])
+                    elif 'label' in curr_pat_files[1]:
+                        self.input_filename = os.path.join(input_directory, pdir, curr_pat_files[0])
+                        self.input_segmentation = os.path.join(input_directory, pdir, curr_pat_files[1])
+                    else:  # No filename containing the label tag, how to pick the correct one...?
+                        self.input_filename = os.path.join(input_directory, pdir, curr_pat_files[0])
                 else:  # Only considering the DICOM possibility here for now
                     self.input_filename = os.path.join(input_directory, pdir)
 

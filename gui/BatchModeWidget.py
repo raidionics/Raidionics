@@ -218,13 +218,21 @@ class BatchModeWidget(QWidget):
         self.run_diagnosis_thread.start()
 
     def __run_diagnosis(self):
-        from diagnosis.src.NeuroDiagnosis.neuro_diagnostics import NeuroDiagnostics
-        runner = NeuroDiagnostics()
-        runner.select_tumor_type(tumor_type=self.tumor_type)
-        runner.run_batch(input_directory=self.input_directory, output_directory=self.output_directory,
-                         segmentation_only=False, print_info=False)
+        self.run_diagnosis_button.setEnabled(False)
+        self.run_segmentation_button.setEnabled(False)
+        try:
+            from diagnosis.src.NeuroDiagnosis.neuro_diagnostics import NeuroDiagnostics
+            runner = NeuroDiagnostics()
+            runner.select_tumor_type(tumor_type=self.tumor_type)
+            runner.run_batch(input_directory=self.input_directory, output_directory=self.output_directory,
+                             segmentation_only=False, print_info=False)
 
-        del runner
+            del runner
+        except Exception as e:
+            self.run_diagnosis_button.setEnabled(True)
+            self.run_segmentation_button.setEnabled(True)
+        self.run_diagnosis_button.setEnabled(True)
+        self.run_segmentation_button.setEnabled(True)
 
     def __run_segmentation_clicked_slot(self):
         if self.input_directory is None or self.output_directory is None:
@@ -242,12 +250,20 @@ class BatchModeWidget(QWidget):
         self.run_segmentation_thread.start()
 
     def __run_segmentation(self):
-        from diagnosis.src.NeuroDiagnosis.neuro_diagnostics import NeuroDiagnostics
-        runner = NeuroDiagnostics()
-        runner.select_tumor_type(tumor_type=self.tumor_type)
-        runner.run_batch(input_directory=self.input_directory, output_directory=self.output_directory,
-                         segmentation_only=True, print_info=False)
-        del runner
+        self.run_diagnosis_button.setEnabled(False)
+        self.run_segmentation_button.setEnabled(False)
+        try:
+            from diagnosis.src.NeuroDiagnosis.neuro_diagnostics import NeuroDiagnostics
+            runner = NeuroDiagnostics()
+            runner.select_tumor_type(tumor_type=self.tumor_type)
+            runner.run_batch(input_directory=self.input_directory, output_directory=self.output_directory,
+                             segmentation_only=True, print_info=False)
+            del runner
+        except Exception as e:
+            self.run_diagnosis_button.setEnabled(True)
+            self.run_segmentation_button.setEnabled(True)
+        self.run_diagnosis_button.setEnabled(True)
+        self.run_segmentation_button.setEnabled(True)
 
     def standardOutputWritten(self, text):
         self.prompt_lineedit.moveCursor(QTextCursor.End)
