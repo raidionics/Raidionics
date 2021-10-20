@@ -7,7 +7,6 @@ on:
       #- '*'  # for every push, run build
 
 jobs:
-
   createrelease:
     name: Create Release
     runs-on: [ubuntu-latest]
