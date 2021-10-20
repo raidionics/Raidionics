@@ -4,11 +4,14 @@ import pandas as pd
 import numpy as np
 from nibabel import four_to_three
 import SimpleITK as sitk
+from PySide2.QtCore import QTemporaryDir
 from diagnosis.src.Utils.configuration_parser import ResourcesConfiguration
 
 
 def adjust_input_volume_for_nifti(volume_path, output_folder, suffix=''):
     output_path = None
+    if output_folder is None or not os.path.exists(output_folder):
+        output_folder = str(QTemporaryDir().path())
     try:
         if suffix != '':
             suffix = '_' + suffix
