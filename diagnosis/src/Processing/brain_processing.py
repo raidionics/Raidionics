@@ -8,11 +8,14 @@ from skimage.measure import regionprops
 from diagnosis.src.Utils.io import load_nifti_volume
 from diagnosis.src.Utils.configuration_parser import ResourcesConfiguration
 from segmentation.main import main_segmentation
+from utils.runtime_config_parser import RuntimeResources
 
 
 def perform_brain_extraction(image_filepath):
-    brain_predictions_file = perform_custom_brain_extraction(image_filepath,
-                                                             ResourcesConfiguration.getInstance().output_folder)
+    brain_predictions_file = RuntimeResources.getInstance().precomputation_brain_annotation_filename
+    if not os.path.exists(brain_predictions_file):
+        brain_predictions_file = perform_custom_brain_extraction(image_filepath,
+                                                                 ResourcesConfiguration.getInstance().output_folder)
 
     return brain_predictions_file
 

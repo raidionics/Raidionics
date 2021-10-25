@@ -7,5 +7,6 @@ def diagnose(input_filename, input_segmentation, preprocessing_scheme):
     """
     runner = NeuroDiagnostics(input_filename=input_filename, input_segmentation=input_segmentation,
                               preprocessing_scheme=preprocessing_scheme)
+    runner.prepare_to_run()
     runner.run()
 

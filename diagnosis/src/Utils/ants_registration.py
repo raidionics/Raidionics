@@ -9,8 +9,9 @@ import shutil
 import zipfile
 import gzip
 from dipy.align.reslice import reslice
-import ants
+# import ants
 from diagnosis.src.Processing.brain_processing import *
+from utils.runtime_config_parser import RuntimeResources
 
 
 class ANTsRegistration:
@@ -26,14 +27,23 @@ class ANTsRegistration:
         self.reg_transform = []
         self.transform_names = []
         self.inverse_transform_names = []
-        self.backend = 'python'  # cpp, python  # @TODO: This should be possible to set from the main.py
+        #self.backend = 'cpp'  # cpp, python  # @TODO: This should be possible to set from the main.py
+        self.backend = RuntimeResources.getInstance().system_ants_backend
+        self.registration_computed = False
 
     def prepare_to_run(self):
+        """
+        Prepare environment and variables for running a registration process. The runtime configuration is checked to
+        use pre-computed registration transforms, if they exist.
+        :return:
+        """
         self.registration_folder = os.path.join(ResourcesConfiguration.getInstance().output_folder, 'registration/')
         os.makedirs(self.registration_folder, exist_ok=True)
         self.reg_transform = []
-        self.transform_names = []
-        self.inverse_transform_names = []
+        # self.transform_names = []
+        # self.inverse_transform_names = []
+        self.transform_names = RuntimeResources.getInstance().precomputation_registration_transform_filenames
+        self.inverse_transform_names = RuntimeResources.getInstance().precomputation_registration_inverse_transform_filenames
 
     def clean(self):
         shutil.copyfile(src=os.path.join(self.registration_folder, 'Warped.nii.gz'),
@@ -47,10 +57,23 @@ class ANTsRegistration:
                 shutil.rmtree(self.registration_folder)
 
     def compute_registration(self, moving, fixed, registration_method):
+        """
+        Compute the registration between the moving and fixed images according to the specified method. If transform
+        and inverse transform files exist already (registration performed separately beforehand), the process is skipped.
+        :param moving:
+        :param fixed:
+        :param registration_method:
+        :return:
+        """
+        if len(self.transform_names) != 0 and len(self.inverse_transform_names) != 0:
+            return
         if self.backend == 'python':
             self.compute_registration_python(moving, fixed, registration_method)
         elif self.backend == 'cpp':
             self.compute_registration_cpp(moving, fixed, registration_method)
+
+        self.registration_computed = True
+        return
 
     def compute_registration_cpp(self, moving, fixed, registration_method):
         print("STARTING REGISTRATION FOR PATIENT.")
@@ -71,9 +94,11 @@ class ANTsRegistration:
                              '-n{cores}'.format(cores=8),
                              ])
 
-            if registration_method == 's':
-                self.transform_names = ['1Warp.nii.gz', '0GenericAffine.mat']
-                self.inverse_transform_names = ['1InverseWarp.nii.gz', '0GenericAffine.mat']
+            if registration_method == 's' or registration_method == 'sq':
+                # @TODO. Should add [os.path.join(self.registration_folder, x) for x in self.transform_names], to
+                # comply with the format of the pre-computed transform filenames.
+                self.transform_names = [os.path.join(self.registration_folder, x) for x in ['1Warp.nii.gz', '0GenericAffine.mat']] #['1Warp.nii.gz', '0GenericAffine.mat']
+                self.inverse_transform_names = [os.path.join(self.registration_folder, x) for x in ['1InverseWarp.nii.gz', '0GenericAffine.mat']] #['1InverseWarp.nii.gz', '0GenericAffine.mat']
 
             os.rename(src=os.path.join(self.registration_folder, 'Warped.nii.gz'),
                       dst=os.path.join(self.registration_folder, 'input_volume_to_MNI.nii.gz'))

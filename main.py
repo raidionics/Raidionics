@@ -38,7 +38,7 @@ def main(argv):
             print('main.py -g <use_gui> [-i <input_filename> -s <input_tumor_segmentation_filename> -o <output_folder> -d <gpu_id>]')
             sys.exit()
         elif opt in ("-g", "--use_gui"):
-            gui_usage = arg
+            gui_usage = int(arg)
         elif opt in ("-i", "--input_filename"):
             input_filename = arg
         elif opt in ("-s", "--input_tumor_segmentation_filename"):

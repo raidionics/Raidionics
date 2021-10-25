@@ -16,6 +16,7 @@ from diagnosis.src.NeuroDiagnosis.neuro_parameters import NeuroDiagnosisParamete
 from diagnosis.src.Utils.ants_registration import *
 from diagnosis.src.Utils.configuration_parser import ResourcesConfiguration
 from diagnosis.src.Utils.io import adjust_input_volume_for_nifti
+from utils.runtime_config_parser import RuntimeResources
 
 
 class NeuroDiagnostics:
@@ -74,6 +75,8 @@ class NeuroDiagnostics:
         tmp_timer = time.time()
 
         # Generating brain-masked fixed and moving images
+        # @TODO. The following should be included in the compute_registration method, so that it can be avoided
+        # when the transform filenames are provided in the runtime_config.ini file.
         if print_info:
             print('Registration preprocessing - Begin (Step 2/6)')
         input_masked_filepath = perform_brain_masking(image_filepath=self.input_filename,
