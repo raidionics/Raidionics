@@ -55,6 +55,7 @@ def main(argv):
         if gui_usage == 1:
             app = QApplication(sys.argv)
 
+            # @TODO. The runtime_config.ini should be cleared before running the GUI, maybe keeping the system params?
             window = MainWindow(application=app)
             window.show()
 

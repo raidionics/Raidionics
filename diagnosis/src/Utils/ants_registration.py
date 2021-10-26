@@ -19,8 +19,8 @@ class ANTsRegistration:
 
     """
     def __init__(self):
-        self.ants_reg_dir = ResourcesConfiguration.getInstance().ants_reg_dir
-        self.ants_apply_dir = ResourcesConfiguration.getInstance().ants_apply_dir
+        self.ants_reg_dir = RuntimeResources.getInstance().system_ants_reg_dir # ResourcesConfiguration.getInstance().ants_reg_dir
+        self.ants_apply_dir = RuntimeResources.getInstance().system_ants_apply_dir # ResourcesConfiguration.getInstance().ants_apply_dir
         self.registration_folder = None
         # self.registration_folder = os.path.join(ResourcesConfiguration.getInstance().output_folder, 'registration/')
         # os.makedirs(self.registration_folder, exist_ok=True)

@@ -104,7 +104,7 @@ class NeuroDiagnosisParameters:
         for t in self.statistics['Main']['Overall'].mni_space_cortical_structures_overlap.keys():
             for r in self.statistics['Main']['Overall'].mni_space_cortical_structures_overlap[t].keys():
                 values.extend([self.statistics['Main']['Overall'].mni_space_cortical_structures_overlap[t][r]])
-                column_names.extend([t + '_' + r.split('.')[0].lower().strip().replace('mni', '') + '_overlap'])
+                column_names.extend([r.split('.')[0].lower().strip() + '_overlap'])
 
         for t in self.statistics['Main']['Overall'].mni_space_subcortical_structures_overlap.keys():
             for r in self.statistics['Main']['Overall'].mni_space_subcortical_structures_overlap[t].keys():

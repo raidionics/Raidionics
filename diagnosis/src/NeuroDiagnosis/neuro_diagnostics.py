@@ -443,11 +443,11 @@ class NeuroDiagnostics:
             overlap = np.round(ratio_in_lobe * 100., 2)
             region_name = ''
             if reference == 'MNI':
-                region_name = reference + '_' + lobes_description.loc[lobes_description['Label'] == li]['Region'].values[0] + '_' + lobes_description.loc[lobes_description['Label'] == li]['Laterality'].values[0] + '_' + category
+                region_name = reference + '_' + '-'.join(lobes_description.loc[lobes_description['Label'] == li]['Region'].values[0].strip().split(' ')) + '_' + (lobes_description.loc[lobes_description['Label'] == li]['Laterality'].values[0].strip() if lobes_description.loc[lobes_description['Label'] == li]['Laterality'].values[0].strip() is not 'None' else '') + '_' + category
             elif reference == 'Harvard-Oxford':
-                region_name = reference + '_' + lobes_description.loc[lobes_description['Label'] == li]['Region'].values[0] + '_' + category
+                region_name = reference + '_' + '-'.join(lobes_description.loc[lobes_description['Label'] == li]['Region'].values[0].strip().split(' ')) + '_' + category
             else:
-                region_name = reference + '_' + lobes_description.loc[lobes_description['Label'] == li]['Region'].values[0] + '_' + category
+                region_name = reference + '_' + '_'.join(lobes_description.loc[lobes_description['Label'] == li]['Region'].values[0].strip().split(' ')) + '_' + category
             overlap_per_lobe[region_name] = overlap
         self.diagnosis_parameters.statistics[category]['Overall'].mni_space_cortical_structures_overlap[reference] = overlap_per_lobe
 
