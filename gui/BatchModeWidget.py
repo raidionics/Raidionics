@@ -256,6 +256,7 @@ class BatchModeWidget(QWidget):
             from diagnosis.src.NeuroDiagnosis.neuro_diagnostics import NeuroDiagnostics
             runner = NeuroDiagnostics()
             runner.select_tumor_type(tumor_type=self.tumor_type)
+            runner.select_preprocessing_scheme('P2')
             runner.run_batch(input_directory=self.input_directory, output_directory=self.output_directory,
                              segmentation_only=True, print_info=False)
             del runner

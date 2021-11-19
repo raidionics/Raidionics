@@ -183,6 +183,14 @@ class DisplayAreaWidget(QWidget):
         self.anno_sc17_structures_pushbutton.setFixedWidth((self.parent.width * self.parent.button_width) / 4)
         self.anno_sc17_structures_pushbutton.setFixedHeight(self.parent.height * self.parent.button_height)
 
+        self.anno_bcb_structures_pushbutton = QPushButton('BCB')
+        self.anno_bcb_structures_pushbutton.setVisible(False)
+        self.anno_bcb_structures_pushbutton.setCheckable(True)
+        self.anno_bcb_structures_pushbutton.setChecked(False)
+        self.anno_bcb_structures_pushbutton.setDisabled(True)
+        self.anno_bcb_structures_pushbutton.setFixedWidth((self.parent.width * self.parent.button_width) / 4)
+        self.anno_bcb_structures_pushbutton.setFixedHeight(self.parent.height * self.parent.button_height)
+
         self.segmentation_opacity_label = QLabel()
         self.segmentation_opacity_label.setText("Opacity:")
         self.segmentation_opacity_label.setFixedWidth((self.parent.width * self.parent.button_width) / 5)
@@ -212,6 +220,27 @@ class DisplayAreaWidget(QWidget):
         self.display_groupbox_labels = []
         self.display_groupbox_layouts = []
         self.display_groupbox_spaceritems = []
+
+    def __reset_interface(self):
+        # @TODO. Should have one method to reset the interface, and one method to reset the parameters
+        self.results_annotations = []
+        self.results_descriptions = []
+        self.mni_space_pushbutton.setEnabled(False)
+        self.anno_tumor_pushbutton.setVisible(False)
+        self.anno_brain_pushbutton.setVisible(False)
+        self.anno_mni_structures_pushbutton.setVisible(False)
+        self.anno_tumor_pushbutton.setChecked(False)
+        self.anno_tumor_pushbutton.setEnabled(False)
+        self.anno_brain_pushbutton.setEnabled(False)
+        self.anno_mni_structures_pushbutton.setEnabled(False)
+        self.anno_ho_structures_pushbutton.setVisible(False)
+        self.anno_ho_structures_pushbutton.setEnabled(False)
+        self.anno_sc7_structures_pushbutton.setVisible(False)
+        self.anno_sc7_structures_pushbutton.setEnabled(False)
+        self.anno_sc17_structures_pushbutton.setVisible(False)
+        self.anno_sc17_structures_pushbutton.setVisible(False)
+        self.anno_bcb_structures_pushbutton.setEnabled(False)
+        self.anno_bcb_structures_pushbutton.setEnabled(False)
 
     def __set_layout(self):
         self.main_layout = QVBoxLayout(self)
@@ -260,6 +289,7 @@ class DisplayAreaWidget(QWidget):
         self.anno_menu_boxlayout.addWidget(self.anno_ho_structures_pushbutton)
         self.anno_menu_boxlayout.addWidget(self.anno_sc7_structures_pushbutton)
         self.anno_menu_boxlayout.addWidget(self.anno_sc17_structures_pushbutton)
+        self.anno_menu_boxlayout.addWidget(self.anno_bcb_structures_pushbutton)
         self.anno_menu_boxlayout.addStretch(1)
         self.anno_menu_boxlayout.setContentsMargins(5, 5, 5, 5)
         self.annotations_groupbox.setLayout(self.anno_menu_boxlayout)
@@ -309,6 +339,7 @@ class DisplayAreaWidget(QWidget):
         self.anno_ho_structures_pushbutton.clicked.connect(self.__anno_ho_structures_display_clicked_slot)
         self.anno_sc7_structures_pushbutton.clicked.connect(self.__anno_sc7_structures_display_clicked_slot)
         self.anno_sc17_structures_pushbutton.clicked.connect(self.__anno_sc17_structures_display_clicked_slot)
+        self.anno_bcb_structures_pushbutton.clicked.connect(self.__anno_bcb_structures_display_clicked_slot)
 
     def load_results(self, output_folder):
         """
@@ -326,25 +357,32 @@ class DisplayAreaWidget(QWidget):
         patient_brain_mask = resample_from_to(mask_ni, self.resampled_input_ni, order=0).get_data()[:]
         self.results_annotations['patient']['brain'] = patient_brain_mask
 
-        # patient_mni_mask = nib.load(os.path.join(output_folder, 'input_cortical_structures_maskMNI.nii.gz')).get_data()[:]
-        mask_ni = nib.load(os.path.join(output_folder, 'input_cortical_structures_maskMNI.nii.gz'))
+        # mask_ni = nib.load(os.path.join(output_folder, 'input_cortical_structures_maskMNI.nii.gz'))
+        mask_ni = nib.load(os.path.join(output_folder, 'patient', 'MNI_mask.nii.gz'))
         patient_mni_mask = resample_from_to(mask_ni, self.resampled_input_ni, order=0).get_data()[:]
         self.results_annotations['patient']['MNI'] = patient_mni_mask
 
         # patient_ho_mask = nib.load(os.path.join(output_folder, 'input_cortical_structures_maskHarvard-Oxford.nii.gz')).get_data()[:]
-        mask_ni = nib.load(os.path.join(output_folder, 'input_cortical_structures_maskHarvard-Oxford.nii.gz'))
+        # mask_ni = nib.load(os.path.join(output_folder, 'input_cortical_structures_maskHarvard-Oxford.nii.gz'))
+        mask_ni = nib.load(os.path.join(output_folder, 'patient', 'Harvard-Oxford_mask.nii.gz'))
         patient_ho_mask = resample_from_to(mask_ni, self.resampled_input_ni, order=0).get_data()[:]
         self.results_annotations['patient']['HO'] = patient_ho_mask
 
         # patient_sc7_mask = nib.load(os.path.join(output_folder, 'input_cortical_structures_maskSchaefer7.nii.gz')).get_data()[:]
-        mask_ni = nib.load(os.path.join(output_folder, 'input_cortical_structures_maskSchaefer7.nii.gz'))
+        # mask_ni = nib.load(os.path.join(output_folder, 'input_cortical_structures_maskSchaefer7.nii.gz'))
+        mask_ni = nib.load(os.path.join(output_folder, 'patient', 'Schaefer7_mask.nii.gz'))
         patient_sc7_mask = resample_from_to(mask_ni, self.resampled_input_ni, order=0).get_data()[:]
         self.results_annotations['patient']['Schaefer7'] = patient_sc7_mask
 
         # patient_sc17_mask = nib.load(os.path.join(output_folder, 'input_cortical_structures_maskSchaefer17.nii.gz')).get_data()[:]
-        mask_ni = nib.load(os.path.join(output_folder, 'input_cortical_structures_maskSchaefer17.nii.gz'))
+        # mask_ni = nib.load(os.path.join(output_folder, 'input_cortical_structures_maskSchaefer17.nii.gz'))
+        mask_ni = nib.load(os.path.join(output_folder, 'patient', 'Schaefer17_mask.nii.gz'))
         patient_sc17_mask = resample_from_to(mask_ni, self.resampled_input_ni, order=0).get_data()[:]
         self.results_annotations['patient']['Schaefer17'] = patient_sc17_mask
+
+        mask_ni = nib.load(os.path.join(output_folder, 'patient', 'BCB_mask.nii.gz'))
+        patient_bcb_mask = resample_from_to(mask_ni, self.resampled_input_ni, order=0).get_data()[:]
+        self.results_annotations['patient']['BCB'] = patient_bcb_mask
 
         registered_image = nib.load(os.path.join(output_folder, 'registration', 'input_volume_to_MNI.nii.gz')).get_data()[:]
         min_val = np.min(registered_image)
@@ -356,32 +394,47 @@ class DisplayAreaWidget(QWidget):
 
         registered_tumor = nib.load(os.path.join(output_folder, 'registration', 'input_segmentation_to_MNI.nii.gz')).get_data()[:]
         self.results_annotations['MNI']['tumor'] = registered_tumor
-        registered_mni_structures = nib.load(os.path.join(output_folder, 'registration', 'Cortical-structures', 'MNI_cortical_structures_mask_mni.nii.gz')).get_data()[:]
+        registered_mni_structures = nib.load(os.path.join(output_folder, 'registration', 'Cortical-structures',
+                                                          'MNI_cortical_structures_mask_mni.nii.gz')).get_data()[:]
         self.results_annotations['MNI']['MNI'] = registered_mni_structures.astype('uint8')
-        registered_ho_structures = nib.load(os.path.join(output_folder, 'registration', 'Cortical-structures', 'Harvard-Oxford_cortical_structures_mask_mni.nii.gz')).get_data()[:]
+        registered_ho_structures = nib.load(os.path.join(output_folder, 'registration', 'Cortical-structures',
+                                                         'Harvard-Oxford_cortical_structures_mask_mni.nii.gz')).get_data()[:]
         self.results_annotations['MNI']['HO'] = registered_ho_structures.astype('uint8')
-        registered_sc7_structures = nib.load(os.path.join(output_folder, 'registration', 'Cortical-structures', 'Schaefer7_cortical_structures_mask_mni.nii.gz')).get_data()[:]
+        registered_sc7_structures = nib.load(os.path.join(output_folder, 'registration', 'Cortical-structures',
+                                                          'Schaefer7_cortical_structures_mask_mni.nii.gz')).get_data()[:]
         self.results_annotations['MNI']['Schaefer7'] = registered_sc7_structures.astype('uint8')
-        registered_sc17_structures = nib.load(os.path.join(output_folder, 'registration', 'Cortical-structures', 'Schaefer17_cortical_structures_mask_mni.nii.gz')).get_data()[:]
+        registered_sc17_structures = nib.load(os.path.join(output_folder, 'registration', 'Cortical-structures',
+                                                           'Schaefer17_cortical_structures_mask_mni.nii.gz')).get_data()[:]
         self.results_annotations['MNI']['Schaefer17'] = registered_sc17_structures.astype('uint8')
+        registered_bcb_structures = nib.load(os.path.join(output_folder, 'registration', 'Subcortical-structures',
+                                                           'BCB_subcortical_structures_mask_mni.nii.gz')).get_data()[:]
+        self.results_annotations['MNI']['BCB'] = registered_bcb_structures.astype('uint8')
 
-        description_mni_structures = pd.read_csv(os.path.join(output_folder, 'registration', 'Cortical-structures', 'MNI_cortical_structures_description.csv'))
+        description_mni_structures = pd.read_csv(os.path.join(output_folder, 'registration', 'Cortical-structures',
+                                                              'MNI_cortical_structures_description.csv'))
         self.results_descriptions['MNI'] = description_mni_structures
-        description_ho_structures = pd.read_csv(os.path.join(output_folder, 'registration', 'Cortical-structures', 'Harvard-Oxford_cortical_structures_description.csv'))
+        description_ho_structures = pd.read_csv(os.path.join(output_folder, 'registration', 'Cortical-structures',
+                                                             'Harvard-Oxford_cortical_structures_description.csv'))
         self.results_descriptions['HO'] = description_ho_structures
-        description_sc7_structures = pd.read_csv(os.path.join(output_folder, 'registration', 'Cortical-structures', 'Schaefer7_cortical_structures_description.csv'))
+        description_sc7_structures = pd.read_csv(os.path.join(output_folder, 'registration', 'Cortical-structures',
+                                                              'Schaefer7_cortical_structures_description.csv'))
         self.results_descriptions['Schaefer7'] = description_sc7_structures
-        description_sc17_structures = pd.read_csv(os.path.join(output_folder, 'registration', 'Cortical-structures', 'Schaefer17_cortical_structures_description.csv'))
+        description_sc17_structures = pd.read_csv(os.path.join(output_folder, 'registration', 'Cortical-structures',
+                                                               'Schaefer17_cortical_structures_description.csv'))
         self.results_descriptions['Schaefer17'] = description_sc17_structures
+
+        description_bcb_structures = pd.read_csv(os.path.join(output_folder, 'registration', 'Subcortical-structures',
+                                                              'BCB_subcortical_structures_description.csv'))
+        self.results_descriptions['BCB'] = description_bcb_structures
 
         self.mni_space_pushbutton.setEnabled(True)
         self.input_segmentation = self.results_annotations['patient']['tumor']
         self.anno_tumor_pushbutton.setVisible(True)
-        self.anno_brain_pushbutton.setVisible(True)
-        self.anno_mni_structures_pushbutton.setVisible(True)
         self.anno_tumor_pushbutton.setChecked(True)
         self.anno_tumor_pushbutton.setEnabled(True)
+        self.anno_brain_pushbutton.setVisible(True)
         self.anno_brain_pushbutton.setEnabled(True)
+        self.anno_mni_structures_pushbutton.setVisible(True)
         self.anno_mni_structures_pushbutton.setEnabled(True)
         self.anno_ho_structures_pushbutton.setVisible(True)
         self.anno_ho_structures_pushbutton.setEnabled(True)
@@ -389,6 +442,8 @@ class DisplayAreaWidget(QWidget):
         self.anno_sc7_structures_pushbutton.setEnabled(True)
         self.anno_sc17_structures_pushbutton.setVisible(True)
         self.anno_sc17_structures_pushbutton.setEnabled(True)
+        self.anno_bcb_structures_pushbutton.setVisible(True)
+        self.anno_bcb_structures_pushbutton.setEnabled(True)
         self.__define_labels_palette()
         self.__update_labels_display_view()
         self.viewer_axial.set_input_labels_volume(self.input_segmentation.astype('uint8'))
@@ -514,6 +569,7 @@ class DisplayAreaWidget(QWidget):
 
     def __input_image_selected_slot(self, image_path):
         try:
+            # self.__reset_interface()
             self.input_volume_path = image_path
             # Should be done after the check has been done in the diagnosis file, to convert the input to nifti if need be
             # self.input_volume = nib.load(image_path).get_data()[:]
@@ -682,6 +738,8 @@ class DisplayAreaWidget(QWidget):
             self.anno_sc7_structures_pushbutton.setEnabled(True)
             self.anno_sc17_structures_pushbutton.setChecked(False)
             self.anno_sc17_structures_pushbutton.setEnabled(True)
+            self.anno_bcb_structures_pushbutton.setChecked(False)
+            self.anno_bcb_structures_pushbutton.setEnabled(True)
 
             if self.patient_space_pushbutton.isChecked():
                 self.input_segmentation = self.results_annotations['patient']['tumor']
@@ -708,6 +766,8 @@ class DisplayAreaWidget(QWidget):
             self.anno_sc7_structures_pushbutton.setEnabled(True)
             self.anno_sc17_structures_pushbutton.setChecked(False)
             self.anno_sc17_structures_pushbutton.setEnabled(True)
+            self.anno_bcb_structures_pushbutton.setChecked(False)
+            self.anno_bcb_structures_pushbutton.setEnabled(True)
 
             if self.patient_space_pushbutton.isChecked():
                 self.input_segmentation = self.results_annotations['patient']['brain']
@@ -734,6 +794,8 @@ class DisplayAreaWidget(QWidget):
             self.anno_sc7_structures_pushbutton.setEnabled(True)
             self.anno_sc17_structures_pushbutton.setChecked(False)
             self.anno_sc17_structures_pushbutton.setEnabled(True)
+            self.anno_bcb_structures_pushbutton.setChecked(False)
+            self.anno_bcb_structures_pushbutton.setEnabled(True)
 
             if self.patient_space_pushbutton.isChecked():
                 self.input_segmentation = self.results_annotations['patient']['MNI']
@@ -759,6 +821,8 @@ class DisplayAreaWidget(QWidget):
             self.anno_sc7_structures_pushbutton.setEnabled(True)
             self.anno_sc17_structures_pushbutton.setChecked(False)
             self.anno_sc17_structures_pushbutton.setEnabled(True)
+            self.anno_bcb_structures_pushbutton.setChecked(False)
+            self.anno_bcb_structures_pushbutton.setEnabled(True)
 
             if self.patient_space_pushbutton.isChecked():
                 self.input_segmentation = self.results_annotations['patient']['HO']
@@ -784,6 +848,8 @@ class DisplayAreaWidget(QWidget):
             self.anno_ho_structures_pushbutton.setEnabled(True)
             self.anno_sc17_structures_pushbutton.setChecked(False)
             self.anno_sc17_structures_pushbutton.setEnabled(True)
+            self.anno_bcb_structures_pushbutton.setChecked(False)
+            self.anno_bcb_structures_pushbutton.setEnabled(True)
 
             if self.patient_space_pushbutton.isChecked():
                 self.input_segmentation = self.results_annotations['patient']['Schaefer7']
@@ -809,6 +875,8 @@ class DisplayAreaWidget(QWidget):
             self.anno_ho_structures_pushbutton.setEnabled(True)
             self.anno_sc7_structures_pushbutton.setChecked(False)
             self.anno_sc7_structures_pushbutton.setEnabled(True)
+            self.anno_bcb_structures_pushbutton.setChecked(False)
+            self.anno_bcb_structures_pushbutton.setEnabled(True)
 
             if self.patient_space_pushbutton.isChecked():
                 self.input_segmentation = self.results_annotations['patient']['Schaefer17']
@@ -816,6 +884,33 @@ class DisplayAreaWidget(QWidget):
                 self.input_segmentation = self.results_annotations['MNI']['Schaefer17']
             self.__define_labels_palette()
             self.__update_labels_display_view(self.results_descriptions['Schaefer17'])
+            self.viewer_axial.set_input_labels_volume(self.input_segmentation.astype('uint8'))
+            self.viewer_coronal.set_input_labels_volume(self.input_segmentation.astype('uint8'))
+            self.viewer_sagittal.set_input_labels_volume(self.input_segmentation.astype('uint8'))
+            self.segmentation_opacity_slider.setSliderPosition(50)
+
+    def __anno_bcb_structures_display_clicked_slot(self, status):
+        if status:
+            self.anno_bcb_structures_pushbutton.setEnabled(False)
+            self.anno_tumor_pushbutton.setChecked(False)
+            self.anno_tumor_pushbutton.setEnabled(True)
+            self.anno_brain_pushbutton.setChecked(False)
+            self.anno_brain_pushbutton.setEnabled(True)
+            self.anno_mni_structures_pushbutton.setChecked(False)
+            self.anno_mni_structures_pushbutton.setEnabled(True)
+            self.anno_ho_structures_pushbutton.setChecked(False)
+            self.anno_ho_structures_pushbutton.setEnabled(True)
+            self.anno_sc7_structures_pushbutton.setChecked(False)
+            self.anno_sc7_structures_pushbutton.setEnabled(True)
+            self.anno_sc17_structures_pushbutton.setChecked(False)
+            self.anno_sc17_structures_pushbutton.setEnabled(True)
+
+            if self.patient_space_pushbutton.isChecked():
+                self.input_segmentation = self.results_annotations['patient']['BCB']
+            else:
+                self.input_segmentation = self.results_annotations['MNI']['BCB']
+            self.__define_labels_palette()
+            self.__update_labels_display_view(self.results_descriptions['BCB'])
             self.viewer_axial.set_input_labels_volume(self.input_segmentation.astype('uint8'))
             self.viewer_coronal.set_input_labels_volume(self.input_segmentation.astype('uint8'))
             self.viewer_sagittal.set_input_labels_volume(self.input_segmentation.astype('uint8'))

@@ -268,6 +268,8 @@ class ProcessingAreaWidget(QWidget):
         self.main_layout.addLayout(self.logos_hbox)
 
     def __run_select_input_image(self):
+        # @TODO. If not the first time loading an image, a popup should be prompted to ask to erase
+        # the previous results, and then proceed to reset all views/processes for the new image.
         input_image_filedialog = QFileDialog()
         self.input_image_filepath = input_image_filedialog.getOpenFileName(self, caption='Select input T1 MRI',
                                                                            directory='~',

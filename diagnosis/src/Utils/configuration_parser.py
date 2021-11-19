@@ -48,6 +48,7 @@ class ResourcesConfiguration:
         timestamp = date + '_' + hour
         self.output_folder = os.path.join(output_dir, timestamp)
         os.makedirs(self.output_folder, exist_ok=True)
+        os.makedirs(os.path.join(self.output_folder, 'patient'), exist_ok=True)
 
     def __set_atlases_parameters(self):
         self.mni_atlas_filepath_T1 = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../',
@@ -118,18 +119,28 @@ class ResourcesConfiguration:
         self.subcortical_structures = {}
         self.subcortical_structures['MNI'] = {}
         self.subcortical_structures['MNI']['BCB'] = {}
-        substruc_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../', 'resources/Atlases/bcb_tracts/')
+        self.subcortical_structures['MNI']['BCB']['Mask'] = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                                         '../../../',
+                                                                         'resources/Atlases/bcb_tracts/bcb_subcortical_structures_overall_mask.nii.gz')
+        self.subcortical_structures['MNI']['BCB']['Description'] = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                                                '../../../',
+                                                                                'resources/Atlases/bcb_tracts/bcb_subcortical_structures_description.csv')
+        self.subcortical_structures['MNI']['BCB']['Singular'] = {}
+        substruc_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../',
+                                       'resources/Atlases/bcb_tracts/StandAlone')
         substruc_names = []
         for _, _, files in os.walk(substruc_folder):
             for f in files:
                 substruc_names.append(f)
             break
+        substruc_names = sorted(substruc_names, key=str.lower)
         for n in substruc_names:
             substruc_fn = os.path.join(substruc_folder, n)
-            self.subcortical_structures['MNI']['BCB'][n] = substruc_fn
+            self.subcortical_structures['MNI']['BCB']['Singular'][n] = substruc_fn
 
     def __set_default_parameters(self):
         # @TODO: This should not be hard-coded, but not necessary with the python ANTs version.
+        # The alternative will be to fill in the runtime_config.ini, though it's discarded if running with GUI support.
         # self.ants_root = '/home/ubuntu/Code/ANTsX'
         # os.environ["ANTSPATH"] = os.path.join(self.ants_root, "build/bin/")
         # self.ants_reg_dir = os.path.join(self.ants_root, 'src', 'Scripts')

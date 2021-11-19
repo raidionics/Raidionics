@@ -67,7 +67,8 @@ def main(argv):
                           output_folder=output_folder, gpu_id=gpu_id)
         elif task == 'segmentation':
             from segmentation.main import main_segmentation
-            main_segmentation(input_filename=input_filename, output_folder=output_folder, model_name=model_segmentation, gpu_device=gpu_id)
+            main_segmentation(input_filename=input_filename, output_folder=output_folder, model_name=model_segmentation,
+                              gpu_device=gpu_id)
     except Exception as e:
         print('Process could not proceed. Caught error: {}'.format(e.args[0]))
         print('{}'.format(traceback.format_exc()))

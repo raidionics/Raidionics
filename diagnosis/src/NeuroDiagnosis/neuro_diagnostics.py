@@ -134,6 +134,7 @@ class NeuroDiagnostics:
                                                                       fixed=self.input_filename,
                                                                       interpolation='nearestNeighbor',
                                                                       label='Harvard-Oxford')
+        self.__apply_registration_subcortical_structures()
         if print_info:
             print('Apply registration - End (Step 5/6)')
             print('Step runtime: {} seconds.'.format(round(time.time() - tmp_timer, 3)) + "\n")
@@ -163,17 +164,19 @@ class NeuroDiagnostics:
         brain_mask_filepath = None
         if self.preprocessing_scheme == 'P2':
             # Generating the brain mask for the input file
-            print('Brain extraction - Begin (Step 1/2)')
+            if print_info:
+                print('Brain extraction - Begin (Step 1/2)')
             brain_mask_filepath = perform_brain_extraction(image_filepath=self.input_filename)
-            print('Brain extraction - End (Step 1/2)')
-            print('Step runtime: {} seconds.'.format(round(time.time() - start_time - tmp_timer, 3)) + "\n")
+            if print_info:
+                print('Brain extraction - End (Step 1/2)')
+                print('Step runtime: {} seconds.'.format(round(time.time() - start_time - tmp_timer, 3)) + "\n")
             tmp_timer = time.time()
 
         # Performing tumor segmentation
-        if not os.path.exists(self.input_segmentation):
+        if self.input_segmentation is None or not os.path.exists(self.input_segmentation):
             if print_info:
                 print('Tumor segmentation - Begin (Step 2/2)')
-            self.input_segmentation = self.__perform_tumor_segmentation(brain_mask_filepath)
+            _ = self.__perform_tumor_segmentation(brain_mask_filepath)
             if print_info:
                 print('Tumor segmentation - End (Step 2/2)')
                 print('Step runtime: {} seconds.'.format(round(time.time() - tmp_timer, 3)) + "\n")
@@ -224,7 +227,6 @@ class NeuroDiagnostics:
                 if self.input_filename is None:
                     continue
 
-                # self.input_filename = os.path.join(input_directory, pdir, '3_1.nii') #''
                 self.output_path = os.path.join(output_directory, pdir)
                 ResourcesConfiguration.getInstance().output_folder = self.output_path
                 if not segmentation_only:
@@ -238,7 +240,12 @@ class NeuroDiagnostics:
                 pat_proc_time = (time.time() - start)/60.
                 processed_times.append(pat_proc_time)
                 remaining_time = (sum(processed_times) / len(processed_times)) * (len(patient_dirs) - i - 1)
-                print('Processed patient {}/{} in {} minutes. Estimated remaining time: {} minutes\n'.format(i + 1, len(patient_dirs),
+                if remaining_time >= 60:
+                    print('Processed patient {}/{} in {} minutes. Estimated remaining time: {} hours\n'.format(i + 1, len(patient_dirs),
+                                                                                                                 round(pat_proc_time, 3),
+                                                                                                                 round(remaining_time/60., 2)))
+                else:
+                    print('Processed patient {}/{} in {} minutes. Estimated remaining time: {} minutes\n'.format(i + 1, len(patient_dirs),
                                                                         round(pat_proc_time, 3), round(remaining_time, 3)))
             except Exception as e:
                 print("Unable to fully process patient {}/{}...\n".format(i + 1, len(patient_dirs)))
@@ -306,7 +313,7 @@ class NeuroDiagnostics:
         tumor_pred = tumor_pred_ni.get_data()[:]
 
         final_tumor_mask = np.zeros(tumor_pred.shape)
-        # Hard-coded probability threshold value.
+        # @TODO. Hard-coded probability threshold value. Should be retrieved from a file associated with the used model.
         final_tumor_mask[tumor_pred >= 0.5] = 1
         final_tumor_mask = final_tumor_mask.astype('uint8')
         final_tumor_mask_filename = os.path.join(self.output_path, 'input_tumor_mask.nii.gz')
@@ -488,7 +495,7 @@ class NeuroDiagnostics:
         if reference == 'BrainLab':
             tract_cutoff = 0.25
 
-        tracts_dict = ResourcesConfiguration.getInstance().subcortical_structures['MNI'][reference]
+        tracts_dict = ResourcesConfiguration.getInstance().subcortical_structures['MNI'][reference]['Singular']
         for i, tfn in enumerate(tracts_dict.keys()):
             reg_tract_ni = nib.load(tracts_dict[tfn])
             reg_tract = reg_tract_ni.get_data()[:]
@@ -509,3 +516,53 @@ class NeuroDiagnostics:
 
         self.diagnosis_parameters.statistics[category]['Overall'].mni_space_subcortical_structures_overlap[reference] = overlaps
         self.diagnosis_parameters.statistics[category]['Overall'].mni_space_subcortical_structures_distance[reference] = distances
+
+    def __apply_registration_subcortical_structures(self):
+        bcb_tracts_cutoff = 0.5
+        patient_dump_folder = os.path.join(ResourcesConfiguration.getInstance().output_folder, 'patient',
+                                           'Subcortical-structures')
+        os.makedirs(patient_dump_folder, exist_ok=True)
+        for i, elem in enumerate(ResourcesConfiguration.getInstance().subcortical_structures['MNI']['BCB']['Singular'].keys()):
+            raw_filename = ResourcesConfiguration.getInstance().subcortical_structures['MNI']['BCB']['Singular'][elem]
+            raw_tract_ni = nib.load(raw_filename)
+            raw_tract = raw_tract_ni.get_data()[:]
+            raw_tract[raw_tract < bcb_tracts_cutoff] = 0
+            raw_tract[raw_tract >= bcb_tracts_cutoff] = 1
+            raw_tract = raw_tract.astype('uint8')
+            dump_filename = os.path.join(self.registration_runner.registration_folder, 'Subcortical-structures',
+                                         os.path.basename(raw_filename))
+            os.makedirs(os.path.dirname(dump_filename), exist_ok=True)
+            nib.save(nib.Nifti1Image(raw_tract, affine=raw_tract_ni.affine), dump_filename)
+
+            self.registration_runner.apply_registration_inverse_transform(
+                moving=dump_filename,
+                fixed=self.input_filename,
+                interpolation='nearestNeighbor',
+                label='Subcortical-structures/' + os.path.basename(raw_filename).split('.')[0].replace('_mni', ''))
+
+        overall_mask_filename = ResourcesConfiguration.getInstance().subcortical_structures['MNI']['BCB']['Mask']
+        self.registration_runner.apply_registration_inverse_transform(
+            moving=overall_mask_filename,
+            fixed=self.input_filename,
+            interpolation='nearestNeighbor',
+            #label='Subcortical-structures/' + os.path.basename(overall_mask_filename).split('.')[0])
+            label='BCB')
+        # #  Aggregate all subcortical structures files into one?
+        # subcortical_files = []
+        # for _, _, files in os.walk(patient_dump_folder):
+        #     for f in files:
+        #         subcortical_files.append(f)
+        #     break
+        #
+        # total_subcortical_map = None
+        # final_affine = None
+        # for i, sc_fn in enumerate(subcortical_files):
+        #     sc_ni = nib.load(os.path.join(patient_dump_folder, sc_fn))
+        #     sc_data = sc_ni.get_data()
+        #     if total_subcortical_map is None:
+        #         total_subcortical_map = np.zeros(sc_data.shape)
+        #         final_affine = sc_ni.affine
+        #     total_subcortical_map[sc_data == 1] = i + 1
+        #
+        # nib.save(nib.Nifti1Image(total_subcortical_map, affine=final_affine),
+        #          os.path.join(patient_dump_folder, 'subcortical_structures_overall_mask.nii.gz'))

@@ -9,7 +9,7 @@ import shutil
 import zipfile
 import gzip
 from dipy.align.reslice import reslice
-# import ants
+import ants
 from diagnosis.src.Processing.brain_processing import *
 from utils.runtime_config_parser import RuntimeResources
 
@@ -202,8 +202,10 @@ class ANTsRegistration:
                                                  transformlist=self.reg_transform['invtransforms'],
                                                  interpolator=interpolation,
                                                  whichtoinvert=[True, False])
-            warped_input_filename = os.path.join(ResourcesConfiguration.getInstance().output_folder,
-                                                 'input_cortical_structures_mask' + label + '.nii.gz')
+            # warped_input_filename = os.path.join(ResourcesConfiguration.getInstance().output_folder,
+            #                                      'input_cortical_structures_mask' + label + '.nii.gz')
+            warped_input_filename = os.path.join(ResourcesConfiguration.getInstance().output_folder, 'patient',
+                                                      label + '_mask.nii.gz')
             ants.image_write(warped_input, warped_input_filename)
         except Exception as e:
             print('Exception caught during applying registration inverse transform. Error message: {}'.format(e))
@@ -275,8 +277,10 @@ class ANTsRegistration:
         script_path = os.path.join(self.ants_apply_dir, 'antsApplyTransforms')
 
         transform_filenames = [os.path.join(self.registration_folder, x) for x in self.inverse_transform_names]
-        moving_registered_filename = os.path.join(ResourcesConfiguration.getInstance().output_folder,
-                                                  'input_cortical_structures_mask' + label + '.nii.gz')
+        # moving_registered_filename = os.path.join(ResourcesConfiguration.getInstance().output_folder,
+        #                                           'input_cortical_structures_mask' + label + '.nii.gz')
+        moving_registered_filename = os.path.join(ResourcesConfiguration.getInstance().output_folder, 'patient',
+                                                  label + '_mask.nii.gz')
 
         if len(transform_filenames) == 4:  # Combined case?
             args = ("{script}".format(script=script_path),
@@ -338,3 +342,10 @@ class ANTsRegistration:
                         dst=os.path.join(cortical_structures_folder, 'Schaefer7_cortical_structures_mask_mni.nii.gz'))
         shutil.copyfile(src=ResourcesConfiguration.getInstance().cortical_structures['MNI']['Schaefer7']['Description'],
                         dst=os.path.join(cortical_structures_folder, 'Schaefer7_cortical_structures_description.csv'))
+
+        subcortical_structures_folder = os.path.join(self.registration_folder, 'Subcortical-structures')
+        os.makedirs(subcortical_structures_folder, exist_ok=True)
+        shutil.copyfile(src=ResourcesConfiguration.getInstance().subcortical_structures['MNI']['BCB']['Mask'],
+                        dst=os.path.join(subcortical_structures_folder, 'BCB_subcortical_structures_mask_mni.nii.gz'))
+        shutil.copyfile(src=ResourcesConfiguration.getInstance().subcortical_structures['MNI']['BCB']['Description'],
+                        dst=os.path.join(subcortical_structures_folder, 'BCB_subcortical_structures_description.csv'))
