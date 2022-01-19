@@ -33,3 +33,5 @@ GSI-RADS
 GSI-RADS-1.*
 quickpkg/
 *.nii.gz
+*.csv
+*.zip
