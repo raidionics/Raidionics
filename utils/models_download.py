@@ -26,7 +26,7 @@ def download_model(model_name):
         model_params = cloud_models_list.loc[cloud_models_list['Model'] == model_name]
         url = model_params['link'].values[0]
         md5 = model_params['sum'].values[0]
-        dep = model_params['dependencies'].values[0]
+        dep = list(model_params['dependencies'].values)
         models_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../resources', 'models')
         os.makedirs(models_path, exist_ok=True)
         models_archive_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../resources', 'models',
@@ -36,10 +36,8 @@ def download_model(model_name):
         gdown.extractall(path=models_archive_path, to=models_path)
         # os.remove(models_archive_path)
 
-        if dep != dep:
-            return
-
         for d in dep:
-            download_model(d)
+            if d == d:
+                download_model(d)
     else:
-        print("No model exists with the provided name.\n")
+        print("No model exists with the provided name: {}.\n".format(model_name))
