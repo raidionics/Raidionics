@@ -62,7 +62,7 @@ exe = EXE(pyz,
           a.zipfiles,
           a.datas,
           [],
-          name='GSI-RADS',
+          name='NeuroRADS',
           debug=False,  # should be set to False, but needed to debug on MacOSX
           bootloader_ignore_signals=False,
           strip=False,
@@ -79,7 +79,7 @@ exe = EXE(pyz,
           a.scripts,
           [],
           exclude_binaries=True,
-          name='GSI-RADS',
+          name='NeuroRADS',
           debug=False,
           bootloader_ignore_signals=False,
           strip=False,
@@ -94,7 +94,7 @@ coll = COLLECT(exe,
                strip=False,
                upx=True,
                upx_exclude=[],
-               name='GSI-RADS'
+               name='NeuroRADS'
 )
 '''
 
@@ -105,7 +105,7 @@ exe = EXE(pyz,
           a.scripts,
           [],
           exclude_binaries=True,
-          name='GSI-RADS',
+          name='NeuroRADS',
           debug=False,
           bootloader_ignore_signals=False,
           strip=False,
@@ -120,13 +120,13 @@ coll = COLLECT(exe,
                strip=False,
                upx=True,
                upx_exclude=[],
-               name='GSI-RADS'
+               name='NeuroRADS'
 )
 
 
 '''
 app = BUNDLE(coll,
-             name='GSI-RADS.app',
+             name='NeuroRADS.app',
              icon=None,
              bundle_identifier=None,
 )
