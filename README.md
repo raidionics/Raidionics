@@ -7,6 +7,15 @@ Simple project for building binary releases and package installers of Python cod
 ## How to use?
 Download binary release from the **tags** section. We currently support Ubuntu Linux (>= 18), macOS (>= high-sierra), and Windows (>= Vista; 64-bit).
 
+## TL;DR GitHub Actions CI
+In order to launch a build in GitHub Actions, you need to create a new, unique tag.
+```
+git tag "v1.3.1-rc1"
+git push origin v1.3.1-rc1
+```
+
+This has to be done **after** you have pushed to the master branch!
+
 ## How to build:
 Using PyInstaller for building Python projects on various operating systems works well. However, [ANTs](https://github.com/ANTsX/ANTs) has limited support for Windows. Currently, the only stable way to use ANTs, is to use [ANTsPy](https://github.com/ANTsX/ANTsPy). Even still, on Windows, one have to install ANTsPy in a different way. Thus, read carefully through this tutorial before starting, to avoid having to start all over.
 
