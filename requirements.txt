@@ -13,7 +13,7 @@ dipy==1.4.0
 Django==3.2
 filelock==3.0.12
 gast==0.4.0
-gdown==3.13.0
+gdown==4.2.0
 gevent==21.1.2
 greenlet==1.0.0
 grpcio==1.37.0
