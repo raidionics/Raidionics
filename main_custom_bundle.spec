@@ -21,7 +21,7 @@ block_cipher = None
 
 #@TODO: This is stupid, but it works. It solves some issues with dependencies not properly included
 hidden_imports = loadtxt("requirements.txt", comments="#", delimiter=",", unpack=False, dtype=str)
-hidden_imports = [x.split("=")[0] for x in hidden_imports] + ["medpy", "ants", "sklearn", "scikit-learn", "statsmodels", "gevent", "distutils", "PySide2"]
+hidden_imports = [x.split("=")[0] for x in hidden_imports] + ["medpy", "ants", "sklearn", "scikit-learn", "statsmodels", "gevent", "distutils", "PySide2", "gdown"]
 hidden_imports = [x.lower() for x in hidden_imports]
 
 print("hidden imports: ")

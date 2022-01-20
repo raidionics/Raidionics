@@ -40,7 +40,8 @@ jobs:
         include:
           - os: ubuntu-18.04
             TARGET: ubuntu
-            CMD_BUILD: "pip install antspyx &&
+            CMD_BUILD: "pip install gdown &&
+                       pip install antspyx &&
                        pyinstaller --noconfirm --clean --onefile main_custom_bundle.spec &&
                        mkdir -p NeuroRADS-0.1.1_Ubuntu/usr/local/bin &&
                        cp -r dist/NeuroRADS NeuroRADS-0.1.1_Ubuntu/usr/local/bin &&
@@ -51,7 +52,8 @@ jobs:
 
           - os: macos-10.15
             TARGET: macos
-            CMD_BUILD: "pip install https://github.com/ANTsX/ANTsPy/releases/download/v0.1.8/antspyx-0.1.8-cp37-cp37m-macosx_10_14_x86_64.whl &&
+            CMD_BUILD: "pip install gdown &&
+                       pip install https://github.com/ANTsX/ANTsPy/releases/download/v0.1.8/antspyx-0.1.8-cp37-cp37m-macosx_10_14_x86_64.whl &&
                        pyinstaller --noconfirm --clean --onefile main_custom_macos.spec &&
                        git clone https://github.com/scriptingosx/quickpkg.git &&
                        quickpkg/quickpkg dist/NeuroRADS.app --output NeuroRADS-1.3-macOS.pkg &&
@@ -82,6 +84,7 @@ jobs:
     - if: matrix.os == 'windows-latest'
       name: Build application
       run: |
+        pip install gdown
         pip install https://github.com/SGotla/ANTsPy/releases/download/0.1.7Win64/antspy-0.1.7-cp37-cp37m-win_amd64.whl
         pyinstaller --noconfirm --clean --onefile main_custom_bundle.spec
         cp -r dist/ win_installer/dist
