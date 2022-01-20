@@ -1,10 +1,13 @@
+import os
+from os.path import expanduser
 from segmentation.src.Utils.configuration_parser import *
 from segmentation.src.PreProcessing.pre_processing import run_pre_processing
 from segmentation.src.Inference.predictions import run_predictions
 from segmentation.src.Inference.predictions_reconstruction import reconstruct_post_predictions
 from segmentation.src.Utils.io import dump_predictions
 
-MODELS_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../', 'resources/models')
+#MODELS_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../', 'resources/models')
+MODELS_PATH = os.path.join(expanduser('~'), '.neurorads', 'resources/models')
 sys.path.insert(1, MODELS_PATH)
 
 
