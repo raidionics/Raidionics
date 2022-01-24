@@ -146,7 +146,7 @@ GSI-RADS
 - [x] Add support for building package installers for each respective OS
 - [x] Install the dependencies (.dll/.so) outside the executable to enable faster initialization of the software ([x]: Done for macOS and Windows)
 - [x] Add source code from this repository to the [GSI-RADS](https://github.com/SINTEFMedtek/GSI-RADS) repository
-- [ ] Add simple way to support batch mode
+- [x] Add simple way to support batch mode
 
 
 ## TIPS

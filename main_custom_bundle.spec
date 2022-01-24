@@ -33,6 +33,8 @@ if os.path.exists("./tmp_dependencies/"):
 shutil.copytree("./diagnosis/", "./tmp_dependencies/diagnosis/")
 shutil.copytree("./segmentation/", "./tmp_dependencies/segmentation/")
 shutil.copytree("./images/", "./tmp_dependencies/images/")
+#shutil.copytree("./gui/Images/", "./tmp_dependencies/gui/Images/")
+shutil.copytree("./gui/", "./tmp_dependencies/gui/")
 shutil.copytree("./resources/", "./tmp_dependencies/resources/")
 
 a = Analysis(['./main.py'],
@@ -63,7 +65,7 @@ exe = EXE(pyz,
           a.datas,
           [],
           name='NeuroRADS',
-          debug=True,  # should be set to False, but needed to debug on MacOSX
+          debug=False,  # should be set to False, but needed to debug on MacOSX
           bootloader_ignore_signals=False,
           strip=False,
           upx=True,
@@ -80,7 +82,7 @@ exe = EXE(pyz,
           [],
           exclude_binaries=True,
           name='NeuroRADS',
-          debug=True,
+          debug=False,
           bootloader_ignore_signals=False,
           strip=False,
           upx=True,

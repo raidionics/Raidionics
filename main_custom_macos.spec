@@ -33,6 +33,7 @@ if os.path.exists("./tmp_dependencies/"):
 shutil.copytree("./diagnosis/", "./tmp_dependencies/diagnosis/")
 shutil.copytree("./segmentation/", "./tmp_dependencies/segmentation/")
 shutil.copytree("./images/", "./tmp_dependencies/images/")
+shutil.copytree("./gui/", "./tmp_dependencies/gui/")
 shutil.copytree("./resources/", "./tmp_dependencies/resources/")
 
 a = Analysis(['./main.py'],
