@@ -7,7 +7,7 @@ import os, sys, time, threading, traceback
 from gui.Styles.default_stylesheets import get_stylesheet
 from diagnosis.src.Utils.configuration_parser import ResourcesConfiguration
 from diagnosis.src.Utils.io import adjust_input_volume_for_nifti
-from diagnosis.src.NeuroDiagnosis.neuro_diagnostics import NeuroDiagnostics
+# from diagnosis.src.NeuroDiagnosis.neuro_diagnostics import NeuroDiagnostics
 # from gui.GSIRADSMainWindow import WorkerThread
 
 
@@ -57,7 +57,8 @@ class ProcessingAreaWidget(QWidget):
 
         self.processing_thread_signal.processing_thread_finished.connect(self.__postprocessing_process)
         ResourcesConfiguration.getInstance().set_environment()
-        self.diagnostics_runner = NeuroDiagnostics()
+        # self.diagnostics_runner = NeuroDiagnostics()
+        self.diagnostics_runner = None
 
     def closeEvent(self, event):
         pass
@@ -313,6 +314,10 @@ class ProcessingAreaWidget(QWidget):
         self.run_diagnosis_thread.start()
 
     def run_diagnosis(self):
+        if self.diagnostics_runner == None:
+            from diagnosis.src.NeuroDiagnosis.neuro_diagnostics import NeuroDiagnostics
+            self.diagnostics_runner = NeuroDiagnostics()
+
         if not os.path.exists(self.input_image_filepath) or not os.path.exists(self.output_folderpath):
             self.standardOutputWritten(
                 'Process could not be started - The 1st and 2nd above-fields must be filled in.\n')
@@ -368,6 +373,10 @@ class ProcessingAreaWidget(QWidget):
         self.run_segmentation_thread.start()
 
     def run_segmentation(self):
+        if self.diagnostics_runner == None:
+            from diagnosis.src.NeuroDiagnosis.neuro_diagnostics import NeuroDiagnostics
+            self.diagnostics_runner = NeuroDiagnostics()
+
         if not os.path.exists(self.input_image_filepath) or not os.path.exists(self.output_folderpath):
             self.standardOutputWritten(
                 'Process could not be started - The 1st and 2nd above-fields must be filled in.\n')
@@ -429,4 +438,7 @@ class ProcessingAreaWidget(QWidget):
             self.main_display_tabwidget.setCurrentIndex(2)
 
     def __tumor_type_changed_slot(self, tumor_type):
+        if self.diagnostics_runner == None:
+            from diagnosis.src.NeuroDiagnosis.neuro_diagnostics import NeuroDiagnostics
+            self.diagnostics_runner = NeuroDiagnostics()
         self.diagnostics_runner.select_tumor_type(tumor_type=tumor_type)
