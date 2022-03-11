@@ -388,7 +388,7 @@ class ProcessingAreaWidget(QWidget):
         self.main_display_tabwidget.setCurrentIndex(1)
         QApplication.processEvents()  # to immediatly update GUI after button is clicked
         # self.seg_preprocessing_scheme = 'P1' if self.settings_seg_preproc_menu_p1_action.isChecked() else 'P2'
-        self.seg_preprocessing_scheme = 'P2'
+        self.seg_preprocessing_scheme = 'P1' if self.select_tumor_type_combobox.currentText() == ('Meningioma' or 'Low-Grade Glioma') else 'P2'
         ResourcesConfiguration.getInstance().set_execution_environment(output_dir=self.output_folderpath)
         self.diagnostics_runner.load_new_inputs(input_filename=self.input_image_filepath,
                                                 input_segmentation=self.input_annotation_filepath)

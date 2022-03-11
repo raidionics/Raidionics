@@ -78,6 +78,7 @@ class MainWindow(QMainWindow):
 
         self.settings_menu = self.menu_bar.addMenu('Settings')
         self.settings_seg_menu = self.settings_menu.addMenu("Segmentation...")
+        self.settings_seg_menu.setEnabled(False)
         self.settings_seg_preproc_menu = self.settings_seg_menu.addMenu("Preprocessing...")
         self.settings_seg_preproc_menu_p1_action = QAction("Brain-masking off (P1)", checkable=True)
         self.settings_seg_preproc_menu_p2_action = QAction("Brain-masking on (P2)", checkable=True)
