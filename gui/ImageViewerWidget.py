@@ -57,6 +57,9 @@ class ImageViewerWidget(QWidget):
         self.parent.segmentation_opacity_slider.valueChanged.connect(self.__opacity_slider_position_changed_slot)
         self.scroll_slider.valueChanged.connect(self.display_label.view_slice_change_slot)
 
+    def reset(self):
+        self.display_label.reset()
+
     def resize(self, size):
         self.fixed_size = size
         self.setMinimumSize(size)

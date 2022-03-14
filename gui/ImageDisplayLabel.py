@@ -24,8 +24,6 @@ class ImageDisplayLabel(QLabel):
         self.zoom_scale_factor = 1.0
         self.translation_x = 0
         self.translation_y = 0
-        self.input_volume = None
-        self.input_labels_volume = None
         self.display_image_2d = None
         self.display_anno_2d = None
         self.display_pixmap = None
@@ -96,6 +94,19 @@ class ImageDisplayLabel(QLabel):
     def sizeHint(self):
         min_dimension = min(self.parent.size().height(), self.parent.size().width())
         return QSize(int(min_dimension / 2), int(min_dimension / 2))
+
+    def reset(self):
+        self.input_volume = None
+        self.input_labels_volume = None
+        self.toggle_opacity = True
+        self.labels_opacity = 0.5
+        self.zoom_scale_factor = 1.0
+        self.translation_x = 0
+        self.translation_y = 0
+        self.display_image_2d = None
+        self.display_anno_2d = None
+        self.display_pixmap = None
+        self.labels_palette = {}
 
     def resize(self, size):
         self.display_label.resize(size)

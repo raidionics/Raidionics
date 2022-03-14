@@ -44,6 +44,7 @@ class DisplayAreaWidget(QWidget):
         # self.main_layout.setGeometry(QRect(int(self.parent.width/2), 80, int(self.parent.width/2), self.parent.height))
         self.input_volume_path = None
         self.input_volume = None
+        self.input_segmentation = None
         self.number_labels = None
         self.results_images = {}
         self.results_annotations = {}
@@ -223,24 +224,46 @@ class DisplayAreaWidget(QWidget):
 
     def __reset_interface(self):
         # @TODO. Should have one method to reset the interface, and one method to reset the parameters
-        self.results_annotations = []
-        self.results_descriptions = []
+        self.results_images = {}
+        self.results_annotations = {}
+        self.results_descriptions = {}
+        self.results_annotations['patient'] = {}
+        self.results_annotations['MNI'] = {}
+        self.input_volume_path = None
+        self.input_volume = None
+        self.number_labels = None
+        self.input_segmentation = None
         self.mni_space_pushbutton.setEnabled(False)
-        self.anno_tumor_pushbutton.setVisible(False)
         self.anno_brain_pushbutton.setVisible(False)
-        self.anno_mni_structures_pushbutton.setVisible(False)
+        self.anno_brain_pushbutton.setEnabled(False)
+        self.anno_tumor_pushbutton.setVisible(False)
         self.anno_tumor_pushbutton.setChecked(False)
         self.anno_tumor_pushbutton.setEnabled(False)
-        self.anno_brain_pushbutton.setEnabled(False)
+        self.anno_mni_structures_pushbutton.setVisible(False)
         self.anno_mni_structures_pushbutton.setEnabled(False)
         self.anno_ho_structures_pushbutton.setVisible(False)
         self.anno_ho_structures_pushbutton.setEnabled(False)
         self.anno_sc7_structures_pushbutton.setVisible(False)
         self.anno_sc7_structures_pushbutton.setEnabled(False)
         self.anno_sc17_structures_pushbutton.setVisible(False)
-        self.anno_sc17_structures_pushbutton.setVisible(False)
+        self.anno_sc17_structures_pushbutton.setEnabled(False)
+        self.anno_bcb_structures_pushbutton.setVisible(False)
         self.anno_bcb_structures_pushbutton.setEnabled(False)
-        self.anno_bcb_structures_pushbutton.setEnabled(False)
+        self.viewer_axial.reset()
+        self.viewer_coronal.reset()
+        self.viewer_sagittal.reset()
+
+        # Side display with structure names
+        for elem in self.display_groupbox_labels:
+            self.labels_display_groupbox_layout.removeWidget(elem)
+            elem.deleteLater()
+        for elem in self.display_groupbox_layouts:
+            self.labels_display_groupbox_layout.removeItem(elem)
+            elem.deleteLater()
+
+        self.display_groupbox_labels = []
+        self.display_groupbox_layouts = []
+        self.display_groupbox_spaceritems = []
 
     def __set_layout(self):
         self.main_layout = QVBoxLayout(self)
@@ -459,14 +482,14 @@ class DisplayAreaWidget(QWidget):
         Load the segmentation results only, which will be available for display
         """
         # patient_tumor_mask = nib.load(os.path.join(output_folder, 'input_tumor_mask.nii.gz')).get_data()[:]
-        mask_ni = nib.load(os.path.join(output_folder, 'input_tumor_mask.nii.gz'))
+        mask_ni = nib.load(os.path.join(output_folder, 'patient', 'input_tumor_mask.nii.gz'))
         patient_tumor_mask = resample_from_to(mask_ni, self.resampled_input_ni).get_data()[:]
         self.results_annotations['patient']['tumor'] = patient_tumor_mask
 
-        patient_space_brain_mask_filename = os.path.join(output_folder, 'input_brain_mask.nii.gz')
+        patient_space_brain_mask_filename = os.path.join(output_folder, 'patient', 'input_brain_mask.nii.gz')
         if patient_space_brain_mask_filename is not None and os.path.exists(patient_space_brain_mask_filename):
             # patient_brain_mask = nib.load(os.path.join(output_folder, 'input_brain_mask.nii.gz')).get_data()[:]
-            patient_brain_mask_ni = nib.load(os.path.join(output_folder, 'input_brain_mask.nii.gz'))
+            patient_brain_mask_ni = nib.load(os.path.join(output_folder, 'patient', 'input_brain_mask.nii.gz'))
             patient_brain_mask = resample_from_to(patient_brain_mask_ni, self.resampled_input_ni).get_data()[:]
             self.results_annotations['patient']['brain'] = patient_brain_mask
             self.anno_brain_pushbutton.setEnabled(True)
@@ -569,7 +592,7 @@ class DisplayAreaWidget(QWidget):
 
     def __input_image_selected_slot(self, image_path):
         try:
-            # self.__reset_interface()
+            self.__reset_interface()
             self.input_volume_path = image_path
             # Should be done after the check has been done in the diagnosis file, to convert the input to nifti if need be
             # self.input_volume = nib.load(image_path).get_data()[:]
@@ -586,6 +609,9 @@ class DisplayAreaWidget(QWidget):
             self.viewer_axial.set_input_volume(self.input_volume.astype('uint8'))
             self.viewer_coronal.set_input_volume(self.input_volume.astype('uint8'))
             self.viewer_sagittal.set_input_volume(self.input_volume.astype('uint8'))
+            self.viewer_axial.repaint()
+            self.viewer_coronal.repaint()
+            self.viewer_sagittal.repaint()
         except Exception as e:
             print('Selected input MRI volume cannot be displayed.\n')
             print(traceback.format_exc())

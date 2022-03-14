@@ -139,7 +139,7 @@ class ProcessingAreaWidget(QWidget):
         self.execution_groupbox.setStyleSheet(get_stylesheet('QGroupBox'))
 
         self.select_tumor_type_combobox = QComboBox()
-        self.select_tumor_type_combobox.addItems(['', 'High-Grade Glioma', 'Low-Grade Glioma', 'Meningioma', 'Metastase'])
+        self.select_tumor_type_combobox.addItems(['', 'High-Grade Glioma', 'Low-Grade Glioma', 'Meningioma', 'Metastasis'])
         self.select_tumor_type_combobox.setFixedWidth(self.parent.size().width() * self.widget_base_width)
         self.select_tumor_type_combobox.setFixedHeight(self.parent.size().height() * self.widget_base_height)
         self.select_tumor_type_label = QLabel('Tumor type')
@@ -314,17 +314,21 @@ class ProcessingAreaWidget(QWidget):
         self.run_diagnosis_thread.start()
 
     def run_diagnosis(self):
-        if self.diagnostics_runner == None:
-            from diagnosis.src.NeuroDiagnosis.neuro_diagnostics import NeuroDiagnostics
-            self.diagnostics_runner = NeuroDiagnostics()
-
         if not os.path.exists(self.input_image_filepath) or not os.path.exists(self.output_folderpath):
             self.standardOutputWritten(
                 'Process could not be started - The 1st and 2nd above-fields must be filled in.\n')
             return
 
+        # Freezing buttons
         self.run_button.setEnabled(False)
         self.run_segmentation_button.setEnabled(False)
+
+        # Doing env. init.
+        if self.diagnostics_runner == None:
+            from diagnosis.src.NeuroDiagnosis.neuro_diagnostics import NeuroDiagnostics
+            self.diagnostics_runner = NeuroDiagnostics()
+        self.diagnostics_runner.select_tumor_type(tumor_type=self.select_tumor_type_combobox.currentText())
+
         self.prompt_lineedit.clear()
         self.main_display_tabwidget.setCurrentIndex(1)
         QApplication.processEvents()  # to immediatly update GUI after button is clicked
@@ -373,17 +377,21 @@ class ProcessingAreaWidget(QWidget):
         self.run_segmentation_thread.start()
 
     def run_segmentation(self):
-        if self.diagnostics_runner == None:
-            from diagnosis.src.NeuroDiagnosis.neuro_diagnostics import NeuroDiagnostics
-            self.diagnostics_runner = NeuroDiagnostics()
-
         if not os.path.exists(self.input_image_filepath) or not os.path.exists(self.output_folderpath):
             self.standardOutputWritten(
                 'Process could not be started - The 1st and 2nd above-fields must be filled in.\n')
             return
 
+        # Freezing buttons
         self.run_button.setEnabled(False)
         self.run_segmentation_button.setEnabled(False)
+
+        # Doing env. init.
+        if self.diagnostics_runner == None:
+            from diagnosis.src.NeuroDiagnosis.neuro_diagnostics import NeuroDiagnostics
+            self.diagnostics_runner = NeuroDiagnostics()
+        self.diagnostics_runner.select_tumor_type(tumor_type=self.select_tumor_type_combobox.currentText())
+
         self.prompt_lineedit.clear()
         self.main_display_tabwidget.setCurrentIndex(1)
         QApplication.processEvents()  # to immediatly update GUI after button is clicked
@@ -438,7 +446,8 @@ class ProcessingAreaWidget(QWidget):
             self.main_display_tabwidget.setCurrentIndex(2)
 
     def __tumor_type_changed_slot(self, tumor_type):
-        if self.diagnostics_runner == None:
-            from diagnosis.src.NeuroDiagnosis.neuro_diagnostics import NeuroDiagnostics
-            self.diagnostics_runner = NeuroDiagnostics()
-        self.diagnostics_runner.select_tumor_type(tumor_type=tumor_type)
+        # if self.diagnostics_runner == None:
+        #     from diagnosis.src.NeuroDiagnosis.neuro_diagnostics import NeuroDiagnostics
+        #     self.diagnostics_runner = NeuroDiagnostics()
+        # self.diagnostics_runner.select_tumor_type(tumor_type=tumor_type)
+        pass

@@ -52,7 +52,7 @@ class MainWindow(QMainWindow):
         self.printer_thread.stop()
 
     def __set_interface(self):
-        self.setWindowTitle("Neuro-RADS")
+        self.setWindowTitle("NeuroRADS")
         self.__getScreenDimensions()
         self.button_width = 0.35
         self.button_height = 0.05

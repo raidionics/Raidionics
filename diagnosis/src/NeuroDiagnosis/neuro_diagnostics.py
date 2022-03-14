@@ -1,4 +1,5 @@
 import os
+import shutil
 import time
 
 from tqdm import tqdm
@@ -30,8 +31,6 @@ class NeuroDiagnostics:
         self.output_path = None  # ResourcesConfiguration.getInstance().output_folder
         self.tumor_type = None
 
-        # Working with Gd-enhanced T1-weighted MRI volume as input for now.
-        # @TODO. Have to adjust for FLAIR in case of LGGs.
         self.atlas_brain_filepath = ResourcesConfiguration.getInstance().mni_atlas_filepath_T1
         self.from_slicer = ResourcesConfiguration.getInstance().from_slicer
         self.registration_runner = ANTsRegistration()
@@ -157,8 +156,8 @@ class NeuroDiagnostics:
         shutil.rmtree(tmp_folder)
 
     def run_segmentation_only(self, print_info=True):
-        tmp_timer = 0
         start_time = time.time()
+        tmp_time = time.time()
         self.input_filename = adjust_input_volume_for_nifti(self.input_filename, self.output_path)
 
         brain_mask_filepath = None
@@ -169,8 +168,8 @@ class NeuroDiagnostics:
             brain_mask_filepath = perform_brain_extraction(image_filepath=self.input_filename)
             if print_info:
                 print('Brain extraction - End (Step 1/2)')
-                print('Step runtime: {} seconds.'.format(round(time.time() - start_time - tmp_timer, 3)) + "\n")
-            tmp_timer = time.time()
+                print('Step runtime: {} seconds.'.format(round(time.time() - start_time, 3)) + "\n")
+            tmp_time = time.time()
 
         # Performing tumor segmentation
         if self.input_segmentation is None or not os.path.exists(self.input_segmentation):
@@ -179,7 +178,7 @@ class NeuroDiagnostics:
             _ = self.__perform_tumor_segmentation(brain_mask_filepath)
             if print_info:
                 print('Tumor segmentation - End (Step 2/2)')
-                print('Step runtime: {} seconds.'.format(round(time.time() - tmp_timer, 3)) + "\n")
+                print('Step runtime: {} seconds.'.format(round(time.time() - tmp_time, 3)) + "\n")
         if print_info:
             print('Total processing time: {} seconds.'.format(round(time.time() - start_time, 3)))
             print('--------------------------------')
@@ -187,6 +186,12 @@ class NeuroDiagnostics:
         # Cleaning the temporary files
         tmp_folder = os.path.join(self.output_path, 'tmp')
         shutil.rmtree(tmp_folder)
+        if os.path.exists(os.path.join(self.output_path, 'input_brain_mask.nii.gz')):
+            shutil.move(src=os.path.join(self.output_path, 'input_brain_mask.nii.gz'),
+                        dst=os.path.join(self.output_path, 'patient', 'input_brain_mask.nii.gz'))
+        if os.path.exists(os.path.join(self.output_path, 'input_tumor_mask.nii.gz')):
+            shutil.move(src=os.path.join(self.output_path, 'input_tumor_mask.nii.gz'),
+                        dst=os.path.join(self.output_path, 'patient', 'input_tumor_mask.nii.gz'))
 
     def run_batch(self, input_directory, output_directory, segmentation_only=False, print_info=True):
         patient_dirs = []
@@ -288,8 +293,8 @@ class NeuroDiagnostics:
             segmentation_model_name = 'MRI_LGGlioma'
         elif self.tumor_type == 'Meningioma':
             segmentation_model_name = 'MRI_Meningioma'
-        elif self.tumor_type == 'Metastase':
-            segmentation_model_name = 'MRI_Metastase'
+        elif self.tumor_type == 'Metastasis':
+            segmentation_model_name = 'MRI_Metastasis'
 
         if segmentation_model_name is None:
             raise AttributeError('Could not find any satisfactory segmentation model -- aborting.\n')
@@ -312,9 +317,13 @@ class NeuroDiagnostics:
         tumor_pred_ni = load_nifti_volume(predictions_file)
         tumor_pred = tumor_pred_ni.get_data()[:]
 
+        # Not ideal, but good-enough bypass
+        from segmentation.src.Utils.configuration_parser import PreProcessingParser
+        model_params = PreProcessingParser(model_name=segmentation_model_name)
+        prob_cutoff = model_params.training_optimal_thresholds[1]
+
         final_tumor_mask = np.zeros(tumor_pred.shape)
-        # @TODO. Hard-coded probability threshold value. Should be retrieved from a file associated with the used model.
-        final_tumor_mask[tumor_pred >= 0.5] = 1
+        final_tumor_mask[tumor_pred >= prob_cutoff] = 1
         final_tumor_mask = final_tumor_mask.astype('uint8')
         final_tumor_mask_filename = os.path.join(self.output_path, 'input_tumor_mask.nii.gz')
         nib.save(nib.Nifti1Image(final_tumor_mask, affine=tumor_pred_ni.affine), final_tumor_mask_filename)
