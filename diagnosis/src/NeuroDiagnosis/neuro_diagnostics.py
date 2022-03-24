@@ -58,6 +58,7 @@ class NeuroDiagnostics:
         if os.path.exists(self.output_report_filepath):
             os.remove(self.output_report_filepath)
         self.registration_runner.prepare_to_run()
+        # @TODO. Maybe the model check update should be done here,
 
     def run(self, print_info=True):
         tmp_timer = 0
@@ -287,6 +288,7 @@ class NeuroDiagnostics:
         output_folder = os.path.join(self.output_path, 'tmp', '')
         os.makedirs(output_folder, exist_ok=True)
         segmentation_model_name = None
+        #@TODO. Must be improved, where to convert the visible name to actual on-disk model name?
         if self.tumor_type == 'High-Grade Glioma':
             segmentation_model_name = 'MRI_HGGlioma_' + self.preprocessing_scheme
         elif self.tumor_type == 'Low-Grade Glioma':

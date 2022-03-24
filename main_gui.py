@@ -12,6 +12,7 @@ import threading
 import numpy as np
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
+from utils.runtime_config_parser import RuntimeResources
 
 
 class WorkerThread(QThread):
@@ -36,6 +37,7 @@ class InputImageSelectedSignal(QObject):
     #     self.input_image_selection.emit(text)
 
 
+#@TODO. Remove, deprecated
 class MainWindow(QMainWindow):
 
     def __init__(self, application, *args, **kwargs):
@@ -89,6 +91,10 @@ class MainWindow(QMainWindow):
         self.settings_seg_preproc_menu_p2_action.setChecked(True)
         self.settings_seg_preproc_menu.addAction(self.settings_seg_preproc_menu_p1_action)
         self.settings_seg_preproc_menu.addAction(self.settings_seg_preproc_menu_p2_action)
+        self.settings_update_menu = self.settings_menu.addMenu("Update")
+        self.settings_update_models_menu = self.settings_update_menu.addMenu("Models")
+        self.settings_update_models_menu_active_action = QAction("Active checking", checkable=True)
+        self.settings_update_models_menu.addAction(self.settings_update_models_menu_active_action)
 
         self.help_menu = self.menu_bar.addMenu('Help')
         self.readme_action = QAction(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'images/readme-icon.jpeg')), 'Tutorial', self)
@@ -326,6 +332,7 @@ class MainWindow(QMainWindow):
         self.help_action.triggered.connect(self.help_action_triggered)
         self.settings_seg_preproc_menu_p1_action.triggered.connect(self.settings_seg_preproc_menu_p1_action_triggered)
         self.settings_seg_preproc_menu_p2_action.triggered.connect(self.settings_seg_preproc_menu_p2_action_triggered)
+        self.settings_update_models_menu_active_action.triggered.connect(self.settings_update_models_menu_active_action_triggered)
 
     def __set_params(self):
         self.input_image_filepath = ''
@@ -503,3 +510,10 @@ class MainWindow(QMainWindow):
             self.settings_seg_preproc_menu_p1_action.setChecked(False)
         else:
             self.settings_seg_preproc_menu_p1_action.setChecked(True)
+
+    def settings_update_models_menu_active_action_triggered(self, status):
+        if status:
+            self.settings_update_models_menu_active_action.setChecked(False)
+        else:
+            self.settings_update_models_menu_active_action.setChecked(True)
+        RuntimeResources.getInstance().active_models_update_state = status

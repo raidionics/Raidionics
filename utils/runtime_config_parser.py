@@ -27,6 +27,7 @@ class RuntimeResources:
     def __setup(self):
         self.config_filename = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../resources/runtime_config.ini')
         self.config = None
+        self.active_models_update_state = False
 
         self.__set_default_values()
         if os.path.exists(self.config_filename):

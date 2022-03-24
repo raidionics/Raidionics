@@ -451,3 +451,4 @@ class ProcessingAreaWidget(QWidget):
         #     self.diagnostics_runner = NeuroDiagnostics()
         # self.diagnostics_runner.select_tumor_type(tumor_type=tumor_type)
         pass
+
