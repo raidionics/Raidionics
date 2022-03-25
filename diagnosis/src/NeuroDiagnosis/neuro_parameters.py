@@ -109,12 +109,12 @@ class NeuroDiagnosisParameters:
         for t in self.statistics['Main']['Overall'].mni_space_subcortical_structures_overlap.keys():
             for r in self.statistics['Main']['Overall'].mni_space_subcortical_structures_overlap[t].keys():
                 values.extend([self.statistics['Main']['Overall'].mni_space_subcortical_structures_overlap[t][r]])
-                column_names.extend([t + r.split('.')[0][:-4] + '_overlap'])
+                column_names.extend([t + '_' + r.split('.')[0][:-4] + '_overlap'])
 
         for t in self.statistics['Main']['Overall'].mni_space_subcortical_structures_distance.keys():
             for r in self.statistics['Main']['Overall'].mni_space_subcortical_structures_distance[t].keys():
                 values.extend([self.statistics['Main']['Overall'].mni_space_subcortical_structures_distance[t][r]])
-                column_names.extend([t + r.split('.')[0][:-4] + '_distance'])
+                column_names.extend([t + '_' + r.split('.')[0][:-4] + '_distance'])
 
         values_df = pd.DataFrame(np.asarray(values).reshape((1, len(values))), columns=column_names)
         values_df.to_csv(filename, index=False)
