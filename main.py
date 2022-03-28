@@ -17,6 +17,7 @@ import sys
 from PySide2.QtWidgets import QApplication
 # from main_gui import MainWindow
 from gui.GSIRADSMainWindow import MainWindow
+from gui2.NeuroRADSMainWindow import NeuroRADSMainWindow
 
 
 #-i /media/dbouget/ihdb/Data/NeuroDatabase/1/1/volumes/1_MR_T1_pre_1.nii.gz -o /home/dbouget/Desktop/ -m MRI_HGGlioma_P2 -g 0 -t segmentation
@@ -56,7 +57,8 @@ def main(argv):
             app = QApplication(sys.argv)
 
             # @TODO. The runtime_config.ini should be cleared before running the GUI, maybe keeping the system params?
-            window = MainWindow(application=app)
+            # window = MainWindow(application=app)
+            window = NeuroRADSMainWindow(application=app)
             window.show()
 
             app.exec_()
