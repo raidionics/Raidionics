@@ -1,14 +1,19 @@
-from PySide2.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QPushButton, QSpacerItem, QCommonStyle, QStyle, QFrame
+from PySide2.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QLabel, QPushButton, QSpacerItem, \
+    QCommonStyle, QStyle, QFrame
 from PySide2.QtGui import QIcon, QPixmap
 from PySide2.QtCore import Qt, QSize, QUrl
 
 import os
+from utils.software_config import SoftwareConfigResources
 
 
+#@FIXME. Inheriting directly from QWidget prevents to use stylesheets on that object. If white painting is needed, might
+# have to inherit from QLabel or something.
 class WelcomeWidget(QWidget):
 
     def __init__(self, parent=None):
         super(WelcomeWidget, self).__init__()
+        self.widget_name = "welcome_widget"
         self.parent = parent
         self.__set_interface()
         # self.__set_layouts()
@@ -20,6 +25,7 @@ class WelcomeWidget(QWidget):
         self.__set_right_panel_interface()
         self.__set_left_panel_interface()
         self.central_label = QLabel()
+        # self.central_label.setFixedSize(QSize(self.parent.baseSize().width()*0.8, self.parent.baseSize().height()*0.8))
         self.central_label.setFixedSize(QSize(700, 400))
         self.central_label.setContentsMargins(0, 0, 0, 0)
         self.central_layout = QHBoxLayout()
@@ -33,14 +39,15 @@ class WelcomeWidget(QWidget):
         self.central_label.setLayout(self.central_layout)
 
         # self.widget = QWidget(self)
-        # self.widget.setFixedSize(self.parent.baseSize())
-        self.setFixedSize(QSize(self.parent.width, self.parent.height))
+        self.setBaseSize(self.parent.baseSize())
+
         self.layout = QVBoxLayout(self)
-        self.layout.addLayout(self.top_logo_panel_layout)
-        self.top_below_logo_spaceritem = QSpacerItem(1, 50)
-        self.layout.addItem(self.top_below_logo_spaceritem)
-        self.layout.addWidget(self.central_label, Qt.AlignCenter)
-        self.layout.addStretch(1)
+        self.center_widget_container_layout = QGridLayout()
+        self.layout.addLayout(self.top_logo_panel_layout, Qt.AlignTop)
+        # Always center aligning the center piece, while keeping the logo always at the top
+        # @TODO. Might we also rescale the buttons on the fly?
+        self.center_widget_container_layout.addWidget(self.central_label, 0, 0, Qt.AlignCenter)
+        self.layout.addLayout(self.center_widget_container_layout)
         # self.widget.setLayout(self.layout)
 
     def __top_logo_panel_interface(self):
@@ -53,7 +60,8 @@ class WelcomeWidget(QWidget):
         # self.top_logo_panel_label.setFixedSize(QSize(100, 25))
         self.top_logo_panel_label.setPixmap(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Images/neurorads-logo.png')).scaled(200, 50, Qt.KeepAspectRatio))
         # self.top_logo_panel_label.setIconSize(QSize(100, 25))
-        self.top_logo_panel_layout.addWidget(self.top_logo_panel_label)
+        self.top_logo_panel_label.setFixedSize(QSize(200, 50))
+        self.top_logo_panel_layout.addWidget(self.top_logo_panel_label, Qt.AlignLeft)
         self.top_logo_panel_layout.addStretch(1)
 
     def __set_right_panel_interface(self):
@@ -151,7 +159,7 @@ class WelcomeWidget(QWidget):
         self.__set_right_panel_layouts()
 
     def __set_stylesheets(self):
-        self.central_label.setStyleSheet("QLabel{border:1px solid; border-color:rgb(230,230,230);}")
+        self.central_label.setStyleSheet("QLabel{border:1px solid; background-color:rgb(255,0,0); border-color:rgb(230,230,230);}")
 
         # self.widget.setStyleSheet("QWidget:{background-color:rgb(255,0,0);}")
         self.right_panel_label.setStyleSheet("QLabel{background-color:rgba(235, 235, 235, 1);}")
@@ -223,3 +231,6 @@ class WelcomeWidget(QWidget):
 
     def __on_right_panel_community_released(self):
         self.right_panel_community_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Images/research_community_icon.png'))))
+
+    def get_widget_name(self):
+        return self.widget_name

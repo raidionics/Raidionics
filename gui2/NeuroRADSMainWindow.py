@@ -1,9 +1,8 @@
 import sys, os
-from PySide2.QtWidgets import QApplication, QLabel, QMainWindow, QFileDialog, QMenuBar, QAction, QMessageBox,\
-    QHBoxLayout, QVBoxLayout, QStackedWidget, QWidget, QPushButton, QSizePolicy, QToolButton
+from PySide2.QtWidgets import QApplication, QLabel, QMainWindow, QMenuBar, QAction, QMessageBox,\
+    QHBoxLayout, QVBoxLayout, QStackedWidget, QSizePolicy
 from PySide2.QtCore import QUrl, QSize, QThread, Signal
-from PySide2.QtGui import QIcon, QDesktopServices, QCloseEvent, QPixmap
-from gui2.WelcomeWidget import WelcomeWidget
+from PySide2.QtGui import QIcon, QDesktopServices, QCloseEvent
 import traceback, time
 import threading
 import numpy as np
@@ -12,6 +11,8 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 from utils.runtime_config_parser import RuntimeResources
+from gui2.WelcomeWidget import WelcomeWidget
+from gui2.SinglePatientComponent.SinglePatientWidget import SinglePatientWidget
 
 
 class WorkerThread(QThread):
@@ -41,9 +42,9 @@ class NeuroRADSMainWindow(QMainWindow):
         self.__set_stylesheet()
         self.__set_connections()
 
-        self.printer_thread = WorkerThread()
-        self.printer_thread.message.connect(self.standardOutputWritten)
-        self.printer_thread.start()
+        # self.printer_thread = WorkerThread()
+        # self.printer_thread.message.connect(self.standardOutputWritten)
+        # self.printer_thread.start()
 
     def closeEvent(self, event):
         self.processing_area_widget.closeEvent(event)
@@ -55,7 +56,8 @@ class NeuroRADSMainWindow(QMainWindow):
         self.button_width = 0.35
         self.button_height = 0.05
 
-        self.move(self.width / 2, self.height / 2)
+        # Centering the software on the user screen
+        self.move(self.left, self.top)
 
         # self.__set_mainmenu_interface()
         self.__set_centralwidget_interface()
@@ -104,10 +106,17 @@ class NeuroRADSMainWindow(QMainWindow):
         self.help_menu.addAction(self.help_action)
 
     def __set_centralwidget_interface(self):
+        self.central_stackedwidget_dict = {}
         self.central_stackedwidget = QStackedWidget()
         self.main_selection_layout = QVBoxLayout()
-        self.central_widget = WelcomeWidget(self)
-        self.central_stackedwidget.addWidget(self.central_widget)
+        self.welcome_widget = WelcomeWidget(self)
+        self.central_stackedwidget.insertWidget(0, self.welcome_widget)
+        self.central_stackedwidget_dict[self.welcome_widget.get_widget_name()] = 0
+
+        self.single_patient_widget = SinglePatientWidget(self)
+        self.central_stackedwidget.insertWidget(1, self.single_patient_widget)
+        self.central_stackedwidget_dict[self.single_patient_widget.get_widget_name()] = 1
+
         # self.main_selection_layout.addWidget(self.central_widget)
         #
         # self.welcome_label = QLabel()
@@ -192,6 +201,15 @@ class NeuroRADSMainWindow(QMainWindow):
 
     def __set_connections(self):
         self.__set_menubar_connections()
+        self.__set_inner_widget_connections()
+        self.__cross_widgets_connections()
+
+    def __set_inner_widget_connections(self):
+        # self.central_stackedwidget.currentChanged().connect(self.__on_central_stacked_widget_index_changed)
+        pass
+
+    def __cross_widgets_connections(self):
+        self.welcome_widget.left_panel_single_patient_pushbutton.clicked.connect(self.__on_single_patient_clicked)
 
     def __set_menubar_connections(self):
         pass
@@ -204,18 +222,31 @@ class NeuroRADSMainWindow(QMainWindow):
     def __getScreenDimensions(self):
         screen = self.app.primaryScreen()
         size = screen.size()
-        self.left = size.width() / 6
-        self.top = size.height() / 6
         self.width = 0.75 * size.width()
         self.height = 0.75 * size.height()
         self.fixed_width = 0.75 * size.width()
         self.fixed_height = 0.75 * size.height()
+        self.left = (size.width() - self.width) / 2
+        self.top = (size.height() - self.height) / 2
         self.setBaseSize(QSize(self.width, self.height))
-        # self.setMaximumSize(size)
 
-        # self.width = self.size().width() # size.width()
-        # self.height = self.size().height() #size.height()
         # self.setGeometry(self.left, self.top, self.width * 0.5, self.height * 0.5)
+
+    def __on_central_stacked_widget_index_changed(self, index):
+        pass
+
+    def __on_single_patient_clicked(self):
+        name = self.single_patient_widget.get_widget_name()
+        index = -1
+        if name in self.central_stackedwidget_dict.keys():
+            index = self.central_stackedwidget_dict[name]
+
+        if index != -1:
+            self.central_stackedwidget.setCurrentIndex(index)
+        else:
+            # Should not happen, but what if?
+            pass
+        self.adjustSize()
 
     def readme_action_triggered(self):
         popup = QMessageBox()
