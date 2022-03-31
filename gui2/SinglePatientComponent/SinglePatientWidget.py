@@ -1,16 +1,19 @@
 from PySide2.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QLabel, QPushButton, QSpacerItem,\
-    QDockWidget, QSplitter
+    QDockWidget, QSplitter, QFileDialog
 from PySide2.QtGui import QIcon, QPixmap
-from PySide2.QtCore import Qt, QSize, QUrl
+from PySide2.QtCore import Qt, QSize, QUrl, Signal
 
 import os
 from utils.software_config import SoftwareConfigResources
+from utils.patient_parameters import PatientParameters
 from gui2.SinglePatientComponent.PatientResultsSinglePatientSidePanelWidget import PatientResultsSinglePatientSidePanelWidget
 from gui2.SinglePatientComponent.CentralDisplayAreaWidget import CentralDisplayAreaWidget
 from gui2.SinglePatientComponent.LayersInteractorSinglePatientSidePanelWidget import LayersInteractorSinglePatientSidePanelWidget
 
 
 class SinglePatientWidget(QWidget):
+
+    import_data_triggered = Signal()
 
     def __init__(self, parent=None):
         super(SinglePatientWidget, self).__init__()
@@ -22,7 +25,7 @@ class SinglePatientWidget(QWidget):
 
     def __set_interface(self):
         self.setBaseSize(self.parent.baseSize())
-        self.__top_logo_panel_interface()
+        self.__top_logo_options_panel_interface()
         self.__left_results_panel_interface()
         self.__center_display_panel_interface()
         self.__right_options_panel_interface()
@@ -45,13 +48,18 @@ class SinglePatientWidget(QWidget):
         self.center_widget_container_layout.addWidget(self.central_label, 0, 0, Qt.AlignCenter)
         self.layout.addLayout(self.center_widget_container_layout)
 
-    def __top_logo_panel_interface(self):
+    def __top_logo_options_panel_interface(self):
         self.top_logo_panel_layout = QHBoxLayout()
         self.top_logo_panel_label = QLabel()
         self.top_logo_panel_label.setPixmap(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                                  '../Images/neurorads-logo.png')).scaled(150, 30, Qt.KeepAspectRatio))
         self.top_logo_panel_label.setFixedSize(QSize(150, 30))
         self.top_logo_panel_layout.addWidget(self.top_logo_panel_label, Qt.AlignLeft)
+        self.top_logo_panel_label_import_file_pushbutton = QPushButton()
+        self.top_logo_panel_label_import_file_pushbutton.setFixedSize(QSize(30, 30))
+        self.top_logo_panel_label_import_file_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/data_load_icon.png'))))
+        self.top_logo_panel_label_import_file_pushbutton.setIconSize(QSize(29, 29))
+        self.top_logo_panel_layout.addWidget(self.top_logo_panel_label_import_file_pushbutton)
         self.top_logo_panel_layout.addStretch(1)
 
     def __left_results_panel_interface(self):
@@ -92,7 +100,20 @@ class SinglePatientWidget(QWidget):
         pass
 
     def __set_connections(self):
-        pass
+        self.top_logo_panel_label_import_file_pushbutton.clicked.connect(self.__on_import_file_clicked)
+        self.__set_cross_connections()
+
+    def __set_cross_connections(self):
+        self.import_data_triggered.connect(self.center_panel.on_import_data)
 
     def get_widget_name(self):
         return self.widget_name
+
+    def __on_import_file_clicked(self):
+        input_image_filedialog = QFileDialog()
+        input_image_filepath = input_image_filedialog.getOpenFileName(self, caption='Select input MRI file',
+                                                                           directory='~',
+                                                                           filter="Image files (*.nii *.nii.gz *.nrrd *.mha *.mhd)")[0]
+        if input_image_filepath != '':
+            SoftwareConfigResources.getInstance().patients_parameters[SoftwareConfigResources.getInstance().active_patient_name].import_data(input_image_filepath)
+            self.import_data_triggered.emit()

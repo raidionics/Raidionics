@@ -11,6 +11,7 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 from utils.runtime_config_parser import RuntimeResources
+from utils.software_config import SoftwareConfigResources
 from gui2.WelcomeWidget import WelcomeWidget
 from gui2.SinglePatientComponent.SinglePatientWidget import SinglePatientWidget
 
@@ -243,6 +244,8 @@ class NeuroRADSMainWindow(QMainWindow):
 
         if index != -1:
             self.central_stackedwidget.setCurrentIndex(index)
+            SoftwareConfigResources.getInstance().add_new_patient("Patient temp")
+            SoftwareConfigResources.getInstance().active_patient_name = "Patient temp"
         else:
             # Should not happen, but what if?
             pass
