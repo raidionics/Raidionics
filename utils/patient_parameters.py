@@ -30,9 +30,9 @@ class PatientParameters:
             tmp = (image_res - min_val) / (max_val - min_val)
             image_res = tmp * 255.
         # image_res2 = np.rot90(image_res)
-        image_res2 = image_res[:, :, ::-1]
+        # image_res2 = image_res[:, :, ::-1]
         # image_res2 = image_res[::-1, ::-1, :]
         # image_res2 = np.ascontiguousarray(np.rot90(image_res2)).astype('uint8')
         # image_res2 = np.flip(image_res, axis=1)
         # image_res2 = np.flip(image_res2, axis=0)
-        self.import_display_data[base_name] = image_res2
+        self.import_display_data[base_name] = image_res

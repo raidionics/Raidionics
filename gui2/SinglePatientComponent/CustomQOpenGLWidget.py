@@ -163,8 +163,14 @@ class CustomQOpenGLWidget(QGraphicsView):
             # self.line2.setLine(0, actual_y, self.pixmap.size().width(), actual_y)
 
             raw_actual_point = self.inverse_map_transform.map(graphics_item_point)
+            actualy = raw_actual_point.y()
+            # if self.view_type != 'axial':
+            #     extremity_inv = self.inverse_map_transform.map(QPoint(self.pixmap.size().height(), self.pixmap.size().height()))
+            #     actualy = extremity_inv.x() - raw_actual_point.y()
+            # else:
+            #     rawy = raw_actual_point.y()
             # self.coordinates_changed.emit(actual_x, actual_y)
-            self.coordinates_changed.emit(raw_actual_point.x(), raw_actual_point.y())
+            self.coordinates_changed.emit(raw_actual_point.x(), actualy)
             # print("Local pos: {}".format(event.localPos()))
             # print("MapToScene pos: {}".format(self.mapToScene(QPoint(event.localPos().x(), event.localPos().y()))))
             # print("Pixmap from scene pos: {}".format(self.image_item.mapFromScene(self.mapToScene(QPoint(event.localPos().x(), event.localPos().y()))).toPoint()))
@@ -196,7 +202,13 @@ class CustomQOpenGLWidget(QGraphicsView):
                 actual_y = self.pixmap.size().height() - 1  # + int(self.height_diff / 2)
             # self.line2.setLine(0, actual_y, self.pixmap.size().width(), actual_y)
 
-            self.coordinates_changed.emit(actual_x, actual_y)
+            raw_actual_point = self.inverse_map_transform.map(graphics_item_point)
+            actualy = raw_actual_point.y()
+            # if self.view_type != 'axial':
+            #     extremity_inv = self.inverse_map_transform.map(QPoint(self.pixmap.size().height(), self.pixmap.size().height()))
+            #     actualy = extremity_inv.x() - raw_actual_point.y()
+            # self.coordinates_changed.emit(actual_x, actual_y)
+            self.coordinates_changed.emit(raw_actual_point.x(), actualy)
 
     def __update_point_clicker_lines(self, posx, posy):
         if posx < 0:
@@ -209,13 +221,16 @@ class CustomQOpenGLWidget(QGraphicsView):
             posy = 0
         elif posy >= self.pixmap.size().height():
             posy = self.pixmap.size().height() - 1
+        # if self.view_type != 'axial':
+        #     posy = self.pixmap.size().height() - posy
         self.line2.setLine(0, posy, self.pixmap.size().width(), posy)
 
-    def update_slice_view(self, slice):
-        image_2d = rotate(slice, -90).astype('uint8')
-        if self.view_type == 'axial':
-            image_2d = rotate(slice, 90).astype('uint8')
-            image_2d = image_2d[:, ::-1]
+    def update_slice_view(self, slice, x, y):
+        # image_2d = rotate(slice, 90).astype('uint8')
+        # if self.view_type == 'axial':
+        image_2d = rotate(slice, 90).astype('uint8')
+        image_2d = image_2d[:, ::-1]
+        # image_2d = slice[:, ::-1].astype('uint8')
         # image_2d = slice.astype('uint8')
         h, w = image_2d.shape
         bytes_per_line = 3 * w
@@ -254,4 +269,26 @@ class CustomQOpenGLWidget(QGraphicsView):
         # # self.pixmap = self.pixmap.scaled(QSize(int(self.parent.size().width() / 2), int(self.parent.size().height() / 2)), Qt.KeepAspectRatio)
 
         self.image_item.setPixmap(self.pixmap)
-        self.__update_point_clicker_lines(int(self.pixmap.size().width()/2), int(self.pixmap.size().height()/2))
+        graphics_point = self.map_transform.map(QPoint(x, y))
+        # self.__update_point_clicker_lines(int(self.pixmap.size().width()/2), int(self.pixmap.size().height()/2))
+        self.__update_point_clicker_lines(graphics_point.x(), graphics_point.y())
+
+        # actualy = slice.shape[1] - y
+        # adjx, adjy = rotate_custom(origin=[slice.shape[0]/2, slice.shape[1]/2], point=[x, actualy], angle=90)
+        # graphics_point = self.map_transform.map(QPoint(adjx, adjy))
+        # self.__update_point_clicker_lines(graphics_point.x(), graphics_point.y())
+
+
+def rotate_custom(origin, point, angle):
+    """
+    Rotate a point counterclockwise by a given angle around a given origin.
+
+    The angle should be given in radians.
+    """
+    import math
+    ox, oy = origin
+    px, py = point
+
+    qx = ox + math.cos(angle) * (px - ox) - math.sin(angle) * (py - oy)
+    qy = oy + math.sin(angle) * (px - ox) + math.cos(angle) * (py - oy)
+    return qx, qy
