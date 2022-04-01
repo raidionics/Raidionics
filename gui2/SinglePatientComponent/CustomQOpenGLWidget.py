@@ -217,23 +217,20 @@ class CustomQOpenGLWidget(QGraphicsView):
 
     def __from_graphics_position_to_raw_volume_position(self, graphics_point):
         raw_actual_point = self.inverse_map_transform.map(graphics_point)
-        newx = raw_actual_point.x()
-        newy = raw_actual_point.y()
-        # if self.view_type == 'coronal':
-        #     newy = self.ini_slice_shape[1] - newy
-        # elif self.view_type == 'sagittal':
-        #     newy = self.ini_slice_shape[1] - newy
-        # newy = self.image_2d_h - raw_actual_point.y()
-        # tmpx = self.image_2d_w - raw_actual_point.x()
-        # newx, newy = rotate_custom(origin=(int(self.image_2d_w/2), int(self.image_2d_h/2)), point=(tmpx, raw_actual_point.y()), angle=-90.)
-        # return raw_actual_point.x(), raw_actual_point.y()
+        # newx = raw_actual_point.x()
+        # newx = self.image_2d_w - raw_actual_point.x()
+        # newy = raw_actual_point.y()
+
+        newy = self.image_2d_w - raw_actual_point.x()
+        newx = self.image_2d_h - raw_actual_point.y()
+
         return newx, newy
 
     def update_slice_view(self, slice, x, y):
         # Set of transforms to view the different slices as they should (similar to ITK-Snap)
-        # image_2d = rotate(slice, 90).astype('uint8')
-        # image_2d = image_2d[:, ::-1]
-        image_2d = slice.astype('uint8')
+        image_2d = slice[:, ::-1]
+        image_2d = rotate(image_2d, -90).astype('uint8')
+        # image_2d = slice.astype('uint8')
         h, w = image_2d.shape
         self.ini_slice_shape = slice.shape
         self.image_2d_w = w
@@ -275,7 +272,10 @@ class CustomQOpenGLWidget(QGraphicsView):
         # # self.pixmap = self.pixmap.scaled(QSize(int(self.parent.size().width() / 2), int(self.parent.size().height() / 2)), Qt.KeepAspectRatio)
 
         self.image_item.setPixmap(self.pixmap)
-        graphics_point = self.map_transform.map(QPoint(x, y))
+        ## self.image_2d_w - x compensates for the image_2d = slice[:, ::-1], to get correct correspondance.
+        # graphics_point = self.map_transform.map(QPoint(self.image_2d_w - x, y))
+        graphics_point = self.map_transform.map(QPoint(self.image_2d_w - y, self.image_2d_h - x))
+
         # self.__update_point_clicker_lines(int(self.pixmap.size().width()/2), int(self.pixmap.size().height()/2))
         self.__update_point_clicker_lines(graphics_point.x(), graphics_point.y())
 
