@@ -10,6 +10,8 @@ from nibabel.processing import resample_to_output
 from scipy.ndimage import rotate
 
 
+# @TODO. Should not be able to click in the views until a volume has been loaded.
+
 # class CustomQOpenGLWidget(QOpenGLWidget):
 class CustomQOpenGLWidget(QGraphicsView):
     """
@@ -328,9 +330,10 @@ class CustomQOpenGLWidget(QGraphicsView):
         scale_ratio = scale_ratio * self.zoom_ratio
 
         self.map_transform = QTransform()
-        # self.map_transform = self.map_transform * QTransform().translate(-self.graphical_2d_point.x(), -self.graphical_2d_point.y())
+        # visible_rect = self.image_item.mapRectFromScene(self.mapToScene(self.viewport().rect()).boundingRect())
+        # self.map_transform = self.map_transform * QTransform().translate(-int(visible_rect.width()/2), -int(visible_rect.height()/2))
         self.map_transform = self.map_transform * QTransform().scale(scale_ratio, scale_ratio)
-        # self.map_transform = self.map_transform * QTransform().translate(self.graphical_2d_point.x(), self.graphical_2d_point.y())
+        # self.map_transform = self.map_transform * QTransform().translate(int(visible_rect.width()/2), int(visible_rect.height()/2))
         self.inverse_map_transform, _ = self.map_transform.inverted()
         qimage = qimage.transformed(self.map_transform)
         self.pixmap = QPixmap.fromImage(qimage)
