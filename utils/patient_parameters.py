@@ -2,8 +2,10 @@ import os
 import configparser
 from os.path import expanduser
 import nibabel as nib
-from nibabel.processing import resample_to_output
+from copy import deepcopy
+from nibabel.processing import resample_to_output, resample_from_to
 import numpy as np
+from scipy.ndimage import rotate
 
 
 class PatientParameters:
@@ -21,18 +23,28 @@ class PatientParameters:
         image_nib = nib.load(filename)
         image = image_nib.get_data()[:]
 
-        self.import_raw_data[base_name] = image
-        resampled_input_ni = resample_to_output(image_nib, (1.0, 1.0, 1.0), order=1)
+        self.import_raw_data[base_name] = deepcopy(image)
+        resampled_input_ni = resample_to_output(image_nib, order=1)
         image_res = resampled_input_ni.get_data()[:]
         min_val = np.min(image_res)
         max_val = np.max(image_res)
         if (max_val - min_val) != 0:
             tmp = (image_res - min_val) / (max_val - min_val)
             image_res = tmp * 255.
-        # image_res2 = np.rot90(image_res)
+        # image_res2 = np.rot90(image_res, axes=(0, 1))
+        # image_res2 = np.rot90(image_res2, axes=(0, 2))
+        # image_res2 = np.rot90(image_res2, axes=(1, 2))
+        # image_res2 = rotate(image_res, 90, axes=(0, 1))
+        # image_res2 = rotate(image_res2, 90, axes=(0, 2))
+        # image_res2 = rotate(image_res2, 90, axes=(1, 2))
         # image_res2 = image_res[:, :, ::-1]
         # image_res2 = image_res[::-1, ::-1, :]
         # image_res2 = np.ascontiguousarray(np.rot90(image_res2)).astype('uint8')
         # image_res2 = np.flip(image_res, axis=1)
         # image_res2 = np.flip(image_res2, axis=0)
-        self.import_display_data[base_name] = image_res
+        # self.import_display_data[base_name] = np.ascontiguousarray(image_res2).astype('uint8')
+
+        # image_res2 = np.transpose(image_res, axes=(1, 2, 0)).astype('uint8')
+        # image_res2 = np.ascontiguousarray(image_res2)
+        image_res2 = image_res.astype('uint8')
+        self.import_display_data[base_name] = deepcopy(image_res2)

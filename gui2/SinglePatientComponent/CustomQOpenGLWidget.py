@@ -162,18 +162,10 @@ class CustomQOpenGLWidget(QGraphicsView):
                 actual_y = self.pixmap.size().height() - 1#+ int(self.height_diff / 2)
             # self.line2.setLine(0, actual_y, self.pixmap.size().width(), actual_y)
 
-            raw_actual_point = self.inverse_map_transform.map(graphics_item_point)
-            actualy = raw_actual_point.y()
-            # if self.view_type != 'axial':
-            #     extremity_inv = self.inverse_map_transform.map(QPoint(self.pixmap.size().height(), self.pixmap.size().height()))
-            #     actualy = extremity_inv.x() - raw_actual_point.y()
-            # else:
-            #     rawy = raw_actual_point.y()
-            # self.coordinates_changed.emit(actual_x, actual_y)
-            self.coordinates_changed.emit(raw_actual_point.x(), actualy)
-            # print("Local pos: {}".format(event.localPos()))
-            # print("MapToScene pos: {}".format(self.mapToScene(QPoint(event.localPos().x(), event.localPos().y()))))
-            # print("Pixmap from scene pos: {}".format(self.image_item.mapFromScene(self.mapToScene(QPoint(event.localPos().x(), event.localPos().y()))).toPoint()))
+            # raw_actual_point = self.inverse_map_transform.map(graphics_item_point)
+            # self.coordinates_changed.emit(raw_actual_point.x(), raw_actual_point.y())
+            volx, voly = self.__from_graphics_position_to_raw_volume_position(graphics_item_point)
+            self.coordinates_changed.emit(volx, voly)
 
     def mouseReleaseEvent(self, event):
         if event.button() == Qt.LeftButton:
@@ -202,13 +194,11 @@ class CustomQOpenGLWidget(QGraphicsView):
                 actual_y = self.pixmap.size().height() - 1  # + int(self.height_diff / 2)
             # self.line2.setLine(0, actual_y, self.pixmap.size().width(), actual_y)
 
-            raw_actual_point = self.inverse_map_transform.map(graphics_item_point)
-            actualy = raw_actual_point.y()
-            # if self.view_type != 'axial':
-            #     extremity_inv = self.inverse_map_transform.map(QPoint(self.pixmap.size().height(), self.pixmap.size().height()))
-            #     actualy = extremity_inv.x() - raw_actual_point.y()
-            # self.coordinates_changed.emit(actual_x, actual_y)
-            self.coordinates_changed.emit(raw_actual_point.x(), actualy)
+            # raw_actual_point = self.inverse_map_transform.map(graphics_item_point)
+            # self.coordinates_changed.emit(raw_actual_point.x(), raw_actual_point.y())
+
+            volx, voly = self.__from_graphics_position_to_raw_volume_position(graphics_item_point)
+            self.coordinates_changed.emit(volx, voly)
 
     def __update_point_clicker_lines(self, posx, posy):
         if posx < 0:
@@ -225,19 +215,35 @@ class CustomQOpenGLWidget(QGraphicsView):
         #     posy = self.pixmap.size().height() - posy
         self.line2.setLine(0, posy, self.pixmap.size().width(), posy)
 
+    def __from_graphics_position_to_raw_volume_position(self, graphics_point):
+        raw_actual_point = self.inverse_map_transform.map(graphics_point)
+        newx = raw_actual_point.x()
+        newy = raw_actual_point.y()
+        # if self.view_type == 'coronal':
+        #     newy = self.ini_slice_shape[1] - newy
+        # elif self.view_type == 'sagittal':
+        #     newy = self.ini_slice_shape[1] - newy
+        # newy = self.image_2d_h - raw_actual_point.y()
+        # tmpx = self.image_2d_w - raw_actual_point.x()
+        # newx, newy = rotate_custom(origin=(int(self.image_2d_w/2), int(self.image_2d_h/2)), point=(tmpx, raw_actual_point.y()), angle=-90.)
+        # return raw_actual_point.x(), raw_actual_point.y()
+        return newx, newy
+
     def update_slice_view(self, slice, x, y):
+        # Set of transforms to view the different slices as they should (similar to ITK-Snap)
         # image_2d = rotate(slice, 90).astype('uint8')
-        # if self.view_type == 'axial':
-        image_2d = rotate(slice, 90).astype('uint8')
-        image_2d = image_2d[:, ::-1]
-        # image_2d = slice[:, ::-1].astype('uint8')
-        # image_2d = slice.astype('uint8')
+        # image_2d = image_2d[:, ::-1]
+        image_2d = slice.astype('uint8')
         h, w = image_2d.shape
+        self.ini_slice_shape = slice.shape
+        self.image_2d_w = w
+        self.image_2d_h = h
         bytes_per_line = 3 * w
         color_image = np.stack([image_2d] * 3, axis=-1)
         qimage = QImage(color_image.data, w, h, bytes_per_line, QImage.Format_RGB888)
         qimage = qimage.convertToFormat(QImage.Format_RGBA8888)
         scale_ratio = min((self.parent.size().width() / 2) / qimage.size().width(), (self.parent.size().height() / 2) / qimage.size().height())
+        # scale_ratio = 1.0
 
         self.map_transform = QTransform()
         # self.map_transform = self.map_transform.translate(-int(self.pixmap.size().width() / 2), -int(self.pixmap.size().height() / 2))

@@ -58,25 +58,25 @@ class CentralDisplayAreaWidget(QWidget):
         self.sagittal_viewer.update_slice_view(self.displayed_image[self.point_clicker_position[0], :, :], self.point_clicker_position[1], self.point_clicker_position[2])
 
     def __on_axial_coordinates_changed(self, x, y):
-        self.point_clicker_position[0] = x
-        self.point_clicker_position[1] = y #self.displayed_image.shape[1] - y
+        self.point_clicker_position[0] = y
+        self.point_clicker_position[1] = x #self.displayed_image.shape[1] - y
         print("3D point: [{}, {}, {}]".format(self.point_clicker_position[0], self.point_clicker_position[1], self.point_clicker_position[2]))
-        self.coronal_viewer.update_slice_view(self.displayed_image[:, self.point_clicker_position[1], :], self.point_clicker_position[0], self.point_clicker_position[2])
-        self.sagittal_viewer.update_slice_view(self.displayed_image[self.point_clicker_position[0], :, :], self.point_clicker_position[1], self.point_clicker_position[2])
+        self.coronal_viewer.update_slice_view(self.displayed_image[:, self.point_clicker_position[1], :], self.point_clicker_position[2], self.point_clicker_position[0])
+        self.sagittal_viewer.update_slice_view(self.displayed_image[self.point_clicker_position[0], :, :], self.point_clicker_position[2], self.point_clicker_position[1])
 
         # self.coronal_viewer.update_slice_view(self.displayed_image[:, self.point_clicker_position[1], :], self.point_clicker_position[0], self.displayed_image.shape[2] - self.point_clicker_position[2])
         # self.sagittal_viewer.update_slice_view(self.displayed_image[self.point_clicker_position[0], :, :], self.point_clicker_position[1], self.displayed_image.shape[2] -self.point_clicker_position[2])
 
     def __on_coronal_coordinates_changed(self, x, y):
-        self.point_clicker_position[0] = x  # self.displayed_image.shape[0] - x
-        self.point_clicker_position[2] = y #self.displayed_image.shape[2] - y
+        self.point_clicker_position[0] = y  # self.displayed_image.shape[0] - x
+        self.point_clicker_position[2] = x #self.displayed_image.shape[2] - y
         print("3D point: [{}, {}, {}]".format(self.point_clicker_position[0], self.point_clicker_position[1], self.point_clicker_position[2]))
-        self.axial_viewer.update_slice_view(self.displayed_image[:, :, self.point_clicker_position[2]], self.point_clicker_position[0], self.point_clicker_position[1])
-        self.sagittal_viewer.update_slice_view(self.displayed_image[self.point_clicker_position[0], :, :], self.point_clicker_position[1], self.point_clicker_position[2])
+        self.axial_viewer.update_slice_view(self.displayed_image[:, :, self.point_clicker_position[2]], self.point_clicker_position[1], self.point_clicker_position[0])
+        self.sagittal_viewer.update_slice_view(self.displayed_image[self.point_clicker_position[0], :, :], self.point_clicker_position[2], self.point_clicker_position[1])
 
     def __on_sagittal_coordinates_changed(self, x, y):
-        self.point_clicker_position[1] = x
-        self.point_clicker_position[2] = y #self.displayed_image.shape[2] - y
+        self.point_clicker_position[1] = y
+        self.point_clicker_position[2] = x #self.displayed_image.shape[2] - y
         print("3D point: [{}, {}, {}]".format(self.point_clicker_position[0], self.point_clicker_position[1], self.point_clicker_position[2]))
-        self.axial_viewer.update_slice_view(self.displayed_image[:, :, self.point_clicker_position[2]], self.point_clicker_position[0], self.point_clicker_position[1])
-        self.coronal_viewer.update_slice_view(self.displayed_image[:, self.point_clicker_position[1], :], self.point_clicker_position[0], self.point_clicker_position[2])
+        self.axial_viewer.update_slice_view(self.displayed_image[:, :, self.point_clicker_position[2]], self.point_clicker_position[1], self.point_clicker_position[0])
+        self.coronal_viewer.update_slice_view(self.displayed_image[:, self.point_clicker_position[1], :], self.point_clicker_position[2], self.point_clicker_position[0])
