@@ -42,17 +42,28 @@ class CustomQOpenGLWidget(QGraphicsView):
 
         pen = QPen()
         pen.setColor(QColor(0, 0, 255))
+        pen.setStyle(Qt.DashLine)
         #self.line1 = self.scene.addLine(350, 0, 350, 400, pen)
         self.line1 = self.scene.addLine(int(self.pixmap.size().width()/2), 0, int(self.pixmap.size().width()/2), self.pixmap.size().height(), pen)
         self.line2 = self.scene.addLine(0, int(self.pixmap.size().height()/2), self.pixmap.size().width(), int(self.pixmap.size().height()/2), pen)
         self.setStyleSheet("QGraphicsView{background-color:rgb(0,0,0);}")
         self.setScene(self.scene)
-        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        # self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        # self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
 
         self.width_diff = int(self.parent.size().width() / 2) - self.pixmap.width()
         self.height_diff = int(self.parent.size().height() / 2) - self.pixmap.height()
         self.right_button_on_hold = False
+        self.left_button_on_hold = False
+        self.zoom_ratio = 1.0
+        self.clicked_right_pos = None
+        self.slice = None
+        self.display_2d = None
+        self.original_2d_point = None  # 2d point position in the original MRI volume
+        self.adapted_2d_point = None  # 2d point position in the MRI volume adjusted for conventional neurological view
+        self.graphical_2d_point = None  # 2d point position in the graphical view ( adjusted for zoom, scale, etc...)
 
         #
         # image_nib = nib.load("/media/dbouget/ihdb/Studies/Neuro/NeuroRADS/Article-Q1-2022/200_MR_T1_pre_311_typical_meningioma.nii.gz")
@@ -139,7 +150,7 @@ class CustomQOpenGLWidget(QGraphicsView):
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
-            self.right_button_on_hold = True
+            self.left_button_on_hold = True
             graphics_item_point = self.mapToScene(QPoint(event.localPos().x(), event.localPos().y()))
             self.__update_point_clicker_lines(graphics_item_point.x(), graphics_item_point.y())
             # max_dim_point = self.image_item.boundingRect()
@@ -166,13 +177,18 @@ class CustomQOpenGLWidget(QGraphicsView):
             # self.coordinates_changed.emit(raw_actual_point.x(), raw_actual_point.y())
             volx, voly = self.__from_graphics_position_to_raw_volume_position(graphics_item_point)
             self.coordinates_changed.emit(volx, voly)
+        if event.button() == Qt.RightButton:
+            self.clicked_right_pos = event.globalPos()
+            self.right_button_on_hold = True
 
     def mouseReleaseEvent(self, event):
         if event.button() == Qt.LeftButton:
+            self.left_button_on_hold = False
+        elif event.button() == Qt.RightButton:
             self.right_button_on_hold = False
 
     def mouseMoveEvent(self, event):
-        if self.right_button_on_hold:
+        if self.left_button_on_hold:
             graphics_item_point = self.mapToScene(QPoint(event.localPos().x(), event.localPos().y()))
 
             self.__update_point_clicker_lines(graphics_item_point.x(), graphics_item_point.y())
@@ -199,6 +215,14 @@ class CustomQOpenGLWidget(QGraphicsView):
 
             volx, voly = self.__from_graphics_position_to_raw_volume_position(graphics_item_point)
             self.coordinates_changed.emit(volx, voly)
+        elif self.right_button_on_hold:
+            if event.globalPos().y() > self.clicked_right_pos.y():
+                self.zoom_ratio = min(4.0, self.zoom_ratio + 0.025)
+            else:
+                self.zoom_ratio = max(0.5, self.zoom_ratio - 0.025)
+            # print("Zoom ratio: {}".format(self.zoom_ratio))
+            self.__repaint_view()
+            self.clicked_right_pos = event.globalPos()
 
     def __update_point_clicker_lines(self, posx, posy):
         if posx < 0:
@@ -217,6 +241,7 @@ class CustomQOpenGLWidget(QGraphicsView):
 
     def __from_graphics_position_to_raw_volume_position(self, graphics_point):
         raw_actual_point = self.inverse_map_transform.map(graphics_point)
+        self.adapted_2d_point = raw_actual_point
         # newx = raw_actual_point.x()
         # newx = self.image_2d_w - raw_actual_point.x()
         # newy = raw_actual_point.y()
@@ -224,14 +249,20 @@ class CustomQOpenGLWidget(QGraphicsView):
         newy = self.image_2d_w - raw_actual_point.x()
         newx = self.image_2d_h - raw_actual_point.y()
 
+        # newy = min(max(0, self.image_2d_w - raw_actual_point.x()), self.ini_slice_shape[1])
+        # newx = min(max(0, self.image_2d_h - raw_actual_point.y()), self.ini_slice_shape[0])
+
         return newx, newy
 
     def update_slice_view(self, slice, x, y):
         # Set of transforms to view the different slices as they should (similar to ITK-Snap)
+        self.slice = slice
+        self.original_2d_point = QPoint(x, y)
         image_2d = slice[:, ::-1]
         image_2d = rotate(image_2d, -90).astype('uint8')
         # image_2d = slice.astype('uint8')
         h, w = image_2d.shape
+        self.display_2d = image_2d
         self.ini_slice_shape = slice.shape
         self.image_2d_w = w
         self.image_2d_h = h
@@ -241,6 +272,7 @@ class CustomQOpenGLWidget(QGraphicsView):
         qimage = qimage.convertToFormat(QImage.Format_RGBA8888)
         scale_ratio = min((self.parent.size().width() / 2) / qimage.size().width(), (self.parent.size().height() / 2) / qimage.size().height())
         # scale_ratio = 1.0
+        scale_ratio = scale_ratio * self.zoom_ratio
 
         self.map_transform = QTransform()
         # self.map_transform = self.map_transform.translate(-int(self.pixmap.size().width() / 2), -int(self.pixmap.size().height() / 2))
@@ -275,6 +307,8 @@ class CustomQOpenGLWidget(QGraphicsView):
         ## self.image_2d_w - x compensates for the image_2d = slice[:, ::-1], to get correct correspondance.
         # graphics_point = self.map_transform.map(QPoint(self.image_2d_w - x, y))
         graphics_point = self.map_transform.map(QPoint(self.image_2d_w - y, self.image_2d_h - x))
+        self.adapted_2d_point = QPoint(self.image_2d_w - y, self.image_2d_h - x)
+        self.graphical_2d_point = graphics_point
 
         # self.__update_point_clicker_lines(int(self.pixmap.size().width()/2), int(self.pixmap.size().height()/2))
         self.__update_point_clicker_lines(graphics_point.x(), graphics_point.y())
@@ -283,6 +317,27 @@ class CustomQOpenGLWidget(QGraphicsView):
         # adjx, adjy = rotate_custom(origin=[slice.shape[0]/2, slice.shape[1]/2], point=[x, actualy], angle=90)
         # graphics_point = self.map_transform.map(QPoint(adjx, adjy))
         # self.__update_point_clicker_lines(graphics_point.x(), graphics_point.y())
+
+    def __repaint_view(self):
+        h, w = self.display_2d.shape
+        bytes_per_line = 3 * w
+        color_image = np.stack([self.display_2d] * 3, axis=-1)
+        qimage = QImage(color_image.data, w, h, bytes_per_line, QImage.Format_RGB888)
+        qimage = qimage.convertToFormat(QImage.Format_RGBA8888)
+        scale_ratio = min((self.parent.size().width() / 2) / qimage.size().width(), (self.parent.size().height() / 2) / qimage.size().height())
+        scale_ratio = scale_ratio * self.zoom_ratio
+
+        self.map_transform = QTransform()
+        # self.map_transform = self.map_transform * QTransform().translate(-self.graphical_2d_point.x(), -self.graphical_2d_point.y())
+        self.map_transform = self.map_transform * QTransform().scale(scale_ratio, scale_ratio)
+        # self.map_transform = self.map_transform * QTransform().translate(self.graphical_2d_point.x(), self.graphical_2d_point.y())
+        self.inverse_map_transform, _ = self.map_transform.inverted()
+        qimage = qimage.transformed(self.map_transform)
+        self.pixmap = QPixmap.fromImage(qimage)
+        self.image_item.setPixmap(self.pixmap)
+        self.scene.setSceneRect(0, 0, self.pixmap.width(), self.pixmap.height())
+        self.graphical_2d_point = self.map_transform.map(self.adapted_2d_point)
+        self.__update_point_clicker_lines(self.graphical_2d_point.x(), self.graphical_2d_point.y())
 
 
 def rotate_custom(origin, point, angle):
