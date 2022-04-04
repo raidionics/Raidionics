@@ -28,13 +28,14 @@ class CentralDisplayAreaWidget(QWidget):
         self.layout.setVerticalSpacing(0)
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.empty_label = QLabel()
-        self.empty_label.setFixedSize(QSize(int(1140 / 2), int(850 / 2)))
+        self.empty_label.setMinimumSize(QSize(int(1140 / 2), int(850 / 2)))
         self.axial_viewer = CustomQOpenGLWidget(view_type='axial', parent=self)
-        self.axial_viewer.setFixedSize(QSize(int(1140 / 2), int(850 / 2)))
+        self.axial_viewer.setMinimumSize(QSize(int(1140 / 2), int(850 / 2)))
         self.sagittal_viewer = CustomQOpenGLWidget(view_type='sagittal', parent=self)
-        self.sagittal_viewer.setFixedSize(QSize(int(1140 / 2), int(850 / 2)))
+        self.sagittal_viewer.setMinimumSize(QSize(int(1140 / 2), int(850 / 2)))
         self.coronal_viewer = CustomQOpenGLWidget(view_type='coronal', parent=self)
-        self.coronal_viewer.setFixedSize(QSize(int(1140 / 2), int(850 / 2)))
+        #self.coronal_viewer.setFixedSize(QSize(int(1140 / 2), int(850 / 2)))
+        self.coronal_viewer.setMinimumSize(QSize(int(1140 / 2), int(850 / 2)))
         self.layout.addWidget(self.axial_viewer, 0, 0)
         self.layout.addWidget(self.empty_label, 0, 1)
         self.layout.addWidget(self.sagittal_viewer, 1, 0)
@@ -42,6 +43,7 @@ class CentralDisplayAreaWidget(QWidget):
 
     def __set_stylesheets(self):
         self.empty_label.setStyleSheet("QLabel{background-color:rgb(255,0,0);}")
+        # self.setStyleSheet("QWidget{background-color:rgb(0,0,128);}")
 
     def __set_connections(self):
         self.axial_viewer.coordinates_changed.connect(self.__on_axial_coordinates_changed)

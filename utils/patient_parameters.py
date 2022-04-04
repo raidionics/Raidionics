@@ -19,6 +19,9 @@ class PatientParameters:
         self.import_display_data = {}
 
     def import_data(self, filename):
+        """
+        Saving the raw file, and preprocessing it to have fixed orientations and uint8 values.
+        """
         base_name = os.path.basename(filename).split('.')[0]
         image_nib = nib.load(filename)
         image = image_nib.get_data()[:]
@@ -31,20 +34,6 @@ class PatientParameters:
         if (max_val - min_val) != 0:
             tmp = (image_res - min_val) / (max_val - min_val)
             image_res = tmp * 255.
-        # image_res2 = np.rot90(image_res, axes=(0, 1))
-        # image_res2 = np.rot90(image_res2, axes=(0, 2))
-        # image_res2 = np.rot90(image_res2, axes=(1, 2))
-        # image_res2 = rotate(image_res, 90, axes=(0, 1))
-        # image_res2 = rotate(image_res2, 90, axes=(0, 2))
-        # image_res2 = rotate(image_res2, 90, axes=(1, 2))
-        # image_res2 = image_res[:, :, ::-1]
-        # image_res2 = image_res[::-1, ::-1, :]
-        # image_res2 = np.ascontiguousarray(np.rot90(image_res2)).astype('uint8')
-        # image_res2 = np.flip(image_res, axis=1)
-        # image_res2 = np.flip(image_res2, axis=0)
-        # self.import_display_data[base_name] = np.ascontiguousarray(image_res2).astype('uint8')
 
-        # image_res2 = np.transpose(image_res, axes=(1, 2, 0)).astype('uint8')
-        # image_res2 = np.ascontiguousarray(image_res2)
         image_res2 = image_res.astype('uint8')
         self.import_display_data[base_name] = deepcopy(image_res2)

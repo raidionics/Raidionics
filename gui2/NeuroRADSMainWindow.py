@@ -33,6 +33,8 @@ class WorkerThread(QThread):
 
 class NeuroRADSMainWindow(QMainWindow):
 
+    new_patient_clicked = Signal(str)
+
     def __init__(self, application, *args, **kwargs):
         super(NeuroRADSMainWindow, self).__init__(*args, **kwargs)
 
@@ -211,6 +213,7 @@ class NeuroRADSMainWindow(QMainWindow):
 
     def __cross_widgets_connections(self):
         self.welcome_widget.left_panel_single_patient_pushbutton.clicked.connect(self.__on_single_patient_clicked)
+        self.new_patient_clicked.connect(self.single_patient_widget.on_single_patient_clicked)
 
     def __set_menubar_connections(self):
         pass
@@ -244,8 +247,9 @@ class NeuroRADSMainWindow(QMainWindow):
 
         if index != -1:
             self.central_stackedwidget.setCurrentIndex(index)
-            SoftwareConfigResources.getInstance().add_new_patient("Patient temp")
-            SoftwareConfigResources.getInstance().active_patient_name = "Patient temp"
+            SoftwareConfigResources.getInstance().add_new_patient("Temp Patient")
+            SoftwareConfigResources.getInstance().active_patient_name = "Temp Patient"
+            self.new_patient_clicked.emit("Temp Patient")
         else:
             # Should not happen, but what if?
             pass

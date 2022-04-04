@@ -77,6 +77,8 @@ class SinglePatientWidget(QWidget):
         # self.center_dock.setMaximumSize(QSize(1440, 850))
         # self.center_dock.setStyleSheet("QLabel{background-color:rgb(0,0,255);}")
         self.results_panel = PatientResultsSinglePatientSidePanelWidget(self)
+        self.results_panel.setBaseSize(QSize(200, self.baseSize().height()))
+        self.results_panel.setMaximumSize(QSize(200, self.baseSize().height()))
         self.center_panel = CentralDisplayAreaWidget(self)
         self.layers_panel = LayersInteractorSinglePatientSidePanelWidget(self)
         self.left_panel_splitter.addWidget(self.results_panel)
@@ -117,3 +119,6 @@ class SinglePatientWidget(QWidget):
         if input_image_filepath != '':
             SoftwareConfigResources.getInstance().patients_parameters[SoftwareConfigResources.getInstance().active_patient_name].import_data(input_image_filepath)
             self.import_data_triggered.emit()
+
+    def on_single_patient_clicked(self, patient_name):
+        self.results_panel.add_new_patient(patient_name)
