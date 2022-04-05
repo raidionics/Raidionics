@@ -3,6 +3,7 @@ from PySide2.QtGui import QPixmap, QImage, QPainter, QPen, QColor, QTransform
 from PySide2.QtCore import Qt, QSize, Signal, QPoint
 from PySide2 import QtOpenGL
 import numpy as np
+import os
 
 # from OpenGL.GL import *
 import nibabel as nib
@@ -24,6 +25,10 @@ class CustomQOpenGLWidget(QGraphicsView):
         self.parent = parent
         self.view_type = view_type
         self.scene = QGraphicsScene(self)
+        self.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
+        self.setViewportUpdateMode(QGraphicsView.SmartViewportUpdate)
+        self.setAcceptDrops(True)
+        self.setDragMode(QGraphicsView.ScrollHandDrag)
 
         image_2d = np.zeros((150, 150), dtype="uint8")
         h, w = image_2d.shape
@@ -225,6 +230,27 @@ class CustomQOpenGLWidget(QGraphicsView):
             # print("Zoom ratio: {}".format(self.zoom_ratio))
             self.__repaint_view()
             self.clicked_right_pos = event.globalPos()
+
+    def dragEnterEvent(self, event):
+        filename = event.mimeData().text()
+        # @TODO. Should check it's a valid extension, from the list in SoftwareResources
+        if '.'.join(os.path.basename(filename).split('.')[1:]).strip() == 'nii.gz':
+            event.accept()
+        else:
+            event.ignore()
+
+    def dragMoveEvent(self, event):
+        pass
+
+    def dragLeaveEvent(self, event):
+        event.ignore()
+
+    def dropEvent(self, event):
+        filename = event.mimeData().text().strip()
+        # @TODO. Should emit a signal, or directly patch to SofwareResources ?
+        # Should pop-up a QDialog, to select if image or annotation
+        # Should also specify image sequence or annotation target, or can do it after in the left or right panel?
+        print("plop")
 
     def __update_point_clicker_lines(self, posx, posy):
         if posx < 0:

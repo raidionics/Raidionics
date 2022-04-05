@@ -1,6 +1,6 @@
 from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QScrollArea, QPushButton
 from PySide2.QtGui import QIcon, QPixmap
-from PySide2.QtCore import QSize
+from PySide2.QtCore import QSize, Signal
 
 from gui2.UtilsWidgets.QRightIconPushButton import QRightIconPushButton
 
@@ -9,6 +9,8 @@ class QCollapsibleGroupBox(QWidget):
     """
 
     """
+
+    clicked_signal = Signal(bool, str)
 
     def __init__(self, title, parent=None):
         super(QCollapsibleGroupBox, self).__init__()
@@ -36,7 +38,7 @@ class QCollapsibleGroupBox(QWidget):
         self.layout.addStretch(1)
 
     def __set_connections(self):
-        self.header_pushbutton.clicked.connect(self.__on_header_pushbutton_clicked)
+        self.header_pushbutton.clicked.connect(self.on_header_pushbutton_clicked)
 
     def __set_stylesheets(self):
         pass
@@ -44,9 +46,10 @@ class QCollapsibleGroupBox(QWidget):
     #     self.header_pushbutton.setStyleSheet(header)
     #     self.content_label.setStyleSheet("QLabel{background-color:rgb(254, 254, 254);}")
 
-    def __on_header_pushbutton_clicked(self, state):
+    def on_header_pushbutton_clicked(self, state):
         self.collapsed = state
         self.content_label.setVisible(state)
+        self.clicked_signal.emit(state, self.title)
 
     def set_header_icons(self, unchecked_icon_path=None, unchecked_icon_size=QSize(), checked_icon_path=None,
                        checked_icon_size=QSize()):

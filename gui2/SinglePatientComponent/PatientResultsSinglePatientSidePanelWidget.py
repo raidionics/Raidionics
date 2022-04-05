@@ -2,6 +2,7 @@ from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QScroll
 from PySide2.QtCore import QSize, Qt
 
 from gui2.SinglePatientComponent.SinglePatientResultsWidget import SinglePatientResultsWidget
+from utils.software_config import SoftwareConfigResources
 
 
 class PatientResultsSinglePatientSidePanelWidget(QWidget):
@@ -50,15 +51,28 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         # self.overall_label.setStyleSheet("QLabel{background-color:rgb(0, 255, 0);}")
         self.patient_list_scrollarea.setStyleSheet("QScrollArea{background-color:rgb(0, 255, 0);}")
 
+    def on_import_patient(self):
+        self.add_new_patient(SoftwareConfigResources.getInstance().active_patient_name)
+
     def add_new_patient(self, patient_name):
+        # Have to connect signals/slots from each dynamic widget, to enfore the one active patient at all time.
         pat_widget = SinglePatientResultsWidget(patient_name, self)
         pat_widget.setBaseSize(QSize(self.baseSize().width(), self.baseSize().height()))
         pat_widget.setMaximumSize(QSize(self.baseSize().width(), self.baseSize().height()))
         pat_widget.setMinimumSize(QSize(self.baseSize().width(), int(self.baseSize().height() / 2)))
+        pat_widget.patient_name_lineedit.setText(patient_name)
         self.patient_results_widgets[patient_name] = pat_widget
         self.patient_list_scrollarea_layout.insertWidget(self.patient_list_scrollarea_layout.count() - 1, pat_widget)
         if len(self.patient_results_widgets) == 1:
             pat_widget.manual_header_pushbutton_clicked(True)
         else:
-            # What should be the behaviour, toggle the new patient?
-            pass
+            for i, wid in enumerate(list(self.patient_results_widgets.keys())):
+                self.patient_results_widgets[wid].manual_header_pushbutton_clicked(False)
+            pat_widget.manual_header_pushbutton_clicked(True)
+
+        pat_widget.clicked_signal.connect(self.__on_patient_selection)
+
+    def __on_patient_selection(self, state, widget_id):
+        for i, wid in enumerate(list(self.patient_results_widgets.keys())):
+            if wid != widget_id:
+                self.patient_results_widgets[wid].manual_header_pushbutton_clicked(False)

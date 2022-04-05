@@ -14,6 +14,7 @@ from gui2.SinglePatientComponent.LayersInteractorSinglePatientSidePanelWidget im
 class SinglePatientWidget(QWidget):
 
     import_data_triggered = Signal()
+    import_patient_triggered = Signal()
 
     def __init__(self, parent=None):
         super(SinglePatientWidget, self).__init__()
@@ -60,6 +61,13 @@ class SinglePatientWidget(QWidget):
         self.top_logo_panel_label_import_file_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/data_load_icon.png'))))
         self.top_logo_panel_label_import_file_pushbutton.setIconSize(QSize(29, 29))
         self.top_logo_panel_layout.addWidget(self.top_logo_panel_label_import_file_pushbutton)
+
+        self.top_logo_panel_label_save_pushbutton = QPushButton()
+        self.top_logo_panel_label_save_pushbutton.setFixedSize(QSize(30, 30))
+        self.top_logo_panel_label_save_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/data_save_icon.png'))))
+        self.top_logo_panel_label_save_pushbutton.setIconSize(QSize(29, 29))
+        self.top_logo_panel_layout.addWidget(self.top_logo_panel_label_save_pushbutton)
+
         self.top_logo_panel_layout.addStretch(1)
 
     def __left_results_panel_interface(self):
@@ -103,10 +111,13 @@ class SinglePatientWidget(QWidget):
 
     def __set_connections(self):
         self.top_logo_panel_label_import_file_pushbutton.clicked.connect(self.__on_import_file_clicked)
+        self.top_logo_panel_label_save_pushbutton.clicked.connect(self.__on_save_clicked)
         self.__set_cross_connections()
 
     def __set_cross_connections(self):
         self.import_data_triggered.connect(self.center_panel.on_import_data)
+        self.import_patient_triggered.connect(self.center_panel.on_import_data)
+        self.import_patient_triggered.connect(self.results_panel.on_import_patient)
 
     def get_widget_name(self):
         return self.widget_name
@@ -115,10 +126,19 @@ class SinglePatientWidget(QWidget):
         input_image_filedialog = QFileDialog()
         input_image_filepath = input_image_filedialog.getOpenFileName(self, caption='Select input MRI file',
                                                                            directory='~',
-                                                                           filter="Image files (*.nii *.nii.gz *.nrrd *.mha *.mhd)")[0]
+                                                                           filter="Image files (*.nii *.nii.gz *.nrrd *.mha *.mhd *.neurorads)")[0]
         if input_image_filepath != '':
-            SoftwareConfigResources.getInstance().patients_parameters[SoftwareConfigResources.getInstance().active_patient_name].import_data(input_image_filepath)
-            self.import_data_triggered.emit()
+            extension = '.'.join(os.path.basename(input_image_filepath).split('.')[1:])
+            if extension == 'neurorads':
+                SoftwareConfigResources.getInstance().load_patient(input_image_filepath)
+                # @TODO. emit a signal to update the different GUI pices.
+                self.import_patient_triggered.emit()
+            else:
+                SoftwareConfigResources.getInstance().patients_parameters[SoftwareConfigResources.getInstance().active_patient_name].import_data(input_image_filepath)
+                self.import_data_triggered.emit()
+
+    def __on_save_clicked(self):
+        SoftwareConfigResources.getInstance().patients_parameters[SoftwareConfigResources.getInstance().active_patient_name].save_patient()
 
     def on_single_patient_clicked(self, patient_name):
         self.results_panel.add_new_patient(patient_name)

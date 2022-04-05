@@ -846,5 +846,29 @@
        inkscape:export-filename="/home/dbouget/Documents/Code/Public/neuro_rads/gui2/Images/uncollapased_icon.png"
        inkscape:export-xdpi="300"
        inkscape:export-ydpi="300" />
+    <rect
+       style="font-variation-settings:normal;vector-effect:none;fill:#ff7f2a;fill-opacity:1;fill-rule:evenodd;stroke-width:0.17455;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;stop-color:#000000"
+       id="rect4848-2"
+       width="6"
+       height="6"
+       x="24.287437"
+       y="71.020294"
+       inkscape:export-filename="/home/dbouget/Documents/Code/Public/neuro_rads/gui2/Images/data_save_icon.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:1.76389px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="24.632715"
+       y="74.820747"
+       id="text4852-9"
+       inkscape:export-filename="/home/dbouget/Documents/Code/Public/neuro_rads/gui2/Images/data_save_icon.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300"><tspan
+         sodipodi:role="line"
+         id="tspan4850-6"
+         x="24.632715"
+         y="74.820747"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:1.76389px;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';stroke-width:0.264583">SAVE</tspan></text>
   </g>
 </svg>
