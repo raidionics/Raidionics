@@ -51,6 +51,8 @@ class CentralDisplayAreaWidget(QWidget):
         self.sagittal_viewer.coordinates_changed.connect(self.__on_sagittal_coordinates_changed)
 
     def on_import_data(self):
+        # @TODO. Should do the following only when the first image is loaded, to init the viewers.
+        # After that, the subsequent images should be appended to lists, and available when clicked upon.
         self.current_patient_parameters = SoftwareConfigResources.getInstance().patients_parameters[SoftwareConfigResources.getInstance().active_patient_name]
         self.displayed_image = self.current_patient_parameters.import_display_data[list(self.current_patient_parameters.import_display_data.keys())[0]]
         self.point_clicker_position = [int(self.displayed_image.shape[0] / 2), int(self.displayed_image.shape[1] / 2),
@@ -62,20 +64,20 @@ class CentralDisplayAreaWidget(QWidget):
     def __on_axial_coordinates_changed(self, x, y):
         self.point_clicker_position[0] = min(max(0, y), self.displayed_image.shape[0] - 1)
         self.point_clicker_position[1] = min(max(0, x), self.displayed_image.shape[1] - 1)
-        print("3D point: [{}, {}, {}]".format(self.point_clicker_position[0], self.point_clicker_position[1], self.point_clicker_position[2]))
+        # print("3D point: [{}, {}, {}]".format(self.point_clicker_position[0], self.point_clicker_position[1], self.point_clicker_position[2]))
         self.coronal_viewer.update_slice_view(self.displayed_image[:, self.point_clicker_position[1], :], self.point_clicker_position[2], self.point_clicker_position[0])
         self.sagittal_viewer.update_slice_view(self.displayed_image[self.point_clicker_position[0], :, :], self.point_clicker_position[2], self.point_clicker_position[1])
 
     def __on_coronal_coordinates_changed(self, x, y):
         self.point_clicker_position[0] = min(max(0, y), self.displayed_image.shape[0] - 1)
         self.point_clicker_position[2] = min(max(0, x), self.displayed_image.shape[2] - 1)
-        print("3D point: [{}, {}, {}]".format(self.point_clicker_position[0], self.point_clicker_position[1], self.point_clicker_position[2]))
+        # print("3D point: [{}, {}, {}]".format(self.point_clicker_position[0], self.point_clicker_position[1], self.point_clicker_position[2]))
         self.axial_viewer.update_slice_view(self.displayed_image[:, :, self.point_clicker_position[2]], self.point_clicker_position[1], self.point_clicker_position[0])
         self.sagittal_viewer.update_slice_view(self.displayed_image[self.point_clicker_position[0], :, :], self.point_clicker_position[2], self.point_clicker_position[1])
 
     def __on_sagittal_coordinates_changed(self, x, y):
         self.point_clicker_position[1] = min(max(0, y), self.displayed_image.shape[1] - 1)
         self.point_clicker_position[2] = min(max(0, x), self.displayed_image.shape[2] - 1)
-        print("3D point: [{}, {}, {}]".format(self.point_clicker_position[0], self.point_clicker_position[1], self.point_clicker_position[2]))
+        # print("3D point: [{}, {}, {}]".format(self.point_clicker_position[0], self.point_clicker_position[1], self.point_clicker_position[2]))
         self.axial_viewer.update_slice_view(self.displayed_image[:, :, self.point_clicker_position[2]], self.point_clicker_position[1], self.point_clicker_position[0])
         self.coronal_viewer.update_slice_view(self.displayed_image[:, self.point_clicker_position[1], :], self.point_clicker_position[2], self.point_clicker_position[0])

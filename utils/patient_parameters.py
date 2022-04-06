@@ -14,11 +14,11 @@ class PatientParameters:
         self.patient_id = id.replace(" ", '_').strip()
         # Initially, everything is dumped in the software temp place, until a destination is chosen by the user.
         # Should we have a patient-named folder, so that the user only needs to choose the global destination directory
-        self.output_folder = os.path.join(expanduser("~"), '.neurorads', 'tmp_patient')
+        self.output_folder = os.path.join(expanduser("~"), '.neurorads')
         os.makedirs(self.output_folder, exist_ok=True)  # Might have to erase the content of the folder for
-        # every new patient, but then must be prompted on screen that it will be erased and removed from viewing within the software
+        # @TODO. every new patient, but then must be prompted on screen that it will be erased and removed from viewing within the software
 
-        self.patient_parameters_project_filename = os.path.join(self.output_folder, self.patient_id + '_scene.neurorads')
+        self.patient_parameters_project_filename = os.path.join(self.output_folder, self.patient_id, self.patient_id + '_scene.neurorads')
         self.patient_parameters_project_json = {}
         self.patient_parameters_project_json['Parameters'] = {}
         self.patient_parameters_project_json['Parameters']['Default'] = {}
@@ -33,7 +33,7 @@ class PatientParameters:
 
     def update_id(self, new_id):
         self.patient_id = new_id.replace(" ", '_').strip()
-        self.patient_parameters_project_filename = os.path.join(self.output_folder, self.patient_id + '_scene.neurorads')
+        self.patient_parameters_project_filename = os.path.join(self.output_folder, self.patient_id, self.patient_id + '_scene.neurorads')
         self.patient_parameters_project_json['Parameters']['Default']['Patient name'] = self.patient_id
 
     def import_patient(self, filename):
@@ -70,6 +70,8 @@ class PatientParameters:
         self.import_display_data[base_name] = deepcopy(image_res2)
 
     def save_patient(self):
+        self.output_folder = os.path.join(self.output_folder, self.patient_id)
+        os.makedirs(self.output_folder, exist_ok=True)
         for i, disp in enumerate(list(self.import_display_data.keys())):
             volume_dump_filename = os.path.join(self.output_folder, disp + '_display.nii.gz')
             self.patient_parameters_project_json['Volumes']['Display'][disp] = volume_dump_filename

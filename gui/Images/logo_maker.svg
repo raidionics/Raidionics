@@ -370,8 +370,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.979899"
-     inkscape:cx="297.04628"
-     inkscape:cy="448.29411"
+     inkscape:cx="180.78974"
+     inkscape:cy="478.83445"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      inkscape:document-rotation="0"
@@ -870,5 +870,55 @@
          x="24.632715"
          y="74.820747"
          style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:1.76389px;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';stroke-width:0.264583">SAVE</tspan></text>
+    <path
+       style="fill:#3cff89;fill-opacity:1;stroke:#3cff89;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 14.071877,151.09801 c -1.051226,0.6996 -1.047487,3.08304 0,3.78823 1.263904,0.85089 6.340574,1.16137 8.291701,0 1.081566,-0.64378 1.033718,-3.07626 -0.01253,-3.77597 -2.047715,-1.36948 -6.445116,-1.23284 -8.279171,-0.0123 z"
+       id="path5002"
+       sodipodi:nodetypes="sssss"
+       inkscape:export-filename="/home/dbouget/Documents/Code/Public/neuro_rads/gui2/Images/radio_toggle_on_icon.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300" />
+    <ellipse
+       style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#ffffff;stroke-width:0.622618;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;stop-color:#000000;stop-opacity:1"
+       id="path4976"
+       cx="20.739809"
+       cy="152.95546"
+       rx="2.1886907"
+       ry="2.1886909"
+       inkscape:export-filename="/home/dbouget/Documents/Code/Public/neuro_rads/gui2/Images/radio_toggle_on_icon.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300" />
+    <path
+       style="fill:#d6d6d6;fill-opacity:1;stroke:#d6d6d6;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 1.7741838,151.09801 c -1.05122597,0.6996 -1.04748697,3.08304 0,3.78823 1.263904,0.85089 6.340574,1.16137 8.2917012,0 1.081566,-0.64378 1.033718,-3.07626 -0.01253,-3.77597 -2.0477152,-1.36948 -6.4451162,-1.23284 -8.2791712,-0.0123 z"
+       id="path5002-3"
+       sodipodi:nodetypes="sssss"
+       inkscape:export-filename="/home/dbouget/Documents/Code/Public/neuro_rads/gui2/Images/radio_toggle_off_icon.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300" />
+    <ellipse
+       style="font-variation-settings:normal;vector-effect:none;fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#ffffff;stroke-width:0.622618;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;stop-color:#000000"
+       id="path4976-8"
+       cx="3.3937778"
+       cy="152.955"
+       rx="2.1886907"
+       ry="2.1886909"
+       inkscape:export-filename="/home/dbouget/Documents/Code/Public/neuro_rads/gui2/Images/radio_toggle_off_icon.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300" />
+    <path
+       style="fill:none;stroke:#d6d6d6;stroke-width:0.75;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"
+       d="m 4.0556976,132.08749 7.2914444,4.20972 -7.1513631,4.12884"
+       id="path5028"
+       inkscape:export-filename="/home/dbouget/Documents/Code/Public/neuro_rads/gui2/Images/arrow_right_icon.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300" />
+    <path
+       style="fill:none;stroke:#d6d6d6;stroke-width:0.75;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 24.481764,132.64776 -4.20972,7.29144 -4.12884,-7.15136"
+       id="path5028-6"
+       inkscape:export-filename="/home/dbouget/Documents/Code/Public/neuro_rads/gui2/Images/arrow_down_icon.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300" />
   </g>
 </svg>

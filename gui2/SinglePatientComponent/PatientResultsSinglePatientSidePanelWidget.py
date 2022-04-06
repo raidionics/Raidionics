@@ -1,5 +1,5 @@
 from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QScrollArea, QPushButton
-from PySide2.QtCore import QSize, Qt
+from PySide2.QtCore import QSize, Qt, Signal
 
 from gui2.SinglePatientComponent.SinglePatientResultsWidget import SinglePatientResultsWidget
 from utils.software_config import SoftwareConfigResources
@@ -9,6 +9,7 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
     """
 
     """
+    patient_selected = Signal()
 
     def __init__(self, parent=None):
         super(PatientResultsSinglePatientSidePanelWidget, self).__init__()
@@ -55,7 +56,7 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         self.add_new_patient(SoftwareConfigResources.getInstance().active_patient_name)
 
     def add_new_patient(self, patient_name):
-        # Have to connect signals/slots from each dynamic widget, to enfore the one active patient at all time.
+        # @TODO. Have to connect signals/slots from each dynamic widget, to enforce the one active patient at all time.
         pat_widget = SinglePatientResultsWidget(patient_name, self)
         pat_widget.setBaseSize(QSize(self.baseSize().width(), self.baseSize().height()))
         pat_widget.setMaximumSize(QSize(self.baseSize().width(), self.baseSize().height()))
@@ -73,6 +74,11 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         pat_widget.clicked_signal.connect(self.__on_patient_selection)
 
     def __on_patient_selection(self, state, widget_id):
+        # @TODO. Must better handle the interaction between all patient results objects
         for i, wid in enumerate(list(self.patient_results_widgets.keys())):
             if wid != widget_id:
                 self.patient_results_widgets[wid].manual_header_pushbutton_clicked(False)
+        self.patient_results_widgets[widget_id].header_pushbutton.setEnabled(False)
+        SoftwareConfigResources.getInstance().active_patient_name = widget_id
+        # When a patient is selected in the left panel, a visual update of the central/right panel is triggered
+        self.patient_selected.emit()

@@ -97,6 +97,7 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.volumes_collapsiblegroupbox.header_pushbutton.setStyleSheet("QPushButton{background-color:rgb(248, 248, 248); text-align:left;}")
 
     def __on_patient_name_modified(self):
+        # @TODO. Have to check that the name does not already exist, otherwise it will conflict in the dict.
         SoftwareConfigResources.getInstance().update_active_patient_name(self.patient_name_lineedit.text())
         self.header_pushbutton.setText(self.patient_name_lineedit.text())
 

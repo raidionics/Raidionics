@@ -10,8 +10,8 @@ import nibabel as nib
 from nibabel.processing import resample_to_output
 from scipy.ndimage import rotate
 
+from utils.software_config import SoftwareConfigResources
 
-# @TODO. Should not be able to click in the views until a volume has been loaded.
 
 # class CustomQOpenGLWidget(QOpenGLWidget):
 class CustomQOpenGLWidget(QGraphicsView):
@@ -29,6 +29,7 @@ class CustomQOpenGLWidget(QGraphicsView):
         self.setViewportUpdateMode(QGraphicsView.SmartViewportUpdate)
         self.setAcceptDrops(True)
         self.setDragMode(QGraphicsView.ScrollHandDrag)
+        self.setEnabled(False)
 
         image_2d = np.zeros((150, 150), dtype="uint8")
         h, w = image_2d.shape
@@ -233,8 +234,8 @@ class CustomQOpenGLWidget(QGraphicsView):
 
     def dragEnterEvent(self, event):
         filename = event.mimeData().text()
-        # @TODO. Should check it's a valid extension, from the list in SoftwareResources
-        if '.'.join(os.path.basename(filename).split('.')[1:]).strip() == 'nii.gz':
+        # if '.'.join(os.path.basename(filename).split('.')[1:]).strip() == 'nii.gz':
+        if '.'.join(os.path.basename(filename).split('.')[1:]).strip() in SoftwareConfigResources.getInstance().accepted_image_format:
             event.accept()
         else:
             event.ignore()
@@ -246,6 +247,9 @@ class CustomQOpenGLWidget(QGraphicsView):
         event.ignore()
 
     def dropEvent(self, event):
+        """
+        Enabling the possibility to open / add to the current patient, a new volume
+        """
         filename = event.mimeData().text().strip()
         # @TODO. Should emit a signal, or directly patch to SofwareResources ?
         # Should pop-up a QDialog, to select if image or annotation
@@ -283,12 +287,15 @@ class CustomQOpenGLWidget(QGraphicsView):
         return newx, newy
 
     def update_slice_view(self, slice, x, y):
+        self.setEnabled(True)  # Enabling point-clicking
+
         # Set of transforms to view the different slices as they should (similar to ITK-Snap)
         self.slice = slice
         self.original_2d_point = QPoint(x, y)
         image_2d = slice[:, ::-1]
         image_2d = rotate(image_2d, -90).astype('uint8')
-        # image_2d = slice.astype('uint8')
+
+        # Set of operations to prepare the color QImage
         h, w = image_2d.shape
         self.display_2d = image_2d
         self.ini_slice_shape = slice.shape
@@ -303,48 +310,19 @@ class CustomQOpenGLWidget(QGraphicsView):
         scale_ratio = scale_ratio * self.zoom_ratio
 
         self.map_transform = QTransform()
-        # self.map_transform = self.map_transform.translate(-int(self.pixmap.size().width() / 2), -int(self.pixmap.size().height() / 2))
-        # self.map_transform = self.map_transform.translate(-int(self.size().width() / 2), -int(self.size().height() / 2))
         self.map_transform = self.map_transform * QTransform().scale(scale_ratio, scale_ratio)
-        # if self.view_type == 'sagittal' or self.view_type == 'coronal':
-        #     self.map_transform = self.map_transform * QTransform().rotate(90.)
-        # else:
-        #     self.map_transform = self.map_transform * QTransform().rotate(-90.)
-        #self.map_transform = self.map_transform * QTransform().translate(int(self.pixmap.size().width() / 2), int(self.pixmap.size().height() / 2))
-        # self.map_transform = self.map_transform * QTransform().translate(int(self.size().width() / 2), int(self.size().height() / 2))
         self.inverse_map_transform, _ = self.map_transform.inverted()
         qimage = qimage.transformed(self.map_transform)
         self.pixmap = QPixmap.fromImage(qimage)
-        # self.pixmap = self.pixmap.scaled(QSize(int(self.parent.size().width() / 2), int(self.parent.size().height() / 2)), Qt.KeepAspectRatio)
-
-
-
-        # self.map_transform = QTransform()
-        # self.map_transform = self.map_transform.scale(scale_ratio, scale_ratio)
-        # # self.map_transform = self.map_transform.translate(-int(self.pixmap.size().width()/2), -int(self.pixmap.size().height()/2))
-        # # self.map_transform = self.map_transform.rotate(90., Qt.XAxis)
-        # # self.map_transform = self.map_transform.translate(int(self.pixmap.size().width() / 2), int(self.pixmap.size().height() / 2))
-        # self.inverse_map_transform, _ = self.map_transform.inverted()
-        # # qimage = qimage.transformed(QTransform().translate(-int(self.pixmap.size().width()/2), -int(self.pixmap.size().height()/2)))
-        # qimage = qimage.transformed(self.map_transform)
-        # # qimage = qimage.transformed(QTransform().translate(int(self.pixmap.size().width() / 2), int(self.pixmap.size().height() / 2)))
-        # self.pixmap = QPixmap.fromImage(qimage)
-        # # self.pixmap = self.pixmap.scaled(QSize(int(self.parent.size().width() / 2), int(self.parent.size().height() / 2)), Qt.KeepAspectRatio)
 
         self.image_item.setPixmap(self.pixmap)
-        ## self.image_2d_w - x compensates for the image_2d = slice[:, ::-1], to get correct correspondance.
-        # graphics_point = self.map_transform.map(QPoint(self.image_2d_w - x, y))
+
+        # Converting back the graphical clicked point, based on the custom set of transforms to match ITK-Snap
         graphics_point = self.map_transform.map(QPoint(self.image_2d_w - y, self.image_2d_h - x))
         self.adapted_2d_point = QPoint(self.image_2d_w - y, self.image_2d_h - x)
         self.graphical_2d_point = graphics_point
 
-        # self.__update_point_clicker_lines(int(self.pixmap.size().width()/2), int(self.pixmap.size().height()/2))
         self.__update_point_clicker_lines(graphics_point.x(), graphics_point.y())
-
-        # actualy = slice.shape[1] - y
-        # adjx, adjy = rotate_custom(origin=[slice.shape[0]/2, slice.shape[1]/2], point=[x, actualy], angle=90)
-        # graphics_point = self.map_transform.map(QPoint(adjx, adjy))
-        # self.__update_point_clicker_lines(graphics_point.x(), graphics_point.y())
 
     def __repaint_view(self):
         h, w = self.display_2d.shape
@@ -367,18 +345,3 @@ class CustomQOpenGLWidget(QGraphicsView):
         self.scene.setSceneRect(0, 0, self.pixmap.width(), self.pixmap.height())
         self.graphical_2d_point = self.map_transform.map(self.adapted_2d_point)
         self.__update_point_clicker_lines(self.graphical_2d_point.x(), self.graphical_2d_point.y())
-
-
-def rotate_custom(origin, point, angle):
-    """
-    Rotate a point counterclockwise by a given angle around a given origin.
-
-    The angle should be given in radians.
-    """
-    import math
-    ox, oy = origin
-    px, py = point
-
-    qx = ox + math.cos(angle) * (px - ox) - math.sin(angle) * (py - oy)
-    qy = oy + math.sin(angle) * (px - ox) + math.cos(angle) * (py - oy)
-    return qx, qy

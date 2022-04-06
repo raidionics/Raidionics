@@ -30,7 +30,7 @@ class SoftwareConfigResources:
         self.config_filename = os.path.join(expanduser("~"), '.neurorads', 'neurorads_config.ini')
         self.config = None
         self.optimal_dimensions = [1440, 900]
-        self.accepted_image_format = ['nii', 'nii.gz', 'mhd', 'mha', 'nrrd'] # @TODO. Should I have an exhaustive list?
+        self.accepted_image_format = ['nii', 'nii.gz', 'mhd', 'mha', 'nrrd']  # @TODO. Should I have an exhaustive list?
 
         self.__set_default_values()
         if os.path.exists(self.config_filename):
@@ -56,6 +56,7 @@ class SoftwareConfigResources:
         self.active_patient_name = patient_id
 
     def update_active_patient_name(self, new_name):
+        # @TODO. What if the new_name already exists, prevent update or append number?
         self.patients_parameters[new_name] = self.patients_parameters[self.active_patient_name]
         del self.patients_parameters[self.active_patient_name]
         self.active_patient_name = new_name
