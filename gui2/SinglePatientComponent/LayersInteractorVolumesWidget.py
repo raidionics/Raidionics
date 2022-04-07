@@ -32,13 +32,15 @@ class LayersInteractorVolumesWidget(QCollapsibleGroupBox):
     def on_import_volume(self, volume_id):
         # @TODO. Have to connect signal/slots for the widget
         # Most likely volume_id and the actual volume_text should be different, will be less for painful for further update
-        volume_widget = QCustomIconsPushButton(volume_id, self, icon_style='double', right_behaviour='stand-alone')
-        volume_widget.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/closed_eye_icon.png'))),
-                     size=QSize(20, 20), side='right', checked=False)
-        volume_widget.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/opened_eye_icon.png'))),
-                              QSize(20, 20), side='right', checked=True)
-        volume_widget.setBaseSize(QSize(self.baseSize().width(), 30))
-        volume_widget.layout.setContentsMargins(0, 0, 0, 0)
-        volume_widget.setStyleSheet("QPushButton{font:11px;}")
+        volume_widget = QCollapsibleGroupBox(volume_id, self, header_style='double', right_header_behaviour='stand-alone')
+        volume_widget.set_header_icons(unchecked_icon_path=os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/closed_eye_icon.png'),
+                                       unchecked_icon_size=QSize(20, 20),
+                                       checked_icon_path=os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/opened_eye_icon.png'),
+                                       checked_icon_size=QSize(20, 20),
+                                       side='right')
+        volume_widget.header_pushbutton.setBaseSize(QSize(self.baseSize().width(), 30))
+        volume_widget.setBaseSize(QSize(self.baseSize().width(), 100))
+        # volume_widget.layout.setContentsMargins(0, 0, 0, 0)
+        # volume_widget.setStyleSheet("QPushButton{font:11px;}")
         self.volumes_widget[volume_id] = volume_widget
         self.content_label_layout.insertWidget(self.content_label_layout.count() - 1, volume_widget)

@@ -140,8 +140,8 @@ class SinglePatientWidget(QWidget):
                 # @TODO. emit a signal to update the different GUI pices.
                 self.import_patient_triggered.emit()
             else:
-                SoftwareConfigResources.getInstance().patients_parameters[SoftwareConfigResources.getInstance().active_patient_name].import_data(input_image_filepath)
-                self.import_data_triggered.emit(input_image_filepath) # @TODO. Should not be the image path but its unique_id
+                data_uid = SoftwareConfigResources.getInstance().patients_parameters[SoftwareConfigResources.getInstance().active_patient_name].import_data(input_image_filepath)
+                self.import_data_triggered.emit(data_uid) # @TODO. Should not be the image path but its unique_id
 
     def __on_save_clicked(self):
         SoftwareConfigResources.getInstance().patients_parameters[SoftwareConfigResources.getInstance().active_patient_name].save_patient()

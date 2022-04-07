@@ -2,8 +2,6 @@ from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QScroll
 from PySide2.QtGui import QIcon, QPixmap
 from PySide2.QtCore import QSize, Signal
 
-from gui2.UtilsWidgets.QRightIconPushButton import QRightIconPushButton
-from gui2.UtilsWidgets.QDoubleIconsPushButton import QDoubleIconsPushButton
 from gui2.UtilsWidgets.QCustomIconsPushButton import QCustomIconsPushButton
 
 
@@ -14,11 +12,12 @@ class QCollapsibleGroupBox(QWidget):
 
     clicked_signal = Signal(bool, str)
 
-    def __init__(self, title, parent=None, header_style='right'):
+    def __init__(self, title, parent=None, header_style='right', right_header_behaviour='native'):
         super(QCollapsibleGroupBox, self).__init__()
         self.parent = parent
         self.title = title
         self.header_style = header_style
+        self.right_header_behaviour = right_header_behaviour
         self.__set_interface()
         self.__set_connections()
         self.__set_stylesheets()
@@ -28,7 +27,8 @@ class QCollapsibleGroupBox(QWidget):
         self.layout = QVBoxLayout(self)
         # self.layout.setSpacing(0)
         self.layout.setContentsMargins(0, 5, 0, 5)
-        self.header_pushbutton = QCustomIconsPushButton(self.title, self.parent, icon_style=self.header_style)  # QRightIconPushButton(self.title, self.parent)
+        self.header_pushbutton = QCustomIconsPushButton(self.title, self.parent, icon_style=self.header_style,
+                                                        right_behaviour=self.right_header_behaviour)
         self.header_pushbutton.setCheckable(True)
         self.content_label = QLabel()
         self.content_label_layout = QVBoxLayout()

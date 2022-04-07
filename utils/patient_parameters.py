@@ -109,6 +109,7 @@ class PatientParameters:
                 non_available_uid = False
         self.mri_volumes[data_uid] = MRIVolume(uid=data_uid, filename=filename)
         self.mri_volumes[data_uid].display_volume = deepcopy(image_res2)
+        return data_uid
 
     def save_patient(self):
         self.output_folder = os.path.join(self.output_folder, self.patient_id)
