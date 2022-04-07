@@ -13,7 +13,7 @@ from gui2.SinglePatientComponent.LayersInteractorSinglePatientSidePanelWidget im
 
 class SinglePatientWidget(QWidget):
 
-    import_data_triggered = Signal()
+    import_data_triggered = Signal(str)
     import_patient_triggered = Signal()
 
     def __init__(self, parent=None):
@@ -88,6 +88,7 @@ class SinglePatientWidget(QWidget):
         self.results_panel.setBaseSize(QSize(200, self.baseSize().height()))
         self.results_panel.setMaximumSize(QSize(200, self.baseSize().height()))
         self.center_panel = CentralDisplayAreaWidget(self)
+        self.center_panel.setBaseSize(QSize(self.baseSize().width() - 400, self.baseSize().height()))
         self.layers_panel = LayersInteractorSinglePatientSidePanelWidget(self)
         self.left_panel_splitter.addWidget(self.results_panel)
         self.left_panel_splitter.addWidget(self.center_panel)
@@ -116,19 +117,22 @@ class SinglePatientWidget(QWidget):
 
     def __set_cross_connections(self):
         self.import_data_triggered.connect(self.center_panel.on_import_data)
-        self.import_patient_triggered.connect(self.center_panel.on_import_data)
+        # self.import_patient_triggered.connect(self.center_panel.on_import_data)
         self.import_patient_triggered.connect(self.results_panel.on_import_patient)
         # @TODO. Might not be an import data, but rather a full visual update.
         self.results_panel.patient_selected.connect(self.center_panel.on_import_data)
+        self.import_data_triggered.connect(self.layers_panel.on_import_data)
 
     def get_widget_name(self):
         return self.widget_name
 
     def __on_import_file_clicked(self):
         input_image_filedialog = QFileDialog()
+        input_image_filedialog.setWindowFlags(Qt.WindowStaysOnTopHint)
+        # The option is forcing the window to appear on top.
         input_image_filepath = input_image_filedialog.getOpenFileName(self, caption='Select input MRI file',
-                                                                           directory='~',
-                                                                           filter="Image files (*.nii *.nii.gz *.nrrd *.mha *.mhd *.neurorads)")[0]
+                                                                      directory='~',
+                                                                      filter="Image files (*.nii *.nii.gz *.nrrd *.mha *.mhd *.neurorads)")[0]  # , options=QFileDialog.DontUseNativeDialog
         if input_image_filepath != '':
             extension = '.'.join(os.path.basename(input_image_filepath).split('.')[1:])
             if extension == 'neurorads':
@@ -137,7 +141,7 @@ class SinglePatientWidget(QWidget):
                 self.import_patient_triggered.emit()
             else:
                 SoftwareConfigResources.getInstance().patients_parameters[SoftwareConfigResources.getInstance().active_patient_name].import_data(input_image_filepath)
-                self.import_data_triggered.emit()
+                self.import_data_triggered.emit(input_image_filepath) # @TODO. Should not be the image path but its unique_id
 
     def __on_save_clicked(self):
         SoftwareConfigResources.getInstance().patients_parameters[SoftwareConfigResources.getInstance().active_patient_name].save_patient()

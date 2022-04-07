@@ -1,7 +1,7 @@
 import sys, os
 from PySide2.QtWidgets import QApplication, QLabel, QMainWindow, QMenuBar, QAction, QMessageBox,\
     QHBoxLayout, QVBoxLayout, QStackedWidget, QSizePolicy
-from PySide2.QtCore import QUrl, QSize, QThread, Signal
+from PySide2.QtCore import QUrl, QSize, QThread, Signal, Qt
 from PySide2.QtGui import QIcon, QDesktopServices, QCloseEvent
 import traceback, time
 import threading
@@ -45,6 +45,8 @@ class NeuroRADSMainWindow(QMainWindow):
         self.__set_stylesheet()
         self.__set_connections()
 
+        self.setWindowState(Qt.WindowState.WindowActive) # Bring window to foreground? To check!
+
         # self.printer_thread = WorkerThread()
         # self.printer_thread.message.connect(self.standardOutputWritten)
         # self.printer_thread.start()
@@ -52,6 +54,14 @@ class NeuroRADSMainWindow(QMainWindow):
     def closeEvent(self, event):
         self.processing_area_widget.closeEvent(event)
         self.printer_thread.stop()
+
+    def resizeEvent(self, event):
+        new_size = event.size()
+        self.width = 0.75 * new_size.width()
+        self.height = 0.75 * new_size.height()
+        self.fixed_width = 0.75 * new_size.width()
+        self.fixed_height = 0.75 * new_size.height()
+        # @TODO. How to propagate the info correctly?
 
     def __set_interface(self):
         self.setWindowTitle("NeuroRADS")

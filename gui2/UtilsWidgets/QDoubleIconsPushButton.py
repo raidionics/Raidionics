@@ -32,6 +32,16 @@ class QDoubleIconsPushButton(QPushButton):
 
         super(QDoubleIconsPushButton, self).clicked.connect(self.on_clicked)
 
+    def setIcon(self, icon, size=QSize(), side='Right'):
+        if side == 'Right':
+            self.right_icon = icon
+            self.right_icon_size = size
+            self.label_right_icon.setPixmap(self.right_icon.pixmap(self.right_icon_size))
+        else:
+            self.left_icon = icon
+            self.left_icon_size = size
+            self.label_left_icon.setPixmap(self.left_icon.pixmap(self.left_icon_size))
+
     def setRightIcon(self, icon, size=QSize()):
         self.right_icon = icon
         self.right_icon_size = size
@@ -42,9 +52,13 @@ class QDoubleIconsPushButton(QPushButton):
         self.left_icon_size = size
         self.label_left_icon.setPixmap(self.left_icon.pixmap(self.left_icon_size))
 
-    def setCheckedIcon(self, icon, size=QSize()):
+    def setCheckedRightIcon(self, icon, size=QSize()):
         self.checked_right_icon = icon
         self.checked_right_icon_size = size
+
+    def setCheckedLeftIcon(self, icon, size=QSize()):
+        self.checked_left_icon = icon
+        self.checked_left_icon_size = size
 
     def setText(self, text):
         super(QDoubleIconsPushButton, self).setText(text)

@@ -62,6 +62,13 @@ def main(argv):
             window.show()
 
             app.exec_()
+
+            #@TODO. Windows-specific stuff to check.
+            # # ifdef Q_OS_WIN //this is Windows specific code, not portable
+            # QWindowsWindowFunctions::setWindowActivationBehavior(QWindowsWindowFunctions::AlwaysActivateWindow);
+            # # endif
+            # For mac, try: window.raise()
+
         elif task == 'diagnosis':
             from diagnosis.main import diagnose_main
             diagnose_main(input_volume_filename=input_filename,

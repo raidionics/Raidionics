@@ -369,9 +369,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.979899"
-     inkscape:cx="180.78974"
-     inkscape:cy="478.83445"
+     inkscape:zoom="5.6"
+     inkscape:cx="117.08194"
+     inkscape:cy="560.29971"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      inkscape:document-rotation="0"
@@ -397,6 +397,16 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1">
+    <rect
+       style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:#2b362f;fill-opacity:1;fill-rule:evenodd;stroke-width:0.143808;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;stop-color:#000000;stop-opacity:1"
+       id="rect5070"
+       width="11.912677"
+       height="5.7223334"
+       x="27.239697"
+       y="149.53328"
+       inkscape:export-filename="/home/dbouget/Documents/Code/Public/neuro_rads/gui2/Images/opened_eye_icon.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300" />
     <rect
        style="font-variation-settings:normal;vector-effect:none;fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke-width:0.153745;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;stop-color:#000000"
        id="rect4904-9"
@@ -918,6 +928,77 @@
        d="m 24.481764,132.64776 -4.20972,7.29144 -4.12884,-7.15136"
        id="path5028-6"
        inkscape:export-filename="/home/dbouget/Documents/Code/Public/neuro_rads/gui2/Images/arrow_down_icon.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300" />
+    <path
+       style="fill:#2b362f;fill-opacity:1;stroke:#ffffff;stroke-width:0.3;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 29.223696,154.32795 c 1.263905,0.85089 5.903275,1.1213 7.854402,-0.0401 3.456928,-1.41553 1.34887,-2.11174 -0.17818,-3.57063 -2.047719,-1.36948 -5.766661,-1.33873 -7.820642,0.18019 -1.430444,1.48415 -2.875129,1.81819 0.14442,3.43051 z"
+       id="path5002-7"
+       sodipodi:nodetypes="ccccc"
+       inkscape:export-filename="/home/dbouget/Documents/Code/Public/neuro_rads/gui2/Images/opened_eye_icon.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300" />
+    <ellipse
+       style="font-variation-settings:normal;vector-effect:none;fill:#2b362f;fill-opacity:1;fill-rule:evenodd;stroke:#ffffff;stroke-width:0.289389;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;stop-color:#000000"
+       id="path4976-3"
+       cx="33.166775"
+       cy="152.40883"
+       rx="2.111274"
+       ry="2.1112742"
+       inkscape:export-filename="/home/dbouget/Documents/Code/Public/neuro_rads/gui2/Images/opened_eye_icon.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300" />
+    <rect
+       style="font-variation-settings:normal;vector-effect:none;fill:#2b362f;fill-opacity:1;fill-rule:evenodd;stroke-width:0.143808;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;stop-color:#000000"
+       id="rect5070-6"
+       width="11.912677"
+       height="5.7223334"
+       x="27.239697"
+       y="157.37225"
+       inkscape:export-filename="/home/dbouget/Documents/Code/Public/neuro_rads/gui2/Images/closed_eye_icon.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300" />
+    <path
+       style="fill:#2b362f;fill-opacity:1;stroke:#617569;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 28.76906,159.00038 c 0,0 0.973473,1.33742 1.510968,1.57537 0.75384,0.33372 1.91273,0.578 2.741323,0.56562 0.973925,-0.0146 1.755347,-0.10744 2.677223,-0.4219 0.40953,-0.1397 0.705225,-0.50164 1.053735,-0.7581 0.293533,-0.21601 1.014415,-0.91379 1.014415,-0.91379"
+       id="path5112"
+       sodipodi:nodetypes="cssssc"
+       inkscape:export-filename="/home/dbouget/Documents/Code/Public/neuro_rads/gui2/Images/closed_eye_icon.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300" />
+    <path
+       style="fill:#2b362f;fill-opacity:1;stroke:#617569;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 28.769059,159.00038 -1.040188,1.95263"
+       id="path5114"
+       inkscape:export-filename="/home/dbouget/Documents/Code/Public/neuro_rads/gui2/Images/closed_eye_icon.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300" />
+    <path
+       style="fill:#2b362f;fill-opacity:1;stroke:#617569;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 30.389028,160.66109 -0.666141,1.40384"
+       id="path5116"
+       inkscape:export-filename="/home/dbouget/Documents/Code/Public/neuro_rads/gui2/Images/closed_eye_icon.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300" />
+    <path
+       style="fill:#2b362f;fill-opacity:1;stroke:#617569;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 32.823198,161.17271 0.01421,1.33446"
+       id="path5118"
+       inkscape:export-filename="/home/dbouget/Documents/Code/Public/neuro_rads/gui2/Images/closed_eye_icon.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300" />
+    <path
+       style="fill:#2b362f;fill-opacity:1;stroke:#617569;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 35.565461,160.80223 0.825593,1.47401"
+       id="path5120"
+       inkscape:export-filename="/home/dbouget/Documents/Code/Public/neuro_rads/gui2/Images/closed_eye_icon.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300" />
+    <path
+       style="fill:#2b362f;fill-opacity:1;stroke:#617569;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 37.766723,159.04758 1.016982,1.50628"
+       id="path5122"
+       inkscape:export-filename="/home/dbouget/Documents/Code/Public/neuro_rads/gui2/Images/closed_eye_icon.png"
        inkscape:export-xdpi="300"
        inkscape:export-ydpi="300" />
   </g>

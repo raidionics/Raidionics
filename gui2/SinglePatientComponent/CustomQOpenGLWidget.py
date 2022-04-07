@@ -11,17 +11,18 @@ from nibabel.processing import resample_to_output
 from scipy.ndimage import rotate
 
 from utils.software_config import SoftwareConfigResources
+from gui2.UtilsWidgets.ImportDataQDialog import ImportDataQDialog
 
 
 # class CustomQOpenGLWidget(QOpenGLWidget):
-class CustomQOpenGLWidget(QGraphicsView):
+class CustomQGraphicsView(QGraphicsView):
     """
 
     """
     coordinates_changed = Signal(int, int)
 
     def __init__(self, view_type='axial', parent=None):
-        super(CustomQOpenGLWidget, self).__init__()
+        super(CustomQGraphicsView, self).__init__()
         self.parent = parent
         self.view_type = view_type
         self.scene = QGraphicsScene(self)
@@ -29,7 +30,7 @@ class CustomQOpenGLWidget(QGraphicsView):
         self.setViewportUpdateMode(QGraphicsView.SmartViewportUpdate)
         self.setAcceptDrops(True)
         self.setDragMode(QGraphicsView.ScrollHandDrag)
-        self.setEnabled(False)
+        self.setEnabled(False)  # @TODO. Should it be enabled, to allow drag and drop at first, just prevent clicking...
 
         image_2d = np.zeros((150, 150), dtype="uint8")
         h, w = image_2d.shape
@@ -234,7 +235,7 @@ class CustomQOpenGLWidget(QGraphicsView):
 
     def dragEnterEvent(self, event):
         filename = event.mimeData().text()
-        # if '.'.join(os.path.basename(filename).split('.')[1:]).strip() == 'nii.gz':
+        # @TODO. Can actually be multiple files, need to split first.
         if '.'.join(os.path.basename(filename).split('.')[1:]).strip() in SoftwareConfigResources.getInstance().accepted_image_format:
             event.accept()
         else:
@@ -251,6 +252,8 @@ class CustomQOpenGLWidget(QGraphicsView):
         Enabling the possibility to open / add to the current patient, a new volume
         """
         filename = event.mimeData().text().strip()
+        dialog = ImportDataQDialog(self)
+        dialog.exec_()
         # @TODO. Should emit a signal, or directly patch to SofwareResources ?
         # Should pop-up a QDialog, to select if image or annotation
         # Should also specify image sequence or annotation target, or can do it after in the left or right panel?

@@ -3,6 +3,8 @@ from PySide2.QtGui import QIcon, QPixmap
 from PySide2.QtCore import QSize, Signal
 
 from gui2.UtilsWidgets.QRightIconPushButton import QRightIconPushButton
+from gui2.UtilsWidgets.QDoubleIconsPushButton import QDoubleIconsPushButton
+from gui2.UtilsWidgets.QCustomIconsPushButton import QCustomIconsPushButton
 
 
 class QCollapsibleGroupBox(QWidget):
@@ -12,10 +14,11 @@ class QCollapsibleGroupBox(QWidget):
 
     clicked_signal = Signal(bool, str)
 
-    def __init__(self, title, parent=None):
+    def __init__(self, title, parent=None, header_style='right'):
         super(QCollapsibleGroupBox, self).__init__()
         self.parent = parent
         self.title = title
+        self.header_style = header_style
         self.__set_interface()
         self.__set_connections()
         self.__set_stylesheets()
@@ -25,7 +28,7 @@ class QCollapsibleGroupBox(QWidget):
         self.layout = QVBoxLayout(self)
         # self.layout.setSpacing(0)
         self.layout.setContentsMargins(0, 5, 0, 5)
-        self.header_pushbutton = QRightIconPushButton(self.title, self.parent)
+        self.header_pushbutton = QCustomIconsPushButton(self.title, self.parent, icon_style=self.header_style)  # QRightIconPushButton(self.title, self.parent)
         self.header_pushbutton.setCheckable(True)
         self.content_label = QLabel()
         self.content_label_layout = QVBoxLayout()
@@ -52,9 +55,9 @@ class QCollapsibleGroupBox(QWidget):
         self.clicked_signal.emit(state, self.title)
 
     def set_header_icons(self, unchecked_icon_path=None, unchecked_icon_size=QSize(), checked_icon_path=None,
-                       checked_icon_size=QSize()):
-        self.header_pushbutton.setIcon(QIcon(QPixmap(unchecked_icon_path)), unchecked_icon_size)
-        self.header_pushbutton.setCheckedIcon(QIcon(QPixmap(checked_icon_path)), checked_icon_size)
+                       checked_icon_size=QSize(), side='right'):
+        self.header_pushbutton.setIcon(QIcon(QPixmap(unchecked_icon_path)), unchecked_icon_size, side=side, checked=False)
+        self.header_pushbutton.setIcon(QIcon(QPixmap(checked_icon_path)), checked_icon_size, side=side, checked=True)
 
     def setFixedSize(self, size):
         self.content_label.setFixedSize(size)
