@@ -78,10 +78,11 @@ class PatientParameters:
             img = img_nii.get_data()[:].astype('uint8')
             self.import_display_data[disp] = deepcopy(img)
 
-    def import_data(self, filename):
+    def import_data(self, filename, type="volume"):
         """
         Saving the raw file, and preprocessing it to have fixed orientations and uint8 values.
         """
+        #@TODO. If/else statement depending on type between volume and annotation for now
         base_name = os.path.basename(filename).split('.')[0]
         image_nib = nib.load(filename)
         image = image_nib.get_data()[:]

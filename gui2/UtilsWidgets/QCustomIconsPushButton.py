@@ -26,7 +26,7 @@ class QCustomIconsPushButton(QPushButton):
         # remove icon
         super(QCustomIconsPushButton, self).setIcon(QIcon())
         self.layout = QHBoxLayout(self)
-        self.layout.setContentsMargins(0, 0, 15, 0)
+        self.layout.setContentsMargins(5, 0, 5, 0)
 
         if self.icon_style == 'left' or self.icon_style == 'double':
             self.label_left_icon = QLabel()

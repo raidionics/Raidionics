@@ -61,3 +61,6 @@ class SoftwareConfigResources:
         del self.patients_parameters[self.active_patient_name]
         self.active_patient_name = new_name
         self.patients_parameters[new_name].update_id(new_name)
+
+    def get_active_patient(self):
+        return self.patients_parameters[self.active_patient_name]
