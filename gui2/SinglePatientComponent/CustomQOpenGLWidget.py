@@ -1,4 +1,5 @@
-from PySide2.QtWidgets import QWidget, QOpenGLWidget, QGraphicsView, QGraphicsScene, QGraphicsPixmapItem
+from PySide2.QtWidgets import QWidget, QOpenGLWidget, QGraphicsView, QGraphicsScene, QGraphicsPixmapItem,\
+    QGraphicsOpacityEffect
 from PySide2.QtGui import QPixmap, QImage, QPainter, QPen, QColor, QTransform
 from PySide2.QtCore import Qt, QSize, Signal, QPoint
 from PySide2 import QtOpenGL
@@ -31,6 +32,9 @@ class CustomQGraphicsView(QGraphicsView):
         self.setAcceptDrops(True)
         self.setDragMode(QGraphicsView.ScrollHandDrag)
         self.setEnabled(False)  # @TODO. Should it be enabled, to allow drag and drop at first, just prevent clicking...
+        self.original_annotations = {}
+        self.display_annotations = {}
+        self.overlaid_items = {}
 
         image_2d = np.zeros((150, 150), dtype="uint8")
         h, w = image_2d.shape
@@ -259,6 +263,33 @@ class CustomQGraphicsView(QGraphicsView):
         # Should also specify image sequence or annotation target, or can do it after in the left or right panel?
         print("plop")
 
+    def update_annotation_view(self, annotation_uid, annotation_slice):
+        if not annotation_uid in self.overlaid_items.keys():
+            self.original_annotations[annotation_uid] = None
+            self.display_annotations[annotation_uid] = None
+            self.overlaid_items[annotation_uid] = QGraphicsPixmapItem()
+            self.scene.addItem(self.overlaid_items[annotation_uid])
+
+        self.original_annotations[annotation_uid] = annotation_slice
+        image_2d = annotation_slice[:, ::-1]
+        image_2d = rotate(image_2d, -90).astype('uint8')
+        self.display_annotations[annotation_uid] = image_2d
+
+        # h, w = annotation_slice.shape
+        # bytes_per_line = 3 * w
+        # color_image = np.stack([annotation_slice] * 3, axis=-1)
+        # qimage = QImage(color_image.data, w, h, bytes_per_line, QImage.Format_RGB888)
+        # qimage = qimage.convertToFormat(QImage.Format_RGBA8888)
+        # graphical_item = QGraphicsPixmapItem(QPixmap(qimage))
+        # self.overlaid_items[annotation_uid] = graphical_item
+        # self.scene.addItem(graphical_item)
+        self.__repaint_overlay(annotation_uid)
+
+    def remove_annotation_view(self, annotation_uid):
+        graphics_item = self.overlaid_items[annotation_uid]
+        self.scene.removeItem(graphics_item)
+        self.overlaid_items.pop(annotation_uid)
+
     def __update_point_clicker_lines(self, posx, posy):
         if posx < 0:
             posx = 0
@@ -348,3 +379,21 @@ class CustomQGraphicsView(QGraphicsView):
         self.scene.setSceneRect(0, 0, self.pixmap.width(), self.pixmap.height())
         self.graphical_2d_point = self.map_transform.map(self.adapted_2d_point)
         self.__update_point_clicker_lines(self.graphical_2d_point.x(), self.graphical_2d_point.y())
+
+    def __repaint_overlay(self, overlay_uid):
+        overlay_image = self.display_annotations[overlay_uid]
+        overlay_image_scaled = overlay_image * 255
+        h, w = overlay_image.shape
+        bytes_per_line = 3 * w
+        color_image = np.stack([overlay_image_scaled] * 3, axis=-1)
+        qimage = QImage(color_image.data, w, h, bytes_per_line, QImage.Format_RGB888)
+        ## @TODO. Alpha channel for the QGraphicsPixmapItem and opacity does not seem to work?
+        # color_image = np.stack([np.zeros(overlay_image.shape, dtype=np.uint8)] * 4, axis=-1)
+        # color_image[..., 0][overlay_image != 0] = 255.
+        # color_image[..., 3][overlay_image != 0] = 255.
+        # qimage = QImage(color_image.data, w, h, bytes_per_line, QImage.Format_RGBA8888)
+        qimage = qimage.transformed(self.map_transform)
+        self.overlaid_items[overlay_uid].setPixmap(QPixmap.fromImage(qimage))
+        opacity = QGraphicsOpacityEffect()
+        opacity.setOpacity(0.5)
+        self.overlaid_items[overlay_uid].setGraphicsEffect(opacity)

@@ -4,6 +4,7 @@ import os
 
 from gui2.UtilsWidgets.QCollapsibleGroupBox import QCollapsibleGroupBox
 from gui2.SinglePatientComponent.LayersInteractorVolumesWidget import LayersInteractorVolumesWidget
+from gui2.SinglePatientComponent.LayersInteractorAnnotationsWidget import LayersInteractorAnnotationsWidget
 
 
 class LayersInteractorSinglePatientSidePanelWidget(QWidget):
@@ -11,6 +12,7 @@ class LayersInteractorSinglePatientSidePanelWidget(QWidget):
 
     """
     import_data_triggered = Signal()
+    annotation_view_toggled = Signal(str, bool)
 
     def __init__(self, parent=None):
         super(LayersInteractorSinglePatientSidePanelWidget, self).__init__()
@@ -43,21 +45,10 @@ class LayersInteractorSinglePatientSidePanelWidget(QWidget):
         # self.volumes_collapsiblegroupbox.content_label.setBaseSize(QSize(200, self.parent.baseSize().height()))
         self.overall_scrollarea_layout.addWidget(self.volumes_collapsiblegroupbox)
 
-        self.annotations_collapsiblegroupbox = QCollapsibleGroupBox("Annotations", self, header_style='double')
-        self.annotations_collapsiblegroupbox.set_header_icons(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/arrow_right_icon.png'),
-                                                          QSize(20, 20),
-                                                          os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/arrow_down_icon.png'),
-                                                          QSize(20, 20), side='left')
-        self.annotations_collapsiblegroupbox.set_header_icons(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/radio_toggle_off_icon.png'),
-                                                          QSize(30, 30),
-                                                          os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/radio_toggle_on_icon.png'),
-                                                          QSize(30, 30), side='right')
+        self.annotations_collapsiblegroupbox = LayersInteractorAnnotationsWidget(self)
+        # self.volumes_collapsiblegroupbox.setFixedSize(QSize(200, self.parent.baseSize().height()))
+        # self.volumes_collapsiblegroupbox.content_label.setBaseSize(QSize(200, self.parent.baseSize().height()))
         self.overall_scrollarea_layout.addWidget(self.annotations_collapsiblegroupbox)
-
-        self.overall_scrollarea_layout.addStretch(1)
-        self.overall_scrollarea_dummy_widget.setLayout(self.overall_scrollarea_layout)
-        self.overall_scrollarea.setWidget(self.overall_scrollarea_dummy_widget)
-        self.layout.addWidget(self.overall_scrollarea)
 
         # self.annotations_collapsiblegroupbox = QCollapsibleGroupBox("Annotations", self, header_style='double')
         # self.annotations_collapsiblegroupbox.set_header_icons(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/arrow_right_icon.png'),
@@ -68,10 +59,17 @@ class LayersInteractorSinglePatientSidePanelWidget(QWidget):
         #                                                   QSize(30, 30),
         #                                                   os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/radio_toggle_on_icon.png'),
         #                                                   QSize(30, 30), side='right')
-        # self.overall_label_layout.addWidget(self.annotations_collapsiblegroupbox)
+        # self.overall_scrollarea_layout.addWidget(self.annotations_collapsiblegroupbox)
+
+        self.overall_scrollarea_layout.addStretch(1)
+        self.overall_scrollarea_dummy_widget.setLayout(self.overall_scrollarea_layout)
+        self.overall_scrollarea.setWidget(self.overall_scrollarea_dummy_widget)
+        self.layout.addWidget(self.overall_scrollarea)
 
     def __set_connections(self):
         self.import_data_triggered.connect(self.volumes_collapsiblegroupbox.on_import_data)
+        self.import_data_triggered.connect(self.annotations_collapsiblegroupbox.on_import_data)
+        self.annotations_collapsiblegroupbox.annotation_view_toggled.connect(self.annotation_view_toggled)
 
     def __set_stylesheets(self):
         self.overall_scrollarea.setStyleSheet("QScrollArea{background-color:rgb(0, 0, 255);}")

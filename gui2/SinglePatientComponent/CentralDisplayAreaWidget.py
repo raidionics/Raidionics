@@ -19,6 +19,7 @@ class CentralDisplayAreaWidget(QWidget):
         self.current_patient_parameters = None
         self.displayed_image = None
         self.point_clicker_position = [0, 0, 0]  # Knowing at all time the center of the cross-hair blue lines.
+        self.overlaid_volumes = {}  # Will hold all volumes (with annotations) which should be overlaid on the main image
 
     def resizeEvent(self, event):
         new_size = event.size()
@@ -60,12 +61,26 @@ class CentralDisplayAreaWidget(QWidget):
     def on_import_data(self):
         if self.displayed_image is None:
             self.current_patient_parameters = SoftwareConfigResources.getInstance().patients_parameters[SoftwareConfigResources.getInstance().active_patient_name]
-            self.displayed_image = self.current_patient_parameters.import_display_data[list(self.current_patient_parameters.import_display_data.keys())[0]]
+            # self.displayed_image = self.current_patient_parameters.import_display_data[list(self.current_patient_parameters.import_display_data.keys())[0]]
+            self.displayed_image = self.current_patient_parameters.mri_volumes[list(self.current_patient_parameters.mri_volumes.keys())[0]].display_volume
             self.point_clicker_position = [int(self.displayed_image.shape[0] / 2), int(self.displayed_image.shape[1] / 2),
                                            int(self.displayed_image.shape[2] / 2)]
             self.axial_viewer.update_slice_view(self.displayed_image[:, :, self.point_clicker_position[2]], self.point_clicker_position[0], self.point_clicker_position[1])
             self.coronal_viewer.update_slice_view(self.displayed_image[:, self.point_clicker_position[1], :], self.point_clicker_position[0], self.point_clicker_position[2])
             self.sagittal_viewer.update_slice_view(self.displayed_image[self.point_clicker_position[0], :, :], self.point_clicker_position[1], self.point_clicker_position[2])
+
+    def on_annotation_layer_toggled(self, volume_uid, state):
+        if state:
+            self.current_patient_parameters = SoftwareConfigResources.getInstance().patients_parameters[SoftwareConfigResources.getInstance().active_patient_name]
+            self.overlaid_volumes[volume_uid] = self.current_patient_parameters.annotation_volumes[volume_uid].display_volume
+            self.axial_viewer.update_annotation_view(volume_uid, self.overlaid_volumes[volume_uid][:, :, self.point_clicker_position[2]])
+            self.coronal_viewer.update_annotation_view(volume_uid, self.overlaid_volumes[volume_uid][:, self.point_clicker_position[1], :])
+            self.sagittal_viewer.update_annotation_view(volume_uid, self.overlaid_volumes[volume_uid][self.point_clicker_position[0], :, :])
+        else:
+            self.overlaid_volumes.pop(volume_uid, None)  # None should not be necessary as the key should be in the dict
+            self.axial_viewer.remove_annotation_view(volume_uid)
+            self.coronal_viewer.remove_annotation_view(volume_uid)
+            self.sagittal_viewer.remove_annotation_view(volume_uid)
 
     def __on_axial_coordinates_changed(self, x, y):
         self.point_clicker_position[0] = min(max(0, y), self.displayed_image.shape[0] - 1)

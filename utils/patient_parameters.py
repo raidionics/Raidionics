@@ -57,6 +57,8 @@ class PatientParameters:
         self.patient_parameters_project_json['Annotations']['Display'] = {}
 
         self.mri_volumes = {}
+        self.annotation_volumes = {}
+
         self.import_raw_data = {}
         self.import_display_data = {}
         self.raw_annotation = {}
@@ -78,38 +80,53 @@ class PatientParameters:
             img = img_nii.get_data()[:].astype('uint8')
             self.import_display_data[disp] = deepcopy(img)
 
-    def import_data(self, filename, type="volume"):
+    def import_data(self, filename, type="MRI"):
         """
         Saving the raw file, and preprocessing it to have fixed orientations and uint8 values.
         """
-        #@TODO. If/else statement depending on type between volume and annotation for now
-        base_name = os.path.basename(filename).split('.')[0]
-        image_nib = nib.load(filename)
-        image = image_nib.get_data()[:]
-
-        self.import_raw_data[base_name] = deepcopy(image)
-        self.patient_parameters_project_json['Volumes']['Raw'][base_name] = filename
-
-        resampled_input_ni = resample_to_output(image_nib, order=1)
-        image_res = resampled_input_ni.get_data()[:]
-        min_val = np.min(image_res)
-        max_val = np.max(image_res)
-        if (max_val - min_val) != 0:
-            tmp = (image_res - min_val) / (max_val - min_val)
-            image_res = tmp * 255.
-
-        image_res2 = image_res.astype('uint8')
-        self.import_display_data[base_name] = deepcopy(image_res2)
-
-        base_data_uid = os.path.basename(filename).strip().split('.')[0]
         data_uid = None
-        non_available_uid = True
-        while non_available_uid:
-            data_uid = str(np.random.randint(0, 1000)) + '_' + base_data_uid
-            if data_uid not in list(self.mri_volumes.keys()):
-                non_available_uid = False
-        self.mri_volumes[data_uid] = MRIVolume(uid=data_uid, filename=filename)
-        self.mri_volumes[data_uid].display_volume = deepcopy(image_res2)
+
+        if type == 'MRI':
+            base_name = os.path.basename(filename).split('.')[0]
+            image_nib = nib.load(filename)
+            image = image_nib.get_data()[:]
+
+            self.import_raw_data[base_name] = deepcopy(image)
+            self.patient_parameters_project_json['Volumes']['Raw'][base_name] = filename
+
+            resampled_input_ni = resample_to_output(image_nib, order=1)
+            image_res = resampled_input_ni.get_data()[:]
+            min_val = np.min(image_res)
+            max_val = np.max(image_res)
+            if (max_val - min_val) != 0:
+                tmp = (image_res - min_val) / (max_val - min_val)
+                image_res = tmp * 255.
+
+            image_res2 = image_res.astype('uint8')
+            self.import_display_data[base_name] = deepcopy(image_res2)
+
+            base_data_uid = os.path.basename(filename).strip().split('.')[0]
+            non_available_uid = True
+            while non_available_uid:
+                data_uid = str(np.random.randint(0, 1000)) + '_' + base_data_uid
+                if data_uid not in list(self.mri_volumes.keys()):
+                    non_available_uid = False
+            self.mri_volumes[data_uid] = MRIVolume(uid=data_uid, filename=filename)
+            self.mri_volumes[data_uid].display_volume = deepcopy(image_res2)
+        else:
+            image_nib = nib.load(filename)
+            resampled_input_ni = resample_to_output(image_nib, order=0)
+            image_res = resampled_input_ni.get_data()[:].astype('uint8')
+            # @TODO. Check if more than one label?
+
+            base_data_uid = os.path.basename(filename).strip().split('.')[0]
+            non_available_uid = True
+            while non_available_uid:
+                data_uid = str(np.random.randint(0, 1000)) + '_' + base_data_uid
+                if data_uid not in list(self.annotation_volumes.keys()):
+                    non_available_uid = False
+            self.annotation_volumes[data_uid] = AnnotationVolume(uid=data_uid, filename=filename)
+            self.annotation_volumes[data_uid].display_volume = deepcopy(image_res)
         return data_uid
 
     def save_patient(self):
@@ -133,4 +150,13 @@ class MRIVolume():
         self.raw_filepath = filename
         self.display_volume = None
         self.display_volume_filepath = None
-        self.sequence_type = None
+        self.sequence_type = MRISequenceType.T1c
+
+
+class AnnotationVolume():
+    def __init__(self, uid, filename):
+        self.unique_id = uid
+        self.raw_filepath = filename
+        self.display_volume = None
+        self.display_volume_filepath = None
+        self.annotation_class = AnnotationClassType.Tumor

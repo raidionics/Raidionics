@@ -11,6 +11,7 @@ class QCollapsibleGroupBox(QWidget):
     """
 
     clicked_signal = Signal(bool, str)
+    right_clicked = Signal(str, bool)
 
     def __init__(self, title, parent=None, header_style='right', right_header_behaviour='native'):
         super(QCollapsibleGroupBox, self).__init__()
@@ -43,6 +44,9 @@ class QCollapsibleGroupBox(QWidget):
 
     def __set_connections(self):
         self.header_pushbutton.clicked.connect(self.on_header_pushbutton_clicked)
+        # Propagating signal
+        if self.right_header_behaviour == 'stand-alone':
+            self.header_pushbutton.right_clicked.connect(self.right_clicked)
 
     def __set_stylesheets(self):
         self.content_label.setStyleSheet("QLabel{background-color:rgb(128, 255, 128);}")

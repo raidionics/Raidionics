@@ -369,9 +369,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="3.959798"
-     inkscape:cx="229.75526"
-     inkscape:cy="555.28658"
+     inkscape:zoom="1.979899"
+     inkscape:cx="242.21709"
+     inkscape:cy="543.94464"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      inkscape:document-rotation="0"
@@ -1038,5 +1038,43 @@
        inkscape:export-filename="/home/dbouget/Documents/Code/Public/neuro_rads/gui2/Images/browse_icon.png"
        inkscape:export-xdpi="300"
        inkscape:export-ydpi="300" />
+    <ellipse
+       style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#0000c4;stroke-width:3;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;stop-color:#000000;stop-opacity:1"
+       id="path5157"
+       cx="100.52502"
+       cy="162.91292"
+       rx="9.0430241"
+       ry="10.532125"
+       inkscape:export-filename="/home/dbouget/Documents/Code/SINTEF/Slicer-plugin/DeepSintef/DeepSintef/DeepSintef/Resources/Icons/Raidionics.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:16.2278px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';fill:#0000c4;fill-opacity:1;stroke:none;stroke-width:0.264583;"
+       x="94.237236"
+       y="168.58118"
+       id="text5161"
+       inkscape:export-filename="/home/dbouget/Documents/Code/SINTEF/Slicer-plugin/DeepSintef/DeepSintef/DeepSintef/Resources/Icons/Raidionics.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300"><tspan
+         sodipodi:role="line"
+         id="tspan5159"
+         x="94.237236"
+         y="168.58118"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:16.2278px;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';stroke-width:0.264583;fill:#0000c4;fill-opacity:1;">R</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-weight:bold;font-size:3.52778px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';stroke-width:0.264583;fill:#0000c4;fill-opacity:1;"
+       x="91.470322"
+       y="178.16374"
+       id="text5165"
+       inkscape:export-filename="/home/dbouget/Documents/Code/SINTEF/Slicer-plugin/DeepSintef/DeepSintef/DeepSintef/Resources/Icons/Raidionics.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300"><tspan
+         sodipodi:role="line"
+         id="tspan5163"
+         x="91.470322"
+         y="178.16374"
+         style="font-size:3.52778px;stroke-width:0.264583;fill:#0000c4;fill-opacity:1;">Raidionics</tspan></text>
   </g>
 </svg>

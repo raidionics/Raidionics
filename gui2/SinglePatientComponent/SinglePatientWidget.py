@@ -126,6 +126,7 @@ class SinglePatientWidget(QWidget):
         # @TODO. Might not be an import data, but rather a full visual update.
         self.results_panel.patient_selected.connect(self.center_panel.on_import_data)
         self.import_data_triggered.connect(self.layers_panel.on_import_data)
+        self.layers_panel.annotation_view_toggled.connect(self.center_panel.on_annotation_layer_toggled)
 
     def get_widget_name(self):
         return self.widget_name
