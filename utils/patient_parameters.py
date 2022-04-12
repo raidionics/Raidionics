@@ -50,11 +50,7 @@ class PatientParameters:
         self.patient_parameters_project_json['Parameters']['Default']['Patient name'] = self.patient_id
         self.patient_parameters_project_json['Parameters']['Diagnosis'] = {}
         self.patient_parameters_project_json['Volumes'] = {}
-        self.patient_parameters_project_json['Volumes']['Raw'] = {}
-        self.patient_parameters_project_json['Volumes']['Display'] = {}
         self.patient_parameters_project_json['Annotations'] = {}
-        self.patient_parameters_project_json['Annotations']['Raw'] = {}
-        self.patient_parameters_project_json['Annotations']['Display'] = {}
 
         self.mri_volumes = {}
         self.annotation_volumes = {}
@@ -75,10 +71,13 @@ class PatientParameters:
         with open(self.patient_parameters_project_filename, 'r') as infile:
             self.patient_parameters_project_json = json.load(infile)
 
-        for disp in list(self.patient_parameters_project_json['Volumes']['Display'].keys()):
-            img_nii = nib.load(self.patient_parameters_project_json['Volumes']['Display'][disp])
-            img = img_nii.get_data()[:].astype('uint8')
-            self.import_display_data[disp] = deepcopy(img)
+        for volume_id in list(self.patient_parameters_project_json['Volumes'].keys()):
+            # @TODO. Need to adjust import_data so that it can take the volume_id for reloading purposes...
+            # Or create a specific reload_patient_data, since we also already have the display volume
+            # For the future, how to prepare a possibility to perform/save contrast adjustments?
+            # self.import_data()
+            mri_volume = MRIVolume(uid=volume_id, filename=self.patient_parameters_project_json['Volumes'][volume_id]['raw_volume_filepath'])
+            self.mri_volumes[volume_id] = mri_volume
 
     def import_data(self, filename, type="MRI"):
         """
@@ -92,7 +91,7 @@ class PatientParameters:
             image = image_nib.get_data()[:]
 
             self.import_raw_data[base_name] = deepcopy(image)
-            self.patient_parameters_project_json['Volumes']['Raw'][base_name] = filename
+            # self.patient_parameters_project_json['Volumes']['Raw'][base_name] = filename
 
             resampled_input_ni = resample_to_output(image_nib, order=1)
             image_res = resampled_input_ni.get_data()[:]
@@ -130,18 +129,37 @@ class PatientParameters:
         return data_uid
 
     def save_patient(self):
+        """
+        Exporting the scene for the current patient XXX
+        """
         self.output_folder = os.path.join(self.output_folder, self.patient_id)
         os.makedirs(self.output_folder, exist_ok=True)
-        for i, disp in enumerate(list(self.import_display_data.keys())):
+        for i, disp in enumerate(list(self.mri_volumes.keys())):
             volume_dump_filename = os.path.join(self.output_folder, disp + '_display.nii.gz')
-            self.patient_parameters_project_json['Volumes']['Display'][disp] = volume_dump_filename
-            nib.save(nib.Nifti1Image(self.import_display_data[disp],
+            self.patient_parameters_project_json['Volumes'][disp] = {}
+            self.patient_parameters_project_json['Volumes'][disp]['raw_volume_filepath'] = self.mri_volumes[disp].raw_filepath
+            self.patient_parameters_project_json['Volumes'][disp]['display_volume_filepath'] = volume_dump_filename
+            nib.save(nib.Nifti1Image(self.mri_volumes[disp].display_volume,
                                      affine=[[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]),
                      volume_dump_filename)
+            self.patient_parameters_project_json['Volumes'][disp]['sequence_type'] = str(self.mri_volumes[disp].sequence_type)
+
+        for i, disp in enumerate(list(self.annotation_volumes.keys())):
+            volume_dump_filename = os.path.join(self.output_folder, disp + '_display.nii.gz')
+            self.patient_parameters_project_json['Annotations'][disp] = {}
+            self.patient_parameters_project_json['Annotations'][disp]['raw_volume_filepath'] = self.annotation_volumes[disp].raw_filepath
+            self.patient_parameters_project_json['Annotations'][disp]['display_volume_filepath'] = volume_dump_filename
+            nib.save(nib.Nifti1Image(self.annotation_volumes[disp].display_volume,
+                                     affine=[[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]),
+                     volume_dump_filename)
+            self.patient_parameters_project_json['Annotations'][disp]['annotation_class'] = str(self.annotation_volumes[disp].annotation_class)
+            self.patient_parameters_project_json['Annotations'][disp]['display_color'] = self.annotation_volumes[disp].display_color
+            self.patient_parameters_project_json['Annotations'][disp]['display_opacity'] = self.annotation_volumes[disp].display_opacity
+            self.patient_parameters_project_json['Annotations'][disp]['display_name'] = self.annotation_volumes[disp].display_name
 
         # Saving the json file last, as it must be populated from the previous dumps beforehand
         with open(self.patient_parameters_project_filename, 'w') as outfile:
-            json.dump(self.patient_parameters_project_json, outfile)
+            json.dump(self.patient_parameters_project_json, outfile, indent=4, sort_keys=True)
 
 
 class MRIVolume():
@@ -160,7 +178,7 @@ class AnnotationVolume():
         self.display_volume = None
         self.display_volume_filepath = None
         self.annotation_class = AnnotationClassType.Tumor
-        # @TODO. Do we save also the display parameters? Not as interactive placeholders, just for reload/dump of the scene
-        self.display_color = None
+        # Display parameters, for reload/dump of the scene
+        self.display_color = None  # Tuple with format {r, g, b, a}
         self.display_opacity = 0.5
         self.display_name = uid

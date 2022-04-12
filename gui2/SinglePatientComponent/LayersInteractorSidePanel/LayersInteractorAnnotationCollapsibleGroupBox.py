@@ -87,6 +87,8 @@ class LayersInteractorAnnotationCollapsibleGroupBox(QCollapsibleGroupBox):
     def __on_display_name_modified(self):
         self.title = self.name_lineedit.text()
         self.header_pushbutton.setText(self.title)
+        pat_params = SoftwareConfigResources.getInstance().get_active_patient()
+        pat_params.annotation_volumes[self.uid].display_name = self.title
 
     def __on_display_toggled(self):
         if self.header_pushbutton.right_icon_widget.isChecked():

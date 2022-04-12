@@ -103,7 +103,6 @@ class ImportDataQDialog(QDialog):
             if fp != '':
                 wid = ImportDataLineWidget(self)
                 self.import_scrollarea_layout.insertWidget(self.import_scrollarea_layout.count() - 1, wid)
-                self.line_widgets.append(wid)
                 wid.filepath_lineedit.setText(fp)
 
                 extension = '.'.join(os.path.basename(fp).split('.')[1:])

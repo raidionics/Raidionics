@@ -50,20 +50,9 @@ class LayersInteractorAnnotationsWidget(QCollapsibleGroupBox):
 
     def on_import_volume(self, volume_id):
         # @TODO. Have to connect signal/slots for the widget
-        # volume_widget = QCollapsibleGroupBox(volume_id, self, header_style='double', right_header_behaviour='stand-alone')
-        # volume_widget.set_header_icons(unchecked_icon_path=os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/closed_eye_icon.png'),
-        #                                unchecked_icon_size=QSize(20, 20),
-        #                                checked_icon_path=os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/opened_eye_icon.png'),
-        #                                checked_icon_size=QSize(20, 20),
-        #                                side='right')
-        # volume_widget.header_pushbutton.setBaseSize(QSize(self.baseSize().width(), 20))
-        # volume_widget.header_pushbutton.setFixedHeight(20)
-        # volume_widget.content_label.setMinimumSize(QSize(self.baseSize().width(), 120))
         volume_widget = LayersInteractorAnnotationCollapsibleGroupBox(annotation_uid=volume_id, parent=self)
         self.volumes_widget[volume_id] = volume_widget
         self.content_label_layout.insertWidget(self.content_label_layout.count() - 1, volume_widget)
-        # self.adjustSize()
-        # self.repaint()
 
         volume_widget.header_pushbutton.clicked.connect(self.adjustSize)
         volume_widget.right_clicked.connect(self.on_visibility_clicked)
@@ -74,7 +63,11 @@ class LayersInteractorAnnotationsWidget(QCollapsibleGroupBox):
         self.annotation_view_toggled.emit(uid, state)
 
     def on_opacity_changed(self, uid, value):
+        pat_params = SoftwareConfigResources.getInstance().get_active_patient()
+        pat_params.annotation_volumes[uid].display_opacity = value
         self.annotation_opacity_changed.emit(uid, value)
 
     def on_color_changed(self, uid, color):
+        pat_params = SoftwareConfigResources.getInstance().get_active_patient()
+        pat_params.annotation_volumes[uid].display_color = color.getRgb()
         self.annotation_color_changed.emit(uid, color)
