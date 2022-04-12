@@ -1,5 +1,6 @@
 from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QScrollArea
 from PySide2.QtCore import Qt, QSize, Signal
+from PySide2.QtGui import QColor
 import os
 
 from gui2.UtilsWidgets.QCollapsibleGroupBox import QCollapsibleGroupBox
@@ -13,6 +14,8 @@ class LayersInteractorSinglePatientSidePanelWidget(QWidget):
     """
     import_data_triggered = Signal()
     annotation_view_toggled = Signal(str, bool)
+    annotation_opacity_changed = Signal(str, int)
+    annotation_color_changed = Signal(str, QColor)
 
     def __init__(self, parent=None):
         super(LayersInteractorSinglePatientSidePanelWidget, self).__init__()
@@ -70,6 +73,8 @@ class LayersInteractorSinglePatientSidePanelWidget(QWidget):
         self.import_data_triggered.connect(self.volumes_collapsiblegroupbox.on_import_data)
         self.import_data_triggered.connect(self.annotations_collapsiblegroupbox.on_import_data)
         self.annotations_collapsiblegroupbox.annotation_view_toggled.connect(self.annotation_view_toggled)
+        self.annotations_collapsiblegroupbox.annotation_opacity_changed.connect(self.annotation_opacity_changed)
+        self.annotations_collapsiblegroupbox.annotation_color_changed.connect(self.annotation_color_changed)
 
     def __set_stylesheets(self):
         self.overall_scrollarea.setStyleSheet("QScrollArea{background-color:rgb(0, 0, 255);}")

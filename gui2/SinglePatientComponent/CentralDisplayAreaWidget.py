@@ -19,7 +19,7 @@ class CentralDisplayAreaWidget(QWidget):
         self.current_patient_parameters = None
         self.displayed_image = None
         self.point_clicker_position = [0, 0, 0]  # Knowing at all time the center of the cross-hair blue lines.
-        self.overlaid_volumes = {}  # Will hold all volumes (with annotations) which should be overlaid on the main image
+        self.overlaid_volumes = {}  # To hold all annotation volumes which should be overlaid on the main image.
 
     def resizeEvent(self, event):
         new_size = event.size()
@@ -82,12 +82,30 @@ class CentralDisplayAreaWidget(QWidget):
             self.coronal_viewer.remove_annotation_view(volume_uid)
             self.sagittal_viewer.remove_annotation_view(volume_uid)
 
+    def on_annotation_opacity_changed(self, volume_uid, value):
+        self.axial_viewer.update_annotation_opacity(volume_uid, value)
+        self.coronal_viewer.update_annotation_opacity(volume_uid, value)
+        self.sagittal_viewer.update_annotation_opacity(volume_uid, value)
+
+    def on_annotation_color_changed(self, volume_uid, color):
+        self.axial_viewer.update_annotation_color(volume_uid, color)
+        self.coronal_viewer.update_annotation_color(volume_uid, color)
+        self.sagittal_viewer.update_annotation_color(volume_uid, color)
+
     def __on_axial_coordinates_changed(self, x, y):
+        """
+        When a new location is clicked in the axial plane, the same location is set in focus in the coronal and
+        sagittal plane, for the main MRI volume and all overlaid annotations.
+        """
         self.point_clicker_position[0] = min(max(0, y), self.displayed_image.shape[0] - 1)
         self.point_clicker_position[1] = min(max(0, x), self.displayed_image.shape[1] - 1)
         # print("3D point: [{}, {}, {}]".format(self.point_clicker_position[0], self.point_clicker_position[1], self.point_clicker_position[2]))
         self.coronal_viewer.update_slice_view(self.displayed_image[:, self.point_clicker_position[1], :], self.point_clicker_position[2], self.point_clicker_position[0])
         self.sagittal_viewer.update_slice_view(self.displayed_image[self.point_clicker_position[0], :, :], self.point_clicker_position[2], self.point_clicker_position[1])
+
+        for k in list(self.overlaid_volumes.keys()):
+            self.coronal_viewer.update_annotation_view(k, self.overlaid_volumes[k][:, self.point_clicker_position[1], :])
+            self.sagittal_viewer.update_annotation_view(k, self.overlaid_volumes[k][self.point_clicker_position[0], :, :])
 
     def __on_coronal_coordinates_changed(self, x, y):
         self.point_clicker_position[0] = min(max(0, y), self.displayed_image.shape[0] - 1)
@@ -96,9 +114,18 @@ class CentralDisplayAreaWidget(QWidget):
         self.axial_viewer.update_slice_view(self.displayed_image[:, :, self.point_clicker_position[2]], self.point_clicker_position[1], self.point_clicker_position[0])
         self.sagittal_viewer.update_slice_view(self.displayed_image[self.point_clicker_position[0], :, :], self.point_clicker_position[2], self.point_clicker_position[1])
 
+        for k in list(self.overlaid_volumes.keys()):
+            self.axial_viewer.update_annotation_view(k, self.overlaid_volumes[k][:, :, self.point_clicker_position[2]])
+            self.sagittal_viewer.update_annotation_view(k, self.overlaid_volumes[k][self.point_clicker_position[0], :, :])
+
     def __on_sagittal_coordinates_changed(self, x, y):
         self.point_clicker_position[1] = min(max(0, y), self.displayed_image.shape[1] - 1)
         self.point_clicker_position[2] = min(max(0, x), self.displayed_image.shape[2] - 1)
         # print("3D point: [{}, {}, {}]".format(self.point_clicker_position[0], self.point_clicker_position[1], self.point_clicker_position[2]))
         self.axial_viewer.update_slice_view(self.displayed_image[:, :, self.point_clicker_position[2]], self.point_clicker_position[1], self.point_clicker_position[0])
         self.coronal_viewer.update_slice_view(self.displayed_image[:, self.point_clicker_position[1], :], self.point_clicker_position[2], self.point_clicker_position[0])
+
+        for k in list(self.overlaid_volumes.keys()):
+            self.axial_viewer.update_annotation_view(k, self.overlaid_volumes[k][:, :, self.point_clicker_position[2]])
+            self.coronal_viewer.update_annotation_view(k, self.overlaid_volumes[k][:, self.point_clicker_position[1], :])
+

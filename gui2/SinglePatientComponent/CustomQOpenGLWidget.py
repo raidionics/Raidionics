@@ -1,6 +1,6 @@
 from PySide2.QtWidgets import QWidget, QOpenGLWidget, QGraphicsView, QGraphicsScene, QGraphicsPixmapItem,\
     QGraphicsOpacityEffect
-from PySide2.QtGui import QPixmap, QImage, QPainter, QPen, QColor, QTransform
+from PySide2.QtGui import QPixmap, QImage, QPainter, QPen, QColor, QTransform, QColorConstants
 from PySide2.QtCore import Qt, QSize, Signal, QPoint
 from PySide2 import QtOpenGL
 import numpy as np
@@ -35,6 +35,7 @@ class CustomQGraphicsView(QGraphicsView):
         self.original_annotations = {}
         self.display_annotations = {}
         self.overlaid_items = {}
+        self.overlaid_items_display_parameters = {}  # Namely color and opacity for now. {color:QColor(255,255,255), opacity:0.5}
 
         image_2d = np.zeros((150, 150), dtype="uint8")
         h, w = image_2d.shape
@@ -269,6 +270,8 @@ class CustomQGraphicsView(QGraphicsView):
             self.display_annotations[annotation_uid] = None
             self.overlaid_items[annotation_uid] = QGraphicsPixmapItem()
             self.scene.addItem(self.overlaid_items[annotation_uid])
+        if not annotation_uid in self.overlaid_items_display_parameters.keys():
+            self.overlaid_items_display_parameters[annotation_uid] = {"color": QColor(255, 255, 255), "opacity": 0.5}
 
         self.original_annotations[annotation_uid] = annotation_slice
         image_2d = annotation_slice[:, ::-1]
@@ -289,6 +292,25 @@ class CustomQGraphicsView(QGraphicsView):
         graphics_item = self.overlaid_items[annotation_uid]
         self.scene.removeItem(graphics_item)
         self.overlaid_items.pop(annotation_uid)
+        self.original_annotations.pop(annotation_uid)
+        self.display_annotations.pop(annotation_uid)
+        # Should we keep the last parameters, so that it shows back as it was when it's toggled back, rather than
+        # set to default values? Not much memory use for this.
+        # self.overlaid_items_display_parameters.pop(annotation_uid)
+
+    def update_annotation_opacity(self, annotation_uid, value):
+        """
+        Opacity value comes from a QSlider with a value in the range [0, 100]
+        """
+        self.overlaid_items_display_parameters[annotation_uid]["opacity"] = value / 100.
+        self.__repaint_overlay(annotation_uid)
+
+    def update_annotation_color(self, annotation_uid, color):
+        """
+
+        """
+        self.overlaid_items_display_parameters[annotation_uid]["color"] = color
+        self.__repaint_overlay(annotation_uid)
 
     def __update_point_clicker_lines(self, posx, posy):
         if posx < 0:
@@ -380,20 +402,35 @@ class CustomQGraphicsView(QGraphicsView):
         self.graphical_2d_point = self.map_transform.map(self.adapted_2d_point)
         self.__update_point_clicker_lines(self.graphical_2d_point.x(), self.graphical_2d_point.y())
 
+        for anno in list(self.original_annotations.keys()):
+            self.__repaint_overlay(anno)
+
     def __repaint_overlay(self, overlay_uid):
+        """
+        Recomputes the QPixmap, updates the QGraphicsPixmapItem, which repaints the scene accordingly for the
+        specified annotation to overlay indicated by overlay_uid.
+        """
         overlay_image = self.display_annotations[overlay_uid]
-        overlay_image_scaled = overlay_image * 255
         h, w = overlay_image.shape
         bytes_per_line = 3 * w
-        color_image = np.stack([overlay_image_scaled] * 3, axis=-1)
+        # Coloring the annotation according to the chosen palette
+        color_image = np.stack([np.zeros(overlay_image.shape, dtype=np.uint8)] * 3, axis=-1)
+        color_image[..., 0][overlay_image != 0] = self.overlaid_items_display_parameters[overlay_uid]["color"].red()
+        color_image[..., 1][overlay_image != 0] = self.overlaid_items_display_parameters[overlay_uid]["color"].green()
+        color_image[..., 2][overlay_image != 0] = self.overlaid_items_display_parameters[overlay_uid]["color"].blue()
         qimage = QImage(color_image.data, w, h, bytes_per_line, QImage.Format_RGB888)
-        ## @TODO. Alpha channel for the QGraphicsPixmapItem and opacity does not seem to work?
-        # color_image = np.stack([np.zeros(overlay_image.shape, dtype=np.uint8)] * 4, axis=-1)
-        # color_image[..., 0][overlay_image != 0] = 255.
-        # color_image[..., 3][overlay_image != 0] = 255.
-        # qimage = QImage(color_image.data, w, h, bytes_per_line, QImage.Format_RGBA8888)
+        qimage = qimage.convertToFormat(QImage.Format_RGBA8888)
+
+        # Manually setting up the alpha channel to have proper background transparency
+        alpha_channel = np.zeros(overlay_image.shape, dtype=np.uint8)
+        alpha_channel[overlay_image != 0] = 255
+        qimage.setAlphaChannel(QImage(alpha_channel.data, w, h, w, QImage.Format_Alpha8))
+
+        # Updating the QGraphicsPixmapItem with the QPixmap, after transformation to fit the display space
         qimage = qimage.transformed(self.map_transform)
         self.overlaid_items[overlay_uid].setPixmap(QPixmap.fromImage(qimage))
+
+        # Setting up the opacity for the given QGraphicsPixmapItem
         opacity = QGraphicsOpacityEffect()
-        opacity.setOpacity(0.5)
+        opacity.setOpacity(self.overlaid_items_display_parameters[overlay_uid]["opacity"])
         self.overlaid_items[overlay_uid].setGraphicsEffect(opacity)

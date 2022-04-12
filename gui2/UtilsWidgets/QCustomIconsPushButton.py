@@ -10,10 +10,11 @@ class QCustomIconsPushButton(QPushButton):
     bool_clicked = Signal(bool)
     right_clicked = Signal(str, bool)
 
-    def __init__(self, text, parent=None, icon_style='right', right_behaviour='native'):
+    def __init__(self, uid, parent=None, icon_style='right', right_behaviour='native'):
         super(QCustomIconsPushButton, self).__init__()
         self.parent = parent
-        super(QCustomIconsPushButton, self).setText(text)
+        self.uid = uid
+        super(QCustomIconsPushButton, self).setText(uid)
         self.icon_style = icon_style
         self.right_behaviour = right_behaviour
         self.left_icon = QIcon()
@@ -108,4 +109,4 @@ class QCustomIconsPushButton(QPushButton):
             self.right_icon_widget.setIcon(self.right_icon)
             self.right_icon_widget.setIconSize(self.right_icon_size)
 
-        self.right_clicked.emit(self.text(), self.right_icon_widget.isChecked())
+        self.right_clicked.emit(self.uid, self.right_icon_widget.isChecked())

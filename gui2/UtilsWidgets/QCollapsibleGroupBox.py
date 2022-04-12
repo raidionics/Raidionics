@@ -13,10 +13,10 @@ class QCollapsibleGroupBox(QWidget):
     clicked_signal = Signal(bool, str)
     right_clicked = Signal(str, bool)
 
-    def __init__(self, title, parent=None, header_style='right', right_header_behaviour='native'):
+    def __init__(self, uid, parent=None, header_style='right', right_header_behaviour='native'):
         super(QCollapsibleGroupBox, self).__init__()
         self.parent = parent
-        self.title = title
+        self.uid = uid  # Holding the permanent unique id, while self.title holds the visible name
         self.header_style = header_style
         self.right_header_behaviour = right_header_behaviour
         self.__set_interface()
@@ -28,7 +28,7 @@ class QCollapsibleGroupBox(QWidget):
         self.layout = QVBoxLayout(self)
         # self.layout.setSpacing(0)
         self.layout.setContentsMargins(0, 5, 0, 5)
-        self.header_pushbutton = QCustomIconsPushButton(self.title, self.parent, icon_style=self.header_style,
+        self.header_pushbutton = QCustomIconsPushButton(self.uid, self.parent, icon_style=self.header_style,
                                                         right_behaviour=self.right_header_behaviour)
         self.header_pushbutton.setCheckable(True)
         self.content_label = QLabel()
@@ -58,7 +58,7 @@ class QCollapsibleGroupBox(QWidget):
     def on_header_pushbutton_clicked(self, state):
         self.collapsed = state
         self.content_label.setVisible(state)
-        self.clicked_signal.emit(state, self.title)
+        self.clicked_signal.emit(state, self.uid)
         self.adjustSize()
 
     def set_header_icons(self, unchecked_icon_path=None, unchecked_icon_size=QSize(), checked_icon_path=None,

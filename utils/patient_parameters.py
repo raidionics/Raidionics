@@ -160,3 +160,7 @@ class AnnotationVolume():
         self.display_volume = None
         self.display_volume_filepath = None
         self.annotation_class = AnnotationClassType.Tumor
+        # @TODO. Do we save also the display parameters? Not as interactive placeholders, just for reload/dump of the scene
+        self.display_color = None
+        self.display_opacity = 0.5
+        self.display_name = uid
