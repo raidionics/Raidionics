@@ -1,11 +1,9 @@
-from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QApplication
 from PySide2.QtCore import QSize, Signal
-from PySide2.QtGui import QIcon, QPixmap, QColor
+from PySide2.QtGui import QColor
 import os
 
 from gui2.UtilsWidgets.QCollapsibleGroupBox import QCollapsibleGroupBox
-from gui2.UtilsWidgets.QCustomIconsPushButton import QCustomIconsPushButton
-from gui2.SinglePatientComponent.LayersInteractorAnnotationCollapsibleGroupBox import LayersInteractorAnnotationCollapsibleGroupBox
+from gui2.SinglePatientComponent.LayersInteractorSidePanel.LayersInteractorAnnotationCollapsibleGroupBox import LayersInteractorAnnotationCollapsibleGroupBox
 
 from utils.software_config import SoftwareConfigResources
 
@@ -21,10 +19,10 @@ class LayersInteractorAnnotationsWidget(QCollapsibleGroupBox):
     def __init__(self, parent=None):
         super(LayersInteractorAnnotationsWidget, self).__init__("Annotations", self, header_style='left')
         self.set_header_icons(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                           '../Images/arrow_right_icon.png'),
+                                           '../../Images/arrow_right_icon.png'),
                               QSize(20, 20),
                               os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                           '../Images/arrow_down_icon.png'),
+                                           '../../Images/arrow_down_icon.png'),
                               QSize(20, 20), side='left')
         self.parent = parent
         self.volumes_widget = {}

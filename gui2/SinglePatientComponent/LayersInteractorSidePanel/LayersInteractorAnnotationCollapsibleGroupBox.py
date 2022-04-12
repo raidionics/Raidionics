@@ -26,10 +26,10 @@ class LayersInteractorAnnotationCollapsibleGroupBox(QCollapsibleGroupBox):
 
     def __set_interface(self):
         self.set_header_icons(unchecked_icon_path=os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                                               '../Images/closed_eye_icon.png'),
+                                                               '../../Images/closed_eye_icon.png'),
                               unchecked_icon_size=QSize(20, 20),
                               checked_icon_path=os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                                             '../Images/opened_eye_icon.png'),
+                                                             '../../Images/opened_eye_icon.png'),
                               checked_icon_size=QSize(20, 20),
                               side='right')
         self.header_pushbutton.setBaseSize(QSize(self.baseSize().width(), 20))

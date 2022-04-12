@@ -64,7 +64,7 @@ class NeuroRADSMainWindow(QMainWindow):
         # @TODO. How to propagate the info correctly?
 
     def __set_interface(self):
-        self.setWindowTitle("NeuroRADS")
+        self.setWindowTitle("Raidionics")
         self.__getScreenDimensions()
         self.button_width = 0.35
         self.button_height = 0.05

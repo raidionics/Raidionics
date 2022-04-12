@@ -1,11 +1,9 @@
-from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QScrollArea
+from PySide2.QtWidgets import QWidget, QVBoxLayout, QScrollArea
 from PySide2.QtCore import Qt, QSize, Signal
 from PySide2.QtGui import QColor
-import os
 
-from gui2.UtilsWidgets.QCollapsibleGroupBox import QCollapsibleGroupBox
-from gui2.SinglePatientComponent.LayersInteractorVolumesWidget import LayersInteractorVolumesWidget
-from gui2.SinglePatientComponent.LayersInteractorAnnotationsWidget import LayersInteractorAnnotationsWidget
+from gui2.SinglePatientComponent.LayersInteractorSidePanel.LayersInteractorVolumesWidget import LayersInteractorVolumesWidget
+from gui2.SinglePatientComponent.LayersInteractorSidePanel.LayersInteractorAnnotationsWidget import LayersInteractorAnnotationsWidget
 
 
 class LayersInteractorSinglePatientSidePanelWidget(QWidget):

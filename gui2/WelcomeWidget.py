@@ -58,7 +58,8 @@ class WelcomeWidget(QWidget):
         # self.top_logo_panel_pushbutton.setEnabled(False)
         self.top_logo_panel_label = QLabel()
         # self.top_logo_panel_label.setFixedSize(QSize(100, 25))
-        self.top_logo_panel_label.setPixmap(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Images/neurorads-logo.png')).scaled(200, 50, Qt.KeepAspectRatio))
+        self.top_logo_panel_label.setPixmap(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                                 'Images/raidionics-logo.png')).scaled(200, 50, Qt.KeepAspectRatio))
         # self.top_logo_panel_label.setIconSize(QSize(100, 25))
         self.top_logo_panel_label.setFixedSize(QSize(200, 50))
         self.top_logo_panel_layout.addWidget(self.top_logo_panel_label, Qt.AlignLeft)
@@ -111,11 +112,11 @@ class WelcomeWidget(QWidget):
         self.left_panel_layout.addItem(self.left_panel_top_spaceritem)
 
         self.left_panel_welcome_label = QLabel()
-        self.left_panel_welcome_label.setText("Welcome to Neurorads")
+        self.left_panel_welcome_label.setText("Welcome to Raidionics")
         self.left_panel_welcome_label.setFixedSize(QSize(220, 20))
         self.left_panel_layout.addWidget(self.left_panel_welcome_label)
         self.left_panel_startby_label = QLabel()
-        self.left_panel_startby_label.setText("Start by segmenting")
+        self.left_panel_startby_label.setText("Start by: ")
         self.left_panel_startby_label.setFixedSize(QSize(200, 20))
         self.left_panel_layout.addWidget(self.left_panel_startby_label)
         self.left_panel_spaceritem = QSpacerItem(1, 15)

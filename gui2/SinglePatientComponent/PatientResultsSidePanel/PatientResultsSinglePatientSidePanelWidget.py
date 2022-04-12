@@ -1,7 +1,7 @@
-from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QScrollArea, QPushButton
+from PySide2.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QScrollArea, QPushButton
 from PySide2.QtCore import QSize, Qt, Signal
 
-from gui2.SinglePatientComponent.SinglePatientResultsWidget import SinglePatientResultsWidget
+from gui2.SinglePatientComponent.PatientResultsSidePanel.SinglePatientResultsWidget import SinglePatientResultsWidget
 from utils.software_config import SoftwareConfigResources
 
 

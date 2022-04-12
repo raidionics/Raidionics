@@ -1,15 +1,16 @@
-from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QGridLayout
-from PySide2.QtCore import QSize
+from PySide2.QtWidgets import QWidget, QLabel, QGridLayout
+from PySide2.QtCore import QSize, Signal
 
-from gui2.SinglePatientComponent.CustomQOpenGLWidget import CustomQGraphicsView
+from gui2.SinglePatientComponent.CentralDisplayArea.CustomQGraphicsView import CustomQGraphicsView
 from utils.software_config import SoftwareConfigResources
-from utils.patient_parameters import PatientParameters
 
 
 class CentralDisplayAreaWidget(QWidget):
     """
 
     """
+    import_data_triggered = Signal()
+
     def __init__(self, parent=None):
         super(CentralDisplayAreaWidget, self).__init__()
         self.parent = parent
@@ -57,6 +58,10 @@ class CentralDisplayAreaWidget(QWidget):
         self.axial_viewer.coordinates_changed.connect(self.__on_axial_coordinates_changed)
         self.coronal_viewer.coordinates_changed.connect(self.__on_coronal_coordinates_changed)
         self.sagittal_viewer.coordinates_changed.connect(self.__on_sagittal_coordinates_changed)
+
+        self.axial_viewer.import_data_triggered.connect(self.import_data_triggered)
+        self.coronal_viewer.import_data_triggered.connect(self.import_data_triggered)
+        self.sagittal_viewer.import_data_triggered.connect(self.import_data_triggered)
 
     def on_import_data(self):
         if self.displayed_image is None:

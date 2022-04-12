@@ -28,9 +28,11 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
 
     def __set_system_part(self):
         self.default_collapsiblegroupbox = QCollapsibleGroupBox("System", self)
-        self.default_collapsiblegroupbox.set_header_icons(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/uncollapased_icon.png'),
+        self.default_collapsiblegroupbox.set_header_icons(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                                       '../../Images/uncollapased_icon.png'),
                                                           QSize(20, 20),
-                                                          os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/collapsed_icon.png'),
+                                                          os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                                       '../../Images/collapsed_icon.png'),
                                                           QSize(20, 20))
         self.default_collapsiblegroupbox.setBaseSize(QSize(self.parent.baseSize().width(), 150))
         self.content_label_layout.addWidget(self.default_collapsiblegroupbox)
@@ -49,9 +51,11 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
 
     def __set_overall_part(self):
         self.overall_collapsiblegroupbox = QCollapsibleGroupBox("Overall", self)
-        self.overall_collapsiblegroupbox.set_header_icons(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/uncollapased_icon.png'),
+        self.overall_collapsiblegroupbox.set_header_icons(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                                       '../../Images/uncollapased_icon.png'),
                                                           QSize(20, 20),
-                                                          os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/collapsed_icon.png'),
+                                                          os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                                       '../../Images/collapsed_icon.png'),
                                                           QSize(20, 20))
         self.overall_collapsiblegroupbox.setBaseSize(QSize(self.parent.baseSize().width(), 150))
         self.content_label_layout.addWidget(self.overall_collapsiblegroupbox)
@@ -67,9 +71,11 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
 
     def __set_volumes_part(self):
         self.volumes_collapsiblegroupbox = QCollapsibleGroupBox("Volumes", self)
-        self.volumes_collapsiblegroupbox.set_header_icons(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/uncollapased_icon.png'),
+        self.volumes_collapsiblegroupbox.set_header_icons(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                                       '../../Images/uncollapased_icon.png'),
                                                           QSize(20, 20),
-                                                          os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/collapsed_icon.png'),
+                                                          os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                                       '../../Images/collapsed_icon.png'),
                                                           QSize(20, 20))
         self.volumes_collapsiblegroupbox.setBaseSize(QSize(self.parent.baseSize().width(), 150))
         self.content_label_layout.addWidget(self.volumes_collapsiblegroupbox)

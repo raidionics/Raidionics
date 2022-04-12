@@ -16,9 +16,11 @@ class LayersInteractorVolumesWidget(QCollapsibleGroupBox):
 
     def __init__(self, parent=None):
         super(LayersInteractorVolumesWidget, self).__init__("Input MRI volumes", self, header_style='left')
-        self.set_header_icons(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/arrow_right_icon.png'),
+        self.set_header_icons(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                           '../../Images/arrow_right_icon.png'),
                               QSize(20, 20),
-                              os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/arrow_down_icon.png'),
+                              os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                           '../../Images/arrow_down_icon.png'),
                               QSize(20, 20), side='left')
         self.parent = parent
         self.volumes_widget = {}
@@ -52,9 +54,11 @@ class LayersInteractorVolumesWidget(QCollapsibleGroupBox):
     def on_import_volume(self, volume_id):
         # @TODO. Have to connect signal/slots for the widget
         volume_widget = QCollapsibleGroupBox(volume_id, self, header_style='double', right_header_behaviour='stand-alone')
-        volume_widget.set_header_icons(unchecked_icon_path=os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/closed_eye_icon.png'),
+        volume_widget.set_header_icons(unchecked_icon_path=os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                                        '../../Images/closed_eye_icon.png'),
                                        unchecked_icon_size=QSize(20, 20),
-                                       checked_icon_path=os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/opened_eye_icon.png'),
+                                       checked_icon_path=os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                                      '../../Images/opened_eye_icon.png'),
                                        checked_icon_size=QSize(20, 20),
                                        side='right')
         volume_widget.header_pushbutton.setBaseSize(QSize(self.baseSize().width(), 20))

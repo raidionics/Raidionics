@@ -1,14 +1,12 @@
-from PySide2.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QLabel, QPushButton, QSpacerItem,\
-    QDockWidget, QSplitter, QFileDialog, QDialog, QApplication
+from PySide2.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QLabel, QPushButton, QSplitter, QDialog
 from PySide2.QtGui import QIcon, QPixmap
-from PySide2.QtCore import Qt, QSize, QUrl, Signal
+from PySide2.QtCore import Qt, QSize, Signal
 
 import os
 from utils.software_config import SoftwareConfigResources
-from utils.patient_parameters import PatientParameters
-from gui2.SinglePatientComponent.PatientResultsSinglePatientSidePanelWidget import PatientResultsSinglePatientSidePanelWidget
-from gui2.SinglePatientComponent.CentralDisplayAreaWidget import CentralDisplayAreaWidget
-from gui2.SinglePatientComponent.LayersInteractorSinglePatientSidePanelWidget import LayersInteractorSinglePatientSidePanelWidget
+from gui2.SinglePatientComponent.PatientResultsSidePanel.PatientResultsSinglePatientSidePanelWidget import PatientResultsSinglePatientSidePanelWidget
+from gui2.SinglePatientComponent.CentralDisplayArea.CentralDisplayAreaWidget import CentralDisplayAreaWidget
+from gui2.SinglePatientComponent.LayersInteractorSidePanel.LayersInteractorSinglePatientSidePanelWidget import LayersInteractorSinglePatientSidePanelWidget
 from gui2.UtilsWidgets.ImportDataQDialog import ImportDataQDialog
 
 
@@ -54,7 +52,7 @@ class SinglePatientWidget(QWidget):
         self.top_logo_panel_layout = QHBoxLayout()
         self.top_logo_panel_label = QLabel()
         self.top_logo_panel_label.setPixmap(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                                                 '../Images/neurorads-logo.png')).scaled(150, 30, Qt.KeepAspectRatio))
+                                                                 '../Images/raidionics-logo.png')).scaled(150, 30, Qt.KeepAspectRatio))
         self.top_logo_panel_label.setFixedSize(QSize(150, 30))
         self.top_logo_panel_layout.addWidget(self.top_logo_panel_label, Qt.AlignLeft)
         self.top_logo_panel_label_import_file_pushbutton = QPushButton()
@@ -124,6 +122,7 @@ class SinglePatientWidget(QWidget):
         # self.import_patient_triggered.connect(self.center_panel.on_import_data)
         self.import_patient_triggered.connect(self.results_panel.on_import_patient)
         # @TODO. Might not be an import data, but rather a full visual update.
+        self.center_panel.import_data_triggered.connect(self.layers_panel.on_import_data)
         self.results_panel.patient_selected.connect(self.center_panel.on_import_data)
         self.import_data_triggered.connect(self.layers_panel.on_import_data)
         self.layers_panel.annotation_view_toggled.connect(self.center_panel.on_annotation_layer_toggled)

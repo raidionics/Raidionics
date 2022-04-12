@@ -369,9 +369,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.979899"
-     inkscape:cx="242.21709"
-     inkscape:cy="643.19213"
+     inkscape:zoom="7.9195959"
+     inkscape:cx="272.51449"
+     inkscape:cy="573.88431"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      inkscape:document-rotation="0"
@@ -1076,5 +1076,53 @@
          x="91.470322"
          y="178.16374"
          style="font-size:3.52778px;stroke-width:0.264583;fill:#0000c4;fill-opacity:1;">Raidionics</tspan></text>
+    <ellipse
+       style="font-variation-settings:normal;vector-effect:none;fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#0000c4;stroke-width:1.13041;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;stop-color:#000000"
+       id="path4284-1-6"
+       cx="5.7116094"
+       cy="60.390755"
+       rx="2.6274173"
+       ry="2.6274171"
+       inkscape:export-filename="/home/dbouget/Documents/Code/Public/neuro_rads/gui2/Images/raidionics-logo.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300" />
+    <rect
+       style="font-variation-settings:normal;vector-effect:none;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#0000c4;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;stop-color:#000000"
+       id="rect4574-9"
+       width="5.3276262"
+       height="5.4873343"
+       x="5.4267387"
+       y="60.347832"
+       inkscape:export-filename="/home/dbouget/Documents/Code/Public/neuro_rads/gui2/Images/raidionics-logo.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:8.46667px;line-height:1.25;font-family:sans-serif;fill:#0000c4;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="10.997891"
+       y="66.239235"
+       id="text4578-3"
+       inkscape:export-filename="/home/dbouget/Documents/Code/Public/neuro_rads/gui2/Images/raidionics-logo.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300"><tspan
+         sodipodi:role="line"
+         id="tspan4576-0"
+         x="10.997891"
+         y="66.239235"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:8.46667px;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';fill:#0000c4;fill-opacity:1;stroke-width:0.264583">Raidionics</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-weight:bold;font-size:5.64444px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';fill:#ff0000;stroke-width:0.265;stroke-miterlimit:4;stroke-dasharray:none"
+       x="62.745941"
+       y="162.12236"
+       id="text7128"
+       inkscape:export-filename="/home/dbouget/Documents/Code/Public/neuro_rads/gui2/Images/delete-cross-icon.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300"><tspan
+         sodipodi:role="line"
+         id="tspan7126"
+         x="62.745941"
+         y="162.12236"
+         style="fill:#ff0000;stroke-width:0.265;stroke-miterlimit:4;stroke-dasharray:none">X</tspan></text>
   </g>
 </svg>
