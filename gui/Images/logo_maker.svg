@@ -369,9 +369,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="7.9195959"
-     inkscape:cx="272.51449"
-     inkscape:cy="573.88431"
+     inkscape:zoom="5.6"
+     inkscape:cx="124.81451"
+     inkscape:cy="295.90463"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      inkscape:document-rotation="0"
@@ -1124,5 +1124,29 @@
          x="62.745941"
          y="162.12236"
          style="fill:#ff0000;stroke-width:0.265;stroke-miterlimit:4;stroke-dasharray:none">X</tspan></text>
+    <rect
+       style="font-variation-settings:normal;vector-effect:none;fill:#00ff00;fill-opacity:1;fill-rule:evenodd;stroke-width:0.199682;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;stop-color:#000000"
+       id="rect4848-7"
+       width="6.863873"
+       height="6.863873"
+       x="35.938099"
+       y="70.954384"
+       inkscape:export-filename="/home/dbouget/Documents/Code/Public/neuro_rads/gui2/Images/dicom_load_icon.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:1.76389px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="36.00362"
+       y="75.016006"
+       id="text4852-6"
+       inkscape:export-filename="/home/dbouget/Documents/Code/Public/neuro_rads/gui2/Images/dicom_load_icon.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300"><tspan
+         sodipodi:role="line"
+         id="tspan4850-5"
+         x="36.00362"
+         y="75.016006"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:1.76389px;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';stroke-width:0.264583">DICOM</tspan></text>
   </g>
 </svg>

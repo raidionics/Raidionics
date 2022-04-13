@@ -8,6 +8,7 @@ from gui2.SinglePatientComponent.PatientResultsSidePanel.PatientResultsSinglePat
 from gui2.SinglePatientComponent.CentralDisplayArea.CentralDisplayAreaWidget import CentralDisplayAreaWidget
 from gui2.SinglePatientComponent.LayersInteractorSidePanel.LayersInteractorSinglePatientSidePanelWidget import LayersInteractorSinglePatientSidePanelWidget
 from gui2.UtilsWidgets.ImportDataQDialog import ImportDataQDialog
+from gui2.UtilsWidgets.ImportDICOMDataQDialog import ImportDICOMDataQDialog
 
 
 class SinglePatientWidget(QWidget):
@@ -60,6 +61,12 @@ class SinglePatientWidget(QWidget):
         self.top_logo_panel_label_import_file_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/data_load_icon.png'))))
         self.top_logo_panel_label_import_file_pushbutton.setIconSize(QSize(29, 29))
         self.top_logo_panel_layout.addWidget(self.top_logo_panel_label_import_file_pushbutton)
+
+        self.top_logo_panel_label_import_dicom_pushbutton = QPushButton()
+        self.top_logo_panel_label_import_dicom_pushbutton.setFixedSize(QSize(30, 30))
+        self.top_logo_panel_label_import_dicom_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/dicom_load_icon.png'))))
+        self.top_logo_panel_label_import_dicom_pushbutton.setIconSize(QSize(29, 29))
+        self.top_logo_panel_layout.addWidget(self.top_logo_panel_label_import_dicom_pushbutton)
 
         self.top_logo_panel_label_save_pushbutton = QPushButton()
         self.top_logo_panel_label_save_pushbutton.setFixedSize(QSize(30, 30))
@@ -114,6 +121,7 @@ class SinglePatientWidget(QWidget):
 
     def __set_connections(self):
         self.top_logo_panel_label_import_file_pushbutton.clicked.connect(self.__on_import_file_clicked)
+        self.top_logo_panel_label_import_dicom_pushbutton.clicked.connect(self.__on_import_dicom_clicked)
         self.top_logo_panel_label_save_pushbutton.clicked.connect(self.__on_save_clicked)
         self.__set_cross_connections()
 
@@ -139,22 +147,11 @@ class SinglePatientWidget(QWidget):
         if code == QDialog.Accepted:
             self.import_data_triggered.emit()
 
-        # QApplication.processEvents()
-        # input_image_filedialog = QFileDialog()
-        # input_image_filedialog.setWindowFlags(Qt.WindowStaysOnTopHint)
-        # # The option is forcing the window to appear on top.
-        # input_image_filepath = input_image_filedialog.getOpenFileName(self, caption='Select input MRI file',
-        #                                                               directory='~',
-        #                                                               filter="Image files (*.nii *.nii.gz *.nrrd *.mha *.mhd *.neurorads)")[0]  # , options=QFileDialog.DontUseNativeDialog
-        # if input_image_filepath != '':
-        #     extension = '.'.join(os.path.basename(input_image_filepath).split('.')[1:])
-        #     if extension == 'neurorads':
-        #         SoftwareConfigResources.getInstance().load_patient(input_image_filepath)
-        #         # @TODO. emit a signal to update the different GUI pieces.
-        #         self.import_patient_triggered.emit()
-        #     else:
-        #         data_uid = SoftwareConfigResources.getInstance().patients_parameters[SoftwareConfigResources.getInstance().active_patient_name].import_data(input_image_filepath)
-        #         self.import_data_triggered.emit(data_uid) # @TODO. Should not be the image path but its unique_id
+    def __on_import_dicom_clicked(self):
+        diag = ImportDICOMDataQDialog(self)
+        code = diag.exec_()
+        if code == QDialog.Accepted:
+            self.import_data_triggered.emit()
 
     def __on_save_clicked(self):
         SoftwareConfigResources.getInstance().patients_parameters[SoftwareConfigResources.getInstance().active_patient_name].save_patient()
