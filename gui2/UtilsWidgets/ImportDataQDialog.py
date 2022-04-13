@@ -81,8 +81,8 @@ class ImportDataQDialog(QDialog):
         input_image_filedialog.setWindowFlags(Qt.WindowStaysOnTopHint)
         # @TODO. Should query the allowed file extensions from SoftwareResources
         input_filepaths = input_image_filedialog.getOpenFileNames(self, caption='Select input file(s)',
-                                                                       directory='~',
-                                                                       filter="Files (*.nii *.nii.gz *.nrrd *.mha *.mhd *.neurorads)")[0]  # , options=QFileDialog.DontUseNativeDialog
+                                                                  directory='~',
+                                                                  filter="Files (*.nii *.nii.gz *.nrrd *.mha *.mhd *.neurorads)")[0]  # , options=QFileDialog.DontUseNativeDialog
         self.setup_interface_from_files(input_filepaths)
 
     def __on_exit_accept_clicked(self):

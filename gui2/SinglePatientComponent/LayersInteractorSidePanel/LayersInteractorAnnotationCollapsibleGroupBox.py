@@ -23,6 +23,7 @@ class LayersInteractorAnnotationCollapsibleGroupBox(QCollapsibleGroupBox):
         self.__set_interface()
         self.__set_connections()
         self.__set_stylesheets()
+        self.__init_from_parameters()
 
     def __set_interface(self):
         self.set_header_icons(unchecked_icon_path=os.path.join(os.path.dirname(os.path.realpath(__file__)),
@@ -83,6 +84,31 @@ class LayersInteractorAnnotationCollapsibleGroupBox(QCollapsibleGroupBox):
     def __set_stylesheets(self):
         self.color_dialogpushbutton_base_ss = """ QPushButton{border-color:rgb(0, 0, 0); border-width:2px;} """
         self.color_dialogpushbutton.setStyleSheet(self.color_dialogpushbutton_base_ss)
+
+    def __init_from_parameters(self):
+        """
+        Populate the different widgets with internal parameters specific to the current annotation volume
+        """
+        annotation_volume_parameters = SoftwareConfigResources.getInstance().get_active_patient().annotation_volumes[self.uid]
+        self.title = annotation_volume_parameters.display_name
+        self.header_pushbutton.blockSignals(True)
+        self.header_pushbutton.setText(self.title)
+        self.header_pushbutton.blockSignals(False)
+        self.name_lineedit.blockSignals(True)
+        self.name_lineedit.setText(self.title)
+        self.name_lineedit.blockSignals(False)
+        self.opacity_slider.blockSignals(True)
+        self.opacity_slider.setSliderPosition(annotation_volume_parameters.display_opacity)
+        self.opacity_slider.blockSignals(False)
+        self.color_dialog.setCurrentColor(QColor.fromRgb(annotation_volume_parameters.display_color[0],
+                                                         annotation_volume_parameters.display_color[1],
+                                                         annotation_volume_parameters.display_color[2],
+                                                         annotation_volume_parameters.display_color[3]))
+        custom_color_str = "background-color:rgb({}, {}, {})".format(annotation_volume_parameters.display_color[0],
+                                                                     annotation_volume_parameters.display_color[1],
+                                                                     annotation_volume_parameters.display_color[2])
+        custom_ss = "QPushButton{" + custom_color_str + ";}"
+        self.color_dialogpushbutton.setStyleSheet(self.color_dialogpushbutton_base_ss + custom_ss)
 
     def __on_display_name_modified(self):
         self.title = self.name_lineedit.text()

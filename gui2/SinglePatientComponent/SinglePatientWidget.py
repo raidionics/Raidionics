@@ -119,6 +119,7 @@ class SinglePatientWidget(QWidget):
 
     def __set_cross_connections(self):
         self.import_data_triggered.connect(self.center_panel.on_import_data)
+        # @TODO. Have to bounce the import_data_triggered to the results_panel, in case a patient was loaded.
         # self.import_patient_triggered.connect(self.center_panel.on_import_data)
         self.import_patient_triggered.connect(self.results_panel.on_import_patient)
         # @TODO. Might not be an import data, but rather a full visual update.

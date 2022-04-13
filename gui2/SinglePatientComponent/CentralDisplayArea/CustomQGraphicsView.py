@@ -163,13 +163,21 @@ class CustomQGraphicsView(QGraphicsView):
             self.import_data_triggered.emit()
 
     def update_annotation_view(self, annotation_uid, annotation_slice):
+        """
+
+        """
         if not annotation_uid in self.overlaid_items.keys():
             self.original_annotations[annotation_uid] = None
             self.display_annotations[annotation_uid] = None
             self.overlaid_items[annotation_uid] = QGraphicsPixmapItem()
             self.scene.addItem(self.overlaid_items[annotation_uid])
         if not annotation_uid in self.overlaid_items_display_parameters.keys():
-            self.overlaid_items_display_parameters[annotation_uid] = {"color": QColor(255, 255, 255), "opacity": 0.5}
+            annotation_color = SoftwareConfigResources.getInstance().get_active_patient().annotation_volumes[annotation_uid].display_color
+            self.overlaid_items_display_parameters[annotation_uid] = {"color": QColor.fromRgb(annotation_color[0],
+                                                                                              annotation_color[1],
+                                                                                              annotation_color[2],
+                                                                                              annotation_color[3]),
+                                                                      "opacity": float(SoftwareConfigResources.getInstance().get_active_patient().annotation_volumes[annotation_uid].display_opacity / 100.)}
 
         self.original_annotations[annotation_uid] = annotation_slice
         image_2d = annotation_slice[:, ::-1]

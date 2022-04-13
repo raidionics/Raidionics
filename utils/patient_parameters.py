@@ -72,12 +72,21 @@ class PatientParameters:
             self.patient_parameters_project_json = json.load(infile)
 
         for volume_id in list(self.patient_parameters_project_json['Volumes'].keys()):
-            # @TODO. Need to adjust import_data so that it can take the volume_id for reloading purposes...
-            # Or create a specific reload_patient_data, since we also already have the display volume
-            # For the future, how to prepare a possibility to perform/save contrast adjustments?
-            # self.import_data()
             mri_volume = MRIVolume(uid=volume_id, filename=self.patient_parameters_project_json['Volumes'][volume_id]['raw_volume_filepath'])
+            mri_volume.display_volume_filepath = self.patient_parameters_project_json['Volumes'][volume_id]['display_volume_filepath']
+            mri_volume.display_volume = nib.load(mri_volume.display_volume_filepath).get_data()[:]
+            # @TODO. Have to convert from string to AEnum type.
+            mri_volume.sequence_type = self.patient_parameters_project_json['Volumes'][volume_id]['sequence_type']
             self.mri_volumes[volume_id] = mri_volume
+
+        for volume_id in list(self.patient_parameters_project_json['Annotations'].keys()):
+            annotation_volume = MRIVolume(uid=volume_id, filename=self.patient_parameters_project_json['Annotations'][volume_id]['raw_volume_filepath'])
+            annotation_volume.display_volume_filepath = self.patient_parameters_project_json['Annotations'][volume_id]['display_volume_filepath']
+            annotation_volume.display_volume = nib.load(annotation_volume.display_volume_filepath).get_data()[:]
+            annotation_volume.display_color = self.patient_parameters_project_json['Annotations'][volume_id]['display_color']
+            annotation_volume.display_opacity = self.patient_parameters_project_json['Annotations'][volume_id]['display_opacity']
+            annotation_volume.display_name = self.patient_parameters_project_json['Annotations'][volume_id]['display_name']
+            self.annotation_volumes[volume_id] = annotation_volume
 
     def import_data(self, filename, type="MRI"):
         """
@@ -112,6 +121,8 @@ class PatientParameters:
                     non_available_uid = False
             self.mri_volumes[data_uid] = MRIVolume(uid=data_uid, filename=filename)
             self.mri_volumes[data_uid].display_volume = deepcopy(image_res2)
+        elif type == 'Patient':
+            self.import_patient(filename)
         else:
             image_nib = nib.load(filename)
             resampled_input_ni = resample_to_output(image_nib, order=0)
@@ -179,6 +190,6 @@ class AnnotationVolume():
         self.display_volume_filepath = None
         self.annotation_class = AnnotationClassType.Tumor
         # Display parameters, for reload/dump of the scene
-        self.display_color = None  # Tuple with format {r, g, b, a}
-        self.display_opacity = 0.5
+        self.display_color = [255, 255, 255, 255]  # List with format: r, g, b, a
+        self.display_opacity = 50
         self.display_name = uid
