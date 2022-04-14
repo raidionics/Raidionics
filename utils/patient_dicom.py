@@ -8,6 +8,7 @@ class PatientDICOM:
         self.dicom_folder = dicom_folder
         self.patient_id = None
         self.studies = {}
+        self.parse_dicom_folder()
 
     def parse_dicom_folder(self):
         """
@@ -81,23 +82,43 @@ class PatientDICOM:
                             reader.SetFileNames(dicom_names)
                             reader.LoadPrivateTagsOn()
                             reader.SetMetaDataDictionaryArrayUpdate(True)
-                            investigations_for_timestamp.append(reader)
+                            dicom_series = DICOMSeries(reader)
+                            study_id = dicom_series.get_metadata_value('0020|0010')
+                            if study_id not in list(self.studies.keys()):
+                                self.studies[study_id] = DICOMStudy(study_id)
+                            self.studies[study_id].insert_series(dicom_series)
 
-                            tmp = reader.Execute()
-                            date = datetime.datetime.strptime(reader.GetMetaData(0, '0008|0021')[0:8], '%Y%m%d')
-                            if timestamp is None:
-                                timestamp = date
-                                print('Inclusion for timestamp: {}'.format(timestamp))
+                            # Filling the patient info as the iteration over the series goes.
+                            if self.patient_id is None and dicom_series.get_patient_id() is not None:
+                                self.patient_id = dicom_series.get_patient_id()
+
                     except Exception as e:
                         # print('Patient {}, could not process DICOM'.format(uid))
                         continue
 
-                dicom_investigations[ts_order] = investigations_for_timestamp
-            main_dicom_investigations.append(dicom_investigations)
-        return main_dicom_investigations
+            #     dicom_investigations[ts_order] = investigations_for_timestamp
+            # main_dicom_investigations.append(dicom_investigations)
+        # return main_dicom_investigations
+        return
 
 
-class DICOMInvestigation():
+class DICOMStudy():
+    def __init__(self, study_id):
+        self.study_id = study_id
+        self.study_description = None
+        self.study_acquisition_date = None
+        self.dicom_series = {}
+
+    def insert_series(self, series):
+        self.dicom_series[series.series_id] = series
+        if self.study_description is None and series.get_metadata_value('0008|1030') is not None:
+            self.study_description = series.get_metadata_value('0008|1030')
+
+        if self.study_acquisition_date is None and series.get_metadata_value('0008|0022') is not None:
+            self.study_acquisition_date = series.get_metadata_value('0008|0022')
+
+
+class DICOMSeries():
     def __init__(self, sitk_reader):
         self.sitk_reader = sitk_reader
         self.volume = sitk_reader.Execute()
@@ -105,6 +126,13 @@ class DICOMInvestigation():
 
         for k in sitk_reader.GetMetaDataKeys(0):
             self.dicom_tags[k] = sitk_reader.GetMetaData(0, k).strip()
+
+        self.series_id = self.get_metadata_value('0020|000e')
+        self.series_number = self.get_metadata_value('0020|0011')
+        self.series_date = self.get_metadata_value('0008|0021')
+        self.series_time = self.get_metadata_value('0008|0031')
+        self.volume_size = [self.get_metadata_value('0028|0010'), self.get_metadata_value('0028|0011'),
+                            self.get_metadata_value('0020|0013')]
 
     def get_metadata_value(self, key):
         res = None
@@ -118,3 +146,8 @@ class DICOMInvestigation():
             res = self.dicom_tags['0008|103e']
         return res
 
+    def get_patient_id(self):
+        res = None
+        if '0010|0020' in list(self.dicom_tags.keys()):
+            res = self.dicom_tags['0010|0020']
+        return res

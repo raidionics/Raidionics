@@ -1,5 +1,5 @@
 from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QGridLayout, QDialog, QDialogButtonBox,\
-    QComboBox, QPushButton, QScrollArea, QLineEdit, QFileDialog
+    QComboBox, QPushButton, QScrollArea, QLineEdit, QFileDialog, QSplitter, QTableWidget, QTableWidgetItem
 from PySide2.QtCore import Qt, QSize
 from PySide2.QtGui import QIcon
 import os
@@ -7,6 +7,8 @@ import SimpleITK as sitk
 import datetime
 
 from utils.software_config import SoftwareConfigResources
+from utils.patient_dicom import PatientDICOM
+from gui2.UtilsWidgets.ContextMenuQTableWidget import ContextMenuQTableWidget
 
 
 class ImportDICOMDataQDialog(QDialog):
@@ -38,6 +40,8 @@ class ImportDICOMDataQDialog(QDialog):
         self.import_scrollarea_layout.setSpacing(0)
         self.import_scrollarea_layout.setContentsMargins(0, 0, 0, 0)
         # self.import_scrollarea.setMaximumSize(QSize(200, 850))
+        self.__set_dicom_content_area()
+        self.import_scrollarea_layout.addLayout(self.dicom_content_area_layout)
         self.import_scrollarea_layout.addStretch(1)
         self.import_scrollarea_dummy_widget.setLayout(self.import_scrollarea_layout)
         self.import_scrollarea.setWidget(self.import_scrollarea_dummy_widget)
@@ -54,10 +58,50 @@ class ImportDICOMDataQDialog(QDialog):
 
         self.setMinimumSize(800, 600)
 
+    def __set_dicom_content_area(self):
+        self.dicom_content_area_layout = QVBoxLayout()
+        self.dicom_content_splitter = QSplitter(Qt.Vertical)
+
+        self.content_patient_tablewidget = ContextMenuQTableWidget()
+        self.content_patient_tablewidget.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.content_patient_tablewidget.setColumnCount(5)
+        self.content_patient_tablewidget.setHorizontalHeaderLabels(["Patient ID", "Gender", "Birth date", "Studies", "Date"])
+        self.content_patient_tablewidget.setSelectionBehavior(QTableWidget.SelectRows)
+        self.content_study_tablewidget = QTableWidget()
+        self.content_study_tablewidget.setColumnCount(4)
+        self.content_study_tablewidget.setHorizontalHeaderLabels(["Study date", "Study ID", "Study description", "Series"])
+        self.content_study_tablewidget.setSelectionBehavior(QTableWidget.SelectRows)
+        self.content_series_tablewidget = QTableWidget()
+        self.content_series_tablewidget.setColumnCount(5)
+        self.content_series_tablewidget.setHorizontalHeaderLabels(["Series ID", "Series #", "Series description", "Size", "Date"])
+        self.content_series_tablewidget.setSelectionBehavior(QTableWidget.SelectRows)
+        self.dicom_content_splitter.addWidget(self.content_patient_tablewidget)
+        self.dicom_content_splitter.addWidget(self.content_study_tablewidget)
+        self.dicom_content_splitter.addWidget(self.content_series_tablewidget)
+        self.dicom_content_splitter.setCollapsible(0, False)
+        self.dicom_content_splitter.setCollapsible(1, False)
+        self.dicom_content_splitter.setCollapsible(2, False)
+
+        self.__set_selected_dicom_content_area()
+        self.central_dicom_splitter = QSplitter(Qt.Horizontal)
+        self.central_dicom_splitter.addWidget(self.dicom_content_splitter)
+        self.central_dicom_splitter.addWidget(self.selected_series_tablewidget)
+        self.central_dicom_splitter.setCollapsible(0, False)
+        self.central_dicom_splitter.setCollapsible(1, False)
+        # self.dicom_content_area_layout.addWidget(self.dicom_content_splitter)
+        self.dicom_content_area_layout.addWidget(self.central_dicom_splitter)
+
+    def __set_selected_dicom_content_area(self):
+        self.selected_series_tablewidget = ContextMenuQTableWidget()
+        self.selected_series_tablewidget.setColumnCount(6)
+        self.selected_series_tablewidget.setHorizontalHeaderLabels(["Study ID", "Series #", "Series description", "Size", "Date", "Time"])
+        self.selected_series_tablewidget.setSelectionBehavior(QTableWidget.SelectRows)
+
     def __set_connections(self):
         self.import_select_directory_pushbutton.clicked.connect(self.__on_import_directory_clicked)
         self.exit_accept_pushbutton.clicked.connect(self.__on_exit_accept_clicked)
         self.exit_cancel_pushbutton.clicked.connect(self.__on_exit_cancel_clicked)
+        self.content_series_tablewidget.cellDoubleClicked.connect(self.__on_series_selected)
 
     def __set_stylesheets(self):
         pass
@@ -67,8 +111,10 @@ class ImportDICOMDataQDialog(QDialog):
         input_image_filedialog.setWindowFlags(Qt.WindowStaysOnTopHint)
         input_directory = input_image_filedialog.getExistingDirectory(self, caption='Select input directory',
                                                                       filter=QFileDialog.ShowDirsOnly | QFileDialog.DontResolveSymlinks)
-        dicom_meta = parse_dicom_folder(input_directory)
-        self.__populate_dicom_browser(dicom_meta)
+        self.dicom_holder = PatientDICOM(input_directory)
+        self.__populate_dicom_browser()
+        # dicom_meta = parse_dicom_folder(input_directory)
+        # self.__populate_dicom_browser(dicom_meta)
 
     def __on_exit_accept_clicked(self):
         """
@@ -83,21 +129,59 @@ class ImportDICOMDataQDialog(QDialog):
     def __on_exit_cancel_clicked(self):
         self.reject()
 
-    def __populate_dicom_browser(self, dicom_readers):
-        main_order = 0
-        sub_folder_id = 0
-        order = 1
-        for dicom_investigations in dicom_readers:
-            main_order = main_order + 1
-            for it, ts_key in enumerate(dicom_investigations.keys()):
-                readers = dicom_investigations[ts_key]
-                sub_folder_id = sub_folder_id + 1
-                for reader in readers:
-                    try:
-                        wid = ImportDICOMSeriesLineWidget(reader, self)
-                        self.import_scrollarea_layout.insertWidget(self.import_scrollarea_layout.count() - 1, wid)
-                    except Exception as e:
-                        continue
+    def __on_series_selected(self, row, column):
+        study_id_item = self.content_study_tablewidget.item(self.content_study_tablewidget.currentRow(), 1)
+        series_id_item = self.content_series_tablewidget.item(self.content_series_tablewidget.currentRow(), 0)
+        series = self.dicom_holder.studies[study_id_item.text()].dicom_series[series_id_item.text()]
+        self.selected_series_tablewidget.insertRow(self.selected_series_tablewidget.rowCount())
+        self.selected_series_tablewidget.setItem(self.selected_series_tablewidget.rowCount() - 1, 0,
+                                                QTableWidgetItem(series.series_id))
+        self.selected_series_tablewidget.setItem(self.selected_series_tablewidget.rowCount() - 1, 1,
+                                                QTableWidgetItem(series.series_number))
+        self.selected_series_tablewidget.setItem(self.selected_series_tablewidget.rowCount() - 1, 2,
+                                                QTableWidgetItem(series.get_series_description()))
+        self.selected_series_tablewidget.setItem(self.selected_series_tablewidget.rowCount() - 1, 3,
+                                                QTableWidgetItem("x".join(str(x) for x in series.volume_size)))
+        self.selected_series_tablewidget.setItem(self.selected_series_tablewidget.rowCount() - 1, 4,
+                                                QTableWidgetItem(series.series_date))
+
+    def __populate_dicom_browser(self):
+        #@TODO. Do we clean all tables before filling them up, in case there's stuff from a previous run.
+        self.content_patient_tablewidget.insertRow(self.content_patient_tablewidget.rowCount())
+        self.content_patient_tablewidget.setItem(self.content_patient_tablewidget.rowCount() - 1, 0,
+                                                 QTableWidgetItem(self.dicom_holder.patient_id))
+
+        for study_id in list(self.dicom_holder.studies.keys()):
+            study = self.dicom_holder.studies[study_id]
+            self.content_study_tablewidget.insertRow(self.content_study_tablewidget.rowCount())
+            self.content_study_tablewidget.setItem(self.content_study_tablewidget.rowCount() - 1, 0, QTableWidgetItem(study.study_acquisition_date))
+            self.content_study_tablewidget.setItem(self.content_study_tablewidget.rowCount() - 1, 1, QTableWidgetItem(study_id))
+            self.content_study_tablewidget.setItem(self.content_study_tablewidget.rowCount() - 1, 2, QTableWidgetItem(study.study_description))
+            self.content_study_tablewidget.setItem(self.content_study_tablewidget.rowCount() - 1, 3, QTableWidgetItem(str(len(study.dicom_series))))
+
+            for series_id in list(study.dicom_series.keys()):
+                series = study.dicom_series[series_id]
+                self.content_series_tablewidget.insertRow(self.content_series_tablewidget.rowCount())
+                self.content_series_tablewidget.setItem(self.content_series_tablewidget.rowCount() - 1, 0, QTableWidgetItem(series.series_id))
+                self.content_series_tablewidget.setItem(self.content_series_tablewidget.rowCount() - 1, 1, QTableWidgetItem(series.series_number))
+                self.content_series_tablewidget.setItem(self.content_series_tablewidget.rowCount() - 1, 2, QTableWidgetItem(series.get_series_description()))
+                self.content_series_tablewidget.setItem(self.content_series_tablewidget.rowCount() - 1, 3, QTableWidgetItem("x".join(str(x) for x in series.volume_size)))
+                self.content_series_tablewidget.setItem(self.content_series_tablewidget.rowCount() - 1, 4, QTableWidgetItem(series.series_date))
+
+        # main_order = 0
+        # sub_folder_id = 0
+        # order = 1
+        # for dicom_investigations in dicom_readers:
+        #     main_order = main_order + 1
+        #     for it, ts_key in enumerate(dicom_investigations.keys()):
+        #         readers = dicom_investigations[ts_key]
+        #         sub_folder_id = sub_folder_id + 1
+        #         for reader in readers:
+        #             try:
+        #                 wid = ImportDICOMSeriesLineWidget(reader, self)
+        #                 self.import_scrollarea_layout.insertWidget(self.import_scrollarea_layout.count() - 1, wid)
+        #             except Exception as e:
+        #                 continue
 
 
 class ImportDICOMSeriesLineWidget(QWidget):
