@@ -147,7 +147,7 @@ class ProcessingAreaWidget(QWidget):
         self.select_tumor_type_label.setFixedWidth(self.parent.size().width() * self.widget_base_width)
         self.select_tumor_type_label.setFixedHeight(self.parent.size().height() * self.widget_base_height)
 
-        self.run_button = QPushButton('Run diagnosis')
+        self.run_button = QPushButton('Run standard reporting')
         self.run_button.setFixedWidth(self.parent.size().width() * self.widget_base_width)
         self.run_button.setFixedHeight(self.parent.size().height() * self.parent.button_height)
 

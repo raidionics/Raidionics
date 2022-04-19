@@ -12,8 +12,9 @@ def get_available_cloud_models_list():
     cloud_models_list = []
     cloud_models_list_url = 'https://drive.google.com/uc?id=1vRUr0VXgnDFNq7AlB5ILyBCmW_sGuciP'
     try:
-        cloud_models_list_filename = os.path.join(expanduser("~"), '.neurorads', 'resources/models',
+        cloud_models_list_filename = os.path.join(expanduser("~"), '.raidionics', 'resources/models',
                                                   'cloud_models_list.csv')
+        os.makedirs(os.path.dirname(cloud_models_list_filename), exist_ok=True)
         # Always downloading the models list, to make sure the latest models are always available.
         gdown.download(url=cloud_models_list_url, output=cloud_models_list_filename)
         cloud_models_list = pd.read_csv(cloud_models_list_filename)
@@ -34,9 +35,9 @@ def download_model(model_name):
             url = model_params['link'].values[0]
             md5 = model_params['sum'].values[0]
             dep = list(model_params['dependencies'].values)
-            models_path = os.path.join(expanduser('~'), '.neurorads', 'resources', 'models')
+            models_path = os.path.join(expanduser('~'), '.raidionics', 'resources', 'models')
             os.makedirs(models_path, exist_ok=True)
-            models_archive_path = os.path.join(expanduser('~'), '.neurorads', 'resources', 'models',
+            models_archive_path = os.path.join(expanduser('~'), '.raidionics', 'resources', 'models',
                                                '.cache', model_name + '.zip')
             os.makedirs(os.path.dirname(models_archive_path), exist_ok=True)
             if not os.path.exists(models_archive_path) or (hashlib.md5(open(models_archive_path, 'rb').read()).hexdigest() != md5 and RuntimeResources.getInstance().active_models_update_state):

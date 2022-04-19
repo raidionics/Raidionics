@@ -62,7 +62,7 @@ exe = EXE(pyz,
           a.zipfiles,
           a.datas,
           [],
-          name='NeuroRADS',
+          name='Raidionics',
           debug=True,  # should be set to False, but needed to debug on MacOSX
           bootloader_ignore_signals=False,
           strip=False,
@@ -77,7 +77,7 @@ exe = EXE(pyz,
           a.scripts,
           [],
           exclude_binaries=True,
-          name='NeuroRADS',
+          name='Raidionics',
           debug=True,
           bootloader_ignore_signals=False,
           strip=False,
@@ -91,11 +91,11 @@ coll = COLLECT(exe,
                strip=False,
                upx=True,
                upx_exclude=[],
-               name='NeuroRADS')
+               name='Raidionics')
 '''
 # to build bundled version (.app). Only relevant for MacOSX
 app = BUNDLE(coll,
-             name='NeuroRADS.app',
+             name='Raidionics.app',
              icon=None,
              bundle_identifier=None)
 '''

@@ -15,11 +15,9 @@ os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = plugin_path
 
 import sys
 from PySide2.QtWidgets import QApplication
-# from main_gui import MainWindow
-from gui.GSIRADSMainWindow import MainWindow
+from gui.CustomQMainWindow import MainWindow
 
 
-#-i /media/dbouget/ihdb/Data/NeuroDatabase/1/1/volumes/1_MR_T1_pre_1.nii.gz -o /home/dbouget/Desktop/ -m MRI_HGGlioma_P2 -g 0 -t segmentation
 def main(argv):
     gui_usage = 1
     input_filename = ''

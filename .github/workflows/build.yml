@@ -43,11 +43,11 @@ jobs:
             CMD_BUILD: "pip install gdown &&
                        pip install antspyx &&
                        pyinstaller --noconfirm --clean --onefile main_custom_bundle.spec &&
-                       mkdir -p NeuroRADS-0.1.1_Ubuntu/usr/local/bin &&
-                       cp -r dist/NeuroRADS NeuroRADS-0.1.1_Ubuntu/usr/local/bin &&
-                       dpkg-deb --build --root-owner-group NeuroRADS-0.1.1_Ubuntu &&
-                       cp -r NeuroRADS-0.1.1_Ubuntu.deb dist/NeuroRADS-1.3-ubuntu.deb"
-            OUT_FILE_NAME: NeuroRADS-1.3-ubuntu.deb
+                       mkdir -p Raidionics-0.1.1_Ubuntu/usr/local/bin &&
+                       cp -r dist/Raidionics Raidionics-0.1.1_Ubuntu/usr/local/bin &&
+                       dpkg-deb --build --root-owner-group Raidionics-0.1.1_Ubuntu &&
+                       cp -r Raidionics-0.1.1_Ubuntu.deb dist/Raidionics-1.3-ubuntu.deb"
+            OUT_FILE_NAME: Raidionics-1.3-ubuntu.deb
             ASSET_MIME: application/vnd.debian.binary-package
 
           - os: macos-10.15
@@ -56,15 +56,15 @@ jobs:
                        pip install https://github.com/ANTsX/ANTsPy/releases/download/v0.1.8/antspyx-0.1.8-cp37-cp37m-macosx_10_14_x86_64.whl &&
                        pyinstaller --noconfirm --clean --onefile main_custom_macos.spec &&
                        git clone https://github.com/scriptingosx/quickpkg.git &&
-                       quickpkg/quickpkg dist/NeuroRADS.app --output NeuroRADS-1.3-macOS.pkg &&
-                       cp -r NeuroRADS-1.3-macOS.pkg dist/NeuroRADS-1.3-macOS.pkg"
-            OUT_FILE_NAME: NeuroRADS-1.3-macOS.pkg
+                       quickpkg/quickpkg dist/Raidionics.app --output Raidionics-1.3-macOS.pkg &&
+                       cp -r Raidionics-1.3-macOS.pkg dist/Raidionics-1.3-macOS.pkg"
+            OUT_FILE_NAME: Raidionics-1.3-macOS.pkg
             ASSET_MIME: application/x-newton-compatible-pkg
 
           - os: windows-latest
             TARGET: windows
             CMD_BUILD: "ls"
-            OUT_FILE_NAME: NeuroRADS-1.3-win.exe
+            OUT_FILE_NAME: Raidionics-1.3-win.exe
             ASSET_MIME: application/vnd.microsoft.portable-executable
     
     steps:
@@ -89,8 +89,8 @@ jobs:
         pyinstaller --noconfirm --clean --onefile main_custom_bundle.spec
         cp -r dist/ win_installer/dist
         cd win_installer
-        makensis.exe NeuroRADS.nsi
-        cp -r NeuroRADS-1.3-win.exe ../dist/NeuroRADS-1.3-win.exe
+        makensis.exe Raidionics.nsi
+        cp -r Raidionics-1.3-win.exe ../dist/Raidionics-1.3-win.exe
 
     - name: Build with pyinstaller for ${{matrix.TARGET}}
       run: ${{matrix.CMD_BUILD}}

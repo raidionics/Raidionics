@@ -28,7 +28,7 @@ class MainWindow(QWidget):
     def __init__(self, application, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
 
-        self.title = 'NeuroRADS'
+        self.title = 'Raidionics'
         self.setWindowTitle(self.title) 
 
         self.app = application
@@ -109,7 +109,7 @@ class MainWindow(QWidget):
         self.prompt.setPlainText(
             "############################################################################# \n"
             " \n"
-            "NeuroRADS: This tool performes analysis of **something**. \n"
+            "Raidionics: This tool performes analysis of **something**. \n"
             "Developed by André Pedersen and David Bouget at SINTEF Health Research. \n"
             " \n"
             "HOW TO USE THE SOFTWARE: \n"

@@ -7,7 +7,7 @@ from segmentation.src.Inference.predictions_reconstruction import reconstruct_po
 from segmentation.src.Utils.io import dump_predictions
 
 #MODELS_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../', 'resources/models')
-MODELS_PATH = os.path.join(expanduser('~'), '.neurorads', 'resources/models')
+MODELS_PATH = os.path.join(expanduser('~'), '.raidionics', 'resources/models')
 sys.path.insert(1, MODELS_PATH)
 
 

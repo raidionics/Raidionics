@@ -31,7 +31,7 @@ class NeuroDiagnosisParameters:
 
     def to_txt(self, filename):
         pfile = open(filename, 'a')
-        pfile.write('########### NeuroRADS report ###########\n')
+        pfile.write('########### Raidionics report ###########\n')
         pfile.write('Tumor found: {}\n'.format(self.tumor_presence_state))
         if not self.tumor_presence_state:
             pfile.close()

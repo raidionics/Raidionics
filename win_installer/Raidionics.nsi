@@ -1,9 +1,9 @@
-!define APP_NAME "NeuroRADS"
+!define APP_NAME "Raidionics"
 !define COMP_NAME "SINTEF"
 !define VERSION "1.3"
 !define DESCRIPTION "Application"
-!define INSTALLER_NAME "NeuroRADS-1.3-win.exe"
-!define MAIN_APP_EXE "NeuroRADS.exe"
+!define INSTALLER_NAME "Raidionics-1.3-win.exe"
+!define MAIN_APP_EXE "Raidionics.exe"
 !define INSTALL_TYPE "SetShellVarContext current"
 !define REG_ROOT "HKLM"  
 # "HKCU" or "HKLM" : https://nsis.sourceforge.io/Add_uninstall_information_to_Add/Remove_Programs
@@ -20,12 +20,12 @@ var SM_Folder
 SetCompressor ZLIB
 Name "${APP_NAME}"
 Caption "${APP_NAME}"
-# Icon "NeuroRADS.ico"
+# Icon "Raidionics.ico"
 OutFile "${INSTALLER_NAME}"
 BrandingText "${APP_NAME}"
 XPStyle on
 InstallDirRegKey "${REG_ROOT}" "${REG_APP_PATH}" ""
-InstallDir "$PROGRAMFILES\NeuroRADS"
+InstallDir "$PROGRAMFILES\Raidionics"
 
 !include 'MUI.nsh'
 
@@ -37,7 +37,7 @@ InstallDir "$PROGRAMFILES\NeuroRADS"
 !insertmacro MUI_PAGE_DIRECTORY
 
 !ifdef REG_START_MENU
-!define MUI_STARTMENUPAGE_DEFAULTFOLDER "NeuroRADS"
+!define MUI_STARTMENUPAGE_DEFAULTFOLDER "Raidionics"
 !define MUI_STARTMENUPAGE_REGISTRY_ROOT "${REG_ROOT}"
 !define MUI_STARTMENUPAGE_REGISTRY_KEY "${UNINSTALL_PATH}"
 !define MUI_STARTMENUPAGE_REGISTRY_VALUENAME "${REG_START_MENU}"
@@ -56,7 +56,7 @@ InstallDir "$PROGRAMFILES\NeuroRADS"
 
 # name the installer
 OutFile "${INSTALLER_NAME}"
-#"NeuroRADS-win10-v1.1.exe"
+#"Raidionics-win10-v1.1.exe"
 
 
 ####################### UNINSTALL BEFORE UPGRADE #####################
@@ -70,7 +70,7 @@ SectionEnd
 Function UninstallPrevious
 
     ; Check for uninstaller.
-    DetailPrint "Checking for previous NeuroRADS versions"    
+    DetailPrint "Checking for previous Raidionics versions"
     ReadRegStr $R0 HKCU "$INSTDIR" "UninstallString"
 
     ${If} $R0 == ""        
@@ -117,8 +117,8 @@ WriteUninstaller "$INSTDIR\uninstall.exe"
 !ifdef REG_START_MENU
 !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
 CreateDirectory "$SMPROGRAMS\$SM_Folder"
-CreateShortCut "$SMPROGRAMS\$SM_Folder\${APP_NAME}.lnk" "$INSTDIR\${MAIN_APP_EXE}" "" "$INSTDIR\NeuroRADS.ico" 0
-CreateShortCut "$DESKTOP\${APP_NAME}.lnk" "$INSTDIR\${MAIN_APP_EXE}" "" "$INSTDIR\NeuroRADS.ico" 0
+CreateShortCut "$SMPROGRAMS\$SM_Folder\${APP_NAME}.lnk" "$INSTDIR\${MAIN_APP_EXE}" "" "$INSTDIR\Raidionics.ico" 0
+CreateShortCut "$DESKTOP\${APP_NAME}.lnk" "$INSTDIR\${MAIN_APP_EXE}" "" "$INSTDIR\Raidionics.ico" 0
 CreateShortCut "$SMPROGRAMS\$SM_Folder\Uninstall ${APP_NAME}.lnk" "$INSTDIR\uninstall.exe"
 
 !insertmacro MUI_STARTMENU_WRITE_END
@@ -138,12 +138,12 @@ WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}"  "Publisher" "${COMP_NAME}"
 CreateDirectory $INSTDIR
 
 # OLD SOLUTION FOR SINGLE EXE (DONT DO THIS!)
-#File "C:\Users\andrp\workspace\neuro_rads_prototype\dist\NeuroRADS.exe"  # location of executable which it packages
-#ExecWait "$INSTDIR\NeuroRADS-installed.exe"
+#File "C:\Users\andrp\workspace\neuro_rads_prototype\dist\Raidionics.exe"  # location of executable which it packages
+#ExecWait "$INSTDIR\Raidionics-installed.exe"
 
 # PACKAGE ENTIRE CONTENT OF BUNDLE THE NEW BINARY!
-File /nonfatal /a /r ".\dist\NeuroRADS\*"
-ExecWait "$INSTDIR\NeuroRADS-installed.exe"
+File /nonfatal /a /r ".\dist\Raidionics\*"
+ExecWait "$INSTDIR\Raidionics-installed.exe"
 
 #SetOutPath "outputPath"
 #File /nonfatal /a /r "myDirectory\" #note back slash at the end

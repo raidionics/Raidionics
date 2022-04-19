@@ -1,6 +1,6 @@
-Package: NeuroRADS
+Package: Raidionics
 Version: 1.3
 Architecture: i386
 Maintainer: David Bouget <david.bouget@sintef.no>
-Description: NeuroRADS—Reporting and Data System.
+Description: Raidionics—Reporting and Data System.
  Software to automatically segment tumors and their from pre-operative CTs and MRIs, and report them in a standardized manner.
