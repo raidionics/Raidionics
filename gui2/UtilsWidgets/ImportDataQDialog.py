@@ -90,9 +90,14 @@ class ImportDataQDialog(QDialog):
         Iterating over the list of selected files and internally updating variables
         """
         widgets = (self.import_scrollarea_layout.itemAt(i) for i in range(self.import_scrollarea_layout.count() - 1))
+        # @TODO. Should not iterate blindly, should check if there are volumes to load for the current active patient
+        # and then iterate over the .raidionics files to load other patients?
         for w in widgets:
-            SoftwareConfigResources.getInstance().get_active_patient().import_data(w.wid.filepath_lineedit.text(),
-                                                                                   type=w.wid.file_type_selection_combobox.currentText())
+            if w.wid.file_type_selection_combobox.currentText() != "Patient":
+                SoftwareConfigResources.getInstance().get_active_patient().import_data(w.wid.filepath_lineedit.text(),
+                                                                                       type=w.wid.file_type_selection_combobox.currentText())
+            else:
+                SoftwareConfigResources.getInstance().load_patient(w.wid.filepath_lineedit.text())
         self.accept()
 
     def __on_exit_cancel_clicked(self):

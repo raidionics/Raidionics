@@ -14,8 +14,10 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
 
     """
 
-    def __init__(self, title, parent=None):
-        super(SinglePatientResultsWidget, self).__init__(title, parent)
+    def __init__(self, uid, parent=None):
+        super(SinglePatientResultsWidget, self).__init__(uid, parent)
+        self.title = uid
+        self.parent = parent
         self.__set_interface()
         self.__set_connections()
         self.__set_stylesheets()
@@ -100,19 +102,29 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
     def __set_connections(self):
         self.patient_name_lineedit.returnPressed.connect(self.__on_patient_name_modified)
         # self.header_pushbutton.clicked.connect(self.__on_header_pushbutton_clicked)
+        self.default_collapsiblegroupbox.header_pushbutton.clicked.connect(self.adjustSize)
+        self.overall_collapsiblegroupbox.header_pushbutton.clicked.connect(self.adjustSize)
+        self.volumes_collapsiblegroupbox.header_pushbutton.clicked.connect(self.adjustSize)
 
     def __set_stylesheets(self):
         self.content_label.setStyleSheet("QLabel{background-color:rgb(254,254,254);}")
         self.header_pushbutton.setStyleSheet("QPushButton{background-color:rgba(254, 254, 254, 1); font:bold;}")
 
-        self.default_collapsiblegroupbox.content_label.setStyleSheet("QLabel{background-color:rgb(254,254,254);}")
+        self.default_collapsiblegroupbox.content_label.setStyleSheet("QLabel{background-color:rgb(204, 204, 204);}")
         self.default_collapsiblegroupbox.header_pushbutton.setStyleSheet("QPushButton{background-color:rgb(248, 248, 248); text-align:left;}")
         self.overall_collapsiblegroupbox.header_pushbutton.setStyleSheet("QPushButton{background-color:rgb(248, 248, 248); text-align:left;}")
         self.volumes_collapsiblegroupbox.header_pushbutton.setStyleSheet("QPushButton{background-color:rgb(248, 248, 248); text-align:left;}")
 
+    def adjustSize(self):
+        actual_height = self.default_collapsiblegroupbox.sizeHint().height() + \
+                        self.overall_collapsiblegroupbox.sizeHint().height() +\
+                        self.volumes_collapsiblegroupbox.sizeHint().height()
+        self.content_label.setFixedSize(QSize(self.size().width(), actual_height))
+
     def __on_patient_name_modified(self):
         # @TODO. Have to check that the name does not already exist, otherwise it will conflict in the dict.
-        SoftwareConfigResources.getInstance().update_active_patient_name(self.patient_name_lineedit.text())
+        # SoftwareConfigResources.getInstance().update_active_patient_name(self.patient_name_lineedit.text())
+        SoftwareConfigResources.getInstance().get_active_patient().update_visible_name(self.patient_name_lineedit.text())
         self.header_pushbutton.setText(self.patient_name_lineedit.text())
 
     def manual_header_pushbutton_clicked(self, state):
@@ -130,6 +142,8 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
 
     def populate_from_patient(self, patient_uid):
         patient_parameters = SoftwareConfigResources.getInstance().patients_parameters[patient_uid]
-        self.patient_name_lineedit.setText(patient_parameters.patient_id)
-        self.output_dir_lineedit.setText(patient_parameters.output_folder)
+        self.patient_name_lineedit.setText(patient_parameters.patient_visible_name)
+        self.output_dir_lineedit.setText(os.path.dirname(patient_parameters.output_folder))
+        self.title = patient_parameters.patient_visible_name
+        self.header_pushbutton.setText(self.title)
 

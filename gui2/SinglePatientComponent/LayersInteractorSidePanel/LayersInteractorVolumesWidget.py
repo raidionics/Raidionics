@@ -42,6 +42,11 @@ class LayersInteractorVolumesWidget(QCollapsibleGroupBox):
             actual_height += size.height()
         self.content_label.setFixedSize(QSize(self.size().width(), actual_height))
 
+    def reset(self):
+        for w in self.volumes_widget:
+            self.content_label_layout.removeWidget(self.volumes_widget[w])
+            self.volumes_widget.pop(w)
+
     def on_import_data(self):
         active_patient = SoftwareConfigResources.getInstance().get_active_patient()
         for volume_id in list(active_patient.mri_volumes.keys()):
@@ -49,8 +54,8 @@ class LayersInteractorVolumesWidget(QCollapsibleGroupBox):
                 self.on_import_volume(volume_id)
 
         # The first MRI volume loaded is displayed by default, hence toggling the eye-iconed push button.
-        self.volumes_widget[list(self.volumes_widget.keys())[0]].header_pushbutton.right_icon_widget.setChecked(True)
-        # self.volumes_widget[list(self.volumes_widget.keys())[0]].header_pushbutton.right_icon_widget.clicked.emit()
+        if len(self.volumes_widget) > 0:
+            self.volumes_widget[list(self.volumes_widget.keys())[0]].header_pushbutton.right_icon_widget.setChecked(True)
 
          # @TODO. None of the below methods actually repaint the widget properly...
         self.content_label.repaint()
@@ -71,15 +76,6 @@ class LayersInteractorVolumesWidget(QCollapsibleGroupBox):
             self.volume_view_toggled.emit(uid, state)
             for w in list(self.volumes_widget.keys()):
                 if w != uid:
-                    # self.volumes_widget[w].manual_right_pushbutton_checked(False)
                     self.volumes_widget[w].header_pushbutton.right_icon_widget.setChecked(False)
-                    # self.volumes_widget[w].header_pushbutton.right_icon_widget.update()
-                    # self.volumes_widget[w].header_pushbutton.right_icon_widget.repaint()
-                    # self.volumes_widget[w].header_pushbutton.right_icon_widget.clicked.emit()
         else:  # Trying to undisplay an image, not possible.
-            # self.volumes_widget[uid].manual_right_pushbutton_checked(True)
             self.volumes_widget[uid].header_pushbutton.right_icon_widget.setChecked(True)
-            # self.volumes_widget[uid].header_pushbutton.right_icon_widget.update()
-            # self.volumes_widget[uid].header_pushbutton.right_icon_widget.repaint()
-            # self.volumes_widget[uid].header_pushbutton.right_icon_widget.clicked.emit()
-        # QApplication.processEvents()

@@ -1,5 +1,6 @@
 import os
 import configparser
+import shutil
 from os.path import expanduser
 import nibabel as nib
 import SimpleITK as sitk
@@ -36,36 +37,60 @@ class AnnotationClassType(Enum):
 
 
 class PatientParameters:
-    def __init__(self, id):
+    def __init__(self, id="-1"):
+        """
+        Default id value set to -1, the only time a default value is needed is when a patient will be loaded from
+        a .raidionics file on disk whereby the correct id will be recovered from the json file.
+        """
         self.patient_id = id.replace(" ", '_').strip()
+        self.patient_visible_name = self.patient_id
+
         # Initially, everything is dumped in the software temp place, until a destination is chosen by the user.
         # Should we have a patient-named folder, so that the user only needs to choose the global destination directory
-        self.output_folder = os.path.join(expanduser("~"), '.neurorads')
-        os.makedirs(self.output_folder, exist_ok=True)  # Might have to erase the content of the folder for
-        # @TODO. every new patient, but then must be prompted on screen that it will be erased and removed from viewing within the software
+        self.output_dir = os.path.join(expanduser("~"), '.neurorads')
+        os.makedirs(self.output_dir, exist_ok=True)
 
-        self.patient_parameters_project_filename = os.path.join(self.output_folder, self.patient_id, self.patient_id + '_scene.neurorads')
+        # By default, the temp_patient folder is created
+        # self.output_folder = os.path.join(self.output_dir, self.patient_visible_name.lower().replace(" ", '_'))
+        self.output_folder = os.path.join(self.output_dir, "temp_patient")
+        if os.path.exists(self.output_folder):
+            shutil.rmtree(self.output_folder)
+        os.makedirs(self.output_folder)
+
+        self.__init_json_config()
+        self.mri_volumes = {}
+        self.annotation_volumes = {}
+        # @TODO. Add another category for the MNI registered files, or for the atlas-based files?
+
+        # self.import_raw_data = {}
+        # self.import_display_data = {}
+        # self.raw_annotation = {}
+        # self.display_annotation = {}
+
+    def __init_json_config(self):
+        """
+        Defines the structure of the save configuration parameters for the patient, stored as json information inside
+        a custom file with the specific raidionics extension.
+        """
+        self.patient_parameters_project_filename = os.path.join(self.output_folder, self.patient_visible_name.strip().lower().replace(" ", "_") + '_scene.neurorads')
         self.patient_parameters_project_json = {}
         self.patient_parameters_project_json['Parameters'] = {}
         self.patient_parameters_project_json['Parameters']['Default'] = {}
-        self.patient_parameters_project_json['Parameters']['Default']['Patient name'] = self.patient_id
+        self.patient_parameters_project_json['Parameters']['Default']['Patient_uid'] = self.patient_id
+        self.patient_parameters_project_json['Parameters']['Default']['Patient_visible_name'] = self.patient_visible_name
         self.patient_parameters_project_json['Parameters']['Diagnosis'] = {}
         self.patient_parameters_project_json['Volumes'] = {}
         self.patient_parameters_project_json['Annotations'] = {}
 
-        self.mri_volumes = {}
-        self.annotation_volumes = {}
-
-        self.import_raw_data = {}
-        self.import_display_data = {}
-        self.raw_annotation = {}
-        self.display_annotation = {}
-
-    def update_id(self, new_id):
-        # @TODO. Should also do a shutil.move on the output directory
-        self.patient_id = new_id.replace(" ", '_').strip()
-        self.patient_parameters_project_filename = os.path.join(self.output_folder, self.patient_id, self.patient_id + '_scene.neurorads')
-        self.patient_parameters_project_json['Parameters']['Default']['Patient name'] = self.patient_id
+    def update_visible_name(self, new_name):
+        self.patient_visible_name = new_name.strip()
+        new_output_folder = os.path.join(self.output_dir, self.patient_visible_name.lower().replace(" ", '_'))
+        if os.path.exists(new_output_folder):
+            # @TODO. What to do if a folder with the same name already exists? Should prompt the user to choose another name?
+            pass
+        else:
+            shutil.move(src=self.output_folder, dst=new_output_folder, copy_function=shutil.copytree)
+            self.output_folder = new_output_folder
 
     def import_patient(self, filename):
         self.patient_parameters_project_filename = filename
@@ -73,6 +98,8 @@ class PatientParameters:
         with open(self.patient_parameters_project_filename, 'r') as infile:
             self.patient_parameters_project_json = json.load(infile)
 
+        self.patient_id = self.patient_parameters_project_json["Parameters"]["Default"]["Patient_uid"]
+        self.patient_visible_name = self.patient_parameters_project_json["Parameters"]["Default"]["Patient_visible_name"]
         for volume_id in list(self.patient_parameters_project_json['Volumes'].keys()):
             mri_volume = MRIVolume(uid=volume_id, filename=self.patient_parameters_project_json['Volumes'][volume_id]['raw_volume_filepath'])
             mri_volume.display_volume_filepath = self.patient_parameters_project_json['Volumes'][volume_id]['display_volume_filepath']
@@ -101,7 +128,7 @@ class PatientParameters:
             image_nib = nib.load(filename)
             image = image_nib.get_data()[:]
 
-            self.import_raw_data[base_name] = deepcopy(image)
+            # self.import_raw_data[base_name] = deepcopy(image)
             # self.patient_parameters_project_json['Volumes']['Raw'][base_name] = filename
 
             resampled_input_ni = resample_to_output(image_nib, order=1)
@@ -113,7 +140,7 @@ class PatientParameters:
                 image_res = tmp * 255.
 
             image_res2 = image_res.astype('uint8')
-            self.import_display_data[base_name] = deepcopy(image_res2)
+            # self.import_display_data[base_name] = deepcopy(image_res2)
 
             base_data_uid = os.path.basename(filename).strip().split('.')[0]
             non_available_uid = True
@@ -123,8 +150,8 @@ class PatientParameters:
                     non_available_uid = False
             self.mri_volumes[data_uid] = MRIVolume(uid=data_uid, filename=filename)
             self.mri_volumes[data_uid].display_volume = deepcopy(image_res2)
-        elif type == 'Patient':
-            self.import_patient(filename)
+        # elif type == 'Patient':
+        #     self.import_patient(filename)
         else:
             image_nib = nib.load(filename)
             resampled_input_ni = resample_to_output(image_nib, order=0)
@@ -150,11 +177,12 @@ class PatientParameters:
 
     def save_patient(self):
         """
-        Exporting the scene for the current patient XXX
+        Exporting the scene for the current patient into the specified output_folder
         """
-        # @TODO. Should not have self joining self here, causes folder inception....
-        self.output_folder = os.path.join(self.output_folder, self.patient_id)
-        os.makedirs(self.output_folder, exist_ok=True)
+        self.patient_parameters_project_filename = os.path.join(self.output_folder, self.patient_visible_name.strip().lower().replace(" ", "_") + '_scene.neurorads')
+        self.patient_parameters_project_json['Parameters']['Default']['Patient_uid'] = self.patient_id
+        self.patient_parameters_project_json['Parameters']['Default']['Patient_visible_name'] = self.patient_visible_name
+
         for i, disp in enumerate(list(self.mri_volumes.keys())):
             volume_dump_filename = os.path.join(self.output_folder, disp + '_display.nii.gz')
             self.patient_parameters_project_json['Volumes'][disp] = {}

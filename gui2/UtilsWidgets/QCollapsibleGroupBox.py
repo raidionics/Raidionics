@@ -1,4 +1,4 @@
-from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QScrollArea, QPushButton, QSizePolicy
+from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QScrollArea, QPushButton, QSizePolicy, QGridLayout, QSpacerItem
 from PySide2.QtGui import QIcon, QPixmap
 from PySide2.QtCore import QSize, Signal
 
@@ -75,12 +75,29 @@ class QCollapsibleGroupBox(QWidget):
     def setMinimumSize(self, size):
         self.content_label.setMinimumSize(size)
 
-    # def adjustSize(self):
-    #     # Forcing the label size to see its content properly -- the sizeHint provides 0 here...
-    #     self.content_label.setMinimumSize(self.size())
-    #     items = (self.content_label_layout.itemAt(i) for i in range(self.content_label_layout.count() - 1))  # Last item of sequence being a QSpacerItem
-    #     actual_height = 0
-    #     for w in items:
-    #         size = w.wid.sizeHint()
-    #         actual_height += size.height()
-    #     self.content_label.resize(QSize(self.size().width(), actual_height))
+    def adjustSize(self):
+        """
+        Given that custom content_label can be set whenever the class is used as parent,
+        the actual content must be parsed to retrieve the optimal height.
+        Being a collapsible group box, it is assumed that the width will remain constant.
+        """
+        self.content_label.setMinimumSize(self.size())
+        items = (self.content_label_layout.itemAt(i) for i in range(self.content_label_layout.count() - 1))  # Last item of sequence being a QSpacerItem
+        actual_height = 0
+        for w in items:
+            if (w.__class__ == QHBoxLayout) or (w.__class__ == QVBoxLayout):
+                max_height = 0
+                sub_items = [w.itemAt(i) for i in range(w.count())]
+                for sw in sub_items:
+                    if sw.__class__ != QSpacerItem:
+                        if sw.wid.sizeHint().height() > max_height:
+                            max_height = sw.wid.sizeHint().height()
+                actual_height += max_height
+            elif w.__class__ == QGridLayout:
+                pass
+            elif w.__class__ != QSpacerItem:
+                size = w.wid.sizeHint()
+                actual_height += size.height()
+            else:
+                pass
+        self.content_label.resize(QSize(self.size().width(), actual_height))

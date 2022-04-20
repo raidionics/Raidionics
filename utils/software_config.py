@@ -1,6 +1,7 @@
 import os
 import configparser
 from os.path import expanduser
+import numpy as np
 from utils.patient_parameters import PatientParameters
 
 
@@ -46,21 +47,40 @@ class SoftwareConfigResources:
         pass
 
     def add_new_patient(self, patient_name):
-        self.patients_parameters[patient_name] = PatientParameters(id=patient_name)
+        # @TODO. How to give a random unique id, should it just be a number, and do we need the patient_name actually
+        # here? Most likely no.
+        non_available_uid = True
+        patient_uid = None
+        while non_available_uid:
+            patient_uid = str(np.random.randint(0, 100000))
+            if patient_uid not in list(self.patients_parameters.keys()):
+                non_available_uid = False
+
+        self.patients_parameters[patient_uid] = PatientParameters(id=patient_uid)
+        # self.patients_parameters[patient_uid].patient_visible_name = patient_name
+        # self.active_patient_name = patient_uid
+        if len(self.patients_parameters) == 1:
+            self.set_active_patient(patient_uid)
+        self.update_active_patient_name(patient_name)
 
     def load_patient(self, filename):
-        patient_id = os.path.basename(filename).split('.')[0].replace("_scene", "")
-        patient_instance = PatientParameters(id=patient_id)
+        patient_instance = PatientParameters()
         patient_instance.import_patient(filename)
+        patient_id = patient_instance.patient_id
         self.patients_parameters[patient_id] = patient_instance
-        self.active_patient_name = patient_id
 
     def update_active_patient_name(self, new_name):
-        # @TODO. What if the new_name already exists, prevent update or append number?
-        self.patients_parameters[new_name] = self.patients_parameters[self.active_patient_name]
-        del self.patients_parameters[self.active_patient_name]
-        self.active_patient_name = new_name
-        self.patients_parameters[new_name].update_id(new_name)
+        self.patients_parameters[self.active_patient_name].update_visible_name(new_name)
+        # self.patients_parameters[self.active_patient_name].patient_visible_name = new_name
+
+        # # @TODO. What if the new_name already exists, prevent update or append number?
+        # self.patients_parameters[new_name] = self.patients_parameters[self.active_patient_name]
+        # del self.patients_parameters[self.active_patient_name]
+        # self.active_patient_name = new_name
+        # self.patients_parameters[new_name].update_id(new_name)
+
+    def set_active_patient(self, patient_uid):
+        self.active_patient_name = patient_uid
 
     def get_active_patient(self):
         return self.patients_parameters[self.active_patient_name]

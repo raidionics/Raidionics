@@ -88,3 +88,8 @@ class LayersInteractorSinglePatientSidePanelWidget(QWidget):
     def on_import_data(self):
         # @TODO. Would have to check what is the actual data type to trigger the correct signal
         self.import_data_triggered.emit()
+
+    def on_patient_selected(self):
+        self.volumes_collapsiblegroupbox.reset()
+        self.annotations_collapsiblegroupbox.reset()
+        self.import_data_triggered.emit()

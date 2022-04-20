@@ -42,6 +42,11 @@ class LayersInteractorAnnotationsWidget(QCollapsibleGroupBox):
             actual_height += size.height()
         self.content_label.setFixedSize(QSize(self.size().width(), actual_height))
 
+    def reset(self):
+        for w in self.volumes_widget:
+            self.content_label_layout.removeWidget(self.volumes_widget[w])
+            self.volumes_widget.pop(w)
+
     def on_volume_view_toggled(self, volume_uid, state):
         """
         @TODO. Might not be necessary, don't care about uid and state, just that the current annotations must be removed

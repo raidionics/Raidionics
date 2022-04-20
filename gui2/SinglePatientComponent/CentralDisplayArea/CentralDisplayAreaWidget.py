@@ -1,5 +1,6 @@
 from PySide2.QtWidgets import QWidget, QLabel, QGridLayout
 from PySide2.QtCore import QSize, Signal
+import numpy as np
 
 from gui2.SinglePatientComponent.CentralDisplayArea.CustomQGraphicsView import CustomQGraphicsView
 from utils.software_config import SoftwareConfigResources
@@ -66,13 +67,56 @@ class CentralDisplayAreaWidget(QWidget):
     def on_import_data(self):
         if self.displayed_image is None:
             self.current_patient_parameters = SoftwareConfigResources.getInstance().patients_parameters[SoftwareConfigResources.getInstance().active_patient_name]
-            # self.displayed_image = self.current_patient_parameters.import_display_data[list(self.current_patient_parameters.import_display_data.keys())[0]]
-            self.displayed_image = self.current_patient_parameters.mri_volumes[list(self.current_patient_parameters.mri_volumes.keys())[0]].display_volume
-            self.point_clicker_position = [int(self.displayed_image.shape[0] / 2), int(self.displayed_image.shape[1] / 2),
+
+            # @FIXME. Can only be 0 if the active patient is the default (and empty) temp patient created at init...
+            # Should not have to make this check, the initial temp patient should be better handled and not dragged along
+            if len(self.current_patient_parameters.mri_volumes) != 0:
+                self.displayed_image = self.current_patient_parameters.mri_volumes[list(self.current_patient_parameters.mri_volumes.keys())[0]].display_volume
+                self.point_clicker_position = [int(self.displayed_image.shape[0] / 2), int(self.displayed_image.shape[1] / 2),
+                                               int(self.displayed_image.shape[2] / 2)]
+                self.axial_viewer.update_slice_view(self.displayed_image[:, :, self.point_clicker_position[2]], self.point_clicker_position[0], self.point_clicker_position[1])
+                self.coronal_viewer.update_slice_view(self.displayed_image[:, self.point_clicker_position[1], :], self.point_clicker_position[0], self.point_clicker_position[2])
+                self.sagittal_viewer.update_slice_view(self.displayed_image[self.point_clicker_position[0], :, :], self.point_clicker_position[1], self.point_clicker_position[2])
+            else:
+                self.displayed_image = np.zeros(shape=(150, 150, 150), dtype='uint8')
+                self.point_clicker_position = [int(self.displayed_image.shape[0] / 2), int(self.displayed_image.shape[1] / 2),
+                                               int(self.displayed_image.shape[2] / 2)]
+                self.axial_viewer.update_slice_view(self.displayed_image[:, :, self.point_clicker_position[2]], self.point_clicker_position[0], self.point_clicker_position[1])
+                self.coronal_viewer.update_slice_view(self.displayed_image[:, self.point_clicker_position[1], :], self.point_clicker_position[0], self.point_clicker_position[2])
+                self.sagittal_viewer.update_slice_view(self.displayed_image[self.point_clicker_position[0], :, :], self.point_clicker_position[1], self.point_clicker_position[2])
+                # self.axial_viewer.setEnabled(False)
+                # self.coronal_viewer.setEnabled(False)
+                # self.sagittal_viewer.setEnabled(False)
+
+    def on_patient_selected(self):
+        self.current_patient_parameters = SoftwareConfigResources.getInstance().patients_parameters[
+            SoftwareConfigResources.getInstance().active_patient_name]
+
+        # @FIXME. Can only be 0 if the active patient is the default (and empty) temp patient created at init...
+        # Should not have to make this check, the initial temp patient should be better handled and not dragged along
+        if len(self.current_patient_parameters.mri_volumes) != 0:
+            self.displayed_image = self.current_patient_parameters.mri_volumes[
+                list(self.current_patient_parameters.mri_volumes.keys())[0]].display_volume
+            self.point_clicker_position = [int(self.displayed_image.shape[0] / 2),
+                                           int(self.displayed_image.shape[1] / 2),
                                            int(self.displayed_image.shape[2] / 2)]
-            self.axial_viewer.update_slice_view(self.displayed_image[:, :, self.point_clicker_position[2]], self.point_clicker_position[0], self.point_clicker_position[1])
-            self.coronal_viewer.update_slice_view(self.displayed_image[:, self.point_clicker_position[1], :], self.point_clicker_position[0], self.point_clicker_position[2])
-            self.sagittal_viewer.update_slice_view(self.displayed_image[self.point_clicker_position[0], :, :], self.point_clicker_position[1], self.point_clicker_position[2])
+            self.axial_viewer.update_slice_view(self.displayed_image[:, :, self.point_clicker_position[2]],
+                                                self.point_clicker_position[0], self.point_clicker_position[1])
+            self.coronal_viewer.update_slice_view(self.displayed_image[:, self.point_clicker_position[1], :],
+                                                  self.point_clicker_position[0], self.point_clicker_position[2])
+            self.sagittal_viewer.update_slice_view(self.displayed_image[self.point_clicker_position[0], :, :],
+                                                   self.point_clicker_position[1], self.point_clicker_position[2])
+        else:
+            self.displayed_image = np.zeros(shape=(150, 150, 150), dtype='uint8')
+            self.point_clicker_position = [int(self.displayed_image.shape[0] / 2),
+                                           int(self.displayed_image.shape[1] / 2),
+                                           int(self.displayed_image.shape[2] / 2)]
+            self.axial_viewer.update_slice_view(self.displayed_image[:, :, self.point_clicker_position[2]],
+                                                self.point_clicker_position[0], self.point_clicker_position[1])
+            self.coronal_viewer.update_slice_view(self.displayed_image[:, self.point_clicker_position[1], :],
+                                                  self.point_clicker_position[0], self.point_clicker_position[2])
+            self.sagittal_viewer.update_slice_view(self.displayed_image[self.point_clicker_position[0], :, :],
+                                                   self.point_clicker_position[1], self.point_clicker_position[2])
 
     def on_volume_layer_toggled(self, volume_uid, state):
         """

@@ -258,8 +258,8 @@ class NeuroRADSMainWindow(QMainWindow):
         if index != -1:
             self.central_stackedwidget.setCurrentIndex(index)
             SoftwareConfigResources.getInstance().add_new_patient("Temp Patient")
-            SoftwareConfigResources.getInstance().active_patient_name = "Temp Patient"
-            self.new_patient_clicked.emit("Temp Patient")
+            # @TODO. Is it useful to propagate the patient_id rather than just a variable-less signal?
+            self.new_patient_clicked.emit(SoftwareConfigResources.getInstance().get_active_patient().patient_id)
         else:
             # Should not happen, but what if?
             pass

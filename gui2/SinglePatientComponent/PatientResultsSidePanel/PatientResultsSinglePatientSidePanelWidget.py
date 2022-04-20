@@ -30,7 +30,7 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         self.patient_list_scrollarea_dummy_widget = QWidget()
         self.patient_list_scrollarea_layout.setSpacing(0)
         self.patient_list_scrollarea_layout.setContentsMargins(0, 0, 0, 0)
-        self.patient_list_scrollarea.setMaximumSize(QSize(200, 850))
+        self.patient_list_scrollarea.setBaseSize(QSize(200, self.parent.baseSize().height())) #setMaximumSize(QSize(200, 850))
         self.patient_list_scrollarea_layout.addStretch(1)
         self.patient_list_scrollarea_dummy_widget.setLayout(self.patient_list_scrollarea_layout)
         self.patient_list_scrollarea.setWidget(self.patient_list_scrollarea_dummy_widget)
@@ -46,8 +46,23 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         # self.overall_label.setStyleSheet("QLabel{background-color:rgb(0, 255, 0);}")
         self.patient_list_scrollarea.setStyleSheet("QScrollArea{background-color:rgb(0, 255, 0);}")
 
+    def on_import_data(self):
+        """
+        In case some patients where imported at the same time as some image for the current patient?
+        """
+        loaded_patient_uids = list(SoftwareConfigResources.getInstance().patients_parameters.keys())
+        for uid in loaded_patient_uids:
+            if uid not in list(self.patient_results_widgets.keys()):
+                self.add_new_patient(uid)
+
+        if len(self.patient_results_widgets) == 1:
+            self.__on_patient_selection(True, list(self.patient_results_widgets.keys())[0])
+
     def on_import_patient(self):
+        # @TODO. If only a temp patient opened, should it be deleted?
         self.add_new_patient(SoftwareConfigResources.getInstance().active_patient_name)
+        if len(self.patient_results_widgets) == 1:
+            self.__on_patient_selection(True, list(self.patient_results_widgets.keys())[0])
 
     def add_new_patient(self, patient_name):
         # @TODO. Have to connect signals/slots from each dynamic widget, to enforce the one active patient at all time.
@@ -60,10 +75,10 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         self.patient_list_scrollarea_layout.insertWidget(self.patient_list_scrollarea_layout.count() - 1, pat_widget)
         if len(self.patient_results_widgets) == 1:
             pat_widget.manual_header_pushbutton_clicked(True)
-        else:
-            for i, wid in enumerate(list(self.patient_results_widgets.keys())):
-                self.patient_results_widgets[wid].manual_header_pushbutton_clicked(False)
-            pat_widget.manual_header_pushbutton_clicked(True)
+        # else:
+        #     for i, wid in enumerate(list(self.patient_results_widgets.keys())):
+        #         self.patient_results_widgets[wid].manual_header_pushbutton_clicked(False)
+        #     pat_widget.manual_header_pushbutton_clicked(True)
 
         pat_widget.clicked_signal.connect(self.__on_patient_selection)
 
@@ -73,6 +88,6 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
             if wid != widget_id:
                 self.patient_results_widgets[wid].manual_header_pushbutton_clicked(False)
         self.patient_results_widgets[widget_id].header_pushbutton.setEnabled(False)
-        SoftwareConfigResources.getInstance().active_patient_name = widget_id
+        SoftwareConfigResources.getInstance().set_active_patient(widget_id)
         # When a patient is selected in the left panel, a visual update of the central/right panel is triggered
         self.patient_selected.emit()

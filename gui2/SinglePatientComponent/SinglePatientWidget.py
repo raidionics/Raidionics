@@ -128,11 +128,13 @@ class SinglePatientWidget(QWidget):
     def __set_cross_connections(self):
         self.import_data_triggered.connect(self.center_panel.on_import_data)
         # @TODO. Have to bounce the import_data_triggered to the results_panel, in case a patient was loaded.
-        # self.import_patient_triggered.connect(self.center_panel.on_import_data)
+        self.import_data_triggered.connect(self.results_panel.on_import_data)
         self.import_patient_triggered.connect(self.results_panel.on_import_patient)
         # @TODO. Might not be an import data, but rather a full visual update.
         self.center_panel.import_data_triggered.connect(self.layers_panel.on_import_data)
-        self.results_panel.patient_selected.connect(self.center_panel.on_import_data)
+        self.results_panel.patient_selected.connect(self.center_panel.on_patient_selected)
+        # @TODO. Should not be import data, since a full cleaning is needed.
+        self.results_panel.patient_selected.connect(self.layers_panel.on_patient_selected)
         self.import_data_triggered.connect(self.layers_panel.on_import_data)
         self.layers_panel.volume_view_toggled.connect(self.center_panel.on_volume_layer_toggled)
         self.layers_panel.annotation_view_toggled.connect(self.center_panel.on_annotation_layer_toggled)
