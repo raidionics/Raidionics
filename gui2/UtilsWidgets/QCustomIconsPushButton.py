@@ -49,6 +49,7 @@ class QCustomIconsPushButton(QPushButton):
         super(QCustomIconsPushButton, self).clicked.connect(self.on_clicked)
         if self.right_behaviour == 'stand-alone':
             self.right_icon_widget.clicked.connect(self.__on_right_button_clicked)
+            self.right_icon_widget.toggled.connect(self.__on_right_button_toggled)
 
     def setIcon(self, icon, size=QSize(), side='right', checked=False):
         if side == 'right' and not checked:
@@ -101,7 +102,7 @@ class QCustomIconsPushButton(QPushButton):
         self.bool_clicked.emit(self.isChecked())  # Has to be a better way to handle this...
 
     def __on_right_button_clicked(self):
-        # @TODO. Will have to emit a signal from here, to trigger a repaint in the central view
+        # @TODO. Might be quite stupid, the toggled() signal contains the state as opposed to the clicked() signal...
         if self.right_icon_widget.isChecked():
             self.right_icon_widget.setIcon(self.checked_right_icon)
             self.right_icon_widget.setIconSize(self.checked_right_icon_size)
@@ -110,3 +111,11 @@ class QCustomIconsPushButton(QPushButton):
             self.right_icon_widget.setIconSize(self.right_icon_size)
 
         self.right_clicked.emit(self.uid, self.right_icon_widget.isChecked())
+
+    def __on_right_button_toggled(self, state):
+        if state: #self.right_icon_widget.isChecked():
+            self.right_icon_widget.setIcon(self.checked_right_icon)
+            self.right_icon_widget.setIconSize(self.checked_right_icon_size)
+        else:
+            self.right_icon_widget.setIcon(self.right_icon)
+            self.right_icon_widget.setIconSize(self.right_icon_size)

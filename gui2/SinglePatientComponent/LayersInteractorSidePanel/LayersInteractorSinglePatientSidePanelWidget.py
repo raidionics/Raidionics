@@ -11,6 +11,7 @@ class LayersInteractorSinglePatientSidePanelWidget(QWidget):
 
     """
     import_data_triggered = Signal()
+    volume_view_toggled = Signal(str, bool)
     annotation_view_toggled = Signal(str, bool)
     annotation_opacity_changed = Signal(str, int)
     annotation_color_changed = Signal(str, QColor)
@@ -70,6 +71,8 @@ class LayersInteractorSinglePatientSidePanelWidget(QWidget):
     def __set_connections(self):
         self.import_data_triggered.connect(self.volumes_collapsiblegroupbox.on_import_data)
         self.import_data_triggered.connect(self.annotations_collapsiblegroupbox.on_import_data)
+        self.volumes_collapsiblegroupbox.volume_view_toggled.connect(self.volume_view_toggled)
+        self.volumes_collapsiblegroupbox.volume_view_toggled.connect(self.annotations_collapsiblegroupbox.on_volume_view_toggled)
         self.annotations_collapsiblegroupbox.annotation_view_toggled.connect(self.annotation_view_toggled)
         self.annotations_collapsiblegroupbox.annotation_opacity_changed.connect(self.annotation_opacity_changed)
         self.annotations_collapsiblegroupbox.annotation_color_changed.connect(self.annotation_color_changed)

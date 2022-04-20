@@ -2,6 +2,7 @@ import os
 import configparser
 from os.path import expanduser
 import nibabel as nib
+import SimpleITK as sitk
 from copy import deepcopy
 from nibabel.processing import resample_to_output, resample_from_to
 import numpy as np
@@ -61,6 +62,7 @@ class PatientParameters:
         self.display_annotation = {}
 
     def update_id(self, new_id):
+        # @TODO. Should also do a shutil.move on the output directory
         self.patient_id = new_id.replace(" ", '_').strip()
         self.patient_parameters_project_filename = os.path.join(self.output_folder, self.patient_id, self.patient_id + '_scene.neurorads')
         self.patient_parameters_project_json['Parameters']['Default']['Patient name'] = self.patient_id
@@ -139,10 +141,18 @@ class PatientParameters:
             self.annotation_volumes[data_uid].display_volume = deepcopy(image_res)
         return data_uid
 
+    def import_dicom_data(self, dicom_series):
+        self.output_folder = os.path.join(self.output_folder, self.patient_id)
+        os.makedirs(self.output_folder, exist_ok=True)
+        ori_filename = os.path.join(self.output_folder, dicom_series.get_unique_readable_name() + '.nii.gz')
+        sitk.WriteImage(dicom_series.volume, ori_filename)
+        self.import_data(ori_filename, type="MRI")
+
     def save_patient(self):
         """
         Exporting the scene for the current patient XXX
         """
+        # @TODO. Should not have self joining self here, causes folder inception....
         self.output_folder = os.path.join(self.output_folder, self.patient_id)
         os.makedirs(self.output_folder, exist_ok=True)
         for i, disp in enumerate(list(self.mri_volumes.keys())):
@@ -180,6 +190,21 @@ class MRIVolume():
         self.display_volume = None
         self.display_volume_filepath = None
         self.sequence_type = MRISequenceType.T1c
+        # Display parameters, for reload/dump of the scene
+        self.display_name = uid
+
+        self.__parse_sequence_type()
+
+    def __parse_sequence_type(self):
+        base_name = self.unique_id.lower()
+        if "t2" in base_name and "tirm" in base_name:
+            self.sequence_type = MRISequenceType.FLAIR
+        elif "t2" in base_name:
+            self.sequence_type = MRISequenceType.T2
+        elif "gd" in base_name:
+            self.sequence_type = MRISequenceType.T1c
+        else:
+            self.sequence_type = MRISequenceType.T1w
 
 
 class AnnotationVolume():

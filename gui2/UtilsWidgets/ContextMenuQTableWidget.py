@@ -19,16 +19,17 @@ class ContextMenuQTableWidget(QTableWidget):
     def __set_interface(self):
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.context_menu = QMenu(self)
-        self.display_metadata_action = QAction("Display DICOM metadata")
-        self.context_menu.addAction(self.display_metadata_action)
-        self.remove_action = QAction("Remove")
-        self.context_menu.addAction(self.remove_action)
+        # self.display_metadata_action = QAction("Display DICOM metadata")
+        # self.context_menu.addAction(self.display_metadata_action)
+        # self.remove_action = QAction("Remove")
+        # self.context_menu.addAction(self.remove_action)
 
     def __set_stylesheets(self):
         pass
 
     def __set_connections(self):
-        self.display_metadata_action.triggered.connect(self.__on_display_metadata_triggered)
+        pass
+        # self.display_metadata_action.triggered.connect(self.__on_display_metadata_triggered)
 
     def mousePressEvent(self, event):
         """
@@ -40,6 +41,13 @@ class ContextMenuQTableWidget(QTableWidget):
                 self.context_menu.exec_(event.globalPos())
         super(ContextMenuQTableWidget, self).mousePressEvent(event)
 
-    def __on_display_metadata_triggered(self):
-        #@TODO. Should emit a Signal with the item pos to know which DICOM series it is.
-        pass
+    # def __on_display_metadata_triggered(self):
+    #     #@TODO. Should emit a Signal with the item pos to know which DICOM series it is.
+    #     pass
+
+    def get_column_values(self, column_index):
+        result = []
+        for r in range(self.rowCount()):
+            result.append(self.item(r, column_index).text())
+
+        return result

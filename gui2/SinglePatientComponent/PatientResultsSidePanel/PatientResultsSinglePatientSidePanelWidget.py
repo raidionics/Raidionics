@@ -55,7 +55,7 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         pat_widget.setBaseSize(QSize(self.baseSize().width(), self.baseSize().height()))
         pat_widget.setMaximumSize(QSize(self.baseSize().width(), self.baseSize().height()))
         pat_widget.setMinimumSize(QSize(self.baseSize().width(), int(self.baseSize().height() / 2)))
-        pat_widget.patient_name_lineedit.setText(patient_name)
+        pat_widget.populate_from_patient(patient_name)
         self.patient_results_widgets[patient_name] = pat_widget
         self.patient_list_scrollarea_layout.insertWidget(self.patient_list_scrollarea_layout.count() - 1, pat_widget)
         if len(self.patient_results_widgets) == 1:

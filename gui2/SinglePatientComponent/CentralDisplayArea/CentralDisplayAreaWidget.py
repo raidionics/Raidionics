@@ -74,6 +74,19 @@ class CentralDisplayAreaWidget(QWidget):
             self.coronal_viewer.update_slice_view(self.displayed_image[:, self.point_clicker_position[1], :], self.point_clicker_position[0], self.point_clicker_position[2])
             self.sagittal_viewer.update_slice_view(self.displayed_image[self.point_clicker_position[0], :, :], self.point_clicker_position[1], self.point_clicker_position[2])
 
+    def on_volume_layer_toggled(self, volume_uid, state):
+        """
+        @TODO. state should always be true, should not be able to undisplay an image but only dispay another one instead
+        """
+        if state:
+            self.displayed_image = self.current_patient_parameters.mri_volumes[volume_uid].display_volume
+            self.axial_viewer.update_slice_view(self.displayed_image[:, :, self.point_clicker_position[2]], self.point_clicker_position[0], self.point_clicker_position[1])
+            self.coronal_viewer.update_slice_view(self.displayed_image[:, self.point_clicker_position[1], :], self.point_clicker_position[0], self.point_clicker_position[2])
+            self.sagittal_viewer.update_slice_view(self.displayed_image[self.point_clicker_position[0], :, :], self.point_clicker_position[1], self.point_clicker_position[2])
+            self.axial_viewer.cleanse_annotations()
+            self.coronal_viewer.cleanse_annotations()
+            self.sagittal_viewer.cleanse_annotations()
+
     def on_annotation_layer_toggled(self, volume_uid, state):
         if state:
             self.current_patient_parameters = SoftwareConfigResources.getInstance().patients_parameters[SoftwareConfigResources.getInstance().active_patient_name]

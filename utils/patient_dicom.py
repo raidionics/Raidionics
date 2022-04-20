@@ -132,22 +132,31 @@ class DICOMSeries():
         self.series_date = self.get_metadata_value('0008|0021')
         self.series_time = self.get_metadata_value('0008|0031')
         self.volume_size = [self.get_metadata_value('0028|0010'), self.get_metadata_value('0028|0011'),
-                            self.get_metadata_value('0020|0013')]
+                            len(sitk_reader.GetFileNames())] #self.get_metadata_value('0020|0013')]
 
     def get_metadata_value(self, key):
         res = None
         if key in list(self.dicom_tags.keys()):
-            res = self.dicom_tags[key]
+            res = self.dicom_tags[key].strip()
         return res
 
     def get_series_description(self):
         res = None
         if '0008|103e' in list(self.dicom_tags.keys()):
-            res = self.dicom_tags['0008|103e']
+            res = self.dicom_tags['0008|103e'].strip()
         return res
 
     def get_patient_id(self):
         res = None
         if '0010|0020' in list(self.dicom_tags.keys()):
-            res = self.dicom_tags['0010|0020']
+            res = self.dicom_tags['0010|0020'].strip()
         return res
+
+    def get_unique_readable_name(self):
+        name = self.get_patient_id()
+        name = name + '_' + str(self.series_number)
+        desc = self.get_series_description()
+        if desc != "" and desc != None:
+            name = name + '_' + desc
+
+        return name

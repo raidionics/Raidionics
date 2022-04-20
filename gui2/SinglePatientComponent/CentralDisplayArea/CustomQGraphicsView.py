@@ -194,6 +194,10 @@ class CustomQGraphicsView(QGraphicsView):
         # self.scene.addItem(graphical_item)
         self.__repaint_overlay(annotation_uid)
 
+    def cleanse_annotations(self):
+        for k in list(self.overlaid_items.keys()):
+            self.remove_annotation_view(k)
+
     def remove_annotation_view(self, annotation_uid):
         graphics_item = self.overlaid_items[annotation_uid]
         self.scene.removeItem(graphics_item)

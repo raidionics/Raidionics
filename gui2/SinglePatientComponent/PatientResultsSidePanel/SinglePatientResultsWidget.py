@@ -47,7 +47,14 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.patient_name_label.setBaseSize(QSize(int(self.parent.baseSize().width() / 2.5), 50))
         self.patient_name_lineedit.setBaseSize(QSize(int(self.parent.baseSize().width() / 2.5), 50))
         self.default_collapsiblegroupbox.content_label_layout.addLayout(self.patient_name_layout)
-        self.default_collapsiblegroupbox.content_label.setStyleSheet("QLabel{background-color:rgb(254,254,254);}")
+
+        self.output_dir_label = QLabel("Output:")
+        self.output_dir_lineedit = QLineEdit()
+        self.output_dir_layout = QHBoxLayout()
+        self.output_dir_layout.setContentsMargins(10, 0, 10, 0)
+        self.output_dir_layout.addWidget(self.output_dir_label)
+        self.output_dir_layout.addWidget(self.output_dir_lineedit)
+        self.default_collapsiblegroupbox.content_label_layout.addLayout(self.output_dir_layout)
 
     def __set_overall_part(self):
         self.overall_collapsiblegroupbox = QCollapsibleGroupBox("Overall", self)
@@ -98,6 +105,7 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.content_label.setStyleSheet("QLabel{background-color:rgb(254,254,254);}")
         self.header_pushbutton.setStyleSheet("QPushButton{background-color:rgba(254, 254, 254, 1); font:bold;}")
 
+        self.default_collapsiblegroupbox.content_label.setStyleSheet("QLabel{background-color:rgb(254,254,254);}")
         self.default_collapsiblegroupbox.header_pushbutton.setStyleSheet("QPushButton{background-color:rgb(248, 248, 248); text-align:left;}")
         self.overall_collapsiblegroupbox.header_pushbutton.setStyleSheet("QPushButton{background-color:rgb(248, 248, 248); text-align:left;}")
         self.volumes_collapsiblegroupbox.header_pushbutton.setStyleSheet("QPushButton{background-color:rgb(248, 248, 248); text-align:left;}")
@@ -119,3 +127,9 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
             self.header_pushbutton.setEnabled(False)
         else:
             self.header_pushbutton.setEnabled(True)
+
+    def populate_from_patient(self, patient_uid):
+        patient_parameters = SoftwareConfigResources.getInstance().patients_parameters[patient_uid]
+        self.patient_name_lineedit.setText(patient_parameters.patient_id)
+        self.output_dir_lineedit.setText(patient_parameters.output_folder)
+

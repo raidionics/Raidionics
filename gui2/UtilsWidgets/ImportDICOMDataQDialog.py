@@ -8,7 +8,8 @@ import datetime
 
 from utils.software_config import SoftwareConfigResources
 from utils.patient_dicom import PatientDICOM
-from gui2.UtilsWidgets.ContextMenuQTableWidget import ContextMenuQTableWidget
+# from gui2.UtilsWidgets.ContextMenuQTableWidget import ContextMenuQTableWidget
+from gui2.UtilsWidgets.ImportDICOMQTableWidget import ImportDICOMQTableWidget
 
 
 class ImportDICOMDataQDialog(QDialog):
@@ -62,16 +63,18 @@ class ImportDICOMDataQDialog(QDialog):
         self.dicom_content_area_layout = QVBoxLayout()
         self.dicom_content_splitter = QSplitter(Qt.Vertical)
 
-        self.content_patient_tablewidget = ContextMenuQTableWidget()
+        self.content_patient_tablewidget = ImportDICOMQTableWidget(self)
         self.content_patient_tablewidget.setEditTriggers(QTableWidget.NoEditTriggers)
         self.content_patient_tablewidget.setColumnCount(5)
         self.content_patient_tablewidget.setHorizontalHeaderLabels(["Patient ID", "Gender", "Birth date", "Studies", "Date"])
         self.content_patient_tablewidget.setSelectionBehavior(QTableWidget.SelectRows)
-        self.content_study_tablewidget = QTableWidget()
+        self.content_study_tablewidget = ImportDICOMQTableWidget(self)
+        self.content_study_tablewidget.setEditTriggers(QTableWidget.NoEditTriggers)
         self.content_study_tablewidget.setColumnCount(4)
         self.content_study_tablewidget.setHorizontalHeaderLabels(["Study date", "Study ID", "Study description", "Series"])
         self.content_study_tablewidget.setSelectionBehavior(QTableWidget.SelectRows)
-        self.content_series_tablewidget = QTableWidget()
+        self.content_series_tablewidget = ImportDICOMQTableWidget(self)
+        self.content_series_tablewidget.setEditTriggers(QTableWidget.NoEditTriggers)
         self.content_series_tablewidget.setColumnCount(5)
         self.content_series_tablewidget.setHorizontalHeaderLabels(["Series ID", "Series #", "Series description", "Size", "Date"])
         self.content_series_tablewidget.setSelectionBehavior(QTableWidget.SelectRows)
@@ -92,9 +95,11 @@ class ImportDICOMDataQDialog(QDialog):
         self.dicom_content_area_layout.addWidget(self.central_dicom_splitter)
 
     def __set_selected_dicom_content_area(self):
-        self.selected_series_tablewidget = ContextMenuQTableWidget()
+        self.selected_series_tablewidget = ImportDICOMQTableWidget(self)
+        self.selected_series_tablewidget.setEditTriggers(QTableWidget.NoEditTriggers)
         self.selected_series_tablewidget.setColumnCount(6)
-        self.selected_series_tablewidget.setHorizontalHeaderLabels(["Study ID", "Series #", "Series description", "Size", "Date", "Time"])
+        self.selected_series_tablewidget.setHorizontalHeaderLabels(["Study ID", "Series #", "Series ID",
+                                                                    "Series description", "Size", "Date"])
         self.selected_series_tablewidget.setSelectionBehavior(QTableWidget.SelectRows)
 
     def __set_connections(self):
@@ -104,6 +109,7 @@ class ImportDICOMDataQDialog(QDialog):
         self.content_series_tablewidget.cellDoubleClicked.connect(self.__on_series_selected)
 
     def __set_stylesheets(self):
+        # self.content_study_tablewidget.setStyleSheet("""QTableWidget{background-color:rgb(127,0,0);}""")
         pass
 
     def __on_import_directory_clicked(self):
@@ -120,10 +126,9 @@ class ImportDICOMDataQDialog(QDialog):
         """
 
         """
-        widgets = (self.import_scrollarea_layout.itemAt(i) for i in range(self.import_scrollarea_layout.count() - 1))
-        # for w in widgets:
-        #     SoftwareConfigResources.getInstance().get_active_patient().import_data(w.wid.filepath_lineedit.text(),
-        #                                                                            type=w.wid.file_type_selection_combobox.currentText())
+        for elem in range(self.selected_series_tablewidget.rowCount()):
+            series_reader = self.dicom_holder.studies[self.selected_series_tablewidget.item(elem, 0).text()].dicom_series[self.selected_series_tablewidget.item(elem, 2).text()]
+            SoftwareConfigResources.getInstance().get_active_patient().import_dicom_data(series_reader)
         self.accept()
 
     def __on_exit_cancel_clicked(self):
@@ -133,17 +138,22 @@ class ImportDICOMDataQDialog(QDialog):
         study_id_item = self.content_study_tablewidget.item(self.content_study_tablewidget.currentRow(), 1)
         series_id_item = self.content_series_tablewidget.item(self.content_series_tablewidget.currentRow(), 0)
         series = self.dicom_holder.studies[study_id_item.text()].dicom_series[series_id_item.text()]
-        self.selected_series_tablewidget.insertRow(self.selected_series_tablewidget.rowCount())
-        self.selected_series_tablewidget.setItem(self.selected_series_tablewidget.rowCount() - 1, 0,
-                                                QTableWidgetItem(series.series_id))
-        self.selected_series_tablewidget.setItem(self.selected_series_tablewidget.rowCount() - 1, 1,
-                                                QTableWidgetItem(series.series_number))
-        self.selected_series_tablewidget.setItem(self.selected_series_tablewidget.rowCount() - 1, 2,
-                                                QTableWidgetItem(series.get_series_description()))
-        self.selected_series_tablewidget.setItem(self.selected_series_tablewidget.rowCount() - 1, 3,
-                                                QTableWidgetItem("x".join(str(x) for x in series.volume_size)))
-        self.selected_series_tablewidget.setItem(self.selected_series_tablewidget.rowCount() - 1, 4,
-                                                QTableWidgetItem(series.series_date))
+        series_study = series.get_metadata_value('0020|0010')
+        status = (series_study in self.selected_series_tablewidget.get_column_values(0)) and (series.series_id in self.selected_series_tablewidget.get_column_values(2))
+        if not status:
+            self.selected_series_tablewidget.insertRow(self.selected_series_tablewidget.rowCount())
+            self.selected_series_tablewidget.setItem(self.selected_series_tablewidget.rowCount() - 1, 0,
+                                                     QTableWidgetItem(series.get_metadata_value('0020|0010')))
+            self.selected_series_tablewidget.setItem(self.selected_series_tablewidget.rowCount() - 1, 1,
+                                                    QTableWidgetItem(series.series_number))
+            self.selected_series_tablewidget.setItem(self.selected_series_tablewidget.rowCount() - 1, 2,
+                                                    QTableWidgetItem(series.series_id))
+            self.selected_series_tablewidget.setItem(self.selected_series_tablewidget.rowCount() - 1, 3,
+                                                    QTableWidgetItem(series.get_series_description()))
+            self.selected_series_tablewidget.setItem(self.selected_series_tablewidget.rowCount() - 1, 4,
+                                                    QTableWidgetItem("x".join(str(x) for x in series.volume_size)))
+            self.selected_series_tablewidget.setItem(self.selected_series_tablewidget.rowCount() - 1, 5,
+                                                    QTableWidgetItem(series.series_date))
 
     def __populate_dicom_browser(self):
         #@TODO. Do we clean all tables before filling them up, in case there's stuff from a previous run.
@@ -168,20 +178,16 @@ class ImportDICOMDataQDialog(QDialog):
                 self.content_series_tablewidget.setItem(self.content_series_tablewidget.rowCount() - 1, 3, QTableWidgetItem("x".join(str(x) for x in series.volume_size)))
                 self.content_series_tablewidget.setItem(self.content_series_tablewidget.rowCount() - 1, 4, QTableWidgetItem(series.series_date))
 
-        # main_order = 0
-        # sub_folder_id = 0
-        # order = 1
-        # for dicom_investigations in dicom_readers:
-        #     main_order = main_order + 1
-        #     for it, ts_key in enumerate(dicom_investigations.keys()):
-        #         readers = dicom_investigations[ts_key]
-        #         sub_folder_id = sub_folder_id + 1
-        #         for reader in readers:
-        #             try:
-        #                 wid = ImportDICOMSeriesLineWidget(reader, self)
-        #                 self.import_scrollarea_layout.insertWidget(self.import_scrollarea_layout.count() - 1, wid)
-        #             except Exception as e:
-        #                 continue
+        # Resizing all columns to fit the content.
+        for c in range(self.content_patient_tablewidget.columnCount()):
+            self.content_patient_tablewidget.resizeColumnToContents(c)
+        for c in range(self.content_study_tablewidget.columnCount()):
+            self.content_study_tablewidget.resizeColumnToContents(c)
+        for c in range(self.content_series_tablewidget.columnCount()):
+            self.content_series_tablewidget.resizeColumnToContents(c)
+
+        self.content_patient_tablewidget.selectRow(0)
+        self.content_study_tablewidget.selectRow(0)
 
 
 class ImportDICOMSeriesLineWidget(QWidget):
