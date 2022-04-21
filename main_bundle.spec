@@ -66,7 +66,8 @@ coll = COLLECT(exe,
                strip=False,
                upx=True,
                upx_exclude=[],
-               name='Raidionics'
+               name='Raidionics',
+               icon="./tmp_dependencies/images/raidionics.ico"
 )
 app = BUNDLE(coll,
              name='Raidionics.app',

@@ -20,7 +20,7 @@ var SM_Folder
 SetCompressor ZLIB
 Name "${APP_NAME}"
 Caption "${APP_NAME}"
-# Icon "Raidionics.ico"
+# Icon "images/raidionics-logo.ico"
 OutFile "${INSTALLER_NAME}"
 BrandingText "${APP_NAME}"
 XPStyle on

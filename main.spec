@@ -56,7 +56,8 @@ exe = EXE(pyz,
           bootloader_ignore_signals=False,
           strip=False,
           upx=True,
-          console=True
+          console=True,
+          icon="./tmp_dependencies/images/raidionics.ico"
 )
 coll = COLLECT(exe,
                a.binaries,
