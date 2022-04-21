@@ -42,7 +42,7 @@ jobs:
             TARGET: ubuntu
             CMD_BUILD: "pip install gdown &&
                        pip install antspyx &&
-                       pyinstaller --noconfirm --clean --onefile main.spec &&
+                       pyinstaller --noconfirm --clean main.spec &&
                        mkdir -p Raidionics_ubuntu/usr/local/bin &&
                        cp -r dist/Raidionics Raidionics_ubuntu/usr/local/bin &&
                        dpkg-deb --build --root-owner-group Raidionics_ubuntu &&
@@ -54,7 +54,7 @@ jobs:
             TARGET: macos
             CMD_BUILD: "pip install gdown &&
                        pip install https://github.com/ANTsX/ANTsPy/releases/download/v0.1.8/antspyx-0.1.8-cp37-cp37m-macosx_10_14_x86_64.whl &&
-                       pyinstaller --noconfirm --clean --onefile main_bundle.spec &&
+                       pyinstaller --noconfirm --clean main_bundle.spec &&
                        git clone https://github.com/scriptingosx/quickpkg.git &&
                        quickpkg/quickpkg dist/Raidionics.app --output Raidionics-1.0.0-macOS.pkg &&
                        cp -r Raidionics-1.0.0-macOS.pkg dist/Raidionics-1.0.0-macOS.pkg"
@@ -85,7 +85,7 @@ jobs:
       run: |
         pip install gdown
         pip install https://github.com/SGotla/ANTsPy/releases/download/0.1.7Win64/antspy-0.1.7-cp37-cp37m-win_amd64.whl
-        pyinstaller --noconfirm --clean --onefile main.spec
+        pyinstaller --noconfirm --clean main.spec
         makensis.exe Raidionics.nsi
         cp -r Raidionics-1.0.0-win.exe ../dist/Raidionics-1.0.0-win.exe
 
