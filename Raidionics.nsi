@@ -20,7 +20,7 @@ var SM_Folder
 SetCompressor ZLIB
 Name "${APP_NAME}"
 Caption "${APP_NAME}"
-# Icon "images/raidionics-logo.ico"
+Icon "$PROGRAMFILES\Raidionics\images\raidionics-logo.ico"
 OutFile "${INSTALLER_NAME}"
 BrandingText "${APP_NAME}"
 XPStyle on
@@ -45,7 +45,6 @@ InstallDir "$PROGRAMFILES\Raidionics"
 !endif
 
 !insertmacro MUI_PAGE_INSTFILES
-# !define MUI_FINISHPAGE_RUN "$INSTDIR\${MAIN_APP_EXE}"
 !insertmacro MUI_PAGE_FINISH
 
 !insertmacro MUI_UNPAGE_CONFIRM
@@ -56,7 +55,6 @@ InstallDir "$PROGRAMFILES\Raidionics"
 
 # name the installer
 OutFile "${INSTALLER_NAME}"
-#"Raidionics-win10-v1.0.0.exe"
 
 
 ####################### UNINSTALL BEFORE UPGRADE #####################
@@ -137,16 +135,9 @@ WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}"  "Publisher" "${COMP_NAME}"
 # Create directory
 CreateDirectory $INSTDIR
 
-# OLD SOLUTION FOR SINGLE EXE (DONT DO THIS!)
-#File "C:\Users\andrp\workspace\neuro_rads_prototype\dist\Raidionics.exe"  # location of executable which it packages
-#ExecWait "$INSTDIR\Raidionics-installed.exe"
-
 # PACKAGE ENTIRE CONTENT OF BUNDLE THE NEW BINARY!
 File /nonfatal /a /r ".\dist\Raidionics\*"
 ExecWait "$INSTDIR\Raidionics-installed.exe"
-
-#SetOutPath "outputPath"
-#File /nonfatal /a /r "myDirectory\" #note back slash at the end
 
 # default section end
 SectionEnd
