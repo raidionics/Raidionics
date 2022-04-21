@@ -1,8 +1,8 @@
 !define APP_NAME "Raidionics"
 !define COMP_NAME "SINTEF"
-!define VERSION "1.3"
+!define VERSION "1.0.0"
 !define DESCRIPTION "Application"
-!define INSTALLER_NAME "Raidionics-1.3-win.exe"
+!define INSTALLER_NAME "Raidionics-1.0.0-win.exe"
 !define MAIN_APP_EXE "Raidionics.exe"
 !define INSTALL_TYPE "SetShellVarContext current"
 !define REG_ROOT "HKLM"  
@@ -56,7 +56,7 @@ InstallDir "$PROGRAMFILES\Raidionics"
 
 # name the installer
 OutFile "${INSTALLER_NAME}"
-#"Raidionics-win10-v1.1.exe"
+#"Raidionics-win10-v1.0.exe"
 
 
 ####################### UNINSTALL BEFORE UPGRADE #####################

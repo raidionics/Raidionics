@@ -5,13 +5,6 @@ import os
 os.environ['LC_CTYPE'] = "en_US.UTF-8"
 os.environ['LANG'] = "en_US.UTF-8"
 
-# work-around for https://github.com/pyinstaller/pyinstaller/issues/4064
-'''
-import distutils
-if distutils.distutils_path.endswith('__init__.py'):
-    distutils.distutils_path = os.path.dirname(distutils.distutils_path)
-'''
-
 from PyInstaller.utils.hooks import collect_data_files
 from numpy import loadtxt
 import ants
@@ -33,7 +26,6 @@ if os.path.exists("./tmp_dependencies/"):
 shutil.copytree("./diagnosis/", "./tmp_dependencies/diagnosis/")
 shutil.copytree("./segmentation/", "./tmp_dependencies/segmentation/")
 shutil.copytree("./images/", "./tmp_dependencies/images/")
-#shutil.copytree("./gui/Images/", "./tmp_dependencies/gui/Images/")
 shutil.copytree("./gui/", "./tmp_dependencies/gui/")
 shutil.copytree("./resources/", "./tmp_dependencies/resources/")
 
@@ -54,54 +46,6 @@ pyz = PYZ(a.pure, a.zipped_data,
              cipher=block_cipher
 )
 
-
-# one large exe-file with everything included
-'''
-exe = EXE(pyz,
-          a.scripts,
-          a.binaries,
-          Tree("./tmp_dependencies/"),
-          a.zipfiles,
-          a.datas,
-          [],
-          name='Raidionics',
-          debug=False,  # should be set to False, but needed to debug on MacOSX
-          bootloader_ignore_signals=False,
-          strip=False,
-          upx=True,
-          upx_exclude=[],
-          runtime_tmpdir=None,
-          console=True  # True, tried to set This to False now for sanity checking stuff...
-)
-'''
-
-# separate exe-file from dlls and everything else
-'''
-exe = EXE(pyz,
-          a.scripts,
-          [],
-          exclude_binaries=True,
-          name='Raidionics',
-          debug=False,
-          bootloader_ignore_signals=False,
-          strip=False,
-          upx=True,
-          console=True
-)
-coll = COLLECT(exe,
-               a.binaries,
-               Tree("./tmp_dependencies/"),
-               a.zipfiles,
-               a.datas,
-               strip=False,
-               upx=True,
-               upx_exclude=[],
-               name='Raidionics'
-)
-'''
-
-
-#'''
 # to compile everything into a macOS Bundle (.APP)
 exe = EXE(pyz,
           a.scripts,
@@ -124,20 +68,8 @@ coll = COLLECT(exe,
                upx_exclude=[],
                name='Raidionics'
 )
-
-
-'''
 app = BUNDLE(coll,
              name='Raidionics.app',
              icon=None,
              bundle_identifier=None,
 )
-'''
-
-
-
-
-
-
-
-

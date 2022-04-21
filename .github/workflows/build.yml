@@ -9,7 +9,7 @@ on:
 jobs:
   createrelease:
     name: Create Release
-    runs-on: [ubuntu-latest]
+    runs-on: ubuntu-18.04
     steps:
     - name: Create Release
       id: create_release
@@ -42,29 +42,29 @@ jobs:
             TARGET: ubuntu
             CMD_BUILD: "pip install gdown &&
                        pip install antspyx &&
-                       pyinstaller --noconfirm --clean --onefile main_custom_bundle.spec &&
-                       mkdir -p Raidionics-0.1.1_Ubuntu/usr/local/bin &&
-                       cp -r dist/Raidionics Raidionics-0.1.1_Ubuntu/usr/local/bin &&
-                       dpkg-deb --build --root-owner-group Raidionics-0.1.1_Ubuntu &&
-                       cp -r Raidionics-0.1.1_Ubuntu.deb dist/Raidionics-1.3-ubuntu.deb"
-            OUT_FILE_NAME: Raidionics-1.3-ubuntu.deb
+                       pyinstaller --noconfirm --clean --onefile main.spec &&
+                       mkdir -p Raidionics_Ubuntu/usr/local/bin &&
+                       cp -r dist/Raidionics Raidionics_Ubuntu/usr/local/bin &&
+                       dpkg-deb --build --root-owner-group Raidionics_Ubuntu &&
+                       cp -r Raidionics_Ubuntu.deb dist/Raidionics-1.0.0-ubuntu.deb"
+            OUT_FILE_NAME: Raidionics-1.0.0-ubuntu.deb
             ASSET_MIME: application/vnd.debian.binary-package
 
           - os: macos-10.15
             TARGET: macos
             CMD_BUILD: "pip install gdown &&
                        pip install https://github.com/ANTsX/ANTsPy/releases/download/v0.1.8/antspyx-0.1.8-cp37-cp37m-macosx_10_14_x86_64.whl &&
-                       pyinstaller --noconfirm --clean --onefile main_custom_macos.spec &&
+                       pyinstaller --noconfirm --clean --onefile main_bundle.spec &&
                        git clone https://github.com/scriptingosx/quickpkg.git &&
-                       quickpkg/quickpkg dist/Raidionics.app --output Raidionics-1.3-macOS.pkg &&
-                       cp -r Raidionics-1.3-macOS.pkg dist/Raidionics-1.3-macOS.pkg"
-            OUT_FILE_NAME: Raidionics-1.3-macOS.pkg
+                       quickpkg/quickpkg dist/Raidionics.app --output Raidionics-1.0.0-macOS.pkg &&
+                       cp -r Raidionics-1.0.0-macOS.pkg dist/Raidionics-1.0.0-macOS.pkg"
+            OUT_FILE_NAME: Raidionics-1.0.0-macOS.pkg
             ASSET_MIME: application/x-newton-compatible-pkg
 
           - os: windows-latest
             TARGET: windows
             CMD_BUILD: "ls"
-            OUT_FILE_NAME: Raidionics-1.3-win.exe
+            OUT_FILE_NAME: Raidionics-1.0.0-win.exe
             ASSET_MIME: application/vnd.microsoft.portable-executable
     
     steps:
@@ -81,16 +81,14 @@ jobs:
         pip install pyinstaller==4.2
     
     ## Windows need to be handled differently, as we need to use NSIS for building the installer, which cannot be installed easily on the cloud
-    - if: matrix.os == 'windows-latest'
+    - if: matrix.os == 'windows-2019'
       name: Build application
       run: |
         pip install gdown
         pip install https://github.com/SGotla/ANTsPy/releases/download/0.1.7Win64/antspy-0.1.7-cp37-cp37m-win_amd64.whl
-        pyinstaller --noconfirm --clean --onefile main_custom_bundle.spec
-        cp -r dist/ win_installer/dist
-        cd win_installer
+        pyinstaller --noconfirm --clean --onefile main.spec
         makensis.exe Raidionics.nsi
-        cp -r Raidionics-1.3-win.exe ../dist/Raidionics-1.3-win.exe
+        cp -r Raidionics-1.0.0-win.exe ../dist/Raidionics-1.0.0-win.exe
 
     - name: Build with pyinstaller for ${{matrix.TARGET}}
       run: ${{matrix.CMD_BUILD}}
