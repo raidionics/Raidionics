@@ -55,7 +55,8 @@ jobs:
             CMD_BUILD: "pip install gdown &&
                        pip install https://github.com/ANTsX/ANTsPy/releases/download/v0.1.8/antspyx-0.1.8-cp37-cp37m-macosx_10_14_x86_64.whl &&
                        pyinstaller --noconfirm --clean main_bundle.spec &&
-                       git clone https://github.com/scriptingosx/quickpkg.git &&
+                       git clone https://github.com/andreped/quickpkg.git &&
+                       ls -la &&
                        quickpkg/quickpkg dist/Raidionics.app --output Raidionics-1.0.0-macOS.pkg &&
                        cp -r Raidionics-1.0.0-macOS.pkg dist/Raidionics-1.0.0-macOS.pkg"
             OUT_FILE_NAME: Raidionics-1.0.0-macOS.pkg
