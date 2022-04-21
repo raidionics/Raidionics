@@ -55,18 +55,8 @@ class LayersInteractorVolumeCollapsibleGroupBox(QCollapsibleGroupBox):
         self.sequence_layout.addWidget(self.sequence_combobox)
         self.sequence_layout.addStretch(1)
         self.content_label_layout.addLayout(self.sequence_layout)
-        #
-        # self.color_label = QLabel("Color:")
-        # self.color_label.setFixedHeight(20)
-        # self.color_dialogpushbutton = QPushButton()
-        # self.color_dialogpushbutton.setFixedHeight(10)
-        # self.color_dialogpushbutton.setEnabled(False)
-        # self.color_dialog = QColorDialog(parent=self.parent)  # @FIXME. GtkDialog mapped without a transient parent. This is discouraged.
-        # self.color_layout = QHBoxLayout()
-        # self.color_layout.addWidget(self.color_label)
-        # self.color_layout.addWidget(self.color_dialogpushbutton)
-        # self.color_layout.addStretch(1)
-        # self.content_label_layout.addLayout(self.color_layout)
+
+        # @TODO. Add a layout for adjusting the MRI contrast?
         self.content_label_layout.addStretch(1)
 
     def __set_connections(self):
@@ -103,21 +93,4 @@ class LayersInteractorVolumeCollapsibleGroupBox(QCollapsibleGroupBox):
 
     def __on_display_toggled(self):
         pass
-        # if self.header_pushbutton.right_icon_widget.isChecked():
-        #     self.opacity_slider.setEnabled(True)
-        #     self.color_dialogpushbutton.setEnabled(True)
-        # else:
-        #     self.opacity_slider.setEnabled(False)
-        #     self.color_dialogpushbutton.setEnabled(False)
 
-    # def __on_opacity_changed(self, value):
-    #     self.opacity_value_changed.emit(self.uid, value)
-    #
-    # def __on_color_selector_clicked(self):
-    #     code = self.color_dialog.exec_()
-    #     if code == QColorDialog.Accepted:
-    #         color = self.color_dialog.currentColor()
-    #         self.color_value_changed.emit(self.uid, color)
-    #         custom_color_str = "background-color:rgb({}, {}, {})".format(color.red(), color.green(), color.blue())
-    #         custom_ss = "QPushButton{" + custom_color_str + ";}"
-    #         self.color_dialogpushbutton.setStyleSheet(self.color_dialogpushbutton_base_ss + custom_ss)

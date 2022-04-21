@@ -64,6 +64,16 @@ class CentralDisplayAreaWidget(QWidget):
         self.coronal_viewer.import_data_triggered.connect(self.import_data_triggered)
         self.sagittal_viewer.import_data_triggered.connect(self.import_data_triggered)
 
+    def reset_overlay(self):
+        """
+        When the active patient is changed, or the active volume (unless in the future we co-register MRI volumes),
+        then all overlaid objects should be cleared (annotations for now but can be extended to atlas/registration).
+        """
+        self.axial_viewer.cleanse_annotations()
+        self.coronal_viewer.cleanse_annotations()
+        self.sagittal_viewer.cleanse_annotations()
+        self.overlaid_volumes.clear()
+
     def on_import_data(self):
         if self.displayed_image is None:
             self.current_patient_parameters = SoftwareConfigResources.getInstance().patients_parameters[SoftwareConfigResources.getInstance().active_patient_name]
@@ -92,8 +102,9 @@ class CentralDisplayAreaWidget(QWidget):
         self.current_patient_parameters = SoftwareConfigResources.getInstance().patients_parameters[
             SoftwareConfigResources.getInstance().active_patient_name]
 
-        # @FIXME. Can only be 0 if the active patient is the default (and empty) temp patient created at init...
-        # Should not have to make this check, the initial temp patient should be better handled and not dragged along
+        self.reset_overlay()
+
+        # Can only be 0 if the active patient is the default (and empty) temp patient created during initialization.
         if len(self.current_patient_parameters.mri_volumes) != 0:
             self.displayed_image = self.current_patient_parameters.mri_volumes[
                 list(self.current_patient_parameters.mri_volumes.keys())[0]].display_volume
@@ -106,6 +117,7 @@ class CentralDisplayAreaWidget(QWidget):
                                                   self.point_clicker_position[0], self.point_clicker_position[2])
             self.sagittal_viewer.update_slice_view(self.displayed_image[self.point_clicker_position[0], :, :],
                                                    self.point_clicker_position[1], self.point_clicker_position[2])
+        # If empty patient, setting an empty volume to avoid issues.
         else:
             self.displayed_image = np.zeros(shape=(150, 150, 150), dtype='uint8')
             self.point_clicker_position = [int(self.displayed_image.shape[0] / 2),
@@ -120,16 +132,18 @@ class CentralDisplayAreaWidget(QWidget):
 
     def on_volume_layer_toggled(self, volume_uid, state):
         """
-        @TODO. state should always be true, should not be able to undisplay an image but only dispay another one instead
+        Borderline behaviour: state should always be true since it should not be possible to undisplay an image but
+        rather display another one instead.
         """
         if state:
+            self.reset_overlay()  # Until the time there is a co-registration option between input MRI volumes.
             self.displayed_image = self.current_patient_parameters.mri_volumes[volume_uid].display_volume
-            self.axial_viewer.update_slice_view(self.displayed_image[:, :, self.point_clicker_position[2]], self.point_clicker_position[0], self.point_clicker_position[1])
-            self.coronal_viewer.update_slice_view(self.displayed_image[:, self.point_clicker_position[1], :], self.point_clicker_position[0], self.point_clicker_position[2])
-            self.sagittal_viewer.update_slice_view(self.displayed_image[self.point_clicker_position[0], :, :], self.point_clicker_position[1], self.point_clicker_position[2])
-            self.axial_viewer.cleanse_annotations()
-            self.coronal_viewer.cleanse_annotations()
-            self.sagittal_viewer.cleanse_annotations()
+            self.axial_viewer.update_slice_view(self.displayed_image[:, :, self.point_clicker_position[2]],
+                                                self.point_clicker_position[0], self.point_clicker_position[1])
+            self.coronal_viewer.update_slice_view(self.displayed_image[:, self.point_clicker_position[1], :],
+                                                  self.point_clicker_position[0], self.point_clicker_position[2])
+            self.sagittal_viewer.update_slice_view(self.displayed_image[self.point_clicker_position[0], :, :],
+                                                   self.point_clicker_position[1], self.point_clicker_position[2])
 
     def on_annotation_layer_toggled(self, volume_uid, state):
         if state:

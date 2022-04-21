@@ -1,6 +1,7 @@
 import os
 import configparser
 import shutil
+import traceback
 from os.path import expanduser
 import nibabel as nib
 import SimpleITK as sitk
@@ -122,51 +123,53 @@ class PatientParameters:
         Saving the raw file, and preprocessing it to have fixed orientations and uint8 values.
         """
         data_uid = None
+        error_message = None
 
-        if type == 'MRI':
-            base_name = os.path.basename(filename).split('.')[0]
-            image_nib = nib.load(filename)
-            image = image_nib.get_data()[:]
+        try:
+            if type == 'MRI':
+                image_nib = nib.load(filename)
 
-            # self.import_raw_data[base_name] = deepcopy(image)
-            # self.patient_parameters_project_json['Volumes']['Raw'][base_name] = filename
+                # Resampling to standard output for viewing purposes.
+                resampled_input_ni = resample_to_output(image_nib, order=1)
+                image_res = resampled_input_ni.get_data()[:]
 
-            resampled_input_ni = resample_to_output(image_nib, order=1)
-            image_res = resampled_input_ni.get_data()[:]
-            min_val = np.min(image_res)
-            max_val = np.max(image_res)
-            if (max_val - min_val) != 0:
-                tmp = (image_res - min_val) / (max_val - min_val)
-                image_res = tmp * 255.
+                # Scaling data to uint8
+                min_val = np.min(image_res)
+                max_val = np.max(image_res)
+                if (max_val - min_val) != 0:
+                    tmp = (image_res - min_val) / (max_val - min_val)
+                    image_res = tmp * 255.
+                image_res2 = image_res.astype('uint8')
 
-            image_res2 = image_res.astype('uint8')
-            # self.import_display_data[base_name] = deepcopy(image_res2)
+                # Generating a unique id for the MRI volume
+                base_data_uid = os.path.basename(filename).strip().split('.')[0]
+                non_available_uid = True
+                while non_available_uid:
+                    data_uid = str(np.random.randint(0, 1000)) + '_' + base_data_uid
+                    if data_uid not in list(self.mri_volumes.keys()):
+                        non_available_uid = False
+                self.mri_volumes[data_uid] = MRIVolume(uid=data_uid, filename=filename)
+                self.mri_volumes[data_uid].display_volume = deepcopy(image_res2)
+            else:
+                image_nib = nib.load(filename)
+                resampled_input_ni = resample_to_output(image_nib, order=0)
+                image_res = resampled_input_ni.get_data()[:].astype('uint8')
+                # @TODO. Check if more than one label?
 
-            base_data_uid = os.path.basename(filename).strip().split('.')[0]
-            non_available_uid = True
-            while non_available_uid:
-                data_uid = str(np.random.randint(0, 1000)) + '_' + base_data_uid
-                if data_uid not in list(self.mri_volumes.keys()):
-                    non_available_uid = False
-            self.mri_volumes[data_uid] = MRIVolume(uid=data_uid, filename=filename)
-            self.mri_volumes[data_uid].display_volume = deepcopy(image_res2)
-        # elif type == 'Patient':
-        #     self.import_patient(filename)
-        else:
-            image_nib = nib.load(filename)
-            resampled_input_ni = resample_to_output(image_nib, order=0)
-            image_res = resampled_input_ni.get_data()[:].astype('uint8')
-            # @TODO. Check if more than one label?
+                # Generating a unique id for the annotation volume
+                base_data_uid = os.path.basename(filename).strip().split('.')[0]
+                non_available_uid = True
+                while non_available_uid:
+                    data_uid = str(np.random.randint(0, 1000)) + '_' + base_data_uid
+                    if data_uid not in list(self.annotation_volumes.keys()):
+                        non_available_uid = False
 
-            base_data_uid = os.path.basename(filename).strip().split('.')[0]
-            non_available_uid = True
-            while non_available_uid:
-                data_uid = str(np.random.randint(0, 1000)) + '_' + base_data_uid
-                if data_uid not in list(self.annotation_volumes.keys()):
-                    non_available_uid = False
-            self.annotation_volumes[data_uid] = AnnotationVolume(uid=data_uid, filename=filename)
-            self.annotation_volumes[data_uid].display_volume = deepcopy(image_res)
-        return data_uid
+                self.annotation_volumes[data_uid] = AnnotationVolume(uid=data_uid, filename=filename)
+                self.annotation_volumes[data_uid].display_volume = deepcopy(image_res)
+        except Exception as e:
+            error_message = e #traceback.format_exc()
+
+        return data_uid, error_message
 
     def import_dicom_data(self, dicom_series):
         self.output_folder = os.path.join(self.output_folder, self.patient_id)

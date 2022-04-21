@@ -10,6 +10,9 @@ class LayersInteractorSinglePatientSidePanelWidget(QWidget):
     """
 
     """
+    mri_volume_imported = Signal(str)
+    annotation_volume_imported = Signal(str)
+
     import_data_triggered = Signal()
     volume_view_toggled = Signal(str, bool)
     annotation_view_toggled = Signal(str, bool)
@@ -69,6 +72,9 @@ class LayersInteractorSinglePatientSidePanelWidget(QWidget):
         self.layout.addWidget(self.overall_scrollarea)
 
     def __set_connections(self):
+        self.mri_volume_imported.connect(self.volumes_collapsiblegroupbox.on_mri_volume_import)
+        self.annotation_volume_imported.connect(self.annotations_collapsiblegroupbox.on_import_volume)
+
         self.import_data_triggered.connect(self.volumes_collapsiblegroupbox.on_import_data)
         self.import_data_triggered.connect(self.annotations_collapsiblegroupbox.on_import_data)
         self.volumes_collapsiblegroupbox.volume_view_toggled.connect(self.volume_view_toggled)
@@ -84,6 +90,12 @@ class LayersInteractorSinglePatientSidePanelWidget(QWidget):
 
         self.annotations_collapsiblegroupbox.header_pushbutton.setStyleSheet("QPushButton{font:11px;}")
         self.annotations_collapsiblegroupbox.content_label.setStyleSheet("QLabel{background-color:rgb(255, 128, 128);}")
+
+    def on_mri_volume_import(self, uid):
+        self.mri_volume_imported.emit(uid)
+
+    def on_annotation_volume_import(self, uid):
+        self.annotation_volume_imported.emit(uid)
 
     def on_import_data(self):
         # @TODO. Would have to check what is the actual data type to trigger the correct signal

@@ -183,20 +183,12 @@ class CustomQGraphicsView(QGraphicsView):
         image_2d = annotation_slice[:, ::-1]
         image_2d = rotate(image_2d, -90).astype('uint8')
         self.display_annotations[annotation_uid] = image_2d
-
-        # h, w = annotation_slice.shape
-        # bytes_per_line = 3 * w
-        # color_image = np.stack([annotation_slice] * 3, axis=-1)
-        # qimage = QImage(color_image.data, w, h, bytes_per_line, QImage.Format_RGB888)
-        # qimage = qimage.convertToFormat(QImage.Format_RGBA8888)
-        # graphical_item = QGraphicsPixmapItem(QPixmap(qimage))
-        # self.overlaid_items[annotation_uid] = graphical_item
-        # self.scene.addItem(graphical_item)
         self.__repaint_overlay(annotation_uid)
 
     def cleanse_annotations(self):
-        for k in list(self.overlaid_items.keys()):
+        for k in list(self.overlaid_items):
             self.remove_annotation_view(k)
+        self.overlaid_items_display_parameters.clear()
 
     def remove_annotation_view(self, annotation_uid):
         graphics_item = self.overlaid_items[annotation_uid]

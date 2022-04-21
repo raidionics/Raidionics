@@ -49,6 +49,8 @@ class SinglePatientWidget(QWidget):
         self.center_widget_container_layout.addWidget(self.central_label, 0, 0, Qt.AlignCenter)
         self.layout.addLayout(self.center_widget_container_layout)
 
+        self.import_data_dialog = ImportDataQDialog(self)
+
     def __top_logo_options_panel_interface(self):
         self.top_logo_panel_layout = QHBoxLayout()
         self.top_logo_panel_label = QLabel()
@@ -126,16 +128,16 @@ class SinglePatientWidget(QWidget):
         self.__set_cross_connections()
 
     def __set_cross_connections(self):
+        self.import_data_dialog.mri_volume_imported.connect(self.layers_panel.on_mri_volume_import)
+        self.import_data_dialog.annotation_volume_imported.connect(self.layers_panel.on_annotation_volume_import)
+
         self.import_data_triggered.connect(self.center_panel.on_import_data)
-        # @TODO. Have to bounce the import_data_triggered to the results_panel, in case a patient was loaded.
         self.import_data_triggered.connect(self.results_panel.on_import_data)
+        self.import_data_triggered.connect(self.layers_panel.on_import_data)
         self.import_patient_triggered.connect(self.results_panel.on_import_patient)
-        # @TODO. Might not be an import data, but rather a full visual update.
         self.center_panel.import_data_triggered.connect(self.layers_panel.on_import_data)
         self.results_panel.patient_selected.connect(self.center_panel.on_patient_selected)
-        # @TODO. Should not be import data, since a full cleaning is needed.
         self.results_panel.patient_selected.connect(self.layers_panel.on_patient_selected)
-        self.import_data_triggered.connect(self.layers_panel.on_import_data)
         self.layers_panel.volume_view_toggled.connect(self.center_panel.on_volume_layer_toggled)
         self.layers_panel.annotation_view_toggled.connect(self.center_panel.on_annotation_layer_toggled)
         self.layers_panel.annotation_opacity_changed.connect(self.center_panel.on_annotation_opacity_changed)
@@ -145,10 +147,10 @@ class SinglePatientWidget(QWidget):
         return self.widget_name
 
     def __on_import_file_clicked(self):
-        diag = ImportDataQDialog(self)
-        code = diag.exec_()
-        if code == QDialog.Accepted:
-            self.import_data_triggered.emit()
+        self.import_data_dialog.reset()
+        code = self.import_data_dialog.exec_()
+        # if code == QDialog.Accepted:
+        #     self.import_data_triggered.emit()
 
     def __on_import_dicom_clicked(self):
         diag = ImportDICOMDataQDialog(self)

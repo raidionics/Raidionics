@@ -1,6 +1,6 @@
 from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QGridLayout, QDialog, QDialogButtonBox,\
-    QComboBox, QPushButton, QScrollArea, QLineEdit, QFileDialog
-from PySide2.QtCore import Qt, QSize
+    QComboBox, QPushButton, QScrollArea, QLineEdit, QFileDialog, QMessageBox
+from PySide2.QtCore import Qt, QSize, Signal
 from PySide2.QtGui import QIcon
 import os
 
@@ -8,6 +8,12 @@ from utils.software_config import SoftwareConfigResources
 
 
 class ImportDataQDialog(QDialog):
+    # The str is the unique id for the mri volume, belonging to the active patient
+    mri_volume_imported = Signal(str)
+    # The str is the unique id for the annotation volume, belonging to the active patient
+    annotation_volume_imported = Signal(str)
+    # The str is the unique id for the added patient, the active patient remains the same
+    patient_imported = Signal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -63,6 +69,16 @@ class ImportDataQDialog(QDialog):
     def __set_stylesheets(self):
         pass
 
+    def reset(self):
+        """
+        Remove all entries in the import scroll area, each entry being a ImportDataLineWidget
+        @FIXME. Still clunky, giving some error messages.
+        """
+        widgets = (self.import_scrollarea_layout.itemAt(i).widget() for i in range(self.import_scrollarea_layout.count() - 1))
+        for w in widgets:
+            w.setParent(None)
+            w.deleteLater()
+
     def __on_import_directory_clicked(self):
         input_image_filedialog = QFileDialog(self)
         input_image_filedialog.setWindowFlags(Qt.WindowStaysOnTopHint)
@@ -93,9 +109,26 @@ class ImportDataQDialog(QDialog):
         # @TODO. Should not iterate blindly, should check if there are volumes to load for the current active patient
         # and then iterate over the .raidionics files to load other patients?
         for w in widgets:
-            if w.wid.file_type_selection_combobox.currentText() != "Patient":
-                SoftwareConfigResources.getInstance().get_active_patient().import_data(w.wid.filepath_lineedit.text(),
-                                                                                       type=w.wid.file_type_selection_combobox.currentText())
+            # @TODO. Should collect a return from the import methods, in case something went wrong and some data
+            # cannot be loaded, so that we prompt the information to the user.
+
+            # @TODO2. Should accordingly emit a signal for each image/annotation/patient loaded, cleaner to track
+            # rather than doing full iterations/repainting over all content.
+            input_type = w.wid.file_type_selection_combobox.currentText()
+            if input_type != "Patient":
+                input_filepath = w.wid.filepath_lineedit.text()
+                uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_data(input_filepath,
+                                                                                                        type=input_type)
+                if error_msg:
+                    diag = QMessageBox()
+                    diag.setText("Unable to load: {}.\nError message: {}.\n".format(os.path.basename(input_filepath),
+                                                                                    error_msg))
+                    diag.exec_()
+                else:
+                    if input_type == "MRI":
+                        self.mri_volume_imported.emit(uid)
+                    else:
+                        self.annotation_volume_imported.emit(uid)
             else:
                 SoftwareConfigResources.getInstance().load_patient(w.wid.filepath_lineedit.text())
         self.accept()

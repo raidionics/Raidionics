@@ -43,9 +43,25 @@ class LayersInteractorVolumesWidget(QCollapsibleGroupBox):
         self.content_label.setFixedSize(QSize(self.size().width(), actual_height))
 
     def reset(self):
-        for w in self.volumes_widget:
+        for w in list(self.volumes_widget):
             self.content_label_layout.removeWidget(self.volumes_widget[w])
             self.volumes_widget.pop(w)
+        self.header_pushbutton.setChecked(False)
+        self.header_pushbutton.clicked.emit()
+
+    def on_mri_volume_import(self, uid):
+        """
+        Default slot anytime a new MRI volume is added to the scene (i.e., on the current active patient)
+        :param: uid unique identifier for the MRI volume in the logic component (SoftwareConfigResources)
+        """
+        self.on_import_volume(uid)
+
+        # The first MRI volume loaded is displayed by default, hence toggling the eye-iconed push button.
+        if len(self.volumes_widget) > 0:
+            self.volumes_widget[list(self.volumes_widget.keys())[0]].header_pushbutton.right_icon_widget.setChecked(True)
+
+        # Triggers a repaint with adjusted size for the layout
+        self.adjustSize()
 
     def on_import_data(self):
         active_patient = SoftwareConfigResources.getInstance().get_active_patient()

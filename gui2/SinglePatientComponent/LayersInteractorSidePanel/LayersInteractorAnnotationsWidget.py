@@ -43,35 +43,52 @@ class LayersInteractorAnnotationsWidget(QCollapsibleGroupBox):
         self.content_label.setFixedSize(QSize(self.size().width(), actual_height))
 
     def reset(self):
-        for w in self.volumes_widget:
+        """
+
+        """
+        for w in list(self.volumes_widget):
             self.content_label_layout.removeWidget(self.volumes_widget[w])
             self.volumes_widget.pop(w)
+        self.header_pushbutton.setChecked(False)
+        self.header_pushbutton.clicked.emit()
 
     def on_volume_view_toggled(self, volume_uid, state):
         """
         @TODO. Might not be necessary, don't care about uid and state, just that the current annotations must be removed
         """
-        for k in list(self.volumes_widget.keys()):
-            wid = self.volumes_widget[k]
-            self.content_label_layout.removeWidget(wid)
-            self.volumes_widget.pop(k)
+        self.reset()
+        self.on_import_data()
+        # for k in list(self.volumes_widget.keys()):
+        #     wid = self.volumes_widget[k]
+        #     self.content_label_layout.removeWidget(wid)
+        #     self.volumes_widget.pop(k)
+
+    # def on_annotation_volume_import(self, uid):
 
     def on_import_data(self):
         active_patient = SoftwareConfigResources.getInstance().get_active_patient()
+        # @TODO. Should not load all annotations, but only the ones of the current MRI volume
+        # Or we should display all annotations regardless, and group them under their respective MRI parents.
+        # In addition, there will be another groupbox somewhere to specify if we use the raw patient space, the
+        # co-registered patient space, or the MNI space for displaying.
         for volume_id in list(active_patient.annotation_volumes.keys()):
             if not volume_id in list(self.volumes_widget.keys()):
                 self.on_import_volume(volume_id)
+        self.adjustSize()  # To force a repaint of the layout with the new elements
 
     def on_import_volume(self, volume_id):
-        # @TODO. Have to connect signal/slots for the widget
         volume_widget = LayersInteractorAnnotationCollapsibleGroupBox(annotation_uid=volume_id, parent=self)
         self.volumes_widget[volume_id] = volume_widget
         self.content_label_layout.insertWidget(self.content_label_layout.count() - 1, volume_widget)
 
+        # On-the-fly signals/slots connection for the newly created QWidget
         volume_widget.header_pushbutton.clicked.connect(self.adjustSize)
         volume_widget.right_clicked.connect(self.on_visibility_clicked)
         volume_widget.opacity_value_changed.connect(self.on_opacity_changed)
         volume_widget.color_value_changed.connect(self.on_color_changed)
+
+        # Triggers a repaint with adjusted size for the layout
+        self.adjustSize()
 
     def on_visibility_clicked(self, uid, state):
         self.annotation_view_toggled.emit(uid, state)
