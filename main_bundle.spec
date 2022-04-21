@@ -71,6 +71,6 @@ coll = COLLECT(exe,
 )
 app = BUNDLE(coll,
              name='Raidionics.app',
-             icon=icon="./tmp_dependencies/images/raidionics-logo.ico",
+             icon="./tmp_dependencies/images/raidionics-logo.ico",
              bundle_identifier=None,
 )
