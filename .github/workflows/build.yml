@@ -61,7 +61,7 @@ jobs:
             OUT_FILE_NAME: Raidionics-1.0.0-macOS.pkg
             ASSET_MIME: application/x-newton-compatible-pkg
 
-          - os: windows-latest
+          - os: windows-2019
             TARGET: windows
             CMD_BUILD: "ls"
             OUT_FILE_NAME: Raidionics-1.0.0-win.exe

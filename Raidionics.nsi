@@ -56,7 +56,7 @@ InstallDir "$PROGRAMFILES\Raidionics"
 
 # name the installer
 OutFile "${INSTALLER_NAME}"
-#"Raidionics-win10-v1.0.exe"
+#"Raidionics-win10-v1.0.0.exe"
 
 
 ####################### UNINSTALL BEFORE UPGRADE #####################
