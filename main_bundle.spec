@@ -56,7 +56,8 @@ exe = EXE(pyz,
           bootloader_ignore_signals=False,
           strip=False,
           upx=True,
-          console=True
+          console=True,
+          icon="./tmp_dependencies/images/raidionics-logo.ico"
 )
 coll = COLLECT(exe,
                a.binaries,
@@ -66,11 +67,10 @@ coll = COLLECT(exe,
                strip=False,
                upx=True,
                upx_exclude=[],
-               name='Raidionics',
-               icon="./tmp_dependencies/images/raidionics.ico"
+               name='Raidionics'
 )
 app = BUNDLE(coll,
              name='Raidionics.app',
-             icon=None,
+             icon=icon="./tmp_dependencies/images/raidionics-logo.ico",
              bundle_identifier=None,
 )

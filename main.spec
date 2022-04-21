@@ -57,7 +57,7 @@ exe = EXE(pyz,
           strip=False,
           upx=True,
           console=True,
-          icon="./tmp_dependencies/images/raidionics.ico"
+          icon="./tmp_dependencies/images/raidionics-logo.ico"
 )
 coll = COLLECT(exe,
                a.binaries,
