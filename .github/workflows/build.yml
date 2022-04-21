@@ -88,7 +88,9 @@ jobs:
         pip install https://github.com/SGotla/ANTsPy/releases/download/0.1.7Win64/antspy-0.1.7-cp37-cp37m-win_amd64.whl
         pyinstaller --noconfirm --clean main.spec
         makensis.exe Raidionics.nsi
-        cp -r Raidionics-1.0.0-win.exe ../dist/Raidionics-1.0.0-win.exe
+        ls
+        ls dist
+      #cp -r Raidionics-1.0.0-win.exe ../dist/Raidionics-1.0.0-win.exe
 
     - name: Build with pyinstaller for ${{matrix.TARGET}}
       run: ${{matrix.CMD_BUILD}}
