@@ -30,7 +30,7 @@ InstallDir "$PROGRAMFILES\Raidionics"
 !include 'MUI.nsh'
 
 # icon
-!define MUI_ICON "$INSTDIR\images\raidionics-logo.ico"
+!define MUI_ICON ".\images\raidionics-logo.ico"
 
 !define MUI_ABORTWARNING
 !define MUI_UNABORTWARNING
