@@ -89,8 +89,8 @@ jobs:
         pyinstaller --noconfirm --clean main.spec
         makensis.exe Raidionics.nsi
         ls
+        cp -r Raidionics-1.0.0-win.exe dist/Raidionics-1.0.0-win.exe
         ls dist
-      #cp -r Raidionics-1.0.0-win.exe ../dist/Raidionics-1.0.0-win.exe
 
     - name: Build with pyinstaller for ${{matrix.TARGET}}
       run: ${{matrix.CMD_BUILD}}
