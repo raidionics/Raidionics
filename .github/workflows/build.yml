@@ -43,10 +43,10 @@ jobs:
             CMD_BUILD: "pip install gdown &&
                        pip install antspyx &&
                        pyinstaller --noconfirm --clean --onefile main.spec &&
-                       mkdir -p Raidionics_Ubuntu/usr/local/bin &&
-                       cp -r dist/Raidionics Raidionics_Ubuntu/usr/local/bin &&
-                       dpkg-deb --build --root-owner-group Raidionics_Ubuntu &&
-                       cp -r Raidionics_Ubuntu.deb dist/Raidionics-1.0.0-ubuntu.deb"
+                       mkdir -p Raidionics_ubuntu/usr/local/bin &&
+                       cp -r dist/Raidionics Raidionics_ubuntu/usr/local/bin &&
+                       dpkg-deb --build --root-owner-group Raidionics_ubuntu &&
+                       cp -r Raidionics_ubuntu.deb dist/Raidionics-1.0.0-ubuntu.deb"
             OUT_FILE_NAME: Raidionics-1.0.0-ubuntu.deb
             ASSET_MIME: application/vnd.debian.binary-package
 
