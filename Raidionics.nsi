@@ -20,7 +20,7 @@ var SM_Folder
 SetCompressor ZLIB
 Name "${APP_NAME}"
 Caption "${APP_NAME}"
-Icon ".\images\raidionics-logo.ico"
+# Icon ".\images\raidionics-logo.ico"
 OutFile "${INSTALLER_NAME}"
 BrandingText "${APP_NAME}"
 XPStyle on
@@ -28,6 +28,9 @@ InstallDirRegKey "${REG_ROOT}" "${REG_APP_PATH}" ""
 InstallDir "$PROGRAMFILES\Raidionics"
 
 !include 'MUI.nsh'
+
+# icon
+!define MUI_ICON "$INSTDIR\images\raidionics-logo.ico"
 
 !define MUI_ABORTWARNING
 !define MUI_UNABORTWARNING
@@ -115,7 +118,7 @@ WriteUninstaller "$INSTDIR\uninstall.exe"
 !ifdef REG_START_MENU
 !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
 CreateDirectory "$SMPROGRAMS\$SM_Folder"
-CreateShortCut "$SMPROGRAMS\$SM_Folder\${APP_NAME}.lnk" "$INSTDIR\${MAIN_APP_EXE}" "" "$INSTDIR\Raidionics.ico" 0
+CreateShortCut "$SMPROGRAMS\$SM_Folder\${APP_NAME}.lnk" "$INSTDIR\${MAIN_APP_EXE}" "" "$INSTDIR\images\raidionics-logo.ico" 0
 CreateShortCut "$DESKTOP\${APP_NAME}.lnk" "$INSTDIR\${MAIN_APP_EXE}" "" "$INSTDIR\Raidionics.ico" 0
 CreateShortCut "$SMPROGRAMS\$SM_Folder\Uninstall ${APP_NAME}.lnk" "$INSTDIR\uninstall.exe"
 
