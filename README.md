@@ -46,7 +46,7 @@ The following features are automatically computed and reported to the user:
 ### 3.1 Installation
 Use the requirements.txt file to create a virtual environment with the required libraries.
 > virtualenv -p python3 venv  
-> cd venv
+> cd venv  
 > source bin/activate  
 > pip install -r ../requirements.txt  
 > deactivate  
