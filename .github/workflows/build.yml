@@ -53,8 +53,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-    
-    ## Windows need to be handled differently, as we need to use NSIS for building the installer, which cannot be installed easily on the cloud
+
     - if: matrix.os == 'windows-2019'
       name: Build application
       run: |
