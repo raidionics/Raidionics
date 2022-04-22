@@ -75,6 +75,9 @@ class CentralDisplayAreaWidget(QWidget):
         self.overlaid_volumes.clear()
 
     def on_import_data(self):
+        """
+        DEPRECATED: To Remove.
+        """
         if self.displayed_image is None:
             self.current_patient_parameters = SoftwareConfigResources.getInstance().patients_parameters[SoftwareConfigResources.getInstance().active_patient_name]
 
@@ -135,6 +138,9 @@ class CentralDisplayAreaWidget(QWidget):
         Borderline behaviour: state should always be true since it should not be possible to undisplay an image but
         rather display another one instead.
         """
+        if not self.current_patient_parameters:
+            self.current_patient_parameters = SoftwareConfigResources.getInstance().get_active_patient()
+
         if state:
             self.reset_overlay()  # Until the time there is a co-registration option between input MRI volumes.
             self.displayed_image = self.current_patient_parameters.mri_volumes[volume_uid].display_volume
