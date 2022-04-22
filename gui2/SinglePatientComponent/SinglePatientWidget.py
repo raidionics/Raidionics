@@ -50,6 +50,7 @@ class SinglePatientWidget(QWidget):
         self.layout.addLayout(self.center_widget_container_layout)
 
         self.import_data_dialog = ImportDataQDialog(self)
+        self.import_dicom_dialog = ImportDICOMDataQDialog(self)
 
     def __top_logo_options_panel_interface(self):
         self.top_logo_panel_layout = QHBoxLayout()
@@ -131,7 +132,8 @@ class SinglePatientWidget(QWidget):
         self.import_data_dialog.mri_volume_imported.connect(self.layers_panel.on_mri_volume_import)
         self.import_data_dialog.annotation_volume_imported.connect(self.layers_panel.on_annotation_volume_import)
         self.import_data_dialog.patient_imported.connect(self.results_panel.on_import_patient)
-        #TODO
+        self.import_dicom_dialog.patient_imported.connect(self.results_panel.on_import_patient)
+        self.import_dicom_dialog.mri_volume_imported.connect(self.layers_panel.on_mri_volume_import)
 
         self.import_data_triggered.connect(self.center_panel.on_import_data)
         self.import_data_triggered.connect(self.results_panel.on_import_data)
@@ -155,10 +157,11 @@ class SinglePatientWidget(QWidget):
         #     self.import_data_triggered.emit()
 
     def __on_import_dicom_clicked(self):
-        diag = ImportDICOMDataQDialog(self)
-        code = diag.exec_()
-        if code == QDialog.Accepted:
-            self.import_data_triggered.emit()
+        # @Behaviour. Do we reset the loader in case of DICOMs, might be worth to keep stuff in memory?
+        # self.import_dicom_dialog.reset()
+        code = self.import_dicom_dialog.exec_()
+        # if code == QDialog.Accepted:
+        #     self.import_data_triggered.emit()
 
     def __on_save_clicked(self):
         SoftwareConfigResources.getInstance().patients_parameters[SoftwareConfigResources.getInstance().active_patient_name].save_patient()

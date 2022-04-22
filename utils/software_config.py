@@ -1,8 +1,11 @@
 import os
 import configparser
+import traceback
 from os.path import expanduser
 import numpy as np
 from typing import Union, Any
+import names
+
 from utils.patient_parameters import PatientParameters
 
 
@@ -33,6 +36,7 @@ class SoftwareConfigResources:
         self.config = None
         self.optimal_dimensions = [1440, 900]
         self.accepted_image_format = ['nii', 'nii.gz', 'mhd', 'mha', 'nrrd']  # @TODO. Should I have an exhaustive list?
+        self.accepted_scene_file_format = ['neurorads']
 
         self.__set_default_values()
         if os.path.exists(self.config_filename):
@@ -47,22 +51,28 @@ class SoftwareConfigResources:
     def __parse_config(self):
         pass
 
-    def add_new_patient(self, patient_name):
-        # @TODO. How to give a random unique id, should it just be a number, and do we need the patient_name actually
-        # here? Most likely no.
+    def add_new_empty_patient(self, patient_name: str) -> Union[str, Any]:
+        """
+        At startup a new empty patient is created by default. Otherwise, a new empty patient is created everytime
+        the user presses the corresponding button in the left-hand side panel.
+        """
         non_available_uid = True
         patient_uid = None
-        while non_available_uid:
-            patient_uid = str(np.random.randint(0, 100000))
-            if patient_uid not in list(self.patients_parameters.keys()):
-                non_available_uid = False
+        error_message = None
+        try:
+            while non_available_uid:
+                patient_uid = str(np.random.randint(0, 100000))
+                if patient_uid not in list(self.patients_parameters.keys()):
+                    non_available_uid = False
 
-        self.patients_parameters[patient_uid] = PatientParameters(id=patient_uid)
-        # self.patients_parameters[patient_uid].patient_visible_name = patient_name
-        # self.active_patient_name = patient_uid
-        if len(self.patients_parameters) == 1:
+            self.patients_parameters[patient_uid] = PatientParameters(id=patient_uid)
+            random_name = names.get_full_name()
+            self.patients_parameters[patient_uid].set_visible_name(random_name)
             self.set_active_patient(patient_uid)
-        self.update_active_patient_name(patient_name)
+        except Exception:
+            error_message = "Error while trying to create a new empty patient: \n"
+            error_message = error_message + traceback.format_exc()
+        return patient_uid, error_message
 
     def load_patient(self, filename: str) -> Union[str, Any]:
         """

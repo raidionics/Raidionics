@@ -1,5 +1,5 @@
 from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QGridLayout, QDialog, QDialogButtonBox,\
-    QComboBox, QPushButton, QScrollArea, QLineEdit, QFileDialog, QMessageBox
+    QComboBox, QPushButton, QScrollArea, QLineEdit, QFileDialog, QMessageBox, QProgressBar
 from PySide2.QtCore import Qt, QSize, Signal
 from PySide2.QtGui import QIcon
 import os
@@ -54,8 +54,11 @@ class ImportDataQDialog(QDialog):
         self.bottom_exit_layout = QHBoxLayout()
         self.exit_accept_pushbutton = QDialogButtonBox(QDialogButtonBox.Ok)
         self.exit_cancel_pushbutton = QDialogButtonBox(QDialogButtonBox.Cancel)
+        self.load_progressbar = QProgressBar()
+        self.load_progressbar.setVisible(False)
         self.bottom_exit_layout.addWidget(self.exit_accept_pushbutton)
         self.bottom_exit_layout.addWidget(self.exit_cancel_pushbutton)
+        self.bottom_exit_layout.addWidget(self.load_progressbar)
         self.bottom_exit_layout.addStretch(1)
         self.base_layout.addLayout(self.bottom_exit_layout)
 
@@ -112,12 +115,25 @@ class ImportDataQDialog(QDialog):
         widgets = (self.import_scrollarea_layout.itemAt(i) for i in range(self.import_scrollarea_layout.count() - 1))
         # @TODO. Should not iterate blindly, should check if there are volumes to load for the current active patient
         # and then iterate over the .raidionics files to load other patients?
-        for w in widgets:
-            # @TODO. Should collect a return from the import methods, in case something went wrong and some data
-            # cannot be loaded, so that we prompt the information to the user.
 
-            # @TODO2. Should accordingly emit a signal for each image/annotation/patient loaded, cleaner to track
-            # rather than doing full iterations/repainting over all content.
+        # @Behaviour. Do we force the user to create a patient, or allow on-the-fly creation when loading data?
+        if len(SoftwareConfigResources.getInstance().patients_parameters) == 0:
+            uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_patient('')
+            if error_msg:
+                diag = QMessageBox()
+                diag.setText("Unable to create empty patient.\nError message: {}.\n".format(error_msg))
+                diag.exec_()
+
+            if (error_msg and 'Import patient failed' not in error_msg) or not error_msg:
+                self.patient_imported.emit(uid)
+
+        self.load_progressbar.reset()
+        self.load_progressbar.setMinimum(0)
+        self.load_progressbar.setMaximum(self.import_scrollarea_layout.count() - 1)
+        self.load_progressbar.setVisible(True)
+        self.load_progressbar.setValue(0)
+
+        for i, w in enumerate(widgets):
             input_filepath = w.wid.filepath_lineedit.text()
             input_type = w.wid.file_type_selection_combobox.currentText()
             if input_type != "Patient":
@@ -143,6 +159,8 @@ class ImportDataQDialog(QDialog):
 
                 if (error_msg and 'Import patient failed' not in error_msg) or not error_msg:
                     self.patient_imported.emit(uid)
+            self.load_progressbar.setValue(i + 1)
+        self.load_progressbar.setVisible(False)
         self.accept()
 
     def __on_exit_cancel_clicked(self):

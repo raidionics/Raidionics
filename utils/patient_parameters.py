@@ -83,6 +83,16 @@ class PatientParameters:
         self.patient_parameters_project_json['Volumes'] = {}
         self.patient_parameters_project_json['Annotations'] = {}
 
+    def set_visible_name(self, new_name):
+        self.patient_visible_name = new_name.strip()
+        new_output_folder = os.path.join(self.output_dir, self.patient_visible_name.lower().replace(" ", '_'))
+        if os.path.exists(new_output_folder):
+            # @TODO. What to do if a folder with the same name already exists? Should prompt the user to choose another name?
+            pass
+        else:
+            shutil.move(src=self.output_folder, dst=new_output_folder, copy_function=shutil.copytree)
+            self.output_folder = new_output_folder
+
     def update_visible_name(self, new_name):
         self.patient_visible_name = new_name.strip()
         new_output_folder = os.path.join(self.output_dir, self.patient_visible_name.lower().replace(" ", '_'))
@@ -189,11 +199,15 @@ class PatientParameters:
         return data_uid, error_message
 
     def import_dicom_data(self, dicom_series):
+        """
+
+        """
         self.output_folder = os.path.join(self.output_folder, self.patient_id)
         os.makedirs(self.output_folder, exist_ok=True)
         ori_filename = os.path.join(self.output_folder, dicom_series.get_unique_readable_name() + '.nii.gz')
         sitk.WriteImage(dicom_series.volume, ori_filename)
-        self.import_data(ori_filename, type="MRI")
+        uid, error_msg = self.import_data(ori_filename, type="MRI")
+        return uid, error_msg
 
     def save_patient(self):
         """

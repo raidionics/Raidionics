@@ -1,6 +1,7 @@
 from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QGridLayout, QDialog, QDialogButtonBox,\
-    QComboBox, QPushButton, QScrollArea, QLineEdit, QFileDialog, QSplitter, QTableWidget, QTableWidgetItem
-from PySide2.QtCore import Qt, QSize
+    QComboBox, QPushButton, QScrollArea, QLineEdit, QFileDialog, QSplitter, QTableWidget, QTableWidgetItem,\
+    QProgressBar, QMessageBox
+from PySide2.QtCore import Qt, QSize, Signal
 from PySide2.QtGui import QIcon
 import os
 import SimpleITK as sitk
@@ -13,6 +14,10 @@ from gui2.UtilsWidgets.ImportDICOMQTableWidget import ImportDICOMQTableWidget
 
 
 class ImportDICOMDataQDialog(QDialog):
+    # The str is the unique id for the added patient, the active patient remains the same
+    patient_imported = Signal(str)
+    # The str is the unique id for the mri volume, belonging to the active patient
+    mri_volume_imported = Signal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -52,8 +57,11 @@ class ImportDICOMDataQDialog(QDialog):
         self.bottom_exit_layout = QHBoxLayout()
         self.exit_accept_pushbutton = QDialogButtonBox(QDialogButtonBox.Ok)
         self.exit_cancel_pushbutton = QDialogButtonBox(QDialogButtonBox.Cancel)
+        self.load_progressbar = QProgressBar()
+        self.load_progressbar.setVisible(False)
         self.bottom_exit_layout.addWidget(self.exit_accept_pushbutton)
         self.bottom_exit_layout.addWidget(self.exit_cancel_pushbutton)
+        self.bottom_exit_layout.addWidget(self.load_progressbar)
         self.bottom_exit_layout.addStretch(1)
         self.base_layout.addLayout(self.bottom_exit_layout)
 
@@ -126,9 +134,36 @@ class ImportDICOMDataQDialog(QDialog):
         """
 
         """
+        # @Behaviour. Do we force the user to create a patient, or allow on-the-fly creation when loading data?
+        # In case of DICOM data, do we rename the patient with the content of the metadata tag?
+        if len(SoftwareConfigResources.getInstance().patients_parameters) == 0:
+            uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_patient('')
+            if error_msg:
+                diag = QMessageBox()
+                diag.setText("Unable to create empty patient.\nError message: {}.\n".format(error_msg))
+                diag.exec_()
+
+            if (error_msg and 'Import patient failed' not in error_msg) or not error_msg:
+                self.patient_imported.emit(uid)
+
+        self.load_progressbar.reset()
+        self.load_progressbar.setMinimum(0)
+        self.load_progressbar.setMaximum(self.selected_series_tablewidget.rowCount())
+        self.load_progressbar.setVisible(True)
+        self.load_progressbar.setValue(0)
+
         for elem in range(self.selected_series_tablewidget.rowCount()):
             series_reader = self.dicom_holder.studies[self.selected_series_tablewidget.item(elem, 0).text()].dicom_series[self.selected_series_tablewidget.item(elem, 2).text()]
-            SoftwareConfigResources.getInstance().get_active_patient().import_dicom_data(series_reader)
+            uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_dicom_data(series_reader)
+            if error_msg:
+                diag = QMessageBox()
+                diag.setText("Unable to load: {}.\nError message: {}.\n".format(self.selected_series_tablewidget.item(elem, 2).text(),
+                                                                                error_msg))
+                diag.exec_()
+            else:
+                    self.mri_volume_imported.emit(uid)
+            self.load_progressbar.setValue(elem + 1)
+        self.load_progressbar.setVisible(False)
         self.accept()
 
     def __on_exit_cancel_clicked(self):

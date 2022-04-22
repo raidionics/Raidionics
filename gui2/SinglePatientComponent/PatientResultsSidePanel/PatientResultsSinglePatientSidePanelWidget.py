@@ -1,13 +1,14 @@
-from PySide2.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QScrollArea, QPushButton
+from PySide2.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QScrollArea, QPushButton, QLabel
 from PySide2.QtCore import QSize, Qt, Signal
-
+import os
 from gui2.SinglePatientComponent.PatientResultsSidePanel.SinglePatientResultsWidget import SinglePatientResultsWidget
 from utils.software_config import SoftwareConfigResources
 
 
 class PatientResultsSinglePatientSidePanelWidget(QWidget):
     """
-
+    @FIXME. For enabling a global QEvent catch, have to listen/retrieve from the patient_list_scrollarea_dummy_widget,
+    and maybe the SinglePatientResultsWidget if the scroll area is filled.
     """
     patient_selected = Signal()
 
@@ -15,6 +16,7 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         super(PatientResultsSinglePatientSidePanelWidget, self).__init__()
         self.parent = parent
         self.__set_interface()
+        self.__set_connections()
         self.__set_stylesheets()
         self.patient_results_widgets = {}
 
@@ -27,7 +29,7 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         self.patient_list_scrollarea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.patient_list_scrollarea.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.patient_list_scrollarea.setWidgetResizable(True)
-        self.patient_list_scrollarea_dummy_widget = QWidget()
+        self.patient_list_scrollarea_dummy_widget = QLabel()
         self.patient_list_scrollarea_layout.setSpacing(0)
         self.patient_list_scrollarea_layout.setContentsMargins(0, 0, 0, 0)
         self.patient_list_scrollarea.setBaseSize(QSize(200, self.parent.baseSize().height())) #setMaximumSize(QSize(200, 850))
@@ -42,9 +44,13 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         self.layout.addWidget(self.patient_list_scrollarea)
         self.layout.addLayout(self.bottom_layout)
 
+    def __set_connections(self):
+        self.bottom_add_patient_pushbutton.clicked.connect(self.on_add_new_empty_patient)
+
     def __set_stylesheets(self):
         # self.overall_label.setStyleSheet("QLabel{background-color:rgb(0, 255, 0);}")
         self.patient_list_scrollarea.setStyleSheet("QScrollArea{background-color:rgb(0, 255, 0);}")
+        # self.patient_list_scrollarea_dummy_widget.setStyleSheet("""QLabel{background-color:rgb(0, 128, 0);}""")
 
     def on_import_data(self):
         """
@@ -58,9 +64,15 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         if len(self.patient_results_widgets) == 1:
             self.__on_patient_selection(True, list(self.patient_results_widgets.keys())[0])
 
-    def on_import_patient(self):
-        # @TODO. If only a temp patient opened, should it be deleted?
-        self.add_new_patient(SoftwareConfigResources.getInstance().active_patient_name)
+    def on_import_patient(self, uid: str) -> None:
+        """
+        A patient result instance is created for the newly imported patient, and appended at the bottom of the
+        scroll area with all other already imported patients.
+        """
+        # @TODO. Which behaviour if only a temp patient opened, should it be deleted?
+        self.add_new_patient(uid)
+
+        # A patient is to be displayed at all time
         if len(self.patient_results_widgets) == 1:
             self.__on_patient_selection(True, list(self.patient_results_widgets.keys())[0])
 
@@ -91,3 +103,7 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         SoftwareConfigResources.getInstance().set_active_patient(widget_id)
         # When a patient is selected in the left panel, a visual update of the central/right panel is triggered
         self.patient_selected.emit()
+
+    def on_add_new_empty_patient(self):
+        uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_patient("Temp Patient")
+        self.add_new_patient(uid)
