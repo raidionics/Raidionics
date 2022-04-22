@@ -1,170 +1,70 @@
 # Raidionics
-
+[![license](https://img.shields.io/github/license/DAVFoundation/captain-n3m0.svg?style=flat-square)](https://github.com/DAVFoundation/captain-n3m0/blob/master/LICENSE)
+[![GitHub Downloads](https://img.shields.io/github/downloads/SINTEFMedtek/GSI-RADS/total?label=GitHub%20downloads&logo=github)](https://github.com/SINTEFMedtek/GSI-RADS/releases)
 [![Build Actions Status](https://github.com/dbouget/neuro_rads_prototype/workflows/Build/badge.svg)](https://github.com/dbouget/neuro_rads_prototype/actions)
 
-Simple project for building binary releases and package installers of Python code for Ubuntu Linux/macOS/Windows using [PyInstaller](https://github.com/pyinstaller/pyinstaller).
+## 1. Description
+Software to automatically segment tumors and their from pre-operative CTs and MRIs, and report them in a standardized manner.
 
-## How to use?
-Download binary release from the **tags** section. We currently support Ubuntu Linux (>= 18), macOS (>= high-sierra), and Windows (>= Vista; 64-bit).
+The software was introduced in the article "Brain tumor preoperative surgery imaging: models and software solutions for
+segmentation and standardized reporting", which has been submitted to [Frontiers in Neurology](https://www.frontiersin.org/journals/neurology).
 
-## TL;DR GitHub Actions CI
-In order to launch a build in GitHub Actions, you need to create a new, unique tag.
-```
-git tag "v1.3.1-rc1"
-git push origin v1.3.1-rc1
-```
+## 2. Softwares and usage
+An installer is provided for the three main Operating Systems: Windows (~v10, 64-bit), macOS (>= Catalina), and Ubuntu Linux (>= 18.04).
+The software can be downloaded from [here](https://github.com/SINTEFMedtek/GSI-RADS/releases) (see **Assets**). 
 
-This has to be done **after** you have pushed to the master branch!
+### 2.1 Download and installation
+These steps are only needed to do once:
+1) Download the installer to your Operating System.
+2) Right click the downloaded file, click "open", and follow the instructions to install.
+3) Search for the software "Raidionics" and double click to run.
 
-## How to build:
-Using PyInstaller for building Python projects on various operating systems works well. However, [ANTs](https://github.com/ANTsX/ANTs) has limited support for Windows. Currently, the only stable way to use ANTs, is to use [ANTsPy](https://github.com/ANTsX/ANTsPy). Even still, on Windows, one have to install ANTsPy in a different way. Thus, read carefully through this tutorial before starting, to avoid having to start all over.
+### 2.2 Usage  
+  1) Click 'Input MRI...' to select from your file explorer the MRI scan to process (unique file).  
+  1*) Alternatively, Click 'File > Import DICOM...' if you wish to process an MRI scan as a DICOM sequence.  
+  2) Click 'Output destination' to choose a directory where to save the results.  
+  3) (OPTIONAL) Click 'Input segmentation' to choose a tumor segmentation mask file, if nothing is provided the internal model with generate the segmentation automatically.  
+  4) Click 'Run diagnosis' to perform the analysis. The human-readable version of the results will be displayed directly in the interface.  
+  
+  NOTE: The output folder is populated automatically with the following:  
+       * The diagnosis results in human-readable text (report.txt) and Excel-ready format (report.csv).  
+       * The automatic segmentation masks of the brain and the tumor in the original patient space (input_brain_mask.nii.gz and input_tumor_mask.nii.gz).  
+       * The cortical structures mask in original patient space for the different atlases used.  
+       * The input volume and tumor segmentation mask in MNI space in the sub-directory named \'registration\'.  
 
-### Dependencies
+### 2.3 Computed features  
+The following features are automatically computed and reported to the user:
+- **Multifocality**: whether the tumor is multifocal or not, the total number of foci, and the largest minimum distance between two foci.  
+- **Volume**: total tumor volume in original patient space and MNI space (in ml).  
+- **Laterality**: tumor percentage in each hemisphere, and assessment of midline crossing.  
+- **Resectability**: expected residual volumes (in ml) and resection index.  
+- **Cortical structures**: percentage of the tumor volume overlapping each structure from the MNI atlas, the Harvard-Oxford atlas, and Schaefer atlas (version 7 and 17).  
+- **Subcortical structures**: percentage of the tumor volume overlapping each structure from the BCB atlas. If no overlap, the minimum distance to the structure is provided (in mm).  
 
-1. Need to have installed Python on your machine (Python3.6 for Ubuntu/macOS, on Windows install Python3.7), and added to the environmental variables.
-2. Also should have [**virtualenv**](https://pypi.org/project/virtualenv/) installed, in order to make virtual environments (pip install virtualenv).
-3. CMake need to be installed on the machine, as ANTsPy depends on it for being built/installed through pip. This is the warning you might get otherwise:
-```
-RuntimeError: CMake must be installed to build the following extensions: ants
-```
+## 3. Source code usage
 
-## Building the binary release
+### 3.1 Installation
+Use the requirements.txt file to create a virtual environment with the required libraries.
+> virtualenv -p python3 venv  
+> cd venv
+> source bin/activate  
+> pip install -r ../requirements.txt  
+> deactivate  
 
-First of all, PyInstaller cannot [cross compile](https://realpython.com/pyinstaller-python/#limitations). Which simply means that an executable has to be built in a Windows operative system. The dependencies have to be met before building, and please use a fresh virtual environment to build, to minimize the size of the release as well as ensuring stability of the produced software. However, macOS is perfectly forward compatible and Windows is surprisingly backwards compatible (Win10 to Vista using Python 3.7).
+Then, to download the trained models locally, run the following:
+> source venv/bin/activate  
+> python setup.py  
+> deactivate  
 
-These are the steps to build the software (for LINUX, it should be quite similar for different OS):
+### 3.2 Usage
+The command line input parameters are:
+* -g [--use_gui]: Must be set to 0 to disable the gui, otherwise 1.
+* -i [--input_filename]: Complete path to the MRI volume to process.
+* (optional) -s [--input_tumor_segmentation_filename]: Complete path to the corresponding tumor mask, to avoid re-segmentation.
+* -o [--output_folder]: Main destination directory. A unique timestamped folder will be created inside for each run.
+* -d [--gpu_id]: Number of the GPU to use for the segmentation task. Set the value to -1 to run on CPU.
 
-1. Create virtual environment, activate it, and install dependencies:
-```
-virtualenv -p python3 venv --clear
-source venv/bin/activate
-pip install -r requirements.txt
-```
-
-2. Install ANTs. Recommended way is to install ANTsPy, due to issues with Windows, and also simplifies packaging of software for deployment (note that different OS may have different OS, depending on what is available for the specific OS):
-```
-Ubuntu and macOS: > pip install antspyx
-Windows: > pip install https://github.com/SGotla/ANTsPy/releases/download/0.1.7Win64/antspy-0.1.7-cp37-cp37m-win_amd64.whl
-```
-
-2. Download model/config data, create the specified folder structure inside segmentation/ and place it there:
-```
-mkdir segmentation/resources/models/MRI_Brain/
-mv path-to-some-model-data project-dir-path/segmentation/resources/models/MRI_Brain/
-```
-
-3. Install pyinstaller, if it is not already installed:
-```
-pip install pyinstaller==4.2
-```
-
-4. Build binary release, from the folder directory (note that Windows should have a Python3.7 virtual environment here):
-```
-Ubuntu > pyinstaller --noconfirm --clean --onefile --paths=./venv/lib/python3.6/site-packages/ants main_custom_bundle.spec
-macOS > pyinstaller --noconfirm --clean --onefile --paths=./venv/lib/python3.6/site-packages/ants main_custom_macos.spec
-Windows > pyinstaller --noconfirm --clean --onefile --paths=./venv/lib/site-packages/ants main_custom_bundle.spec
-```
-
-The binary release will be placed in dist/.
-
-5. Run the release:
-```
-Ubuntu and macOS > ./dist/Raidionics
-Windows > ./dist/Raidionics.exe
-```
-
-## Building package installer
-
-Produces package that properly installs the application on the specific OS in a more user-friendly manner. This is done differently for each OS, as each OS has their own application structures and package installer solutions.
-
-#### macOS
-1. Download quickpkg dependency:
-```
-cd ${Project_Dir}
-git clone https://github.com/scriptingosx/quickpkg.git
-```
-
-2. Build package (OS can be {Windows, macOS, Ubuntu}):
-```
-quickpkg/quickpkg dist/Raidionics.app --output Raidionics-{version}-{OS}.pkg
-```
-
-3. (optional) Install application (without sudo - installs in the user's local /Applications folder):
-```
-installer -pkg Raidionics-{version}_{OS}.pkg -target CurrentUserHomeDirectory
-```
-
-Regarding the usage of quickpkg. See [here](https://scriptingosx.com/2017/05/relocatable-package-installers-and-quickpkg-update/) for information on which problem it solves.
-
-#### Windows
-1. Install NSIS dependency and add the paths to the Path environmental variable (IMPORTANT!).
-2. Copy the dist/ directory with corresponding compiled GSI-RADS executable and directory to the same level as GSI-RADS.nsi. 
-
-2. Build package (using makensis CLI and predefined NSI-file):
-```
-makensis.exe .\Raidionics.nsi
-```
-
-3. (optional) Install application:
-```
-.\Raidionics-{version}-{OS}.exe
-```
-
-See [here](https://nsis.sourceforge.io/Simple_tutorials) for an example and [here](http://sfriederichs.github.io/how-to/nsis/2018/05/16/NSIS.html) for a tutorial on how to build installers using NSIS. [This](https://github.com/huggle/huggle3-qt-lx/blob/master/windows/Huggle.nsi) is what I used as inspiration for my implementation.
-
-#### Ubuntu Linux
-Based on [this](https://www.internalpointers.com/post/build-binary-deb-package-practical-guide) tutorial.
-
-1. Move application/executable to the Project directory:
-```
-cp -r dist/Raidionics Raidionics-{version}-{OS}/usr/local/bin
-```
-2. Build package:
-```
-dpkg-deb --build --root-owner-group Raidionics-{version}_{OS}
-```
-3. (optional) Install application:
-```
-sudo dpkg -i Raidionics-{version}_{OS}.deb
-```
-4. (optional) execute the application (open a new terminal and simply run the software):
-```
-Raidionics
-```
-
-
-## TODOs (most important from top to bottom):
-
-- [x] Use PyInstaller to produce release that encrypts the code and trained models into **one** file
-- [x] Achieve multi-OS support for Ubuntu Linux, macOS, and Windows
-- [x] Finish the GUI for release
-- [x] Re-build and produce binary releases for all relevant operating systems
-- [x] Publish release in open repository
-- [x] Add MenuBar to make software more natural
-- [x] Add option to set input, segmentation and output path from command line
-- [x] Bug: Unable to run analysis again (after initial run has been made) - prompted (This class is a singleton!)
-- [x] Add support for building package installers for each respective OS
-- [x] Install the dependencies (.dll/.so) outside the executable to enable faster initialization of the software ([x]: Done for macOS and Windows)
-- [x] Add source code from this repository to the [GSI-RADS](https://github.com/SINTEFMedtek/GSI-RADS) repository
-- [x] Add simple way to support batch mode
-
-
-## TIPS
-
-But of course, depending on which OS you are building on, this experience might be less seemless.
-
-On Windows the virtual environment can be activate by:
-```
-./venv/Scripts/activate.ps1
-```
-
-Create virtual environment using specific Python version (example from Win10 machine):
-```
-virtualenv --python=C:\Users\andrp\AppData\local\Programs\Python\python37\python.exe venv37 --clear
-```
-
-I was able to build ANTs on Win10, but I had issues with 32-bit/64-bit. I couldn't make that work. Thus, use ANTsPy instead, and for Windows use [SGotla's fix](https://github.com/SGotla/ANTsPy/releases). Future work should be to adapt what SGotla did to see if one could do the same for the most recent versions of ANTs.
-
-
-
-
+To run directly from command line, without the use of the GUI, run the following:
+> source venv/bin/activate  
+> python main.py -g 0 -i /path/to/volume/T1.nii.gz -o /path/to/output/ -d 0  
+> deactivate
