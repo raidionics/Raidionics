@@ -57,7 +57,16 @@ exe = EXE(pyz,
           strip=False,
           upx=True,
           console=True,
-          icon="./tmp_dependencies/images/raidionics-logo.ico"
+          icon="./tmp_dependencies/images/raidionics-logo.ico",
+          info_plist={
+            'CFBundleDisplayName': 'Raidionics',
+            'CFBundleExecutable': 'Raidionics',
+            'CFBundleIdentifier': 'Raidionics',
+            'CFBundleInfoDictionaryVersion': '6.0',
+            'CFBundleName': 'Raidionics',
+            'CFBundlePackageType': 'APPL',
+            'LSBackgroundOnly': 'false',
+            },
 )
 coll = COLLECT(exe,
                a.binaries,
