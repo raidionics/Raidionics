@@ -2,8 +2,9 @@ name: Build
 
 on:
   push:
-    tags:
-      - '*'  # for every push, run build
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
 
 jobs:
   build:
