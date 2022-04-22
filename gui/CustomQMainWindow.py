@@ -64,7 +64,7 @@ class MainWindow(QMainWindow):
         self.__set_centralwidget_interface()
 
     def __set_mainmenu_interface(self):
-        self.menu_bar = QMenuBar()
+        self.menu_bar = QMenuBar(self)
         self.menu_bar.setNativeMenuBar(False)  # https://stackoverflow.com/questions/25261760/menubar-not-showing-for-simple-qmainwindow-code-qt-creator-mac-os
         self.file_menu = self.menu_bar.addMenu('File')
         self.quit_action = QAction('Quit', self)
@@ -107,7 +107,7 @@ class MainWindow(QMainWindow):
         self.help_menu.addAction(self.help_action)
 
     def __set_centralwidget_interface(self):
-        self.central_stackedwidget = QStackedWidget()
+        self.central_stackedwidget = QStackedWidget(self)
         self.main_selection_layout = QHBoxLayout()
         self.main_selection_pushbutton1 = QPushButton()
         self.main_selection_pushbutton1_icon = QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Images/single-use-mode-icon.png')))
