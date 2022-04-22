@@ -28,14 +28,14 @@ InstallDirRegKey "${REG_ROOT}" "${REG_APP_PATH}" ""
 InstallDir "$PROGRAMFILES\Raidionics"
 
 !include 'MUI.nsh'
-
-# icon
-!define MUI_ICON ".\images\raidionics-logo.ico"
+!define MUI_ICON "$INSTDIR\images\raidionics-logo.ico"
 
 !define MUI_ABORTWARNING
 !define MUI_UNABORTWARNING
 
-# !insertmacro MUI_PAGE_WELCOME
+!insertmacro MUI_PAGE_WELCOME
+!insertmacro MUI_PAGE_INSTFILES
+!insertmacro MUI_LANGUAGE English
 
 !insertmacro MUI_PAGE_DIRECTORY
 
@@ -47,29 +47,26 @@ InstallDir "$PROGRAMFILES\Raidionics"
 !insertmacro MUI_PAGE_STARTMENU Application $SM_Folder
 !endif
 
-!insertmacro MUI_PAGE_INSTFILES
+#!insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
 
 !insertmacro MUI_UNPAGE_CONFIRM
 !insertmacro MUI_UNPAGE_INSTFILES
 !insertmacro MUI_UNPAGE_FINISH
 
-!insertmacro MUI_LANGUAGE "English"
-
 # name the installer
 OutFile "${INSTALLER_NAME}"
 
+Section
+SectionEnd
+
 
 ####################### UNINSTALL BEFORE UPGRADE #####################
-
 Section "" SecUninstallPrevious
-
     Call UninstallPrevious
-
 SectionEnd
 
 Function UninstallPrevious
-
     ; Check for uninstaller.
     DetailPrint "Checking for previous Raidionics versions"
     ReadRegStr $R0 HKCU "$INSTDIR" "UninstallString"
@@ -86,29 +83,18 @@ Function UninstallPrevious
     ; Run the uninstaller silently.
     ExecWait '"$R0" /S _?=$INSTDIR' $0
     DetailPrint "Uninstaller returned $0"
-
     Done:
-
 FunctionEnd
-
 ######################################################################
  
 # default section start; every NSIS script has at least one section.
 
 ######################################################################
-
 Section -MainProgram
 ${INSTALL_TYPE}
 SetOverwrite ifnewer
 SetOutPath "$INSTDIR"
-#File "vcredist_x86_2013.exe"
-#File "vcredist_x86.exe"
-#ExecWait '"$INSTDIR\vcredist_x86_2013.exe" /passive /norestart'
-#ExecWait '"$INSTDIR\vcredist_x86.exe" /passive /norestart'
-#RmDir /r "$INSTDIR\extensions"
-#File /r "release\*.*"
 SectionEnd
-
 ######################################################################
 
 Section -Icons_Reg
