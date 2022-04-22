@@ -34,8 +34,6 @@ InstallDir "$PROGRAMFILES\Raidionics"
 !define MUI_UNABORTWARNING
 
 !insertmacro MUI_PAGE_WELCOME
-!insertmacro MUI_PAGE_INSTFILES
-!insertmacro MUI_LANGUAGE English
 
 !insertmacro MUI_PAGE_DIRECTORY
 
@@ -47,12 +45,14 @@ InstallDir "$PROGRAMFILES\Raidionics"
 !insertmacro MUI_PAGE_STARTMENU Application $SM_Folder
 !endif
 
-#!insertmacro MUI_PAGE_INSTFILES
+!insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
 
 !insertmacro MUI_UNPAGE_CONFIRM
 !insertmacro MUI_UNPAGE_INSTFILES
 !insertmacro MUI_UNPAGE_FINISH
+
+!insertmacro MUI_LANGUAGE "English"
 
 # name the installer
 OutFile "${INSTALLER_NAME}"
