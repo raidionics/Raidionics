@@ -144,6 +144,13 @@ class CentralDisplayAreaWidget(QWidget):
         if state:
             self.reset_overlay()  # Until the time there is a co-registration option between input MRI volumes.
             self.displayed_image = self.current_patient_parameters.mri_volumes[volume_uid].display_volume
+
+            # Reset to the view-point, until the time there's co-registration or MNI space, where we can keep it.
+            # @FIXME. Is the center of the volume actually correct? Looks fishy
+            self.point_clicker_position = [int(self.displayed_image.shape[0] / 2),
+                                           int(self.displayed_image.shape[1] / 2),
+                                           int(self.displayed_image.shape[2] / 2)]
+
             self.axial_viewer.update_slice_view(self.displayed_image[:, :, self.point_clicker_position[2]],
                                                 self.point_clicker_position[0], self.point_clicker_position[1])
             self.coronal_viewer.update_slice_view(self.displayed_image[:, self.point_clicker_position[1], :],

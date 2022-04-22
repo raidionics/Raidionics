@@ -130,6 +130,7 @@ class SinglePatientWidget(QWidget):
     def __set_cross_connections(self):
         self.import_data_dialog.mri_volume_imported.connect(self.layers_panel.on_mri_volume_import)
         self.import_data_dialog.annotation_volume_imported.connect(self.layers_panel.on_annotation_volume_import)
+        self.import_data_dialog.patient_imported.connect(self.results_panel.on_import_patient)
 
         self.import_data_triggered.connect(self.center_panel.on_import_data)
         self.import_data_triggered.connect(self.results_panel.on_import_data)

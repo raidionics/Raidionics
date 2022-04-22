@@ -18,6 +18,7 @@ class ImportDataQDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Import data")
+        self.current_folder = "~"  # Keep in memory the last open directory, to easily open multiple files in a row
         self.__set_interface()
         self.__set_connections()
         self.__set_stylesheets()
@@ -96,9 +97,12 @@ class ImportDataQDialog(QDialog):
         input_image_filedialog = QFileDialog(self)
         input_image_filedialog.setWindowFlags(Qt.WindowStaysOnTopHint)
         # @TODO. Should query the allowed file extensions from SoftwareResources
+        # @FIXME. The QFileDialog ignores the director parameter
         input_filepaths = input_image_filedialog.getOpenFileNames(self, caption='Select input file(s)',
-                                                                  directory='~',
+                                                                  directory=self.tr(self.current_folder),
                                                                   filter="Files (*.nii *.nii.gz *.nrrd *.mha *.mhd *.neurorads)")[0]  # , options=QFileDialog.DontUseNativeDialog
+        if input_filepaths[0] != "":
+            self.current_folder = os.path.dirname(input_filepaths[0])
         self.setup_interface_from_files(input_filepaths)
 
     def __on_exit_accept_clicked(self):
@@ -114,9 +118,9 @@ class ImportDataQDialog(QDialog):
 
             # @TODO2. Should accordingly emit a signal for each image/annotation/patient loaded, cleaner to track
             # rather than doing full iterations/repainting over all content.
+            input_filepath = w.wid.filepath_lineedit.text()
             input_type = w.wid.file_type_selection_combobox.currentText()
             if input_type != "Patient":
-                input_filepath = w.wid.filepath_lineedit.text()
                 uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_data(input_filepath,
                                                                                                         type=input_type)
                 if error_msg:
@@ -130,7 +134,15 @@ class ImportDataQDialog(QDialog):
                     else:
                         self.annotation_volume_imported.emit(uid)
             else:
-                SoftwareConfigResources.getInstance().load_patient(w.wid.filepath_lineedit.text())
+                uid, error_msg = SoftwareConfigResources.getInstance().load_patient(input_filepath)
+                if error_msg:
+                    diag = QMessageBox()
+                    diag.setText("Unable to load: {}.\nError message: {}.\n".format(os.path.basename(input_filepath),
+                                                                                    error_msg))
+                    diag.exec_()
+
+                if (error_msg and 'Import patient failed' not in error_msg) or not error_msg:
+                    self.patient_imported.emit(uid)
         self.accept()
 
     def __on_exit_cancel_clicked(self):

@@ -2,6 +2,7 @@ import os
 import configparser
 from os.path import expanduser
 import numpy as np
+from typing import Union, Any
 from utils.patient_parameters import PatientParameters
 
 
@@ -63,11 +64,26 @@ class SoftwareConfigResources:
             self.set_active_patient(patient_uid)
         self.update_active_patient_name(patient_name)
 
-    def load_patient(self, filename):
+    def load_patient(self, filename: str) -> Union[str, Any]:
+        """
+        Loads all patient-related files from parsing the scene file (*.raidionics).
+        ...
+        Parameters
+        ----------
+        filename : str
+            The full filepath to the patient scene file, of type .raidionics
+        Returns
+        ----------
+        patient_id str
+            Unique id of the newly loaded parameter.
+        error_message Any (str or None)
+            None if no error was collected, otherwise a string with a human-readable description of the error.
+        """
         patient_instance = PatientParameters()
-        patient_instance.import_patient(filename)
+        error_message = patient_instance.import_patient(filename)
         patient_id = patient_instance.patient_id
         self.patients_parameters[patient_id] = patient_instance
+        return patient_id, error_message
 
     def update_active_patient_name(self, new_name):
         self.patients_parameters[self.active_patient_name].update_visible_name(new_name)

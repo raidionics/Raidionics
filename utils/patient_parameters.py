@@ -94,29 +94,46 @@ class PatientParameters:
             self.output_folder = new_output_folder
 
     def import_patient(self, filename):
-        self.patient_parameters_project_filename = filename
-        self.output_folder = os.path.dirname(self.patient_parameters_project_filename)
-        with open(self.patient_parameters_project_filename, 'r') as infile:
-            self.patient_parameters_project_json = json.load(infile)
+        error_message = None
+        try:
+            self.patient_parameters_project_filename = filename
+            self.output_folder = os.path.dirname(self.patient_parameters_project_filename)
+            with open(self.patient_parameters_project_filename, 'r') as infile:
+                self.patient_parameters_project_json = json.load(infile)
 
-        self.patient_id = self.patient_parameters_project_json["Parameters"]["Default"]["Patient_uid"]
-        self.patient_visible_name = self.patient_parameters_project_json["Parameters"]["Default"]["Patient_visible_name"]
-        for volume_id in list(self.patient_parameters_project_json['Volumes'].keys()):
-            mri_volume = MRIVolume(uid=volume_id, filename=self.patient_parameters_project_json['Volumes'][volume_id]['raw_volume_filepath'])
-            mri_volume.display_volume_filepath = self.patient_parameters_project_json['Volumes'][volume_id]['display_volume_filepath']
-            mri_volume.display_volume = nib.load(mri_volume.display_volume_filepath).get_data()[:]
-            # @TODO. Have to convert from string to AEnum type.
-            mri_volume.sequence_type = self.patient_parameters_project_json['Volumes'][volume_id]['sequence_type']
-            self.mri_volumes[volume_id] = mri_volume
+            self.patient_id = self.patient_parameters_project_json["Parameters"]["Default"]["Patient_uid"]
+            self.patient_visible_name = self.patient_parameters_project_json["Parameters"]["Default"]["Patient_visible_name"]
+            for volume_id in list(self.patient_parameters_project_json['Volumes'].keys()):
+                try:
+                    mri_volume = MRIVolume(uid=volume_id, filename=self.patient_parameters_project_json['Volumes'][volume_id]['raw_volume_filepath'])
+                    mri_volume.display_volume_filepath = self.patient_parameters_project_json['Volumes'][volume_id]['display_volume_filepath']
+                    mri_volume.display_volume = nib.load(mri_volume.display_volume_filepath).get_data()[:]
+                    # @TODO. Have to convert from string to AEnum type.
+                    mri_volume.sequence_type = self.patient_parameters_project_json['Volumes'][volume_id]['sequence_type']
+                    self.mri_volumes[volume_id] = mri_volume
+                except Exception:
+                    if error_message:
+                        error_message = error_message + "\nImport MRI failed, for volume {}".format(volume_id)
+                    else:
+                        error_message = "Import MRI failed, for volume {}".format(volume_id)
 
-        for volume_id in list(self.patient_parameters_project_json['Annotations'].keys()):
-            annotation_volume = MRIVolume(uid=volume_id, filename=self.patient_parameters_project_json['Annotations'][volume_id]['raw_volume_filepath'])
-            annotation_volume.display_volume_filepath = self.patient_parameters_project_json['Annotations'][volume_id]['display_volume_filepath']
-            annotation_volume.display_volume = nib.load(annotation_volume.display_volume_filepath).get_data()[:]
-            annotation_volume.display_color = self.patient_parameters_project_json['Annotations'][volume_id]['display_color']
-            annotation_volume.display_opacity = self.patient_parameters_project_json['Annotations'][volume_id]['display_opacity']
-            annotation_volume.display_name = self.patient_parameters_project_json['Annotations'][volume_id]['display_name']
-            self.annotation_volumes[volume_id] = annotation_volume
+            for volume_id in list(self.patient_parameters_project_json['Annotations'].keys()):
+                try:
+                    annotation_volume = MRIVolume(uid=volume_id, filename=self.patient_parameters_project_json['Annotations'][volume_id]['raw_volume_filepath'])
+                    annotation_volume.display_volume_filepath = self.patient_parameters_project_json['Annotations'][volume_id]['display_volume_filepath']
+                    annotation_volume.display_volume = nib.load(annotation_volume.display_volume_filepath).get_data()[:]
+                    annotation_volume.display_color = self.patient_parameters_project_json['Annotations'][volume_id]['display_color']
+                    annotation_volume.display_opacity = self.patient_parameters_project_json['Annotations'][volume_id]['display_opacity']
+                    annotation_volume.display_name = self.patient_parameters_project_json['Annotations'][volume_id]['display_name']
+                    self.annotation_volumes[volume_id] = annotation_volume
+                except Exception:
+                    if error_message:
+                        error_message = error_message + "\nImport annotation failed, for volume {}".format(volume_id)
+                    else:
+                        error_message = "Import annotation failed, for volume {}".format(volume_id)
+        except Exception:
+            error_message = "Import patient failed, from {}".format(os.path.basename(filename))
+        return error_message
 
     def import_data(self, filename, type="MRI"):
         """

@@ -59,7 +59,7 @@ class LayersInteractorVolumesWidget(QCollapsibleGroupBox):
         # The first MRI volume loaded is displayed by default, hence toggling the eye-iconed push button.
         if len(self.volumes_widget) > 0:
             self.volumes_widget[list(self.volumes_widget.keys())[0]].header_pushbutton.right_icon_widget.setChecked(True)
-
+            self.volumes_widget[list(self.volumes_widget.keys())[0]].header_pushbutton.right_icon_widget.clicked.emit()
         # Triggers a repaint with adjusted size for the layout
         self.adjustSize()
 
