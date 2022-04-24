@@ -11,6 +11,7 @@ from utils.software_config import SoftwareConfigResources
 from utils.patient_dicom import PatientDICOM
 # from gui2.UtilsWidgets.ContextMenuQTableWidget import ContextMenuQTableWidget
 from gui2.UtilsWidgets.ImportDICOMQTableWidget import ImportDICOMQTableWidget
+from gui2.UtilsWidgets.DisplayDICOMMetadataDialog import DisplayMetadataDICOMDialog
 
 
 class ImportDICOMDataQDialog(QDialog):
@@ -115,6 +116,7 @@ class ImportDICOMDataQDialog(QDialog):
         self.exit_accept_pushbutton.clicked.connect(self.__on_exit_accept_clicked)
         self.exit_cancel_pushbutton.clicked.connect(self.__on_exit_cancel_clicked)
         self.content_series_tablewidget.cellDoubleClicked.connect(self.__on_series_selected)
+        self.content_series_tablewidget.display_metadata_triggered.connect(self.__on_display_metadata_triggered)
 
     def __set_stylesheets(self):
         # self.content_study_tablewidget.setStyleSheet("""QTableWidget{background-color:rgb(127,0,0);}""")
@@ -223,6 +225,12 @@ class ImportDICOMDataQDialog(QDialog):
 
         self.content_patient_tablewidget.selectRow(0)
         self.content_study_tablewidget.selectRow(0)
+
+    def __on_display_metadata_triggered(self, series_index):
+        print("Metadata for row {}".format(series_index))
+        study_id_item = self.content_study_tablewidget.item(self.content_study_tablewidget.currentRow(), 1)
+        diag = DisplayMetadataDICOMDialog(self.dicom_holder.studies[study_id_item.text()].dicom_series[self.content_series_tablewidget.item(series_index, 0).text()])
+        diag.exec_()
 
 
 class ImportDICOMSeriesLineWidget(QWidget):

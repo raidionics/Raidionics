@@ -76,7 +76,7 @@ class NeuroRADSMainWindow(QMainWindow):
         self.__set_centralwidget_interface()
 
     def __set_mainmenu_interface(self):
-        self.menu_bar = QMenuBar()
+        self.menu_bar = QMenuBar(self)
         self.menu_bar.setNativeMenuBar(False)  # https://stackoverflow.com/questions/25261760/menubar-not-showing-for-simple-qmainwindow-code-qt-creator-mac-os
         self.file_menu = self.menu_bar.addMenu('File')
         self.quit_action = QAction('Quit', self)
@@ -120,7 +120,7 @@ class NeuroRADSMainWindow(QMainWindow):
 
     def __set_centralwidget_interface(self):
         self.central_stackedwidget_dict = {}
-        self.central_stackedwidget = QStackedWidget()
+        self.central_stackedwidget = QStackedWidget(self)
         self.main_selection_layout = QVBoxLayout()
         self.welcome_widget = WelcomeWidget(self)
         self.central_stackedwidget.insertWidget(0, self.welcome_widget)

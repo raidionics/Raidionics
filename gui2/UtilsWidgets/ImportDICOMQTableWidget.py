@@ -9,6 +9,7 @@ class ImportDICOMQTableWidget(ContextMenuQTableWidget):
     """
 
     """
+    display_metadata_triggered = Signal(int)
 
     def __init__(self, parent=None):
         super(ImportDICOMQTableWidget, self).__init__(parent)
@@ -39,5 +40,4 @@ class ImportDICOMQTableWidget(ContextMenuQTableWidget):
             super(ImportDICOMQTableWidget, self).mousePressEvent(event)
 
     def __on_display_metadata_triggered(self):
-        # @TODO. Should emit a Signal with the item pos to know which DICOM series it is.
-        pass
+        self.display_metadata_triggered.emit(self.current_item.row())

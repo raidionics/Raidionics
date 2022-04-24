@@ -12,7 +12,9 @@ from gui2.UtilsWidgets.ImportDICOMDataQDialog import ImportDICOMDataQDialog
 
 
 class SinglePatientWidget(QWidget):
+    """
 
+    """
     import_data_triggered = Signal()
     import_patient_triggered = Signal()
 
@@ -129,6 +131,7 @@ class SinglePatientWidget(QWidget):
         self.__set_cross_connections()
 
     def __set_cross_connections(self):
+        # Connections related to data import from the top contextual menu
         self.import_data_dialog.mri_volume_imported.connect(self.layers_panel.on_mri_volume_import)
         self.import_data_dialog.annotation_volume_imported.connect(self.layers_panel.on_annotation_volume_import)
         self.import_data_dialog.patient_imported.connect(self.results_panel.on_import_patient)
@@ -142,6 +145,8 @@ class SinglePatientWidget(QWidget):
         self.center_panel.import_data_triggered.connect(self.layers_panel.on_import_data)
         self.results_panel.patient_selected.connect(self.center_panel.on_patient_selected)
         self.results_panel.patient_selected.connect(self.layers_panel.on_patient_selected)
+
+        # Connections related to data display (from right-hand panel to update the central viewer)
         self.layers_panel.volume_view_toggled.connect(self.center_panel.on_volume_layer_toggled)
         self.layers_panel.annotation_view_toggled.connect(self.center_panel.on_annotation_layer_toggled)
         self.layers_panel.annotation_opacity_changed.connect(self.center_panel.on_annotation_opacity_changed)
@@ -150,13 +155,19 @@ class SinglePatientWidget(QWidget):
     def get_widget_name(self):
         return self.widget_name
 
-    def __on_import_file_clicked(self):
+    def __on_import_file_clicked(self) -> None:
+        """
+
+        """
         self.import_data_dialog.reset()
         code = self.import_data_dialog.exec_()
         # if code == QDialog.Accepted:
         #     self.import_data_triggered.emit()
 
-    def __on_import_dicom_clicked(self):
+    def __on_import_dicom_clicked(self) -> None:
+        """
+
+        """
         # @Behaviour. Do we reset the loader in case of DICOMs, might be worth to keep stuff in memory?
         # self.import_dicom_dialog.reset()
         code = self.import_dicom_dialog.exec_()

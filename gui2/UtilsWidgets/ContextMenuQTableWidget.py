@@ -12,6 +12,7 @@ class ContextMenuQTableWidget(QTableWidget):
 
     def __init__(self, parent=None):
         super(ContextMenuQTableWidget, self).__init__(parent)
+        self.current_item = None
         self.__set_interface()
         self.__set_stylesheets()
         self.__set_connections()
@@ -38,6 +39,7 @@ class ContextMenuQTableWidget(QTableWidget):
             item = self.itemAt(event.pos())
             if item is not None:
                 print('Table Item:', item.row(), item.column())
+                self.current_item = item
                 self.context_menu.exec_(event.globalPos())
         super(ContextMenuQTableWidget, self).mousePressEvent(event)
 
