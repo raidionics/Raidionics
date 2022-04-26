@@ -6,16 +6,17 @@ from copy import deepcopy
 from skimage.transform import resize
 from scipy.ndimage import binary_fill_holes
 from skimage.measure import regionprops
-# from diagnosis.src.Processing.brain_processing import perform_custom_brain_extraction
-from diagnosis.src.Utils.configuration_parser import ResourcesConfiguration
+import shutil
+import subprocess
+from segmentation.src.Utils.configuration_parser import generate_runtime_config
 
 
-def crop_MR_background(volume, parameters, new_spacing, brain_mask_filename, input_filename=None):
+def crop_MR_background(volume, parameters, new_spacing, brain_mask_filename, input_filename=None, storage_prefix=None):
     if parameters.crop_background == 'minimum':
         return crop_MR(volume, parameters)
     elif parameters.crop_background == 'brain_clip' or parameters.crop_background == 'brain_mask':
-        return advanced_crop_exclude_background(volume, parameters.crop_background, new_spacing, brain_mask_filename,
-                                                input_filename)
+        return advanced_crop_exclude_background(volume, parameters, new_spacing, brain_mask_filename,
+                                                input_filename, storage_prefix)
 
 
 def crop_MR(volume, parameters):
@@ -33,10 +34,27 @@ def crop_MR(volume, parameters):
     return cropped_volume, bbox
 
 
-def advanced_crop_exclude_background(data, crop_mode, spacing, brain_mask_filename, input_filename):
-    # if brain_mask_filename is None or not os.path.exists(brain_mask_filename):
-    #     perform_custom_brain_extraction(image_filepath=input_filename,
-    #                                     folder=ResourcesConfiguration.getInstance().output_folder)
+def advanced_crop_exclude_background(data, preprocessing_parameters, spacing, brain_mask_filename, input_filename, storage_prefix):
+    if brain_mask_filename is None or not os.path.exists(brain_mask_filename):
+        brain_runtime = generate_runtime_config(preprocessing_parameters.runtime_filename, method='thresholding',
+                                                order='resample_first')
+        runtime_fn = preprocessing_parameters.runtime_filename
+        new_runtime_fn = os.path.join(os.path.dirname(preprocessing_parameters.runtime_filename),
+                                      os.path.basename(preprocessing_parameters.runtime_filename).split('.')[0] + '_orig.ini')
+        shutil.copyfile(src=preprocessing_parameters.runtime_filename, dst=new_runtime_fn)
+        with open(runtime_fn, 'w') as cf:
+            brain_runtime.write(cf)
+        script_path = '/'.join(os.path.dirname(os.path.realpath(__file__)).split('/')[:-2]) + '/main.py'
+        subprocess.call(['python3', '{script}'.format(script=script_path),
+                         '-t{task}'.format(task='segmentation'),
+                         '-i{input}'.format(input=input_filename),
+                         '-o{output}'.format(output=storage_prefix),
+                         '-m{model}'.format(model='MRI_Brain'),
+                         '-g{gpu}'.format(gpu=os.environ["CUDA_VISIBLE_DEVICES"])])
+        brain_mask_filename = storage_prefix + '-label_Brain.nii.gz'
+        shutil.copyfile(src=new_runtime_fn, dst=runtime_fn)
+        os.remove(new_runtime_fn)
+
     brain_mask_ni = nib.load(brain_mask_filename)
     resampled_brain = resample_to_output(brain_mask_ni, spacing, order=0)
     brain_mask = resampled_brain.get_data().astype('uint8')
@@ -45,6 +63,7 @@ def advanced_crop_exclude_background(data, crop_mode, spacing, brain_mask_filena
     regions = regionprops(brain_mask)
     min_row, min_col, min_depth, max_row, max_col, max_depth = regions[0].bbox
 
+    crop_mode = preprocessing_parameters.crop_background
     if crop_mode == 'brain_mask':
         original_data[brain_mask == 0] = 0
     cropped_data = original_data[min_row:max_row, min_col:max_col, min_depth:max_depth]

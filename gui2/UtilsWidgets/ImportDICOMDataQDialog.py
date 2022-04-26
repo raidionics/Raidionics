@@ -191,6 +191,8 @@ class ImportDICOMDataQDialog(QDialog):
                                                     QTableWidgetItem("x".join(str(x) for x in series.volume_size)))
             self.selected_series_tablewidget.setItem(self.selected_series_tablewidget.rowCount() - 1, 5,
                                                     QTableWidgetItem(series.series_date))
+            for c in range(self.selected_series_tablewidget.columnCount()):
+                self.selected_series_tablewidget.resizeColumnToContents(c)
 
     def __populate_dicom_browser(self):
         #@TODO. Do we clean all tables before filling them up, in case there's stuff from a previous run.

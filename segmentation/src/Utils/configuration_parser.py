@@ -13,6 +13,7 @@ class PreProcessingParser:
             raise ValueError('Missing configuration file with pre-processing parameters: {}'.
                              format(self.preprocessing_filename))
 
+        # @TODO. Should start re-using the runtime config to swap between brain and tumor config, and binary/prob!
         # self.runtime_filename = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../', 'resources/data',
         #                                      'runtime_config.ini')
         # if not os.path.exists(self.runtime_filename):
@@ -129,6 +130,16 @@ class PreProcessingParser:
 
     def __parse_runtime_content(self):
         self.predictions_non_overlapping = True
-        self.predictions_reconstruction_method = 'probabilities'
+        self.predictions_reconstruction_method = 'thresholding' #'probabilities'
         self.predictions_reconstruction_order = 'resample_first'
         self.predictions_probability_thresholds = [0.5]
+
+
+def generate_runtime_config(runtime_filename, method, order):
+    parser = configparser.ConfigParser()
+    parser.read(runtime_filename)
+
+    parser.set('Predictions', 'reconstruction_method', method)
+    parser.set('Predictions', 'reconstruction_order', order)
+
+    return parser

@@ -261,6 +261,8 @@ class MRIVolume():
         base_name = self.unique_id.lower()
         if "t2" in base_name and "tirm" in base_name:
             self.sequence_type = MRISequenceType.FLAIR
+        elif "flair" in base_name:
+            self.sequence_type = MRISequenceType.FLAIR
         elif "t2" in base_name:
             self.sequence_type = MRISequenceType.T2
         elif "gd" in base_name:

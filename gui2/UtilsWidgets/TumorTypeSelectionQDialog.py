@@ -1,0 +1,27 @@
+from PySide2.QtWidgets import QDialog, QGridLayout, QLabel, QComboBox, QDialogButtonBox
+
+
+class TumorTypeSelectionQDialog(QDialog):
+
+    def __init__(self, parent=None):
+        super(TumorTypeSelectionQDialog, self).__init__(parent)
+        self.base_layout = QGridLayout()
+        self.select_tumor_type_label = QLabel('Tumor type')
+        self.base_layout.addWidget(self.select_tumor_type_label, 0, 0)
+        self.select_tumor_type_combobox = QComboBox()
+        self.select_tumor_type_combobox.addItems(["High-Grade Glioma", "Low-Grade Glioma", "Meningioma", "Metastasis"])
+
+        self.base_layout.addWidget(self.select_tumor_type_combobox, 0, 1)
+        self.exit_accept_pushbutton = QDialogButtonBox(QDialogButtonBox.Ok)
+        self.base_layout.addWidget(self.exit_accept_pushbutton, 1, 0)
+        self.exit_cancel_pushbutton = QDialogButtonBox(QDialogButtonBox.Cancel)
+        self.base_layout.addWidget(self.exit_cancel_pushbutton, 1, 1)
+        self.setLayout(self.base_layout)
+
+        self.select_tumor_type_combobox.currentTextChanged.connect(self.on_type_selected)
+        self.exit_accept_pushbutton.accepted.connect(self.accept)
+        self.exit_cancel_pushbutton.rejected.connect(self.reject)
+
+    def on_type_selected(self, text):
+        # SharedResources.getInstance().user_diagnosis_configuration['Neuro']['tumor_type'] = text
+        pass

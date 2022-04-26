@@ -31,6 +31,8 @@ class DisplayMetadataDICOMDialog(QDialog):
                 self.content_tablewidget.setItem(self.content_tablewidget.rowCount() - 1, 0, QTableWidgetItem(k))
                 self.content_tablewidget.setItem(self.content_tablewidget.rowCount() - 1, 1, QTableWidgetItem(get_tag_readable_name(k)))
                 self.content_tablewidget.setItem(self.content_tablewidget.rowCount() - 1, 2, QTableWidgetItem(self.dicom_series.dicom_tags[k]))
+        for c in range(self.content_tablewidget.columnCount()):
+            self.content_tablewidget.resizeColumnToContents(c)
 
     def __set_connections(self):
         pass

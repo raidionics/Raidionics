@@ -1,9 +1,15 @@
-from PySide2.QtWidgets import QWidget, QLabel, QGridLayout
+import shutil
+
+from PySide2.QtWidgets import QWidget, QLabel, QGridLayout, QPushButton
 from PySide2.QtCore import QSize, Signal
 import numpy as np
+import os
+import threading
 
 from gui2.SinglePatientComponent.CentralDisplayArea.CustomQGraphicsView import CustomQGraphicsView
 from utils.software_config import SoftwareConfigResources
+
+from segmentation.main import main_segmentation
 
 
 class CentralDisplayAreaWidget(QWidget):
@@ -11,6 +17,8 @@ class CentralDisplayAreaWidget(QWidget):
 
     """
     import_data_triggered = Signal()
+    # The str is the unique id for the annotation volume, belonging to the active patient
+    annotation_volume_imported = Signal(str)
 
     def __init__(self, parent=None):
         super(CentralDisplayAreaWidget, self).__init__()
@@ -20,6 +28,7 @@ class CentralDisplayAreaWidget(QWidget):
         self.__set_connections()
         self.current_patient_parameters = None
         self.displayed_image = None
+        self.displayed_image_uid = None
         self.point_clicker_position = [0, 0, 0]  # Knowing at all time the center of the cross-hair blue lines.
         self.overlaid_volumes = {}  # To hold all annotation volumes which should be overlaid on the main image.
 
@@ -51,6 +60,11 @@ class CentralDisplayAreaWidget(QWidget):
         self.layout.addWidget(self.sagittal_viewer, 1, 0)
         self.layout.addWidget(self.coronal_viewer, 1, 1)
 
+        self.run_segmentation_pushbutton = QPushButton("Run segmentation")
+        self.run_reporting_pushbutton = QPushButton("Run reporting")
+        self.layout.addWidget(self.run_segmentation_pushbutton, 2, 0)
+        self.layout.addWidget(self.run_reporting_pushbutton, 2, 1)
+
     def __set_stylesheets(self):
         self.empty_label.setStyleSheet("QLabel{background-color:rgb(255,0,0);}")
         # self.setStyleSheet("QWidget{background-color:rgb(0,0,128);}")
@@ -63,6 +77,8 @@ class CentralDisplayAreaWidget(QWidget):
         self.axial_viewer.import_data_triggered.connect(self.import_data_triggered)
         self.coronal_viewer.import_data_triggered.connect(self.import_data_triggered)
         self.sagittal_viewer.import_data_triggered.connect(self.import_data_triggered)
+
+        self.run_segmentation_pushbutton.clicked.connect(self.on_run_segmentation)
 
     def reset_overlay(self):
         """
@@ -111,6 +127,7 @@ class CentralDisplayAreaWidget(QWidget):
         if len(self.current_patient_parameters.mri_volumes) != 0:
             self.displayed_image = self.current_patient_parameters.mri_volumes[
                 list(self.current_patient_parameters.mri_volumes.keys())[0]].display_volume
+            self.displayed_image_uid = self.current_patient_parameters.mri_volumes[list(self.current_patient_parameters.mri_volumes.keys())[0]].unique_id
             self.point_clicker_position = [int(self.displayed_image.shape[0] / 2),
                                            int(self.displayed_image.shape[1] / 2),
                                            int(self.displayed_image.shape[2] / 2)]
@@ -123,6 +140,7 @@ class CentralDisplayAreaWidget(QWidget):
         # If empty patient, setting an empty volume to avoid issues.
         else:
             self.displayed_image = np.zeros(shape=(150, 150, 150), dtype='uint8')
+            self.displayed_image_uid = None
             self.point_clicker_position = [int(self.displayed_image.shape[0] / 2),
                                            int(self.displayed_image.shape[1] / 2),
                                            int(self.displayed_image.shape[2] / 2)]
@@ -144,6 +162,7 @@ class CentralDisplayAreaWidget(QWidget):
         if state:
             self.reset_overlay()  # Until the time there is a co-registration option between input MRI volumes.
             self.displayed_image = self.current_patient_parameters.mri_volumes[volume_uid].display_volume
+            self.displayed_image_uid = volume_uid
 
             # Reset to the view-point, until the time there's co-registration or MNI space, where we can keep it.
             # @FIXME. Is the center of the volume actually correct? Looks fishy
@@ -180,6 +199,48 @@ class CentralDisplayAreaWidget(QWidget):
         self.axial_viewer.update_annotation_color(volume_uid, color)
         self.coronal_viewer.update_annotation_color(volume_uid, color)
         self.sagittal_viewer.update_annotation_color(volume_uid, color)
+
+    def on_run_segmentation(self):
+        self.segmentation_main_wrapper()
+
+    def segmentation_main_wrapper(self):
+        self.run_segmentation_thread = threading.Thread(target=self.run_segmentation)
+        self.run_segmentation_thread.daemon = True  # using daemon thread the thread is killed gracefully if program is abruptly closed
+        self.run_segmentation_thread.start()
+
+    def run_segmentation(self):
+        # Freezing buttons
+        self.run_segmentation_pushbutton.setEnabled(False)
+        self.run_reporting_pushbutton.setEnabled(False)
+
+        #@TODO. adjust_input_volume_for_nifti(self.input_image_filepath, self.output_folderpath)
+
+        # @TODO. Include a dialog to dump the current progress of the process.
+        try:
+            # start_time = time.time()
+            # print('Initialize - Begin (Step 0/2)')
+            # print('Initialize - End (Step 0/2)')
+            # print('Step runtime: {} seconds.'.format(np.round(time.time() - start_time, 3)) + "\n")
+            # self.diagnostics_runner.run_segmentation_only()
+            model_name = "MRI_Meningioma"
+            main_segmentation(input_filename=self.current_patient_parameters.mri_volumes[self.displayed_image_uid].raw_filepath,
+                              output_folder=self.current_patient_parameters.output_folder + '/',
+                              model_name=model_name)
+            seg_file = os.path.join(self.current_patient_parameters.output_folder, '-labels_Tumor.nii.gz')
+            shutil.move(seg_file, os.path.join(self.current_patient_parameters.output_folder, '-patient_tumor.nii.gz'))
+            data_uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_data(os.path.join(self.current_patient_parameters.output_folder, '-patient_tumor.nii.gz'), type='Annotation')
+            self.annotation_volume_imported.emit(data_uid)
+            #@TODO. Should show directly ?
+        except Exception as e:
+            # print('{}'.format(traceback.format_exc()))
+            self.run_segmentation_pushbutton.setEnabled(True)
+            self.run_reporting_pushbutton.setEnabled(True)
+            # self.standardOutputWritten('Process could not be completed - Issue arose.\n')
+            return
+
+        self.run_segmentation_pushbutton.setEnabled(True)
+        self.run_reporting_pushbutton.setEnabled(True)
+        # self.processing_thread_signal.processing_thread_finished.emit(True, 'segmentation')
 
     def __on_axial_coordinates_changed(self, x, y):
         """

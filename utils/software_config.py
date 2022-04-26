@@ -7,6 +7,7 @@ from typing import Union, Any
 import names
 
 from utils.patient_parameters import PatientParameters
+from diagnosis.src.Utils.configuration_parser import ResourcesConfiguration
 
 
 class SoftwareConfigResources:
@@ -37,6 +38,7 @@ class SoftwareConfigResources:
         self.optimal_dimensions = [1440, 900]
         self.accepted_image_format = ['nii', 'nii.gz', 'mhd', 'mha', 'nrrd']  # @TODO. Should I have an exhaustive list?
         self.accepted_scene_file_format = ['neurorads']
+        self.diagnostics_runner = None
 
         self.__set_default_values()
         if os.path.exists(self.config_filename):
@@ -110,3 +112,14 @@ class SoftwareConfigResources:
 
     def get_active_patient(self):
         return self.patients_parameters[self.active_patient_name]
+
+    # def prepare_processing(self, mri_uid, tumor_seg_uid, tumor_type):
+    #     if self.diagnostics_runner == None:
+    #         from diagnosis.src.NeuroDiagnosis.neuro_diagnostics import NeuroDiagnostics
+    #         self.diagnostics_runner = NeuroDiagnostics()
+    #     ResourcesConfiguration.getInstance().set_execution_environment(output_dir=self.patients_parameters[self.active_patient_name].output_folder)
+    #     self.diagnostics_runner.select_tumor_type(tumor_type=tumor_type)
+    #     self.diagnostics_runner.load_new_inputs(input_filename=self.patients_parameters[self.active_patient_name].mri_volumes[mri_uid].raw_filepath,
+    #                                             input_segmentation=self.patients_parameters[self.active_patient_name].annotation_volumes[tumor_seg_uid].raw_filepath)
+    #     # self.diagnostics_runner.select_preprocessing_scheme(scheme=self.seg_preprocessing_scheme)
+    #     self.diagnostics_runner.prepare_to_run()

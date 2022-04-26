@@ -45,6 +45,7 @@ class LayersInteractorVolumesWidget(QCollapsibleGroupBox):
     def reset(self):
         for w in list(self.volumes_widget):
             self.content_label_layout.removeWidget(self.volumes_widget[w])
+            self.volumes_widget[w].deleteLater()
             self.volumes_widget.pop(w)
         self.header_pushbutton.setChecked(False)
         self.header_pushbutton.clicked.emit()

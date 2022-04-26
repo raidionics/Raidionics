@@ -138,11 +138,7 @@ class SinglePatientWidget(QWidget):
         self.import_dicom_dialog.patient_imported.connect(self.results_panel.on_import_patient)
         self.import_dicom_dialog.mri_volume_imported.connect(self.layers_panel.on_mri_volume_import)
 
-        self.import_data_triggered.connect(self.center_panel.on_import_data)
-        self.import_data_triggered.connect(self.results_panel.on_import_data)
-        self.import_data_triggered.connect(self.layers_panel.on_import_data)
-        self.import_patient_triggered.connect(self.results_panel.on_import_patient)
-        self.center_panel.import_data_triggered.connect(self.layers_panel.on_import_data)
+        # Connections relating patient selection (left-hand side) with data display
         self.results_panel.patient_selected.connect(self.center_panel.on_patient_selected)
         self.results_panel.patient_selected.connect(self.layers_panel.on_patient_selected)
 
@@ -151,6 +147,14 @@ class SinglePatientWidget(QWidget):
         self.layers_panel.annotation_view_toggled.connect(self.center_panel.on_annotation_layer_toggled)
         self.layers_panel.annotation_opacity_changed.connect(self.center_panel.on_annotation_opacity_changed)
         self.layers_panel.annotation_color_changed.connect(self.center_panel.on_annotation_color_changed)
+
+        # To sort
+        self.center_panel.annotation_volume_imported.connect(self.layers_panel.on_annotation_volume_import)
+        self.import_data_triggered.connect(self.center_panel.on_import_data)
+        self.import_data_triggered.connect(self.results_panel.on_import_data)
+        self.import_data_triggered.connect(self.layers_panel.on_import_data)
+        self.import_patient_triggered.connect(self.results_panel.on_import_patient)
+        self.center_panel.import_data_triggered.connect(self.layers_panel.on_import_data)
 
     def get_widget_name(self):
         return self.widget_name
