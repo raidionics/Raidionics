@@ -38,6 +38,7 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__(*args, **kwargs)
 
         self.app = application
+        self.app.setWindowIcon(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../images/raidionics-logo.png')))
         self.app.setStyle("Fusion")
         self.__set_interface()
         self.__set_layouts()
