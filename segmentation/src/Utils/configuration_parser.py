@@ -14,24 +14,20 @@ class PreProcessingParser:
                              format(self.preprocessing_filename))
 
         # @TODO. Should start re-using the runtime config to swap between brain and tumor config, and binary/prob!
-        # self.runtime_filename = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../', 'resources/data',
-        #                                      'runtime_config.ini')
-        # if not os.path.exists(self.runtime_filename):
-        #     raise ValueError('Missing configuration file with runtime parameters: {}'.
-        #                      format(self.runtime_filename))
+        self.runtime_filename = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../', 'resources',
+                                             'segmentation_runtime_config.ini')
+        if not os.path.exists(self.runtime_filename):
+            run_cf = generate_runtime_config()
+            with open(self.runtime_filename, 'w') as cf:
+                self.runtime_filename.write(cf)
 
         self.pre_processing_config = configparser.ConfigParser()
         self.pre_processing_config.read(self.preprocessing_filename)
-        # self.runtime_config = configparser.ConfigParser()
-        # self.runtime_config.read(self.runtime_filename)
+        self.runtime_config = configparser.ConfigParser()
+        self.runtime_config.read(self.runtime_filename)
         self.__parse_content()
 
     def __parse_content(self):
-        # if self.pre_processing_config.has_option('Default', 'imaging_modality'):
-        #     param = self.pre_processing_config['Default']['imaging_modality'].split('#')[0].strip()
-        #     self.imaging_modality = 'MRI'
-        # else:
-        #     raise AttributeError('')
         self.imaging_modality = 'MRI'
         self.__parse_pre_processing_content()
         self.__parse_training_content()
@@ -129,16 +125,18 @@ class PreProcessingParser:
                                                    == 'true' else False
 
     def __parse_runtime_content(self):
-        self.predictions_non_overlapping = True
-        self.predictions_reconstruction_method = 'thresholding' #'probabilities'
-        self.predictions_reconstruction_order = 'resample_first'
-        self.predictions_probability_thresholds = [0.5]
+        self.predictions_non_overlapping = True if self.runtime_config['Predictions']['non_overlapping'].split('#')[0].lower().strip()\
+                                                   == 'true' else False
+        self.predictions_reconstruction_method = self.runtime_config['Predictions']['reconstruction_method'].split('#')[0].lower().strip()
+        self.predictions_reconstruction_order = self.runtime_config['Predictions']['reconstruction_order'].split('#')[0].lower().strip()
+        # self.predictions_probability_thresholds = [0.5]
 
 
-def generate_runtime_config(runtime_filename, method, order):
+def generate_runtime_config(method='probabilities', order='resample_first'):
     parser = configparser.ConfigParser()
-    parser.read(runtime_filename)
+    parser.add_section('Predictions')
 
+    parser.set('Predictions', 'non_overlapping', "True")
     parser.set('Predictions', 'reconstruction_method', method)
     parser.set('Predictions', 'reconstruction_order', order)
 

@@ -10,6 +10,7 @@ class TumorTypeSelectionQDialog(QDialog):
         self.base_layout.addWidget(self.select_tumor_type_label, 0, 0)
         self.select_tumor_type_combobox = QComboBox()
         self.select_tumor_type_combobox.addItems(["High-Grade Glioma", "Low-Grade Glioma", "Meningioma", "Metastasis"])
+        self.tumor_type = "High-Grade Glioma"
 
         self.base_layout.addWidget(self.select_tumor_type_combobox, 0, 1)
         self.exit_accept_pushbutton = QDialogButtonBox(QDialogButtonBox.Ok)
@@ -23,5 +24,4 @@ class TumorTypeSelectionQDialog(QDialog):
         self.exit_cancel_pushbutton.rejected.connect(self.reject)
 
     def on_type_selected(self, text):
-        # SharedResources.getInstance().user_diagnosis_configuration['Neuro']['tumor_type'] = text
-        pass
+        self.tumor_type = text

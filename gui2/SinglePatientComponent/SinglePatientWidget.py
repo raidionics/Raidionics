@@ -6,6 +6,7 @@ import os
 from utils.software_config import SoftwareConfigResources
 from gui2.SinglePatientComponent.PatientResultsSidePanel.PatientResultsSinglePatientSidePanelWidget import PatientResultsSinglePatientSidePanelWidget
 from gui2.SinglePatientComponent.CentralDisplayArea.CentralDisplayAreaWidget import CentralDisplayAreaWidget
+from gui2.SinglePatientComponent.CentralAreaWidget import CentralAreaWidget
 from gui2.SinglePatientComponent.LayersInteractorSidePanel.LayersInteractorSinglePatientSidePanelWidget import LayersInteractorSinglePatientSidePanelWidget
 from gui2.UtilsWidgets.ImportDataQDialog import ImportDataQDialog
 from gui2.UtilsWidgets.ImportDICOMDataQDialog import ImportDICOMDataQDialog
@@ -98,7 +99,7 @@ class SinglePatientWidget(QWidget):
         self.results_panel = PatientResultsSinglePatientSidePanelWidget(self)
         self.results_panel.setBaseSize(QSize(200, self.baseSize().height()))
         self.results_panel.setMaximumSize(QSize(200, self.baseSize().height()))
-        self.center_panel = CentralDisplayAreaWidget(self)
+        self.center_panel = CentralAreaWidget(self) #CentralDisplayAreaWidget(self)
         self.center_panel.setBaseSize(QSize(self.baseSize().width() - 400, self.baseSize().height()))
         self.layers_panel = LayersInteractorSinglePatientSidePanelWidget(self)
         self.layers_panel.setBaseSize(QSize(200, self.parent.baseSize().height()))
@@ -150,7 +151,7 @@ class SinglePatientWidget(QWidget):
 
         # To sort
         self.center_panel.annotation_volume_imported.connect(self.layers_panel.on_annotation_volume_import)
-        self.import_data_triggered.connect(self.center_panel.on_import_data)
+        # self.import_data_triggered.connect(self.center_panel.on_import_data)
         self.import_data_triggered.connect(self.results_panel.on_import_data)
         self.import_data_triggered.connect(self.layers_panel.on_import_data)
         self.import_patient_triggered.connect(self.results_panel.on_import_patient)

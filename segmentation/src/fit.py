@@ -26,12 +26,16 @@ def predict(input_filename, output_path, selected_model, brain_mask_filename=Non
     if not os.path.exists(model_path):
         raise ValueError('Could not find any model on Docker image matching the requested type \'{}\'.'.format(selected_model))
 
+    print("STARTING PREPROCESSING.\n")
     nib_volume, resampled_volume, data, crop_bbox = run_pre_processing(filename=input_filename,
                                                                        pre_processing_parameters=pre_processing_parameters,
                                                                        storage_prefix=output_path,
                                                                        brain_mask_filename=brain_mask_filename)
+    print("STARTING INFERENCE.\n")
     predictions = run_predictions(data=data, model_path=model_path, parameters=pre_processing_parameters)
+    print("STARTING RESAMPLING.\n")
     final_predictions = reconstruct_post_predictions(predictions=predictions, parameters=pre_processing_parameters,
                                                      crop_bbox=crop_bbox, nib_volume=nib_volume, resampled_volume=resampled_volume)
+    print("STARTING DUMP.\n")
     dump_predictions(predictions=final_predictions, parameters=pre_processing_parameters, nib_volume=nib_volume,
                      storage_prefix=output_path)

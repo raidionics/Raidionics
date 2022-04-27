@@ -36,22 +36,29 @@ def crop_MR(volume, parameters):
 
 def advanced_crop_exclude_background(data, preprocessing_parameters, spacing, brain_mask_filename, input_filename, storage_prefix):
     if brain_mask_filename is None or not os.path.exists(brain_mask_filename):
-        brain_runtime = generate_runtime_config(preprocessing_parameters.runtime_filename, method='thresholding',
-                                                order='resample_first')
+        brain_runtime = generate_runtime_config(method='thresholding', order='resample_first')
         runtime_fn = preprocessing_parameters.runtime_filename
         new_runtime_fn = os.path.join(os.path.dirname(preprocessing_parameters.runtime_filename),
                                       os.path.basename(preprocessing_parameters.runtime_filename).split('.')[0] + '_orig.ini')
         shutil.copyfile(src=preprocessing_parameters.runtime_filename, dst=new_runtime_fn)
         with open(runtime_fn, 'w') as cf:
             brain_runtime.write(cf)
-        script_path = '/'.join(os.path.dirname(os.path.realpath(__file__)).split('/')[:-2]) + '/main.py'
-        subprocess.call(['python3', '{script}'.format(script=script_path),
+        script_path = '/'.join(os.path.dirname(os.path.realpath(__file__)).split('/')[:-2]) + '/../main.py'
+        # subprocess.call(['python3', '{script}'.format(script=script_path),
+        #                  '-t{task}'.format(task='segmentation'),
+        #                  '-i{input}'.format(input=input_filename),
+        #                  '-o{output}'.format(output=storage_prefix),
+        #                  '-m{model}'.format(model='MRI_Brain'),
+        #                  '-g{gpu}'.format(gpu=os.environ["CUDA_VISIBLE_DEVICES"])])
+        p = subprocess.Popen(['python3', '{script}'.format(script=script_path),
+                         '-g{gui_use}'.format(gui_use=0),
                          '-t{task}'.format(task='segmentation'),
                          '-i{input}'.format(input=input_filename),
                          '-o{output}'.format(output=storage_prefix),
                          '-m{model}'.format(model='MRI_Brain'),
-                         '-g{gpu}'.format(gpu=os.environ["CUDA_VISIBLE_DEVICES"])])
-        brain_mask_filename = storage_prefix + '-label_Brain.nii.gz'
+                         '-d{gpu}'.format(gpu=os.environ["CUDA_VISIBLE_DEVICES"])], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = p.communicate()
+        brain_mask_filename = storage_prefix + '-labels_Brain.nii.gz'
         shutil.copyfile(src=new_runtime_fn, dst=runtime_fn)
         os.remove(new_runtime_fn)
 
