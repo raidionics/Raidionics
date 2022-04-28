@@ -56,7 +56,7 @@ class CentralAreaWidget(QWidget):
         self.annotation_color_changed.connect(self.display_area_widget.on_annotation_color_changed)
 
         # Connections related to data loading (from central viewer panel to update the right-handed panel)
-        # self.display_area_widget.import_mri_volume_triggered.connect(self.on_import_mri_volume)
+        self.display_area_widget.mri_volume_imported.connect(self.on_import_mri_volume)
         self.display_area_widget.annotation_volume_imported.connect(self.on_import_annotation)
 
         # Connections from/to the execution area
@@ -73,7 +73,7 @@ class CentralAreaWidget(QWidget):
         self.patient_view_toggled.emit(patient_uid)
 
     def on_import_mri_volume(self, uid):
-        pass
+        self.mri_volume_imported.emit(uid)
 
     def on_import_annotation(self, uid):
         self.annotation_volume_imported.emit(uid)

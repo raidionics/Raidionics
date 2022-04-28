@@ -153,8 +153,15 @@ class PatientParameters:
         error_message = None
 
         try:
+            # Always converting the input file to nifti, if possible, otherwise will be discarded
+            # @TODO. Do we catch a potential .seg file that would be coming from 3D Slicer for annotations?
+            pre_file_extension, file_extension = os.path.splitext(filename)
+            if file_extension != '.nii' or file_extension != '.nii.gz':
+                input_sitk = sitk.ReadImage(filename)
+                nifti_outfilename = os.path.join(self.output_folder, os.path.basename(pre_file_extension) + '.nii.gz')
+                sitk.WriteImage(input_sitk, nifti_outfilename)
+
             if type == 'MRI':
-                # @TODO. Check that it's a nifti file, if not use simpleitk and convert?
                 image_nib = nib.load(filename)
 
                 # Resampling to standard output for viewing purposes.

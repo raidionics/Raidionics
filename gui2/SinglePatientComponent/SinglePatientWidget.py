@@ -150,6 +150,7 @@ class SinglePatientWidget(QWidget):
         self.layers_panel.annotation_color_changed.connect(self.center_panel.on_annotation_color_changed)
 
         # To sort
+        self.center_panel.mri_volume_imported.connect(self.layers_panel.on_mri_volume_import)
         self.center_panel.annotation_volume_imported.connect(self.layers_panel.on_annotation_volume_import)
         # self.import_data_triggered.connect(self.center_panel.on_import_data)
         # self.import_data_triggered.connect(self.results_panel.on_import_data)

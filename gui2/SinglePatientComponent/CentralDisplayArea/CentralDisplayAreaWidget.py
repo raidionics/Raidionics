@@ -11,8 +11,13 @@ class CentralDisplayAreaWidget(QWidget):
 
     """
     import_data_triggered = Signal()
+
+    # The str is the unique id for the MRI volume, belonging to the active patient
+    mri_volume_imported = Signal(str)
     # The str is the unique id for the annotation volume, belonging to the active patient
     annotation_volume_imported = Signal(str)
+    # The str is the unique id for the patient
+    patient_imported = Signal(str)
 
     def __init__(self, parent=None):
         super(CentralDisplayAreaWidget, self).__init__()
@@ -63,9 +68,15 @@ class CentralDisplayAreaWidget(QWidget):
         self.coronal_viewer.coordinates_changed.connect(self.__on_coronal_coordinates_changed)
         self.sagittal_viewer.coordinates_changed.connect(self.__on_sagittal_coordinates_changed)
 
-        self.axial_viewer.import_data_triggered.connect(self.import_data_triggered)
-        self.coronal_viewer.import_data_triggered.connect(self.import_data_triggered)
-        self.sagittal_viewer.import_data_triggered.connect(self.import_data_triggered)
+        self.axial_viewer.mri_volume_imported.connect(self.mri_volume_imported)
+        self.axial_viewer.annotation_volume_imported.connect(self.annotation_volume_imported)
+        # self.axial_viewer.patient_imported.connect(self.patient_imported)
+        self.coronal_viewer.mri_volume_imported.connect(self.mri_volume_imported)
+        self.coronal_viewer.annotation_volume_imported.connect(self.annotation_volume_imported)
+        # self.coronal_viewer.patient_imported.connect(self.patient_imported)
+        self.sagittal_viewer.mri_volume_imported.connect(self.mri_volume_imported)
+        self.sagittal_viewer.annotation_volume_imported.connect(self.annotation_volume_imported)
+        # self.sagittal_viewer.patient_imported.connect(self.patient_imported)
 
     def reset_overlay(self):
         """
