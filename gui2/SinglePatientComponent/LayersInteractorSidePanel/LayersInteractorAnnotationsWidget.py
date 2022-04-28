@@ -77,6 +77,17 @@ class LayersInteractorAnnotationsWidget(QCollapsibleGroupBox):
                 self.on_import_volume(volume_id)
         self.adjustSize()  # To force a repaint of the layout with the new elements
 
+    def on_patient_view_toggled(self, patient_uid):
+        active_patient = SoftwareConfigResources.getInstance().patients_parameters[patient_uid]
+        # @TODO. Should not load all annotations, but only the ones of the current MRI volume
+        # Or we should display all annotations regardless, and group them under their respective MRI parents.
+        # In addition, there will be another groupbox somewhere to specify if we use the raw patient space, the
+        # co-registered patient space, or the MNI space for displaying.
+        for volume_id in list(active_patient.annotation_volumes.keys()):
+            if not volume_id in list(self.volumes_widget.keys()):
+                self.on_import_volume(volume_id)
+        self.adjustSize()  # To force a repaint of the layout with the new elements
+
     def on_import_volume(self, volume_id):
         volume_widget = LayersInteractorAnnotationCollapsibleGroupBox(annotation_uid=volume_id, parent=self)
         self.volumes_widget[volume_id] = volume_widget

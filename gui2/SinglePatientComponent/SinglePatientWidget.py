@@ -152,10 +152,10 @@ class SinglePatientWidget(QWidget):
         # To sort
         self.center_panel.annotation_volume_imported.connect(self.layers_panel.on_annotation_volume_import)
         # self.import_data_triggered.connect(self.center_panel.on_import_data)
-        self.import_data_triggered.connect(self.results_panel.on_import_data)
-        self.import_data_triggered.connect(self.layers_panel.on_import_data)
-        self.import_patient_triggered.connect(self.results_panel.on_import_patient)
-        self.center_panel.import_data_triggered.connect(self.layers_panel.on_import_data)
+        # self.import_data_triggered.connect(self.results_panel.on_import_data)
+        # self.import_data_triggered.connect(self.layers_panel.on_import_data)
+        # self.import_patient_triggered.connect(self.results_panel.on_import_patient)
+        # self.center_panel.import_data_triggered.connect(self.layers_panel.on_import_data)
 
     def get_widget_name(self):
         return self.widget_name

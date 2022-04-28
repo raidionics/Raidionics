@@ -154,6 +154,7 @@ class PatientParameters:
 
         try:
             if type == 'MRI':
+                # @TODO. Check that it's a nifti file, if not use simpleitk and convert?
                 image_nib = nib.load(filename)
 
                 # Resampling to standard output for viewing purposes.

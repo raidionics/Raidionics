@@ -14,7 +14,7 @@ class CentralAreaWidget(QWidget):
     # The str is the unique id for the annotation volume, belonging to the active patient
     annotation_volume_imported = Signal(str)
     mri_volume_imported = Signal(str)
-
+    patient_view_toggled = Signal(str)
     volume_view_toggled = Signal(str, bool)
     annotation_view_toggled = Signal(str, bool)
     annotation_opacity_changed = Signal(str, int)
@@ -59,14 +59,18 @@ class CentralAreaWidget(QWidget):
         # self.display_area_widget.import_mri_volume_triggered.connect(self.on_import_mri_volume)
         self.display_area_widget.annotation_volume_imported.connect(self.on_import_annotation)
 
+        # Connections from/to the execution area
         self.execution_area_widget.annotation_volume_imported.connect(self.on_import_annotation)
         self.volume_view_toggled.connect(self.execution_area_widget.on_volume_layer_toggled)
+
+        # Connections from the left patient panel
+        self.patient_view_toggled.connect(self.display_area_widget.on_patient_selected)
 
     def get_widget_name(self):
         return self.widget_name
 
-    def on_patient_selected(self):
-        pass
+    def on_patient_selected(self, patient_uid):
+        self.patient_view_toggled.emit(patient_uid)
 
     def on_import_mri_volume(self, uid):
         pass

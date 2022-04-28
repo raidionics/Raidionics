@@ -79,6 +79,22 @@ class LayersInteractorVolumesWidget(QCollapsibleGroupBox):
         self.content_label.update()
         QApplication.processEvents()
 
+    def on_patient_view_toggled(self, patient_uid):
+        active_patient = SoftwareConfigResources.getInstance().patients_parameters[patient_uid]
+        for volume_id in list(active_patient.mri_volumes.keys()):
+            if not volume_id in list(self.volumes_widget.keys()):
+                self.on_import_volume(volume_id)
+
+        # The first MRI volume loaded is displayed by default, hence toggling the eye-iconed push button.
+        if len(self.volumes_widget) > 0:
+            self.volumes_widget[list(self.volumes_widget.keys())[0]].header_pushbutton.right_icon_widget.setChecked(True)
+            self.volumes_widget[list(self.volumes_widget.keys())[0]].header_pushbutton.right_icon_widget.clicked.emit()
+
+         # @TODO. None of the below methods actually repaint the widget properly...
+        self.content_label.repaint()
+        self.content_label.update()
+        QApplication.processEvents()
+
     def on_import_volume(self, volume_id):
         volume_widget = LayersInteractorVolumeCollapsibleGroupBox(mri_uid=volume_id, parent=self)
         self.volumes_widget[volume_id] = volume_widget

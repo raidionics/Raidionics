@@ -10,7 +10,7 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
     @FIXME. For enabling a global QEvent catch, have to listen/retrieve from the patient_list_scrollarea_dummy_widget,
     and maybe the SinglePatientResultsWidget if the scroll area is filled.
     """
-    patient_selected = Signal()
+    patient_selected = Signal(str)  # Unique internal id of the selected patient
 
     def __init__(self, parent=None):
         super(PatientResultsSinglePatientSidePanelWidget, self).__init__()
@@ -102,7 +102,7 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         self.patient_results_widgets[widget_id].header_pushbutton.setEnabled(False)
         SoftwareConfigResources.getInstance().set_active_patient(widget_id)
         # When a patient is selected in the left panel, a visual update of the central/right panel is triggered
-        self.patient_selected.emit()
+        self.patient_selected.emit(widget_id)
 
     def on_add_new_empty_patient(self):
         uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_patient("Temp Patient")

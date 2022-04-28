@@ -14,6 +14,7 @@ class LayersInteractorSinglePatientSidePanelWidget(QWidget):
     annotation_volume_imported = Signal(str)
 
     import_data_triggered = Signal()
+    patient_view_toggled = Signal(str)
     volume_view_toggled = Signal(str, bool)
     annotation_view_toggled = Signal(str, bool)
     annotation_opacity_changed = Signal(str, int)
@@ -74,6 +75,8 @@ class LayersInteractorSinglePatientSidePanelWidget(QWidget):
     def __set_connections(self):
         self.mri_volume_imported.connect(self.volumes_collapsiblegroupbox.on_mri_volume_import)
         self.annotation_volume_imported.connect(self.annotations_collapsiblegroupbox.on_import_volume)
+        self.patient_view_toggled.connect(self.volumes_collapsiblegroupbox.on_patient_view_toggled)
+        self.patient_view_toggled.connect(self.annotations_collapsiblegroupbox.on_patient_view_toggled)
 
         self.import_data_triggered.connect(self.volumes_collapsiblegroupbox.on_import_data)
         self.import_data_triggered.connect(self.annotations_collapsiblegroupbox.on_import_data)
@@ -101,7 +104,8 @@ class LayersInteractorSinglePatientSidePanelWidget(QWidget):
         # @TODO. Would have to check what is the actual data type to trigger the correct signal
         self.import_data_triggered.emit()
 
-    def on_patient_selected(self):
+    def on_patient_selected(self, patient_uid):
         self.volumes_collapsiblegroupbox.reset()
         self.annotations_collapsiblegroupbox.reset()
-        self.import_data_triggered.emit()
+        # self.import_data_triggered.emit()
+        self.patient_view_toggled.emit(patient_uid)
