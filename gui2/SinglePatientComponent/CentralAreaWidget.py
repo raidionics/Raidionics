@@ -10,10 +10,8 @@ class CentralAreaWidget(QWidget):
     """
 
     """
-    import_data_triggered = Signal()
-    # The str is the unique id for the annotation volume, belonging to the active patient
-    annotation_volume_imported = Signal(str)
-    mri_volume_imported = Signal(str)
+    mri_volume_imported = Signal(str)  # The str is the unique id for the MRI volume, belonging to the active patient
+    annotation_volume_imported = Signal(str)  # The str is the unique id for the annotation volume, belonging to the active patient
     patient_view_toggled = Signal(str)
     volume_view_toggled = Signal(str, bool)
     annotation_view_toggled = Signal(str, bool)

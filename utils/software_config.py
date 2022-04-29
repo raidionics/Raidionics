@@ -99,27 +99,9 @@ class SoftwareConfigResources:
 
     def update_active_patient_name(self, new_name):
         self.patients_parameters[self.active_patient_name].update_visible_name(new_name)
-        # self.patients_parameters[self.active_patient_name].patient_visible_name = new_name
-
-        # # @TODO. What if the new_name already exists, prevent update or append number?
-        # self.patients_parameters[new_name] = self.patients_parameters[self.active_patient_name]
-        # del self.patients_parameters[self.active_patient_name]
-        # self.active_patient_name = new_name
-        # self.patients_parameters[new_name].update_id(new_name)
 
     def set_active_patient(self, patient_uid):
         self.active_patient_name = patient_uid
 
     def get_active_patient(self):
         return self.patients_parameters[self.active_patient_name]
-
-    # def prepare_processing(self, mri_uid, tumor_seg_uid, tumor_type):
-    #     if self.diagnostics_runner == None:
-    #         from diagnosis.src.NeuroDiagnosis.neuro_diagnostics import NeuroDiagnostics
-    #         self.diagnostics_runner = NeuroDiagnostics()
-    #     ResourcesConfiguration.getInstance().set_execution_environment(output_dir=self.patients_parameters[self.active_patient_name].output_folder)
-    #     self.diagnostics_runner.select_tumor_type(tumor_type=tumor_type)
-    #     self.diagnostics_runner.load_new_inputs(input_filename=self.patients_parameters[self.active_patient_name].mri_volumes[mri_uid].raw_filepath,
-    #                                             input_segmentation=self.patients_parameters[self.active_patient_name].annotation_volumes[tumor_seg_uid].raw_filepath)
-    #     # self.diagnostics_runner.select_preprocessing_scheme(scheme=self.seg_preprocessing_scheme)
-    #     self.diagnostics_runner.prepare_to_run()

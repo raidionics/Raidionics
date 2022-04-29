@@ -14,10 +14,9 @@ class CustomQGraphicsView(QGraphicsView):
     """
 
     """
-    import_data_triggered = Signal()  # From the drag/drop event to include more data to the scene.
-    annotation_volume_imported = Signal(str)
-    mri_volume_imported = Signal(str)
-    patient_imported = Signal(str)
+    mri_volume_imported = Signal(str)  # From the drag/drop event to include more MRI volumes
+    annotation_volume_imported = Signal(str)  # From the drag/drop event to include more annotations
+    patient_imported = Signal(str)  # From the drag/drop event to include more patients to the project?
     coordinates_changed = Signal(int, int)  # From the mouse move event to change the point-of-view.
 
     def __init__(self, view_type='axial', parent=None):
@@ -169,7 +168,6 @@ class CustomQGraphicsView(QGraphicsView):
         code = dialog.exec_()
 
         # if code == QDialog.Accepted:
-        #     self.import_data_triggered.emit()
 
     def update_annotation_view(self, annotation_uid, annotation_slice):
         """

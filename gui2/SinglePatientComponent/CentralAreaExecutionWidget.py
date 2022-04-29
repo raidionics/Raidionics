@@ -89,15 +89,8 @@ class CentralAreaExecutionWidget(QWidget):
         self.run_segmentation_pushbutton.setEnabled(False)
         self.run_reporting_pushbutton.setEnabled(False)
 
-        #@TODO. adjust_input_volume_for_nifti(self.input_image_filepath, self.output_folderpath)
-
         # @TODO. Include a dialog to dump the current progress of the process.
         try:
-            # start_time = time.time()
-            # print('Initialize - Begin (Step 0/2)')
-            # print('Initialize - End (Step 0/2)')
-            # print('Step runtime: {} seconds.'.format(np.round(time.time() - start_time, 3)) + "\n")
-            # self.diagnostics_runner.run_segmentation_only()
             runtime = generate_runtime_config(method='thresholding', order='resample_first')
             runtime_fn = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../', 'resources',
                                              'segmentation_runtime_config.ini')
