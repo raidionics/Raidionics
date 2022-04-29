@@ -5,12 +5,10 @@
 !define INSTALLER_NAME "Raidionics-1.0.0-win.exe"
 !define MAIN_APP_EXE "Raidionics.exe"
 !define INSTALL_TYPE "SetShellVarContext current"
-!define REG_ROOT "HKLM"  
-# "HKCU" or "HKLM" : https://nsis.sourceforge.io/Add_uninstall_information_to_Add/Remove_Programs
+!define REG_ROOT "HKLM"
 
 !define REG_APP_PATH "Software\Microsoft\Windows\CurrentVersion\App Paths\${MAIN_APP_EXE}"
 !define UNINSTALL_PATH "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}"
-
 !define REG_START_MENU "Start Menu Folder"
 
 var SM_Folder
@@ -20,7 +18,6 @@ var SM_Folder
 SetCompressor ZLIB
 Name "${APP_NAME}"
 Caption "${APP_NAME}"
-# Icon ".\images\raidionics-logo.ico"
 OutFile "${INSTALLER_NAME}"
 BrandingText "${APP_NAME}"
 XPStyle on
