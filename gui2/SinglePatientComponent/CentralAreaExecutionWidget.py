@@ -6,7 +6,6 @@ import traceback
 import os
 import threading
 import shutil
-from segmentation.main import main_segmentation
 from utils.software_config import SoftwareConfigResources
 from gui2.UtilsWidgets.TumorTypeSelectionQDialog import TumorTypeSelectionQDialog
 from segmentation.src.Utils.configuration_parser import generate_runtime_config
@@ -85,6 +84,7 @@ class CentralAreaExecutionWidget(QWidget):
         self.run_segmentation_thread.start()
 
     def run_segmentation(self):
+        from segmentation.main import main_segmentation
         # Freezing buttons
         self.run_segmentation_pushbutton.setEnabled(False)
         self.run_reporting_pushbutton.setEnabled(False)

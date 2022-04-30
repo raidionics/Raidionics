@@ -265,6 +265,9 @@ class PatientParameters:
 
 
 class MRIVolume():
+    """
+    Class defining how an MRI volume should be handled.
+    """
     def __init__(self, uid, filename):
         self.unique_id = uid
         self.raw_filepath = filename
@@ -291,6 +294,9 @@ class MRIVolume():
 
 
 class AnnotationVolume():
+    """
+    Class defining how an annotation volume should be handled.
+    """
     def __init__(self, uid, filename):
         self.unique_id = uid
         self.raw_filepath = filename
@@ -301,3 +307,17 @@ class AnnotationVolume():
         self.display_color = [255, 255, 255, 255]  # List with format: r, g, b, a
         self.display_opacity = 50
         self.display_name = uid
+
+
+class ProjectParameters:
+    """
+    Class defining a project, meant to hold a collection of patients inside the same folder.
+    """
+    def __init__(self, project_uid):
+        """
+
+        """
+        self.uid = project_uid
+        self.display_name = None
+        self.output_directory = None
+        self.patients = []  # List of PatientParameters belonging to the project

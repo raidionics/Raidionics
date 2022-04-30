@@ -26,6 +26,8 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.__set_system_part()
         self.__set_overall_part()
         self.__set_volumes_part()
+        self.__set_multifocality_part()
+        self.__set_cortical_structures_part()
         self.content_label_layout.addStretch(1)
 
     def __set_system_part(self):
@@ -76,7 +78,6 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.tumor_found_layout.addWidget(self.tumor_found_header_label)
         self.tumor_found_layout.addWidget(self.tumor_found_label)
         self.overall_collapsiblegroupbox.content_label_layout.addLayout(self.tumor_found_layout)
-        self.overall_collapsiblegroupbox.content_label.setStyleSheet("QLabel{background-color:rgb(254,254,254);}")
 
     def __set_volumes_part(self):
         self.volumes_collapsiblegroupbox = QCollapsibleGroupBox("Volumes", self)
@@ -97,7 +98,37 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.original_space_volume_layout.addWidget(self.original_space_volume_header_label)
         self.original_space_volume_layout.addWidget(self.original_space_volume_label)
         self.volumes_collapsiblegroupbox.content_label_layout.addLayout(self.original_space_volume_layout)
-        self.volumes_collapsiblegroupbox.content_label.setStyleSheet("QLabel{background-color:rgb(254,254,254);}")
+
+    def __set_multifocality_part(self):
+        self.multifocality_collapsiblegroupbox = QCollapsibleGroupBox("Multifocality", self)
+        self.multifocality_collapsiblegroupbox.set_header_icons(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                                       '../../Images/uncollapased_icon.png'),
+                                                          QSize(20, 20),
+                                                          os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                                       '../../Images/collapsed_icon.png'),
+                                                          QSize(20, 20))
+        self.multifocality_collapsiblegroupbox.setBaseSize(QSize(self.parent.baseSize().width(), 150))
+        self.content_label_layout.addWidget(self.multifocality_collapsiblegroupbox)
+
+        self.multifocality_pieces_header_label = QLabel("Number focus:")
+        self.multifocality_pieces_label = QLabel(" - ")
+        self.multifocality_pieces_label.setStyleSheet("QLabel{text-align:right;}")
+        self.multifocality_layout = QHBoxLayout()
+        self.multifocality_layout.setContentsMargins(10, 0, 10, 0)
+        self.multifocality_layout.addWidget(self.multifocality_pieces_header_label)
+        self.multifocality_layout.addWidget(self.multifocality_pieces_label)
+        self.multifocality_collapsiblegroupbox.content_label_layout.addLayout(self.multifocality_layout)
+
+    def __set_cortical_structures_part(self):
+        self.corticalstructures_collapsiblegroupbox = QCollapsibleGroupBox("Cortical structures", self)
+        self.corticalstructures_collapsiblegroupbox.set_header_icons(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                                       '../../Images/uncollapased_icon.png'),
+                                                          QSize(20, 20),
+                                                          os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                                       '../../Images/collapsed_icon.png'),
+                                                          QSize(20, 20))
+        self.corticalstructures_collapsiblegroupbox.setBaseSize(QSize(self.parent.baseSize().width(), 150))
+        self.content_label_layout.addWidget(self.corticalstructures_collapsiblegroupbox)
 
     def __set_connections(self):
         self.patient_name_lineedit.returnPressed.connect(self.__on_patient_name_modified)
@@ -105,6 +136,8 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.default_collapsiblegroupbox.header_pushbutton.clicked.connect(self.adjustSize)
         self.overall_collapsiblegroupbox.header_pushbutton.clicked.connect(self.adjustSize)
         self.volumes_collapsiblegroupbox.header_pushbutton.clicked.connect(self.adjustSize)
+        self.multifocality_collapsiblegroupbox.header_pushbutton.clicked.connect(self.adjustSize)
+        self.corticalstructures_collapsiblegroupbox.header_pushbutton.clicked.connect(self.adjustSize)
 
     def __set_stylesheets(self):
         self.content_label.setStyleSheet("QLabel{background-color:rgb(254,254,254);}")
@@ -114,11 +147,20 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.default_collapsiblegroupbox.header_pushbutton.setStyleSheet("QPushButton{background-color:rgb(248, 248, 248); text-align:left;}")
         self.overall_collapsiblegroupbox.header_pushbutton.setStyleSheet("QPushButton{background-color:rgb(248, 248, 248); text-align:left;}")
         self.volumes_collapsiblegroupbox.header_pushbutton.setStyleSheet("QPushButton{background-color:rgb(248, 248, 248); text-align:left;}")
+        self.multifocality_collapsiblegroupbox.header_pushbutton.setStyleSheet("QPushButton{background-color:rgb(248, 248, 248); text-align:left;}")
+        self.corticalstructures_collapsiblegroupbox.header_pushbutton.setStyleSheet("QPushButton{background-color:rgb(248, 248, 248); text-align:left;}")
+
+        self.overall_collapsiblegroupbox.content_label.setStyleSheet("QLabel{background-color:rgb(254,254,254);}")
+        self.volumes_collapsiblegroupbox.content_label.setStyleSheet("QLabel{background-color:rgb(254,254,254);}")
+        self.multifocality_collapsiblegroupbox.content_label.setStyleSheet("QLabel{background-color:rgb(254,254,254);}")
+        self.corticalstructures_collapsiblegroupbox.content_label.setStyleSheet("QLabel{background-color:rgb(254,254,254);}")
 
     def adjustSize(self):
         actual_height = self.default_collapsiblegroupbox.sizeHint().height() + \
                         self.overall_collapsiblegroupbox.sizeHint().height() +\
-                        self.volumes_collapsiblegroupbox.sizeHint().height()
+                        self.volumes_collapsiblegroupbox.sizeHint().height() + \
+                        self.multifocality_collapsiblegroupbox.sizeHint().height() + \
+                        self.corticalstructures_collapsiblegroupbox.sizeHint().height()
         self.content_label.setFixedSize(QSize(self.size().width(), actual_height))
 
     def __on_patient_name_modified(self):

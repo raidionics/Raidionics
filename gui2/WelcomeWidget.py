@@ -113,7 +113,7 @@ class WelcomeWidget(QWidget):
 
         self.left_panel_welcome_label = QLabel()
         self.left_panel_welcome_label.setText("Welcome to Raidionics")
-        self.left_panel_welcome_label.setFixedSize(QSize(220, 20))
+        self.left_panel_welcome_label.setFixedSize(QSize(240, 20))
         self.left_panel_layout.addWidget(self.left_panel_welcome_label)
         self.left_panel_startby_label = QLabel()
         self.left_panel_startby_label.setText("Start by: ")

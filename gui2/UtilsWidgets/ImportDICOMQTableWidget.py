@@ -9,7 +9,8 @@ class ImportDICOMQTableWidget(ContextMenuQTableWidget):
     """
 
     """
-    display_metadata_triggered = Signal(int)
+    display_metadata_triggered = Signal(int)  # Row index of the clicked cell
+    remove_entry_triggered = Signal(int)  # Row index of the clicked cell
 
     def __init__(self, parent=None):
         super(ImportDICOMQTableWidget, self).__init__(parent)
@@ -28,6 +29,7 @@ class ImportDICOMQTableWidget(ContextMenuQTableWidget):
 
     def __set_connections(self):
         self.display_metadata_action.triggered.connect(self.__on_display_metadata_triggered)
+        self.remove_action.triggered.connect(self.__on_remove_entry_triggered)
 
     def mousePressEvent(self, event):
         """
@@ -41,3 +43,6 @@ class ImportDICOMQTableWidget(ContextMenuQTableWidget):
 
     def __on_display_metadata_triggered(self):
         self.display_metadata_triggered.emit(self.current_item.row())
+
+    def __on_remove_entry_triggered(self):
+        self.remove_entry_triggered.emit(self.current_item.row())

@@ -7,7 +7,7 @@ from gui2.UtilsWidgets.QCustomIconsPushButton import QCustomIconsPushButton
 
 class ContextMenuQTableWidget(QTableWidget):
     """
-
+    Generic QTableWidget with a contextual menu appearing under cursor on right click event.
     """
 
     def __init__(self, parent=None):
@@ -42,10 +42,6 @@ class ContextMenuQTableWidget(QTableWidget):
                 self.current_item = item
                 self.context_menu.exec_(event.globalPos())
         super(ContextMenuQTableWidget, self).mousePressEvent(event)
-
-    # def __on_display_metadata_triggered(self):
-    #     #@TODO. Should emit a Signal with the item pos to know which DICOM series it is.
-    #     pass
 
     def get_column_values(self, column_index):
         result = []
