@@ -163,7 +163,7 @@ class ImportDICOMDataQDialog(QDialog):
                                                                                 error_msg))
                 diag.exec_()
             else:
-                    self.mri_volume_imported.emit(uid)
+                self.mri_volume_imported.emit(uid)
             self.load_progressbar.setValue(elem + 1)
         self.load_progressbar.setVisible(False)
         self.accept()

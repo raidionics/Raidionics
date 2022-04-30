@@ -11,6 +11,9 @@ import numpy as np
 from scipy.ndimage import rotate
 import json
 from aenum import Enum, unique
+import logging
+from typing import Union, Any
+from utils.patient_dicom import DICOMSeries
 
 
 @unique
@@ -53,11 +56,11 @@ class PatientParameters:
 
         # By default, the temp_patient folder is created
         # self.output_folder = os.path.join(self.output_dir, self.patient_visible_name.lower().replace(" ", '_'))
-        self.output_folder = os.path.join(self.output_dir, "temp_patient")
+        self.output_folder = os.path.join(self.output_dir, "patients", "temp_patient")
         if os.path.exists(self.output_folder):
             shutil.rmtree(self.output_folder)
         os.makedirs(self.output_folder)
-
+        logging.info("Default output directory set to: {}".format(self.output_folder))
         self.__init_json_config()
         self.mri_volumes = {}
         self.annotation_volumes = {}
@@ -85,23 +88,25 @@ class PatientParameters:
 
     def set_visible_name(self, new_name):
         self.patient_visible_name = new_name.strip()
-        new_output_folder = os.path.join(self.output_dir, self.patient_visible_name.lower().replace(" ", '_'))
+        new_output_folder = os.path.join(self.output_dir, "patients", self.patient_visible_name.lower().replace(" ", '_'))
         if os.path.exists(new_output_folder):
             # @TODO. What to do if a folder with the same name already exists? Should prompt the user to choose another name?
             pass
         else:
             shutil.move(src=self.output_folder, dst=new_output_folder, copy_function=shutil.copytree)
             self.output_folder = new_output_folder
+            logging.info("Renamed current output folder to: {}".format(self.output_folder))
 
     def update_visible_name(self, new_name):
         self.patient_visible_name = new_name.strip()
-        new_output_folder = os.path.join(self.output_dir, self.patient_visible_name.lower().replace(" ", '_'))
+        new_output_folder = os.path.join(self.output_dir, "patients", self.patient_visible_name.lower().replace(" ", '_'))
         if os.path.exists(new_output_folder):
             # @TODO. What to do if a folder with the same name already exists? Should prompt the user to choose another name?
             pass
         else:
             shutil.move(src=self.output_folder, dst=new_output_folder, copy_function=shutil.copytree)
             self.output_folder = new_output_folder
+            logging.info("Renamed current output folder to: {}".format(self.output_folder))
 
     def import_patient(self, filename):
         error_message = None
@@ -145,7 +150,7 @@ class PatientParameters:
             error_message = "Import patient failed, from {}".format(os.path.basename(filename))
         return error_message
 
-    def import_data(self, filename, type="MRI"):
+    def import_data(self, filename: str, type: str = "MRI") -> Union[str, Any]:
         """
         Saving the raw file, and preprocessing it to have fixed orientations and uint8 values.
         """
@@ -206,14 +211,20 @@ class PatientParameters:
 
         return data_uid, error_message
 
-    def import_dicom_data(self, dicom_series):
+    def import_dicom_data(self, dicom_series: DICOMSeries) -> Union[str, Any]:
         """
 
         """
-        self.output_folder = os.path.join(self.output_folder, self.patient_id)
-        os.makedirs(self.output_folder, exist_ok=True)
         ori_filename = os.path.join(self.output_folder, dicom_series.get_unique_readable_name() + '.nii.gz')
+        filename_taken = os.path.exists(ori_filename)
+        while filename_taken:
+            trail = str(np.random.randint(0, 100000))
+            ori_filename = os.path.join(self.output_folder, dicom_series.get_unique_readable_name() + '_' +
+                                        str(trail) + '.nii.gz')
+            filename_taken = os.path.exists(ori_filename)
+
         sitk.WriteImage(dicom_series.volume, ori_filename)
+        logging.info("Converted DICOM import to {}".format(ori_filename))
         uid, error_msg = self.import_data(ori_filename, type="MRI")
         return uid, error_msg
 

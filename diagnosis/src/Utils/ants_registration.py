@@ -9,7 +9,6 @@ import shutil
 import zipfile
 import gzip
 from dipy.align.reslice import reslice
-import ants
 from diagnosis.src.Processing.brain_processing import *
 from utils.runtime_config_parser import RuntimeResources
 
@@ -106,6 +105,7 @@ class ANTsRegistration:
             print('Exception caught during registration. Error message: {}'.format(e))
 
     def compute_registration_python(self, moving, fixed, registration_method):
+        import ants
         moving_ants = ants.image_read(moving, dimension=3)
         fixed_ants = ants.image_read(fixed, dimension=3)
         try:
@@ -129,6 +129,7 @@ class ANTsRegistration:
             self.apply_registration_transform_cpp(moving, fixed, interpolation)
 
     def apply_registration_transform_python(self, moving, fixed, interpolation='nearestNeighbor'):
+        import ants
         moving_ants = ants.image_read(moving, dimension=3)
         fixed_ants = ants.image_read(fixed, dimension=3)
         try:
@@ -194,6 +195,7 @@ class ANTsRegistration:
             print('Failed to apply transforms on input image with {}'.format(e))
 
     def apply_registration_inverse_transform_python(self, moving, fixed, interpolation='nearestNeighbor', label=''):
+        import ants
         moving_ants = ants.image_read(moving, dimension=3)
         fixed_ants = ants.image_read(fixed, dimension=3)
         try:

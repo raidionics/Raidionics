@@ -88,9 +88,12 @@ class ImportDataQDialog(QDialog):
         input_image_filedialog.setWindowFlags(Qt.WindowStaysOnTopHint)
         input_directory = input_image_filedialog.getExistingDirectory(self, caption='Select input directory',
                                                                       directory='~',
-                                                                      filter=QFileDialog.ShowDirsOnly and QFileDialog.DontResolveSymlinks)[0]
+                                                                      filter=QFileDialog.ShowDirsOnly and QFileDialog.DontResolveSymlinks)
         found_files = []
-        for _, _, files in os.walk(input_directory):
+        if input_directory == "":
+            return
+
+        for _, _, files in os.walk(input_directory[0]):
             for f in files:
                 extension = '.'.join(os.path.basename(f).split('.')[1:])
                 # @TODO. Have to check again against valid extensions from SoftwareResources
@@ -101,10 +104,10 @@ class ImportDataQDialog(QDialog):
         input_image_filedialog.setWindowFlags(Qt.WindowStaysOnTopHint)
         # @TODO. Should query the allowed file extensions from SoftwareResources
         # @FIXME. The QFileDialog ignores the director parameter
-        input_filepaths = input_image_filedialog.getOpenFileNames(self, caption='Select input file(s)',
+        input_filepaths, filters = input_image_filedialog.getOpenFileNames(self, caption='Select input file(s)',
                                                                   directory=self.tr(self.current_folder),
-                                                                  filter="Files (*.nii *.nii.gz *.nrrd *.mha *.mhd *.neurorads)")[0]  # , options=QFileDialog.DontUseNativeDialog
-        if input_filepaths[0] != "":
+                                                                  filter="Files (*.nii *.nii.gz *.nrrd *.mha *.mhd *.neurorads)")  # , options=QFileDialog.DontUseNativeDialog
+        if len(input_filepaths) != 0 and input_filepaths[0] != "":
             self.current_folder = os.path.dirname(input_filepaths[0])
         self.setup_interface_from_files(input_filepaths)
 
