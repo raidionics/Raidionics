@@ -6,8 +6,8 @@ from PySide2.QtGui import QIcon, QDesktopServices, QCloseEvent
 import traceback, time
 import threading
 import numpy as np
+import logging
 import warnings
-
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 from utils.runtime_config_parser import RuntimeResources
@@ -52,8 +52,8 @@ class NeuroRADSMainWindow(QMainWindow):
         # self.printer_thread.start()
 
     def closeEvent(self, event):
-        self.processing_area_widget.closeEvent(event)
-        self.printer_thread.stop()
+        # self.printer_thread.stop()
+        pass
 
     def resizeEvent(self, event):
         new_size = event.size()
@@ -129,51 +129,6 @@ class NeuroRADSMainWindow(QMainWindow):
         self.single_patient_widget = SinglePatientWidget(self)
         self.central_stackedwidget.insertWidget(1, self.single_patient_widget)
         self.central_stackedwidget_dict[self.single_patient_widget.get_widget_name()] = 1
-
-        # self.main_selection_layout.addWidget(self.central_widget)
-        #
-        # self.welcome_label = QLabel()
-        # self.welcome_label.setText("Welcome to Neurorads")
-        # self.welcome_label.setFixedSize(QSize(220, 20))
-        # self.main_selection_layout.addWidget(self.welcome_label)
-        # self.startby_label = QLabel()
-        # self.startby_label.setText("Start by segmenting")
-        # self.startby_label.setFixedSize(QSize(200, 20))
-        # self.main_selection_layout.addWidget(self.startby_label)
-        # self.main_selection_pushbutton1 = QPushButton()
-        # self.main_selection_pushbutton1_icon = QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Images/single_patient_icon_colored.png')))
-        # self.main_selection_pushbutton1.setIcon(self.main_selection_pushbutton1_icon)
-        # self.main_selection_pushbutton1.setIconSize(QSize(50, 25))
-        # self.main_selection_pushbutton1.setText("New single patient")
-        # self.main_selection_pushbutton1.setFixedSize(QSize(220, 40))
-        # self.main_selection_layout.addWidget(self.main_selection_pushbutton1)
-        #
-        # self.or_layout = QHBoxLayout()
-        # self.left_line_or_label = QLabel()
-        # self.left_line_or_label.setFixedSize(QSize(90, 3))
-        # self.right_line_or_label = QLabel()
-        # self.right_line_or_label.setFixedSize(QSize(90, 3))
-        # self.center_or_label = QLabel()
-        # self.center_or_label.setText("or")
-        # self.center_or_label.setFixedSize(QSize(30, 40))
-        # self.or_layout.addWidget(self.left_line_or_label)
-        # self.or_layout.addWidget(self.center_or_label)
-        # self.or_layout.addWidget(self.right_line_or_label)
-        # self.or_layout.addStretch(1)
-        # self.main_selection_layout.addLayout(self.or_layout)
-        #
-        # self.main_selection_pushbutton2 = QPushButton()
-        # self.main_selection_pushbutton2.setText("New multiple patients")
-        # self.main_selection_pushbutton2_icon = QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Images/multiple_patients_icon_colored.png')))
-        # self.main_selection_pushbutton2.setIcon(self.main_selection_pushbutton2_icon)
-        # self.main_selection_pushbutton2.setIconSize(QSize(50, 25))
-        # self.main_selection_pushbutton2.setFixedSize(QSize(220, 40))
-        # self.main_selection_layout.addWidget(self.main_selection_pushbutton2)
-        # self.main_selection_layout.addStretch(1)
-        # self.main_selection_widget = QWidget()
-        # self.main_selection_widget.setLayout(self.main_selection_layout)
-        # self.central_stackedwidget.addWidget(self.main_selection_widget)
-
         self.central_stackedwidget.setMinimumSize(self.size())
 
     def __set_layouts(self):
@@ -228,11 +183,6 @@ class NeuroRADSMainWindow(QMainWindow):
     def __set_menubar_connections(self):
         pass
 
-    def __set_params(self):
-        self.input_image_filepath = ''
-        self.input_annotation_filepath = ''
-        self.output_folderpath = ''
-
     def __getScreenDimensions(self):
         screen = self.app.primaryScreen()
         size = screen.size()
@@ -243,13 +193,16 @@ class NeuroRADSMainWindow(QMainWindow):
         self.left = (size.width() - self.width) / 2
         self.top = (size.height() - self.height) / 2
         self.setBaseSize(QSize(self.width, self.height))
-
+        logging.debug("Setting default dimensions to [{}, {}]".format(self.width, self.height))
         # self.setGeometry(self.left, self.top, self.width * 0.5, self.height * 0.5)
 
     def __on_central_stacked_widget_index_changed(self, index):
         pass
 
     def __on_single_patient_clicked(self):
+        """
+        Set the stacked widget to display the SinglePatientWidget interface.
+        """
         name = self.single_patient_widget.get_widget_name()
         index = -1
         if name in self.central_stackedwidget_dict.keys():
@@ -257,8 +210,6 @@ class NeuroRADSMainWindow(QMainWindow):
 
         if index != -1:
             self.central_stackedwidget.setCurrentIndex(index)
-            # uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_patient("Temp Patient")
-            # self.new_patient_clicked.emit(SoftwareConfigResources.getInstance().get_active_patient().patient_id)
         else:
             # Should not happen, but what if?
             pass
@@ -301,76 +252,9 @@ class NeuroRADSMainWindow(QMainWindow):
         self.printer_thread.stop()
         sys.exit()
 
-    def segmentation_main_wrapper(self):
-        self.run_segmentation_thread = threading.Thread(target=self.run_segmentation)
-        self.run_segmentation_thread.daemon = True  # using daemon thread the thread is killed gracefully if program is abruptly closed
-        self.run_segmentation_thread.start()
-
-    def run_segmentation(self):
-        if not os.path.exists(self.input_image_filepath) or not os.path.exists(self.output_folderpath):
-            self.standardOutputWritten(
-                'Process could not be started - The 1st and 2nd above-fields must be filled in.\n')
-            return
-
-        self.run_button.setEnabled(False)
-        self.run_segmentation_button.setEnabled(False)
-        self.prompt_lineedit.clear()
-        self.main_display_tabwidget.setCurrentIndex(1)
-        QApplication.processEvents()  # to immediatly update GUI after button is clicked
-        self.seg_preprocessing_scheme = 'P1' if self.settings_seg_preproc_menu_p1_action.isChecked() else 'P2'
-
-        # env = ResourcesConfiguration.getInstance()
-        # env.set_environment(output_dir=self.output_folderpath)
-        try:
-            start_time = time.time()
-            print('Initialize - Begin (Step 0/6)')
-            from segmentation.main import main_segmentation
-            print('Initialize - End (Step 0/6)')
-            print('Step runtime: {} seconds.'.format(np.round(time.time() - start_time, 3)) + "\n")
-            main_segmentation(input_filename=self.input_image_filepath, output_folder=self.output_folderpath,
-                              model_name='MRI_HGGlioma_' + self.seg_preprocessing_scheme)
-        except Exception as e:
-            print('{}'.format(traceback.format_exc()))
-            self.run_button.setEnabled(True)
-            self.run_segmentation_button.setEnabled(True)
-            self.standardOutputWritten('Process could not be completed - Issue arose.\n')
-            QApplication.processEvents()
-            return
-
-        self.run_button.setEnabled(True)
-        self.run_segmentation_button.setEnabled(True)
-
-    def singleuse_mode_triggered(self):
-        self.central_stackedwidget.setCurrentIndex(1)
-        self.dummy_singleuse_widget.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
-        self.batch_mode_widget.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
-
-        self.central_stackedwidget.adjustSize()
-        self.adjustSize()
-
-    def batch_mode_triggered(self):
-        self.central_stackedwidget.setCurrentIndex(2)
-        self.batch_mode_widget.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
-        self.dummy_singleuse_widget.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
-
-        self.central_stackedwidget.adjustSize()
-        self.adjustSize()
-
     def help_action_triggered(self):
         # opens browser with specified url, directs user to Issues section of GitHub repo
         QDesktopServices.openUrl(QUrl("https://github.com/SINTEFMedtek/GSI-RADS/issues"))
-
-    def settings_seg_preproc_menu_p1_action_triggered(self, status):
-        if status:
-            self.settings_seg_preproc_menu_p2_action.setChecked(False)
-        else:
-            self.settings_seg_preproc_menu_p2_action.setChecked(True)
-
-    def settings_seg_preproc_menu_p2_action_triggered(self, status):
-        if status:
-            self.settings_seg_preproc_menu_p1_action.setChecked(False)
-        else:
-            self.settings_seg_preproc_menu_p1_action.setChecked(True)
 
     def settings_update_models_menu_active_action_triggered(self, status):
         RuntimeResources.getInstance().active_models_update_state = status

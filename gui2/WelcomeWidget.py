@@ -4,13 +4,16 @@ from PySide2.QtGui import QIcon, QPixmap
 from PySide2.QtCore import Qt, QSize, QUrl
 
 import os
+import logging
 from utils.software_config import SoftwareConfigResources
 
 
 #@FIXME. Inheriting directly from QWidget prevents to use stylesheets on that object. If white painting is needed, might
 # have to inherit from QLabel or something.
 class WelcomeWidget(QWidget):
-
+    """
+    Starting page when launching the software.
+    """
     def __init__(self, parent=None):
         super(WelcomeWidget, self).__init__()
         self.widget_name = "welcome_widget"
@@ -25,7 +28,7 @@ class WelcomeWidget(QWidget):
         self.__set_right_panel_interface()
         self.__set_left_panel_interface()
         self.central_label = QLabel()
-        # self.central_label.setFixedSize(QSize(self.parent.baseSize().width()*0.8, self.parent.baseSize().height()*0.8))
+        # self.central_label.setFixedSize(QSize(self.parent.baseSize().width(), self.parent.baseSize().height()))
         self.central_label.setFixedSize(QSize(700, 400))
         self.central_label.setContentsMargins(0, 0, 0, 0)
         self.central_layout = QHBoxLayout()
