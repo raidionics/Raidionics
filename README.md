@@ -68,3 +68,17 @@ To run directly from command line, without the use of the GUI, run the following
 > source venv/bin/activate  
 > python main.py -g 0 -i /path/to/volume/T1.nii.gz -o /path/to/output/ -d 0  
 > deactivate
+
+### How to cite
+Please, consider citing our paper, if you find the work useful:
+```
+@misc{https://doi.org/10.48550/arxiv.2204.14199,
+title = {Preoperative brain tumor imaging: models and software for segmentation and standardized reporting},
+author = {Bouget, D. and Pedersen, A. and Jakola, A. S. and Kavouridis, V. and Emblem, K. E. and Eijgelaar, R. S. and Kommers, I. and Ardon, H. and Barkhof, F. and Bello, L. and Berger, M. S. and Nibali, M. C. and Furtner, J. and Hervey-Jumper, S. and Idema, A. J. S. and Kiesel, B. and Kloet, A. and Mandonnet, E. and Müller, D. M. J. and Robe, P. A. and Rossi, M. and Sciortino, T. and Brink, W. Van den and Wagemakers, M. and Widhalm, G. and Witte, M. G. and Zwinderman, A. H. and Hamer, P. C. De Witt and Solheim, O. and Reinertsen, I.},
+doi = {10.48550/ARXIV.2204.14199},
+url = {https://arxiv.org/abs/2204.14199},
+keywords = {Image and Video Processing (eess.IV), Computer Vision and Pattern Recognition (cs.CV), Machine Learning (cs.LG), FOS: Electrical engineering, electronic engineering, information engineering, FOS: Electrical engineering, electronic engineering, information engineering, FOS: Computer and information sciences, FOS: Computer and information sciences, I.4.6; J.3},
+publisher = {arXiv},
+year = {2022},
+copyright = {Creative Commons Attribution 4.0 International}}
+```
