@@ -46,7 +46,8 @@ class ResourcesConfiguration:
         date = datetime.date.today().strftime('%d%m%Y')
         hour = time.strftime("%H%M%S")
         timestamp = date + '_' + hour
-        self.output_folder = os.path.join(output_dir, timestamp)
+        # self.output_folder = os.path.join(output_dir, timestamp)
+        self.output_folder = os.path.join(output_dir, "reporting")
         os.makedirs(self.output_folder, exist_ok=True)
         os.makedirs(os.path.join(self.output_folder, 'patient'), exist_ok=True)
 

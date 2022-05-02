@@ -2,6 +2,7 @@ import numpy as np
 import operator
 import collections
 import pandas as pd
+import json
 
 
 class NeuroDiagnosisParameters:
@@ -118,6 +119,54 @@ class NeuroDiagnosisParameters:
 
         values_df = pd.DataFrame(np.asarray(values).reshape((1, len(values))), columns=column_names)
         values_df.to_csv(filename, index=False)
+
+    def to_json(self, filename):
+        param_json = {}
+        param_json['Overall'] = {}
+        param_json['Overall']['Presence'] = self.tumor_presence_state
+        if not self.tumor_presence_state:
+            with open(filename, 'w') as outfile:
+                json.dump(param_json, outfile)
+            return
+
+        param_json['Overall']['Type'] = self.tumor_type
+        param_json['Overall']['Multifocality'] = self.tumor_multifocal
+        param_json['Overall']['Tumor parts nb'] = self.tumor_parts
+        param_json['Overall']['Multifocal distance (mm)'] = np.round(self.tumor_multifocal_distance, 2)
+
+        param_json['Main'] = {}
+
+        param_json['Main']['Total'] = {}
+        param_json['Main']['Total']['Volume original (ml)'] = self.statistics['Main']['Overall'].original_space_tumor_volume
+        param_json['Main']['Total']['Volume in MNI (ml)'] = self.statistics['Main']['Overall'].mni_space_tumor_volume
+        param_json['Main']['Total']['Left laterality (%)'] = np.round(self.statistics['Main']['Overall'].left_laterality_percentage*100., 2)
+        param_json['Main']['Total']['Right laterality (%)'] = np.round(self.statistics['Main']['Overall'].right_laterality_percentage*100., 2)
+        param_json['Main']['Total']['Midline crossing'] = self.statistics['Main']['Overall'].laterality_midline_crossing
+
+        if self.tumor_type == 'High-Grade Glioma':
+            param_json['Main']['Total']['ExpectedResidualVolume (ml)'] = np.round(self.statistics['Main']['Overall'].mni_space_expected_residual_tumor_volume, 2)
+            param_json['Main']['Total']['ResectionIndex'] = np.round(self.statistics['Main']['Overall'].mni_space_resectability_index, 3)
+
+        param_json['Main']['Total']['CorticalStructures'] = {}
+        for t in self.statistics['Main']['Overall'].mni_space_cortical_structures_overlap.keys():
+            param_json['Main']['Total']['CorticalStructures'][t] = {}
+            for r in self.statistics['Main']['Overall'].mni_space_cortical_structures_overlap[t].keys():
+                param_json['Main']['Total']['CorticalStructures'][t][r] = self.statistics['Main']['Overall'].mni_space_cortical_structures_overlap[t][r]
+
+        param_json['Main']['Total']['SubcorticalStructures'] = {}
+
+        for t in self.statistics['Main']['Overall'].mni_space_subcortical_structures_overlap.keys():
+            param_json['Main']['Total']['SubcorticalStructures'][t] = {}
+            param_json['Main']['Total']['SubcorticalStructures'][t]['Overlap'] = {}
+            param_json['Main']['Total']['SubcorticalStructures'][t]['Distance'] = {}
+            for ov in self.statistics['Main']['Overall'].mni_space_subcortical_structures_overlap[t].keys():
+                param_json['Main']['Total']['SubcorticalStructures'][t]['Overlap'][ov] = self.statistics['Main']['Overall'].mni_space_subcortical_structures_overlap[t][ov]
+            for di in self.statistics['Main']['Overall'].mni_space_subcortical_structures_distance[t].keys():
+                param_json['Main']['Total']['SubcorticalStructures'][t]['Distance'][di] = self.statistics['Main']['Overall'].mni_space_subcortical_structures_distance[t][di]
+
+        with open(filename, 'w', newline='\n') as outfile:
+            json.dump(param_json, outfile, indent=4, sort_keys=True)
+        return
 
 
 class TumorStatistics():

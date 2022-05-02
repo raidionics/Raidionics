@@ -26,6 +26,7 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.__set_system_part()
         self.__set_overall_part()
         self.__set_volumes_part()
+        self.__set_laterality_part()
         self.__set_multifocality_part()
         self.__set_cortical_structures_part()
         self.__set_subcortical_structures_part()
@@ -100,6 +101,53 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.original_space_volume_layout.addWidget(self.original_space_volume_label)
         self.volumes_collapsiblegroupbox.content_label_layout.addLayout(self.original_space_volume_layout)
 
+        self.mni_space_volume_header_label = QLabel("MNI space:")
+        self.mni_space_volume_label = QLabel(" - (ml) ")
+        self.mni_space_volume_label.setStyleSheet("QLabel{text-align:right;}")
+        self.mni_space_volume_layout = QHBoxLayout()
+        self.mni_space_volume_layout.setContentsMargins(10, 0, 10, 0)
+        self.mni_space_volume_layout.addWidget(self.mni_space_volume_header_label)
+        self.mni_space_volume_layout.addWidget(self.mni_space_volume_label)
+        self.volumes_collapsiblegroupbox.content_label_layout.addLayout(self.mni_space_volume_layout)
+
+    def __set_laterality_part(self):
+        self.laterality_collapsiblegroupbox = QCollapsibleGroupBox("Laterality", self)
+        self.laterality_collapsiblegroupbox.set_header_icons(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                                       '../../Images/uncollapased_icon.png'),
+                                                          QSize(20, 20),
+                                                          os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                                       '../../Images/collapsed_icon.png'),
+                                                          QSize(20, 20))
+        self.laterality_collapsiblegroupbox.setBaseSize(QSize(self.parent.baseSize().width(), 150))
+        self.content_label_layout.addWidget(self.laterality_collapsiblegroupbox)
+
+        self.laterality_left_header_label = QLabel("Left hemisphere:")
+        self.laterality_left_label = QLabel(" - % ")
+        self.laterality_left_label.setStyleSheet("QLabel{text-align:right;}")
+        self.laterality_left_layout = QHBoxLayout()
+        self.laterality_left_layout.setContentsMargins(10, 0, 10, 0)
+        self.laterality_left_layout.addWidget(self.laterality_left_header_label)
+        self.laterality_left_layout.addWidget(self.laterality_left_label)
+        self.laterality_collapsiblegroupbox.content_label_layout.addLayout(self.laterality_left_layout)
+
+        self.laterality_right_header_label = QLabel("Right hemisphere:")
+        self.laterality_right_label = QLabel(" - % ")
+        self.laterality_right_label.setStyleSheet("QLabel{text-align:right;}")
+        self.laterality_right_layout = QHBoxLayout()
+        self.laterality_right_layout.setContentsMargins(10, 0, 10, 0)
+        self.laterality_right_layout.addWidget(self.laterality_right_header_label)
+        self.laterality_right_layout.addWidget(self.laterality_right_label)
+        self.laterality_collapsiblegroupbox.content_label_layout.addLayout(self.laterality_right_layout)
+
+        self.laterality_midline_header_label = QLabel("Midline crossing:")
+        self.laterality_midline_label = QLabel(" - % ")
+        self.laterality_midline_label.setStyleSheet("QLabel{text-align:right;}")
+        self.laterality_midline_layout = QHBoxLayout()
+        self.laterality_midline_layout.setContentsMargins(10, 0, 10, 0)
+        self.laterality_midline_layout.addWidget(self.laterality_midline_header_label)
+        self.laterality_midline_layout.addWidget(self.laterality_midline_label)
+        self.laterality_collapsiblegroupbox.content_label_layout.addLayout(self.laterality_midline_layout)
+
     def __set_multifocality_part(self):
         self.multifocality_collapsiblegroupbox = QCollapsibleGroupBox("Multifocality", self)
         self.multifocality_collapsiblegroupbox.set_header_icons(os.path.join(os.path.dirname(os.path.realpath(__file__)),
@@ -120,6 +168,17 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.multifocality_layout.addWidget(self.multifocality_pieces_label)
         self.multifocality_collapsiblegroupbox.content_label_layout.addLayout(self.multifocality_layout)
 
+        self.multifocality_distance_header_label = QLabel("Maximum distance:")
+        self.multifocality_distance_label = QLabel(" - ")
+        self.multifocality_distance_label.setStyleSheet("QLabel{text-align:right;}")
+        self.multifocality_distance_layout = QHBoxLayout()
+        self.multifocality_distance_layout.setContentsMargins(10, 0, 10, 0)
+        self.multifocality_distance_layout.addWidget(self.multifocality_distance_header_label)
+        self.multifocality_distance_layout.addWidget(self.multifocality_distance_label)
+        self.multifocality_distance_header_label.setVisible(False)
+        self.multifocality_distance_label.setVisible(False)
+        self.multifocality_collapsiblegroupbox.content_label_layout.addLayout(self.multifocality_distance_layout)
+
     def __set_cortical_structures_part(self):
         self.corticalstructures_collapsiblegroupbox = QCollapsibleGroupBox("Cortical structures", self)
         self.corticalstructures_collapsiblegroupbox.set_header_icons(os.path.join(os.path.dirname(os.path.realpath(__file__)),
@@ -130,6 +189,11 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
                                                           QSize(20, 20))
         self.corticalstructures_collapsiblegroupbox.setBaseSize(QSize(self.parent.baseSize().width(), 150))
         self.content_label_layout.addWidget(self.corticalstructures_collapsiblegroupbox)
+
+        self.mni_corticalstructures_layout = QVBoxLayout()
+        self.mni_corticalstructures_layout.setSpacing(0)
+        self.mni_corticalstructures_layout.setContentsMargins(0, 0, 0, 0)
+        self.corticalstructures_collapsiblegroupbox.content_label_layout.addLayout(self.mni_corticalstructures_layout)
 
     def __set_subcortical_structures_part(self):
         self.subcorticalstructures_collapsiblegroupbox = QCollapsibleGroupBox("Subcortical structures", self)
@@ -148,6 +212,7 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.default_collapsiblegroupbox.header_pushbutton.clicked.connect(self.adjustSize)
         self.overall_collapsiblegroupbox.header_pushbutton.clicked.connect(self.adjustSize)
         self.volumes_collapsiblegroupbox.header_pushbutton.clicked.connect(self.adjustSize)
+        self.laterality_collapsiblegroupbox.header_pushbutton.clicked.connect(self.adjustSize)
         self.multifocality_collapsiblegroupbox.header_pushbutton.clicked.connect(self.adjustSize)
         self.corticalstructures_collapsiblegroupbox.header_pushbutton.clicked.connect(self.adjustSize)
         self.subcorticalstructures_collapsiblegroupbox.header_pushbutton.clicked.connect(self.adjustSize)
@@ -160,12 +225,14 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.default_collapsiblegroupbox.header_pushbutton.setStyleSheet("QPushButton{background-color:rgb(248, 248, 248); text-align:left;}")
         self.overall_collapsiblegroupbox.header_pushbutton.setStyleSheet("QPushButton{background-color:rgb(248, 248, 248); text-align:left;}")
         self.volumes_collapsiblegroupbox.header_pushbutton.setStyleSheet("QPushButton{background-color:rgb(248, 248, 248); text-align:left;}")
+        self.laterality_collapsiblegroupbox.header_pushbutton.setStyleSheet("QPushButton{background-color:rgb(248, 248, 248); text-align:left;}")
         self.multifocality_collapsiblegroupbox.header_pushbutton.setStyleSheet("QPushButton{background-color:rgb(248, 248, 248); text-align:left;}")
         self.corticalstructures_collapsiblegroupbox.header_pushbutton.setStyleSheet("QPushButton{background-color:rgb(248, 248, 248); text-align:left;}")
         self.subcorticalstructures_collapsiblegroupbox.header_pushbutton.setStyleSheet("QPushButton{background-color:rgb(248, 248, 248); text-align:left;}")
 
         self.overall_collapsiblegroupbox.content_label.setStyleSheet("QLabel{background-color:rgb(254,254,254);}")
         self.volumes_collapsiblegroupbox.content_label.setStyleSheet("QLabel{background-color:rgb(254,254,254);}")
+        self.laterality_collapsiblegroupbox.content_label.setStyleSheet("QLabel{background-color:rgb(254,254,254);}")
         self.multifocality_collapsiblegroupbox.content_label.setStyleSheet("QLabel{background-color:rgb(254,254,254);}")
         self.corticalstructures_collapsiblegroupbox.content_label.setStyleSheet("QLabel{background-color:rgb(254,254,254);}")
         self.subcorticalstructures_collapsiblegroupbox.content_label.setStyleSheet("QLabel{background-color:rgb(254,254,254);}")
@@ -174,6 +241,7 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         actual_height = self.default_collapsiblegroupbox.sizeHint().height() + \
                         self.overall_collapsiblegroupbox.sizeHint().height() +\
                         self.volumes_collapsiblegroupbox.sizeHint().height() + \
+                        self.laterality_collapsiblegroupbox.sizeHint().height() + \
                         self.multifocality_collapsiblegroupbox.sizeHint().height() + \
                         self.corticalstructures_collapsiblegroupbox.sizeHint().height() + \
                         self.subcorticalstructures_collapsiblegroupbox.sizeHint().height()
@@ -205,3 +273,35 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.title = patient_parameters.patient_visible_name
         self.header_pushbutton.setText(self.title)
 
+    def on_standardized_report_imported(self):
+        report_json = SoftwareConfigResources.getInstance().patients_parameters[self.uid].standardized_report
+
+        self.original_space_volume_label.setText(str(report_json['Main']['Total']['Volume original (ml)']) + ' ml')
+        self.mni_space_volume_label.setText(str(report_json['Main']['Total']['Volume in MNI (ml)']) + ' ml')
+
+        self.laterality_right_label.setText(str(report_json['Main']['Total']['Right laterality (%)']) + ' %')
+        self.laterality_left_label.setText(str(report_json['Main']['Total']['Left laterality (%)']) + ' %')
+        self.laterality_midline_label.setText(str(report_json['Main']['Total']['Midline crossing']))
+
+        self.multifocality_pieces_label.setText(str(report_json['Overall']['Tumor parts nb']))
+        if report_json['Overall']['Tumor parts nb'] > 1:
+            self.multifocality_distance_label.setText(str(report_json['Overall']['Multifocal distance (mm)']))
+            self.multifocality_distance_header_label.setVisible(True)
+            self.multifocality_distance_label.setVisible(True)
+        else:
+            self.multifocality_distance_header_label.setVisible(False)
+            self.multifocality_distance_label.setVisible(False)
+
+        # @TODO. Not working as intended
+        mni_corticalstructures_layout = QVBoxLayout()
+        for atlas in report_json['Main']['Total']['CorticalStructures']:
+            for struct in report_json['Main']['Total']['CorticalStructures'][atlas]:
+                # tmp_lay = QHBoxLayout()
+                # tmp_lay.addWidget(QLabel(struct))
+                # tmp_lay.addWidget(QLabel(str(report_json['Main']['Total']['CorticalStructures'][atlas][struct]) + ' %'))
+                # mni_corticalstructures_layout.addLayout(tmp_lay)
+                label = QLabel("{}: {} %".format(struct, str(report_json['Main']['Total']['CorticalStructures'][atlas][struct])))
+                label.setMinimumWidth(self.parent.baseSize().width())
+                label.setMinimumHeight(30)
+                mni_corticalstructures_layout.addWidget(label)
+        self.corticalstructures_collapsiblegroupbox.content_label_layout.addLayout(mni_corticalstructures_layout)

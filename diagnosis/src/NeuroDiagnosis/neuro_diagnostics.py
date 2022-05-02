@@ -117,23 +117,7 @@ class NeuroDiagnostics:
         # Dumping the different atlas labels
         self.registration_runner.dump_mni_atlas_labels()
 
-        # Registering the brain lobes to the patient's space
-        self.registration_runner.apply_registration_inverse_transform(moving=ResourcesConfiguration.getInstance().cortical_structures['MNI']['MNI']['Mask'],
-                                                                      fixed=self.input_filename,
-                                                                      interpolation='nearestNeighbor',
-                                                                      label='MNI')
-        self.registration_runner.apply_registration_inverse_transform(moving=ResourcesConfiguration.getInstance().cortical_structures['MNI']['Schaefer7']['Mask'],
-                                                                      fixed=self.input_filename,
-                                                                      interpolation='nearestNeighbor',
-                                                                      label='Schaefer7')
-        self.registration_runner.apply_registration_inverse_transform(moving=ResourcesConfiguration.getInstance().cortical_structures['MNI']['Schaefer17']['Mask'],
-                                                                      fixed=self.input_filename,
-                                                                      interpolation='nearestNeighbor',
-                                                                      label='Schaefer17')
-        self.registration_runner.apply_registration_inverse_transform(moving=ResourcesConfiguration.getInstance().cortical_structures['MNI']['Harvard-Oxford']['Mask'],
-                                                                      fixed=self.input_filename,
-                                                                      interpolation='nearestNeighbor',
-                                                                      label='Harvard-Oxford')
+        self.__apply_registration_cortical_structures()
         self.__apply_registration_subcortical_structures()
         if print_info:
             print('Apply registration - End (Step 5/6)')
@@ -146,6 +130,7 @@ class NeuroDiagnostics:
         self.__compute_statistics()
         self.diagnosis_parameters.to_txt(self.output_report_filepath)
         self.diagnosis_parameters.to_csv(self.output_report_filepath[:-4] + '.csv')
+        self.diagnosis_parameters.to_json(self.output_report_filepath[:-4] + '.json')
         if print_info:
             print('Generate report - End (Step 6/6)')
             print('Step runtime: {} seconds.'.format(time.time() - tmp_timer) + "\n")
@@ -287,16 +272,16 @@ class NeuroDiagnostics:
         predictions_file = None
         output_folder = os.path.join(self.output_path, 'tmp', '')
         os.makedirs(output_folder, exist_ok=True)
-        segmentation_model_name = None
-        #@TODO. Must be improved, where to convert the visible name to actual on-disk model name?
-        if self.tumor_type == 'High-Grade Glioma':
-            segmentation_model_name = 'MRI_HGGlioma_' + self.preprocessing_scheme
-        elif self.tumor_type == 'Low-Grade Glioma':
-            segmentation_model_name = 'MRI_LGGlioma'
-        elif self.tumor_type == 'Meningioma':
-            segmentation_model_name = 'MRI_Meningioma'
-        elif self.tumor_type == 'Metastasis':
-            segmentation_model_name = 'MRI_Metastasis'
+        segmentation_model_name = self.tumor_type #None
+        # #@TODO. Must be improved, where to convert the visible name to actual on-disk model name?
+        # if self.tumor_type == 'High-Grade Glioma':
+        #     segmentation_model_name = 'MRI_HGGlioma_' + self.preprocessing_scheme
+        # elif self.tumor_type == 'Low-Grade Glioma':
+        #     segmentation_model_name = 'MRI_LGGlioma'
+        # elif self.tumor_type == 'Meningioma':
+        #     segmentation_model_name = 'MRI_Meningioma'
+        # elif self.tumor_type == 'Metastasis':
+        #     segmentation_model_name = 'MRI_Metastasis'
 
         if segmentation_model_name is None:
             raise AttributeError('Could not find any satisfactory segmentation model -- aborting.\n')
@@ -527,6 +512,28 @@ class NeuroDiagnostics:
 
         self.diagnosis_parameters.statistics[category]['Overall'].mni_space_subcortical_structures_overlap[reference] = overlaps
         self.diagnosis_parameters.statistics[category]['Overall'].mni_space_subcortical_structures_distance[reference] = distances
+
+    def __apply_registration_cortical_structures(self):
+        # Registering the brain lobes to the patient's space
+        patient_dump_folder = os.path.join(ResourcesConfiguration.getInstance().output_folder, 'patient',
+                                           'Cortical-structures')
+        os.makedirs(patient_dump_folder, exist_ok=True)
+        self.registration_runner.apply_registration_inverse_transform(moving=ResourcesConfiguration.getInstance().cortical_structures['MNI']['MNI']['Mask'],
+                                                                      fixed=self.input_filename,
+                                                                      interpolation='nearestNeighbor',
+                                                                      label='Cortical-structures/MNI')
+        self.registration_runner.apply_registration_inverse_transform(moving=ResourcesConfiguration.getInstance().cortical_structures['MNI']['Schaefer7']['Mask'],
+                                                                      fixed=self.input_filename,
+                                                                      interpolation='nearestNeighbor',
+                                                                      label='Cortical-structures/Schaefer7')
+        self.registration_runner.apply_registration_inverse_transform(moving=ResourcesConfiguration.getInstance().cortical_structures['MNI']['Schaefer17']['Mask'],
+                                                                      fixed=self.input_filename,
+                                                                      interpolation='nearestNeighbor',
+                                                                      label='Cortical-structures/Schaefer17')
+        self.registration_runner.apply_registration_inverse_transform(moving=ResourcesConfiguration.getInstance().cortical_structures['MNI']['Harvard-Oxford']['Mask'],
+                                                                      fixed=self.input_filename,
+                                                                      interpolation='nearestNeighbor',
+                                                                      label='Cortical-structures/Harvard-Oxford')
 
     def __apply_registration_subcortical_structures(self):
         bcb_tracts_cutoff = 0.5

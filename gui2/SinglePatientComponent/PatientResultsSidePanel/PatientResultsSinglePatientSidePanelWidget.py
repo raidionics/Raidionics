@@ -107,3 +107,6 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
     def on_add_new_empty_patient(self):
         uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_patient("Temp Patient")
         self.add_new_patient(uid)
+
+    def on_standardized_report_imported(self):
+        self.patient_results_widgets[SoftwareConfigResources.getInstance().get_active_patient().patient_id].on_standardized_report_imported()

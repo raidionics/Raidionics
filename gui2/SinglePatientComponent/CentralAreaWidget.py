@@ -17,6 +17,7 @@ class CentralAreaWidget(QWidget):
     annotation_view_toggled = Signal(str, bool)
     annotation_opacity_changed = Signal(str, int)
     annotation_color_changed = Signal(str, QColor)
+    standardized_report_imported = Signal()
 
     def __init__(self, parent=None):
         super(CentralAreaWidget, self).__init__()
@@ -59,6 +60,7 @@ class CentralAreaWidget(QWidget):
 
         # Connections from/to the execution area
         self.execution_area_widget.annotation_volume_imported.connect(self.on_import_annotation)
+        self.execution_area_widget.standardized_report_imported.connect(self.standardized_report_imported)
         self.volume_view_toggled.connect(self.execution_area_widget.on_volume_layer_toggled)
 
         # Connections from the left patient panel

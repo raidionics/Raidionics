@@ -104,9 +104,15 @@ class ImportDataQDialog(QDialog):
         input_image_filedialog.setWindowFlags(Qt.WindowStaysOnTopHint)
         # @TODO. Should query the allowed file extensions from SoftwareResources
         # @FIXME. The QFileDialog ignores the director parameter
-        input_filepaths, filters = input_image_filedialog.getOpenFileNames(self, caption='Select input file(s)',
-                                                                  directory=self.tr(self.current_folder),
-                                                                  filter="Files (*.nii *.nii.gz *.nrrd *.mha *.mhd *.neurorads)")  # , options=QFileDialog.DontUseNativeDialog
+        if "PYCHARM_HOSTED" in os.environ:
+            input_filepaths, filters = input_image_filedialog.getOpenFileNames(self, caption='Select input file(s)',
+                                                                               directory=self.tr(self.current_folder),
+                                                                               filter="Files (*.nii *.nii.gz *.nrrd *.mha *.mhd *.neurorads)",
+                                                                               options=QFileDialog.DontUseNativeDialog)
+        else:
+            input_filepaths, filters = input_image_filedialog.getOpenFileNames(self, caption='Select input file(s)',
+                                                                               directory=self.tr(self.current_folder),
+                                                                               filter="Files (*.nii *.nii.gz *.nrrd *.mha *.mhd *.neurorads)")  # , options=QFileDialog.DontUseNativeDialog
         if len(input_filepaths) != 0 and input_filepaths[0] != "":
             self.current_folder = os.path.dirname(input_filepaths[0])
         self.setup_interface_from_files(input_filepaths)

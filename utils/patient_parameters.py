@@ -64,7 +64,10 @@ class PatientParameters:
         self.__init_json_config()
         self.mri_volumes = {}
         self.annotation_volumes = {}
+        self.cortical_structures_atlases = {}
         # @TODO. Add another category for the MNI registered files, or for the atlas-based files?
+        self.standardized_report_filename = None
+        self.standardized_report = None
 
         # self.import_raw_data = {}
         # self.import_display_data = {}
@@ -160,7 +163,8 @@ class PatientParameters:
         try:
             # Always converting the input file to nifti, if possible, otherwise will be discarded
             # @TODO. Do we catch a potential .seg file that would be coming from 3D Slicer for annotations?
-            pre_file_extension, file_extension = os.path.splitext(filename)
+            pre_file_extension = filename.split('.')[0]
+            file_extension = '.'.join(filename.split('.')[1:])
             if file_extension != '.nii' or file_extension != '.nii.gz':
                 input_sitk = sitk.ReadImage(filename)
                 nifti_outfilename = os.path.join(self.output_folder, os.path.basename(pre_file_extension) + '.nii.gz')
@@ -227,6 +231,44 @@ class PatientParameters:
         logging.info("Converted DICOM import to {}".format(ori_filename))
         uid, error_msg = self.import_data(ori_filename, type="MRI")
         return uid, error_msg
+
+    def import_standardized_report(self, filename: str) -> Any:
+        error_message = None
+        try:
+            self.standardized_report_filename = filename
+            with open(self.standardized_report_filename, 'r') as infile:
+                self.standardized_report = json.load(infile)
+        except Exception:
+            error_message = "Failed to load standardized report from {}".format(filename)
+        return error_message
+
+    def import_atlas_structures(self, filename: str, reference: str ='Patient') -> Union[str, Any]:
+        data_uid = None
+        error_message = None
+
+        try:
+            if reference == 'Patient':
+                image_nib = nib.load(filename)
+                resampled_input_ni = resample_to_output(image_nib, order=0)
+                image_res = resampled_input_ni.get_data()[:].astype('uint8')
+
+                # Generating a unique id for the annotation volume
+                base_data_uid = os.path.basename(filename).strip().split('.')[0]
+                non_available_uid = True
+                while non_available_uid:
+                    data_uid = str(np.random.randint(0, 1000)) + '_' + base_data_uid
+                    if data_uid not in list(self.annotation_volumes.keys()):
+                        non_available_uid = False
+
+                self.cortical_structures_atlases[data_uid] = AtlasVolume(uid=data_uid, filename=filename,
+                                                                         description_filename=None)
+                self.cortical_structures_atlases[data_uid].display_volume = deepcopy(image_res)
+            else:  # Reference is MNI space then
+                pass
+        except Exception as e:
+            error_message = e  # traceback.format_exc()
+
+        return data_uid, error_message
 
     def save_patient(self):
         """
@@ -308,6 +350,22 @@ class AnnotationVolume():
         self.display_opacity = 50
         self.display_name = uid
 
+class AtlasVolume():
+    """
+    Class defining how an atlas volume should be handled.
+    """
+    def __init__(self, uid, filename, description_filename):
+        self.unique_id = uid
+        self.raw_filepath = filename
+        self.display_volume = None
+        self.display_volume_filepath = None
+        self.class_description_filename = description_filename
+        self.class_description = {}
+
+        # Display parameters, for reload/dump of the scene
+        self.display_color = [255, 255, 255, 255]  # List with format: r, g, b, a
+        self.display_opacity = 50
+        self.display_name = uid
 
 class ProjectParameters:
     """

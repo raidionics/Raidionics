@@ -1,7 +1,7 @@
 from PySide2.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QPushButton
 from PySide2.QtGui import QIcon, QPixmap
 from PySide2.QtCore import Qt, QSize, Signal
-
+import logging
 import traceback
 import os
 import threading
@@ -16,6 +16,7 @@ class CentralAreaExecutionWidget(QWidget):
 
     """
     annotation_volume_imported = Signal(str)
+    standardized_report_imported = Signal()
 
     def __init__(self, parent=None):
         super(CentralAreaExecutionWidget, self).__init__()
@@ -84,6 +85,7 @@ class CentralAreaExecutionWidget(QWidget):
         self.run_segmentation_thread.start()
 
     def run_segmentation(self):
+        logging.info("Starting segmentation process.")
         from segmentation.main import main_segmentation
         # Freezing buttons
         self.run_segmentation_pushbutton.setEnabled(False)
@@ -125,4 +127,94 @@ class CentralAreaExecutionWidget(QWidget):
         # self.processing_thread_signal.processing_thread_finished.emit(True, 'segmentation')
 
     def on_run_reporting(self):
-        pass
+        diag = TumorTypeSelectionQDialog(self)
+        code = diag.exec_()
+        self.model_name = "MRI_Meningioma"
+        if diag.tumor_type == 'High-Grade Glioma':
+            self.model_name = "MRI_HGGlioma_P2"
+        elif diag.tumor_type == 'Low-Grade Glioma':
+            self.model_name = "MRI_LGGlioma"
+        elif diag.tumor_type == 'Metastasis':
+            self.model_name = "MRI_Metastasis"
+
+        self.reporting_main_wrapper()
+
+    def reporting_main_wrapper(self):
+        self.run_reporting_thread = threading.Thread(target=self.run_reporting)
+        self.run_reporting_thread.daemon = True  # using daemon thread the thread is killed gracefully if program is abruptly closed
+        self.run_reporting_thread.start()
+
+    def run_reporting(self):
+        logging.info("Starting standardized reporting process.")
+        from diagnosis.main import diagnose_main
+        # from diagnosis.src.Utils.configuration_parser import ResourcesConfiguration
+
+        # Freezing buttons
+        self.run_segmentation_pushbutton.setEnabled(False)
+        self.run_reporting_pushbutton.setEnabled(False)
+
+        # @TODO. Include a dialog to dump the current progress of the process.
+        try:
+            current_patient_parameters = SoftwareConfigResources.getInstance().patients_parameters[
+                SoftwareConfigResources.getInstance().active_patient_name]
+            # if self.diagnostics_runner == None:
+            #     from diagnosis.src.NeuroDiagnosis.neuro_diagnostics import NeuroDiagnostics
+            #     self.diagnostics_runner = NeuroDiagnostics()
+            #     ResourcesConfiguration.getInstance().set_environment(output_dir=current_patient_parameters.output_folder)
+            #     self.diagnostics_runner.prepare_to_run()
+
+            runtime = generate_runtime_config(method='thresholding', order='resample_first')
+            runtime_fn = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../', 'resources',
+                                             'segmentation_runtime_config.ini')
+            with open(runtime_fn, 'w') as cf:
+                runtime.write(cf)
+
+            # @TODO. Should maybe subprocess this also, for safety?
+            # diagnose_main(input_volume_filename=current_patient_parameters.mri_volumes[self.selected_mri_uid].raw_filepath,
+            #               input_segmentation_filename="",
+            #               output_folder=current_patient_parameters.output_folder + '/', tumor_type=self.model_name)
+            self.__collect_reporting_outputs(current_patient_parameters)
+
+        except Exception as e:
+            print('{}'.format(traceback.format_exc()))
+            self.run_segmentation_pushbutton.setEnabled(True)
+            self.run_reporting_pushbutton.setEnabled(True)
+            # self.standardOutputWritten('Process could not be completed - Issue arose.\n')
+            return
+
+        self.run_segmentation_pushbutton.setEnabled(True)
+        self.run_reporting_pushbutton.setEnabled(True)
+        # self.processing_thread_signal.processing_thread_finished.emit(True, 'segmentation')
+
+    def __collect_reporting_outputs(self, current_patient_parameters):
+        # Collecting the automatic tumor and brain segmentations
+        tumor_seg_file = os.path.join(current_patient_parameters.output_folder, 'reporting', 'input_tumor_mask.nii.gz')
+        if os.path.exists(tumor_seg_file):  # Should always exist?
+            data_uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_data(tumor_seg_file,
+                                                                                                         type='Annotation')
+            self.annotation_volume_imported.emit(data_uid)
+
+        brain_seg_file = os.path.join(current_patient_parameters.output_folder, 'reporting', 'input_brain_mask.nii.gz')
+        if os.path.exists(brain_seg_file):
+            data_uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_data(brain_seg_file,
+                                                                                                         type='Annotation')
+            self.annotation_volume_imported.emit(data_uid)
+
+        # Collecting the standardized report
+        report_filename = os.path.join(current_patient_parameters.output_folder, 'reporting', 'report.json')
+        if os.path.exists(report_filename):  # Should always exist
+            error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_standardized_report(report_filename)
+        self.standardized_report_imported.emit()
+
+        # Collecting the atlas structures
+        cortical_folder = os.path.join(current_patient_parameters.output_folder, 'reporting', 'patient',
+                                       'Cortical-structures')
+        cortical_masks = []
+        for _, _, files in os.walk(cortical_folder):
+            for f in files:
+                cortical_masks.append(f)
+            break
+
+        for m in cortical_masks:
+            data_uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_atlas_structures(os.path.join(cortical_folder, m), reference='Patient')
+            # self.annotation_volume_imported.emit(data_uid)
