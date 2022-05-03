@@ -33,6 +33,7 @@ class SoftwareConfigResources:
             self.__setup()
 
     def __setup(self):
+        self.models_path = os.path.join(expanduser('~'), '.neurorads', 'resources', 'models')
         self.config_filename = os.path.join(expanduser("~"), '.neurorads', 'neurorads_config.ini')
         self.config = None
         self.optimal_dimensions = [1440, 900]

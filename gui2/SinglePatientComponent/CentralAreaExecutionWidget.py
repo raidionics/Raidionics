@@ -4,9 +4,12 @@ from PySide2.QtCore import Qt, QSize, Signal
 import logging
 import traceback
 import os
+import subprocess
+import configparser
 import threading
 import shutil
 from utils.software_config import SoftwareConfigResources
+from utils.models_download import download_model
 from gui2.UtilsWidgets.TumorTypeSelectionQDialog import TumorTypeSelectionQDialog
 from segmentation.src.Utils.configuration_parser import generate_runtime_config
 
@@ -80,13 +83,63 @@ class CentralAreaExecutionWidget(QWidget):
         self.segmentation_main_wrapper()
 
     def segmentation_main_wrapper(self):
-        self.run_segmentation_thread = threading.Thread(target=self.run_segmentation)
+        self.run_segmentation_thread = threading.Thread(target=self.run_segmentation_cli)
         self.run_segmentation_thread.daemon = True  # using daemon thread the thread is killed gracefully if program is abruptly closed
         self.run_segmentation_thread.start()
+
+    def run_segmentation_cli(self):
+        logging.info("Starting segmentation process.")
+
+        # Freezing buttons
+        self.run_segmentation_pushbutton.setEnabled(False)
+        self.run_reporting_pushbutton.setEnabled(False)
+
+        try:
+            current_patient_parameters = SoftwareConfigResources.getInstance().patients_parameters[
+                SoftwareConfigResources.getInstance().active_patient_name]
+            download_model(model_name=self.model_name)
+            seg_config = configparser.ConfigParser()
+            seg_config.add_section('System')
+            seg_config.set('System', 'gpu_id', "-1")
+            seg_config.set('System', 'input_filename', current_patient_parameters.mri_volumes[self.selected_mri_uid].raw_filepath)
+            seg_config.set('System', 'output_folder', current_patient_parameters.output_folder)
+            seg_config.set('System', 'model_folder',
+                           os.path.join(SoftwareConfigResources.getInstance().models_path, self.model_name))
+            seg_config.add_section('Runtime')
+            seg_config.set('Runtime', 'reconstruction_method', 'thresholding')
+            seg_config.set('Runtime', 'reconstruction_order', 'resample_first')
+            seg_config_filename = os.path.join(current_patient_parameters.output_folder, 'seg_config.ini')
+            with open(seg_config_filename, 'w') as outfile:
+                seg_config.write(outfile)
+
+            subprocess.call(['raidionicsseg', '{config}'.format(config=seg_config_filename)])
+            os.remove(seg_config_filename)
+
+            seg_file = os.path.join(current_patient_parameters.output_folder, 'labels_Tumor.nii.gz')
+            shutil.move(seg_file, os.path.join(current_patient_parameters.output_folder, 'patient_tumor.nii.gz'))
+            data_uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_data(
+                os.path.join(current_patient_parameters.output_folder, 'patient_tumor.nii.gz'), type='Annotation')
+            self.annotation_volume_imported.emit(data_uid)
+            # @TODO. Check if a brain mask has been created?
+            seg_file = os.path.join(current_patient_parameters.output_folder, 'labels_Brain.nii.gz')
+            if os.path.exists(seg_file):
+                shutil.move(seg_file, os.path.join(current_patient_parameters.output_folder, 'patient_brain.nii.gz'))
+                data_uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_data(
+                    os.path.join(current_patient_parameters.output_folder, 'patient_brain.nii.gz'), type='Annotation')
+                self.annotation_volume_imported.emit(data_uid)
+        except Exception:
+            print('{}'.format(traceback.format_exc()))
+            self.run_segmentation_pushbutton.setEnabled(True)
+            self.run_reporting_pushbutton.setEnabled(True)
+            return
+
+        self.run_segmentation_pushbutton.setEnabled(True)
+        self.run_reporting_pushbutton.setEnabled(True)
 
     def run_segmentation(self):
         logging.info("Starting segmentation process.")
         from segmentation.main import main_segmentation
+
         # Freezing buttons
         self.run_segmentation_pushbutton.setEnabled(False)
         self.run_reporting_pushbutton.setEnabled(False)
@@ -140,9 +193,50 @@ class CentralAreaExecutionWidget(QWidget):
         self.reporting_main_wrapper()
 
     def reporting_main_wrapper(self):
-        self.run_reporting_thread = threading.Thread(target=self.run_reporting)
+        self.run_reporting_thread = threading.Thread(target=self.run_reporting_cli)
         self.run_reporting_thread.daemon = True  # using daemon thread the thread is killed gracefully if program is abruptly closed
         self.run_reporting_thread.start()
+
+    def run_reporting_cli(self):
+        logging.info("Starting RADS process.")
+
+        # Freezing buttons
+        self.run_segmentation_pushbutton.setEnabled(False)
+        self.run_reporting_pushbutton.setEnabled(False)
+
+        try:
+            current_patient_parameters = SoftwareConfigResources.getInstance().patients_parameters[
+                SoftwareConfigResources.getInstance().active_patient_name]
+            download_model(model_name=self.model_name)
+            rads_config = configparser.ConfigParser()
+            rads_config.add_section('Default')
+            rads_config.set('Default', 'task', 'neuro_diagnosis')
+            rads_config.set('Default', 'caller', 'raidionics')
+            rads_config.add_section('System')
+            rads_config.set('System', 'gpu_id', "-1")
+            rads_config.set('System', 'input_filename',
+                           current_patient_parameters.mri_volumes[self.selected_mri_uid].raw_filepath)
+            rads_config.set('System', 'output_folder', current_patient_parameters.output_folder)
+            rads_config.set('System', 'model_folder',
+                            os.path.join(SoftwareConfigResources.getInstance().models_path, self.model_name))
+            rads_config.add_section('Runtime')
+            rads_config.set('Runtime', 'reconstruction_method', 'thresholding')
+            rads_config.set('Runtime', 'reconstruction_order', 'resample_first')
+            rads_config_filename = os.path.join(current_patient_parameters.output_folder, 'rads_config.ini')
+            with open(rads_config_filename, 'w') as outfile:
+                rads_config.write(outfile)
+
+            subprocess.call(['raidionicsrads', '{config}'.format(config=rads_config_filename)])
+            os.remove(rads_config_filename)
+            self.__collect_reporting_outputs(current_patient_parameters)
+        except Exception:
+            print('{}'.format(traceback.format_exc()))
+            self.run_segmentation_pushbutton.setEnabled(True)
+            self.run_reporting_pushbutton.setEnabled(True)
+            return
+
+        self.run_segmentation_pushbutton.setEnabled(True)
+        self.run_reporting_pushbutton.setEnabled(True)
 
     def run_reporting(self):
         logging.info("Starting standardized reporting process.")
