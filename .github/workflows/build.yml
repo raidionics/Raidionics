@@ -15,7 +15,8 @@ jobs:
         include:
           - os: ubuntu-18.04
             TARGET: ubuntu
-            CMD_BUILD: "pip install antspyx &&
+            CMD_BUILD: "pip install tensorflow==1.13.1 &&
+                       pip install antspyx &&
                        pyinstaller --noconfirm --clean main.spec &&
                        mkdir -p Raidionics_ubuntu/usr/local/bin &&
                        cp -r dist/Raidionics Raidionics_ubuntu/usr/local/bin &&
@@ -26,7 +27,8 @@ jobs:
 
           - os: macos-10.15
             TARGET: macos
-            CMD_BUILD: "pip install https://github.com/ANTsX/ANTsPy/releases/download/v0.1.8/antspyx-0.1.8-cp37-cp37m-macosx_10_14_x86_64.whl &&
+            CMD_BUILD: "pip install tensorflow==1.13.1 &&
+                       pip install https://github.com/ANTsX/ANTsPy/releases/download/v0.1.8/antspyx-0.1.8-cp37-cp37m-macosx_10_14_x86_64.whl &&
                        pyinstaller --noconfirm --clean main_bundle.spec &&
                        git clone https://github.com/andreped/quickpkg.git &&
                        quickpkg/quickpkg dist/Raidionics.app --output Raidionics-1.0.0-macOS.pkg &&
@@ -55,6 +57,7 @@ jobs:
     - if: matrix.os == 'windows-2019'
       name: Build application
       run: |
+        pip install https://github.com/andreped/tensorflow-windows-wheel/raw/master/1.13.1/py37/CPU/sse2/tensorflow-1.13.1-cp37-cp37m-win_amd64.whl
         pip install https://github.com/SGotla/ANTsPy/releases/download/0.1.7Win64/antspy-0.1.7-cp37-cp37m-win_amd64.whl
         pyinstaller --noconfirm --clean main.spec
         makensis.exe Raidionics.nsi
