@@ -12,11 +12,13 @@ class CentralAreaWidget(QWidget):
     """
     mri_volume_imported = Signal(str)  # The str is the unique id for the MRI volume, belonging to the active patient
     annotation_volume_imported = Signal(str)  # The str is the unique id for the annotation volume, belonging to the active patient
+    atlas_volume_imported = Signal(str)  # The str is the unique id for the atlas volume, belonging to the active patient
     patient_view_toggled = Signal(str)
     volume_view_toggled = Signal(str, bool)
     annotation_view_toggled = Signal(str, bool)
     annotation_opacity_changed = Signal(str, int)
     annotation_color_changed = Signal(str, QColor)
+    atlas_view_toggled = Signal(str, bool)
     standardized_report_imported = Signal()
 
     def __init__(self, parent=None):
@@ -53,13 +55,16 @@ class CentralAreaWidget(QWidget):
         self.annotation_view_toggled.connect(self.display_area_widget.on_annotation_layer_toggled)
         self.annotation_opacity_changed.connect(self.display_area_widget.on_annotation_opacity_changed)
         self.annotation_color_changed.connect(self.display_area_widget.on_annotation_color_changed)
+        self.atlas_view_toggled.connect(self.display_area_widget.on_atlas_layer_toggled)
 
         # Connections related to data loading (from central viewer panel to update the right-handed panel)
         self.display_area_widget.mri_volume_imported.connect(self.on_import_mri_volume)
         self.display_area_widget.annotation_volume_imported.connect(self.on_import_annotation)
+        self.display_area_widget.atlas_volume_imported.connect(self.on_import_atlas)
 
         # Connections from/to the execution area
         self.execution_area_widget.annotation_volume_imported.connect(self.on_import_annotation)
+        self.execution_area_widget.atlas_volume_imported.connect(self.on_import_atlas)
         self.execution_area_widget.standardized_report_imported.connect(self.standardized_report_imported)
         self.volume_view_toggled.connect(self.execution_area_widget.on_volume_layer_toggled)
 
@@ -78,6 +83,9 @@ class CentralAreaWidget(QWidget):
     def on_import_annotation(self, uid):
         self.annotation_volume_imported.emit(uid)
 
+    def on_import_atlas(self, uid):
+        self.atlas_volume_imported.emit(uid)
+
     def on_volume_layer_toggled(self, uid, state):
         self.volume_view_toggled.emit(uid, state)
 
@@ -89,3 +97,6 @@ class CentralAreaWidget(QWidget):
 
     def on_annotation_color_changed(self, annotation_uid, color):
         self.annotation_color_changed.emit(annotation_uid, color)
+
+    def on_atlas_layer_toggled(self, uid, state):
+        self.atlas_view_toggled.emit(uid, state)

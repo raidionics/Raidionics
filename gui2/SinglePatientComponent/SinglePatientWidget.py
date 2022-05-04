@@ -148,11 +148,13 @@ class SinglePatientWidget(QWidget):
         self.layers_panel.annotation_view_toggled.connect(self.center_panel.on_annotation_layer_toggled)
         self.layers_panel.annotation_opacity_changed.connect(self.center_panel.on_annotation_opacity_changed)
         self.layers_panel.annotation_color_changed.connect(self.center_panel.on_annotation_color_changed)
+        self.layers_panel.atlas_view_toggled.connect(self.center_panel.on_atlas_layer_toggled)
         self.center_panel.standardized_report_imported.connect(self.results_panel.on_standardized_report_imported)
 
         # To sort
         self.center_panel.mri_volume_imported.connect(self.layers_panel.on_mri_volume_import)
         self.center_panel.annotation_volume_imported.connect(self.layers_panel.on_annotation_volume_import)
+        self.center_panel.atlas_volume_imported.connect(self.layers_panel.on_atlas_volume_import)
         # self.import_data_triggered.connect(self.center_panel.on_import_data)
         # self.import_data_triggered.connect(self.results_panel.on_import_data)
         # self.import_data_triggered.connect(self.layers_panel.on_import_data)

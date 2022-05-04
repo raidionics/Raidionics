@@ -19,6 +19,7 @@ class CentralAreaExecutionWidget(QWidget):
 
     """
     annotation_volume_imported = Signal(str)
+    atlas_volume_imported = Signal(str)
     standardized_report_imported = Signal()
 
     def __init__(self, parent=None):
@@ -198,6 +199,10 @@ class CentralAreaExecutionWidget(QWidget):
         self.run_reporting_thread.start()
 
     def run_reporting_cli(self):
+        """
+        Results of the standardized reporting will be stored inside a /reporting subfolder within the patient
+        output folder.
+        """
         logging.info("Starting RADS process.")
 
         # Freezing buttons
@@ -205,9 +210,11 @@ class CentralAreaExecutionWidget(QWidget):
         self.run_reporting_pushbutton.setEnabled(False)
 
         try:
+            download_model(model_name=self.model_name)
             current_patient_parameters = SoftwareConfigResources.getInstance().patients_parameters[
                 SoftwareConfigResources.getInstance().active_patient_name]
-            download_model(model_name=self.model_name)
+            reporting_folder = os.path.join(current_patient_parameters.output_folder, 'reporting')
+            os.makedirs(reporting_folder, exist_ok=True)
             rads_config = configparser.ConfigParser()
             rads_config.add_section('Default')
             rads_config.set('Default', 'task', 'neuro_diagnosis')
@@ -216,7 +223,7 @@ class CentralAreaExecutionWidget(QWidget):
             rads_config.set('System', 'gpu_id', "-1")
             rads_config.set('System', 'input_filename',
                            current_patient_parameters.mri_volumes[self.selected_mri_uid].raw_filepath)
-            rads_config.set('System', 'output_folder', current_patient_parameters.output_folder)
+            rads_config.set('System', 'output_folder', reporting_folder)
             rads_config.set('System', 'model_folder',
                             os.path.join(SoftwareConfigResources.getInstance().models_path, self.model_name))
             rads_config.add_section('Runtime')
@@ -282,20 +289,23 @@ class CentralAreaExecutionWidget(QWidget):
 
     def __collect_reporting_outputs(self, current_patient_parameters):
         # Collecting the automatic tumor and brain segmentations
-        tumor_seg_file = os.path.join(current_patient_parameters.output_folder, 'reporting', 'input_tumor_mask.nii.gz')
+        tumor_seg_file = os.path.join(current_patient_parameters.output_folder, 'reporting', 'patient',
+                                      'input_tumor_mask.nii.gz')
         if os.path.exists(tumor_seg_file):  # Should always exist?
             data_uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_data(tumor_seg_file,
                                                                                                          type='Annotation')
             self.annotation_volume_imported.emit(data_uid)
 
-        brain_seg_file = os.path.join(current_patient_parameters.output_folder, 'reporting', 'input_brain_mask.nii.gz')
+        brain_seg_file = os.path.join(current_patient_parameters.output_folder, 'reporting', 'patient',
+                                      'input_brain_mask.nii.gz')
         if os.path.exists(brain_seg_file):
             data_uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_data(brain_seg_file,
                                                                                                          type='Annotation')
             self.annotation_volume_imported.emit(data_uid)
 
         # Collecting the standardized report
-        report_filename = os.path.join(current_patient_parameters.output_folder, 'reporting', 'report.json')
+        report_filename = os.path.join(current_patient_parameters.output_folder, 'reporting',
+                                       'neuro_standardized_report.json')
         if os.path.exists(report_filename):  # Should always exist
             error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_standardized_report(report_filename)
         self.standardized_report_imported.emit()
@@ -311,4 +321,4 @@ class CentralAreaExecutionWidget(QWidget):
 
         for m in cortical_masks:
             data_uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_atlas_structures(os.path.join(cortical_folder, m), reference='Patient')
-            # self.annotation_volume_imported.emit(data_uid)
+            self.atlas_volume_imported.emit(data_uid)

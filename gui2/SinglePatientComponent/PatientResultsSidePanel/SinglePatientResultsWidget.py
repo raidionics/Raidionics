@@ -121,7 +121,7 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.laterality_collapsiblegroupbox.setBaseSize(QSize(self.parent.baseSize().width(), 150))
         self.content_label_layout.addWidget(self.laterality_collapsiblegroupbox)
 
-        self.laterality_left_header_label = QLabel("Left hemisphere:")
+        self.laterality_left_header_label = QLabel("Left hemisphere: ")
         self.laterality_left_label = QLabel(" - % ")
         self.laterality_left_label.setStyleSheet("QLabel{text-align:right;}")
         self.laterality_left_layout = QHBoxLayout()
@@ -130,7 +130,7 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.laterality_left_layout.addWidget(self.laterality_left_label)
         self.laterality_collapsiblegroupbox.content_label_layout.addLayout(self.laterality_left_layout)
 
-        self.laterality_right_header_label = QLabel("Right hemisphere:")
+        self.laterality_right_header_label = QLabel("Right hemisphere: ")
         self.laterality_right_label = QLabel(" - % ")
         self.laterality_right_label.setStyleSheet("QLabel{text-align:right;}")
         self.laterality_right_layout = QHBoxLayout()
@@ -139,7 +139,7 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.laterality_right_layout.addWidget(self.laterality_right_label)
         self.laterality_collapsiblegroupbox.content_label_layout.addLayout(self.laterality_right_layout)
 
-        self.laterality_midline_header_label = QLabel("Midline crossing:")
+        self.laterality_midline_header_label = QLabel("Midline crossing: ")
         self.laterality_midline_label = QLabel(" - % ")
         self.laterality_midline_label.setStyleSheet("QLabel{text-align:right;}")
         self.laterality_midline_layout = QHBoxLayout()
@@ -159,7 +159,7 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.multifocality_collapsiblegroupbox.setBaseSize(QSize(self.parent.baseSize().width(), 150))
         self.content_label_layout.addWidget(self.multifocality_collapsiblegroupbox)
 
-        self.multifocality_pieces_header_label = QLabel("Number focus:")
+        self.multifocality_pieces_header_label = QLabel("Number focus: ")
         self.multifocality_pieces_label = QLabel(" - ")
         self.multifocality_pieces_label.setStyleSheet("QLabel{text-align:right;}")
         self.multifocality_layout = QHBoxLayout()
@@ -168,7 +168,7 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.multifocality_layout.addWidget(self.multifocality_pieces_label)
         self.multifocality_collapsiblegroupbox.content_label_layout.addLayout(self.multifocality_layout)
 
-        self.multifocality_distance_header_label = QLabel("Maximum distance:")
+        self.multifocality_distance_header_label = QLabel("Maximum distance: ")
         self.multifocality_distance_label = QLabel(" - ")
         self.multifocality_distance_label.setStyleSheet("QLabel{text-align:right;}")
         self.multifocality_distance_layout = QHBoxLayout()

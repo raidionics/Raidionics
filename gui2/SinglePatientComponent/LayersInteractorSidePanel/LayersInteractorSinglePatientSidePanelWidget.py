@@ -4,6 +4,7 @@ from PySide2.QtGui import QColor
 
 from gui2.SinglePatientComponent.LayersInteractorSidePanel.LayersInteractorVolumesWidget import LayersInteractorVolumesWidget
 from gui2.SinglePatientComponent.LayersInteractorSidePanel.LayersInteractorAnnotationsWidget import LayersInteractorAnnotationsWidget
+from gui2.SinglePatientComponent.LayersInteractorSidePanel.LayersInteractorAtlasesWidget import LayersInteractorAtlasesWidget
 
 
 class LayersInteractorSinglePatientSidePanelWidget(QWidget):
@@ -12,6 +13,7 @@ class LayersInteractorSinglePatientSidePanelWidget(QWidget):
     """
     mri_volume_imported = Signal(str)
     annotation_volume_imported = Signal(str)
+    atlas_volume_imported = Signal(str)
 
     import_data_triggered = Signal()
     patient_view_toggled = Signal(str)
@@ -19,6 +21,7 @@ class LayersInteractorSinglePatientSidePanelWidget(QWidget):
     annotation_view_toggled = Signal(str, bool)
     annotation_opacity_changed = Signal(str, int)
     annotation_color_changed = Signal(str, QColor)
+    atlas_view_toggled = Signal(str, bool)
 
     def __init__(self, parent=None):
         super(LayersInteractorSinglePatientSidePanelWidget, self).__init__()
@@ -56,16 +59,8 @@ class LayersInteractorSinglePatientSidePanelWidget(QWidget):
         # self.volumes_collapsiblegroupbox.content_label.setBaseSize(QSize(200, self.parent.baseSize().height()))
         self.overall_scrollarea_layout.addWidget(self.annotations_collapsiblegroupbox)
 
-        # self.annotations_collapsiblegroupbox = QCollapsibleGroupBox("Annotations", self, header_style='double')
-        # self.annotations_collapsiblegroupbox.set_header_icons(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/arrow_right_icon.png'),
-        #                                                   QSize(20, 20),
-        #                                                   os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/arrow_down_icon.png'),
-        #                                                   QSize(20, 20), side='left')
-        # self.annotations_collapsiblegroupbox.set_header_icons(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/radio_toggle_off_icon.png'),
-        #                                                   QSize(30, 30),
-        #                                                   os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/radio_toggle_on_icon.png'),
-        #                                                   QSize(30, 30), side='right')
-        # self.overall_scrollarea_layout.addWidget(self.annotations_collapsiblegroupbox)
+        self.atlases_collapsiblegroupbox = LayersInteractorAtlasesWidget(self)
+        self.overall_scrollarea_layout.addWidget(self.atlases_collapsiblegroupbox)
 
         self.overall_scrollarea_layout.addStretch(1)
         self.overall_scrollarea_dummy_widget.setLayout(self.overall_scrollarea_layout)
@@ -75,16 +70,21 @@ class LayersInteractorSinglePatientSidePanelWidget(QWidget):
     def __set_connections(self):
         self.mri_volume_imported.connect(self.volumes_collapsiblegroupbox.on_mri_volume_import)
         self.annotation_volume_imported.connect(self.annotations_collapsiblegroupbox.on_import_volume)
+        self.atlas_volume_imported.connect(self.atlases_collapsiblegroupbox.on_import_volume)
         self.patient_view_toggled.connect(self.volumes_collapsiblegroupbox.on_patient_view_toggled)
         self.patient_view_toggled.connect(self.annotations_collapsiblegroupbox.on_patient_view_toggled)
+        self.patient_view_toggled.connect(self.atlases_collapsiblegroupbox.on_patient_view_toggled)
 
-        self.import_data_triggered.connect(self.volumes_collapsiblegroupbox.on_import_data)
-        self.import_data_triggered.connect(self.annotations_collapsiblegroupbox.on_import_data)
         self.volumes_collapsiblegroupbox.volume_view_toggled.connect(self.volume_view_toggled)
         self.volumes_collapsiblegroupbox.volume_view_toggled.connect(self.annotations_collapsiblegroupbox.on_volume_view_toggled)
         self.annotations_collapsiblegroupbox.annotation_view_toggled.connect(self.annotation_view_toggled)
         self.annotations_collapsiblegroupbox.annotation_opacity_changed.connect(self.annotation_opacity_changed)
         self.annotations_collapsiblegroupbox.annotation_color_changed.connect(self.annotation_color_changed)
+        self.atlases_collapsiblegroupbox.atlas_view_toggled.connect(self.atlas_view_toggled)
+
+        # @TODO. Can be removed, deprecated?
+        self.import_data_triggered.connect(self.volumes_collapsiblegroupbox.on_import_data)
+        self.import_data_triggered.connect(self.annotations_collapsiblegroupbox.on_import_data)
 
     def __set_stylesheets(self):
         self.overall_scrollarea.setStyleSheet("QScrollArea{background-color:rgb(0, 0, 255);}")
@@ -99,6 +99,9 @@ class LayersInteractorSinglePatientSidePanelWidget(QWidget):
 
     def on_annotation_volume_import(self, uid):
         self.annotation_volume_imported.emit(uid)
+
+    def on_atlas_volume_import(self, uid):
+        self.atlas_volume_imported.emit(uid)
 
     def on_import_data(self):
         # @TODO. Would have to check what is the actual data type to trigger the correct signal

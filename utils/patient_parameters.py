@@ -65,7 +65,7 @@ class PatientParameters:
         self.mri_volumes = {}
         self.annotation_volumes = {}
         self.cortical_structures_atlases = {}
-        # @TODO. Add another category for the MNI registered files, or for the atlas-based files?
+        # @TODO. Do we consider all atlases the same, or should separate cortical and subcortical?
         self.standardized_report_filename = None
         self.standardized_report = None
 
@@ -85,9 +85,9 @@ class PatientParameters:
         self.patient_parameters_project_json['Parameters']['Default'] = {}
         self.patient_parameters_project_json['Parameters']['Default']['Patient_uid'] = self.patient_id
         self.patient_parameters_project_json['Parameters']['Default']['Patient_visible_name'] = self.patient_visible_name
-        self.patient_parameters_project_json['Parameters']['Diagnosis'] = {}
         self.patient_parameters_project_json['Volumes'] = {}
         self.patient_parameters_project_json['Annotations'] = {}
+        self.patient_parameters_project_json['CorticalStructures'] = {}
 
     def set_visible_name(self, new_name):
         self.patient_visible_name = new_name.strip()
@@ -165,7 +165,7 @@ class PatientParameters:
             # @TODO. Do we catch a potential .seg file that would be coming from 3D Slicer for annotations?
             pre_file_extension = filename.split('.')[0]
             file_extension = '.'.join(filename.split('.')[1:])
-            if file_extension != '.nii' or file_extension != '.nii.gz':
+            if file_extension != 'nii' or file_extension != 'nii.gz':
                 input_sitk = sitk.ReadImage(filename)
                 nifti_outfilename = os.path.join(self.output_folder, os.path.basename(pre_file_extension) + '.nii.gz')
                 sitk.WriteImage(input_sitk, nifti_outfilename)
@@ -213,6 +213,7 @@ class PatientParameters:
         except Exception as e:
             error_message = e #traceback.format_exc()
 
+        logging.info("New data file imported: {}".format(data_uid))
         return data_uid, error_message
 
     def import_dicom_data(self, dicom_series: DICOMSeries) -> Union[str, Any]:
@@ -274,13 +275,18 @@ class PatientParameters:
         """
         Exporting the scene for the current patient into the specified output_folder
         """
+        logging.info("Saving patient results in: {}".format(self.output_folder))
         self.patient_parameters_project_filename = os.path.join(self.output_folder, self.patient_visible_name.strip().lower().replace(" ", "_") + '_scene.neurorads')
         self.patient_parameters_project_json['Parameters']['Default']['Patient_uid'] = self.patient_id
         self.patient_parameters_project_json['Parameters']['Default']['Patient_visible_name'] = self.patient_visible_name
 
+        display_folder = os.path.join(self.output_folder, 'display')
+        os.makedirs(display_folder, exist_ok=True)
+
         for i, disp in enumerate(list(self.mri_volumes.keys())):
-            volume_dump_filename = os.path.join(self.output_folder, disp + '_display.nii.gz')
+            volume_dump_filename = os.path.join(display_folder, disp + '_display.nii.gz')
             self.patient_parameters_project_json['Volumes'][disp] = {}
+            self.patient_parameters_project_json['Volumes'][disp]['display_name'] = self.mri_volumes[disp].display_name
             self.patient_parameters_project_json['Volumes'][disp]['raw_volume_filepath'] = self.mri_volumes[disp].raw_filepath
             self.patient_parameters_project_json['Volumes'][disp]['display_volume_filepath'] = volume_dump_filename
             nib.save(nib.Nifti1Image(self.mri_volumes[disp].display_volume,
@@ -289,7 +295,7 @@ class PatientParameters:
             self.patient_parameters_project_json['Volumes'][disp]['sequence_type'] = str(self.mri_volumes[disp].sequence_type)
 
         for i, disp in enumerate(list(self.annotation_volumes.keys())):
-            volume_dump_filename = os.path.join(self.output_folder, disp + '_display.nii.gz')
+            volume_dump_filename = os.path.join(display_folder, disp + '_display.nii.gz')
             self.patient_parameters_project_json['Annotations'][disp] = {}
             self.patient_parameters_project_json['Annotations'][disp]['raw_volume_filepath'] = self.annotation_volumes[disp].raw_filepath
             self.patient_parameters_project_json['Annotations'][disp]['display_volume_filepath'] = volume_dump_filename
@@ -300,6 +306,14 @@ class PatientParameters:
             self.patient_parameters_project_json['Annotations'][disp]['display_color'] = self.annotation_volumes[disp].display_color
             self.patient_parameters_project_json['Annotations'][disp]['display_opacity'] = self.annotation_volumes[disp].display_opacity
             self.patient_parameters_project_json['Annotations'][disp]['display_name'] = self.annotation_volumes[disp].display_name
+
+        for i, atlas in enumerate(list(self.cortical_structures_atlases.keys())):
+            volume_dump_filename = os.path.join(display_folder, atlas + '_display.nii.gz')
+            self.patient_parameters_project_json['CorticalStructures'][atlas] = {}
+            self.patient_parameters_project_json['CorticalStructures'][atlas]['display_name'] = self.cortical_structures_atlases[atlas].display_name
+            self.patient_parameters_project_json['CorticalStructures'][atlas]['raw_volume_filepath'] = self.cortical_structures_atlases[atlas].raw_filepath
+            self.patient_parameters_project_json['CorticalStructures'][atlas]['display_volume_filepath'] = volume_dump_filename
+            self.patient_parameters_project_json['CorticalStructures'][atlas]['description_filepath'] = self.cortical_structures_atlases[atlas].class_description_filename
 
         # Saving the json file last, as it must be populated from the previous dumps beforehand
         with open(self.patient_parameters_project_filename, 'w') as outfile:
@@ -316,6 +330,7 @@ class MRIVolume():
         self.display_volume = None
         self.display_volume_filepath = None
         self.sequence_type = MRISequenceType.T1c
+        #@TODO. Should also add the registered versions in here.
         # Display parameters, for reload/dump of the scene
         self.display_name = uid
 
@@ -349,10 +364,15 @@ class AnnotationVolume():
         self.display_color = [255, 255, 255, 255]  # List with format: r, g, b, a
         self.display_opacity = 50
         self.display_name = uid
+        # @TODO. If we generate the probability map, could store it here and give the possibility to adjust the
+        # cut-off threshold for refinement?
+
 
 class AtlasVolume():
     """
-    Class defining how an atlas volume should be handled.
+    Class defining how an atlas volume should be handled. Meaning that each label has a specific meaning
+    as described in the description file. Could save an atlas with all labels, and specific binary files with only one
+    label in each.
     """
     def __init__(self, uid, filename, description_filename):
         self.unique_id = uid
@@ -366,6 +386,7 @@ class AtlasVolume():
         self.display_color = [255, 255, 255, 255]  # List with format: r, g, b, a
         self.display_opacity = 50
         self.display_name = uid
+
 
 class ProjectParameters:
     """
