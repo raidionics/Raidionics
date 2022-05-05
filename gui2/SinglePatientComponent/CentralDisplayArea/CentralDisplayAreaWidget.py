@@ -203,7 +203,7 @@ class CentralDisplayAreaWidget(QWidget):
         joint_uid = atlas_uid + '_' + structure_uid
         if state:
             self.current_patient_parameters = SoftwareConfigResources.getInstance().patients_parameters[SoftwareConfigResources.getInstance().active_patient_name]
-            self.overlaid_volumes[joint_uid] = self.current_patient_parameters.cortical_structures_atlases[atlas_uid].one_hot_display_volume[..., int(structure_uid)]
+            self.overlaid_volumes[joint_uid] = self.current_patient_parameters.atlas_volumes[atlas_uid].one_hot_display_volume[..., int(structure_uid)]
             self.axial_viewer.update_atlas_view(atlas_uid, structure_uid, self.overlaid_volumes[joint_uid][:, :, self.point_clicker_position[2]])
             self.coronal_viewer.update_atlas_view(atlas_uid, structure_uid, self.overlaid_volumes[joint_uid][:, self.point_clicker_position[1], :])
             self.sagittal_viewer.update_atlas_view(atlas_uid, structure_uid, self.overlaid_volumes[joint_uid][self.point_clicker_position[0], :, :])
@@ -216,7 +216,7 @@ class CentralDisplayAreaWidget(QWidget):
     def on_atlas_layer_toggled(self, volume_uid, state):
         if state:
             self.current_patient_parameters = SoftwareConfigResources.getInstance().patients_parameters[SoftwareConfigResources.getInstance().active_patient_name]
-            self.overlaid_volumes[volume_uid] = self.current_patient_parameters.cortical_structures_atlases[volume_uid].display_volume
+            self.overlaid_volumes[volume_uid] = self.current_patient_parameters.atlas_volumes[volume_uid].display_volume
             # self.axial_viewer.update_atlas_view(volume_uid, self.overlaid_volumes[volume_uid][:, :, self.point_clicker_position[2]])
             # self.coronal_viewer.update_atlas_view(volume_uid, self.overlaid_volumes[volume_uid][:, self.point_clicker_position[1], :])
             # self.sagittal_viewer.update_atlas_view(volume_uid, self.overlaid_volumes[volume_uid][self.point_clicker_position[0], :, :])

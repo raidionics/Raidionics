@@ -205,14 +205,14 @@ class ImportDataLineWidget(QWidget):
         self.filepath_lineedit = QLineEdit()
         self.filepath_browse_edit_pushbutton = QPushButton()
         self.filepath_browse_edit_pushbutton.setIcon(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                                                        '../Images/browse_icon.png')))
+                                                                        '../../Images/browse_icon.png')))
         self.filepath_browse_edit_pushbutton.setIconSize(QSize(20, 20))
         self.file_type_selection_combobox = QComboBox()
         self.file_type_selection_combobox.addItems(["MRI", "Annotation", "Patient"])
 
         self.remove_entry_pushbutton = QPushButton()
         self.remove_entry_pushbutton.setIcon(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                                                        '../Images/delete-cross-icon.png')))
+                                                                '../../Images/delete-cross-icon.png')))
         self.remove_entry_pushbutton.setIconSize(QSize(20, 20))
 
         self.layout.addWidget(self.filepath_lineedit)

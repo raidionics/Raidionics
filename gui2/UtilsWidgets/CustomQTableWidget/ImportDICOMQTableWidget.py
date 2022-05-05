@@ -1,8 +1,7 @@
-from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QScrollArea, QMenu, QTableWidget, QAction
-from PySide2.QtGui import QIcon, QPixmap
-from PySide2.QtCore import Qt, QSize, Signal, QEvent
+from PySide2.QtWidgets import QAction
+from PySide2.QtCore import Qt, Signal
 
-from gui2.UtilsWidgets.ContextMenuQTableWidget import ContextMenuQTableWidget
+from gui2.UtilsWidgets.CustomQTableWidget.ContextMenuQTableWidget import ContextMenuQTableWidget
 
 
 class ImportDICOMQTableWidget(ContextMenuQTableWidget):

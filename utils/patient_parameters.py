@@ -66,7 +66,7 @@ class PatientParameters:
         self.__init_json_config()
         self.mri_volumes = {}
         self.annotation_volumes = {}
-        self.cortical_structures_atlases = {}
+        self.atlas_volumes = {}
         # @TODO. Do we consider all atlases the same, or should separate cortical and subcortical?
         self.standardized_report_filename = None
         self.standardized_report = None
@@ -266,9 +266,9 @@ class PatientParameters:
 
                 description_filename = os.path.join(self.output_folder, 'reporting', 'atlas_descriptions',
                                                     base_data_uid.split('_')[0] + '_description.csv')
-                self.cortical_structures_atlases[data_uid] = AtlasVolume(uid=data_uid, filename=filename,
-                                                                         description_filename=description_filename)
-                self.cortical_structures_atlases[data_uid].set_display_volume(deepcopy(image_res))
+                self.atlas_volumes[data_uid] = AtlasVolume(uid=data_uid, filename=filename,
+                                                           description_filename=description_filename)
+                self.atlas_volumes[data_uid].set_display_volume(deepcopy(image_res))
             else:  # Reference is MNI space then
                 pass
         except Exception as e:
@@ -313,13 +313,13 @@ class PatientParameters:
             self.patient_parameters_project_json['Annotations'][disp]['display_opacity'] = self.annotation_volumes[disp].display_opacity
             self.patient_parameters_project_json['Annotations'][disp]['display_name'] = self.annotation_volumes[disp].display_name
 
-        for i, atlas in enumerate(list(self.cortical_structures_atlases.keys())):
+        for i, atlas in enumerate(list(self.atlas_volumes.keys())):
             volume_dump_filename = os.path.join(display_folder, atlas + '_display.nii.gz')
             self.patient_parameters_project_json['CorticalStructures'][atlas] = {}
-            self.patient_parameters_project_json['CorticalStructures'][atlas]['display_name'] = self.cortical_structures_atlases[atlas].display_name
-            self.patient_parameters_project_json['CorticalStructures'][atlas]['raw_volume_filepath'] = self.cortical_structures_atlases[atlas].raw_filepath
+            self.patient_parameters_project_json['CorticalStructures'][atlas]['display_name'] = self.atlas_volumes[atlas].display_name
+            self.patient_parameters_project_json['CorticalStructures'][atlas]['raw_volume_filepath'] = self.atlas_volumes[atlas].raw_filepath
             self.patient_parameters_project_json['CorticalStructures'][atlas]['display_volume_filepath'] = volume_dump_filename
-            self.patient_parameters_project_json['CorticalStructures'][atlas]['description_filepath'] = self.cortical_structures_atlases[atlas].class_description_filename
+            self.patient_parameters_project_json['CorticalStructures'][atlas]['description_filepath'] = self.atlas_volumes[atlas].class_description_filename
 
         # Saving the json file last, as it must be populated from the previous dumps beforehand
         with open(self.patient_parameters_project_filename, 'w') as outfile:
@@ -407,7 +407,8 @@ class AtlasVolume():
         self.display_volume = display_volume
         total_labels = np.unique(self.display_volume)
         self.class_number = len(total_labels) - 1
-        self.one_hot_display_volume = np.zeros(shape=(self.display_volume.shape + (self.class_number + 1,)), dtype='uint8')
+        self.one_hot_display_volume = np.zeros(shape=(self.display_volume.shape + (self.class_number + 1,)),
+                                               dtype='uint8')
 
         for c in range(1, self.class_number + 1):
             self.class_display_color[c] = [255, 255, 255, 255]

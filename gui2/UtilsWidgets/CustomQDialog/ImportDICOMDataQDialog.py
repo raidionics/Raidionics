@@ -1,17 +1,13 @@
-from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QGridLayout, QDialog, QDialogButtonBox,\
-    QComboBox, QPushButton, QScrollArea, QLineEdit, QFileDialog, QSplitter, QTableWidget, QTableWidgetItem,\
+from PySide2.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QDialog, QDialogButtonBox, \
+    QPushButton, QScrollArea, QFileDialog, QSplitter, QTableWidget, QTableWidgetItem,\
     QProgressBar, QMessageBox
-from PySide2.QtCore import Qt, QSize, Signal
-from PySide2.QtGui import QIcon
-import os
-import SimpleITK as sitk
-import datetime
+from PySide2.QtCore import Qt, Signal
 
 from utils.software_config import SoftwareConfigResources
 from utils.patient_dicom import PatientDICOM
 # from gui2.UtilsWidgets.ContextMenuQTableWidget import ContextMenuQTableWidget
-from gui2.UtilsWidgets.ImportDICOMQTableWidget import ImportDICOMQTableWidget
-from gui2.UtilsWidgets.DisplayDICOMMetadataDialog import DisplayMetadataDICOMDialog
+from gui2.UtilsWidgets.CustomQTableWidget.ImportDICOMQTableWidget import ImportDICOMQTableWidget
+from gui2.UtilsWidgets.CustomQDialog.DisplayDICOMMetadataDialog import DisplayMetadataDICOMDialog
 
 
 class ImportDICOMDataQDialog(QDialog):

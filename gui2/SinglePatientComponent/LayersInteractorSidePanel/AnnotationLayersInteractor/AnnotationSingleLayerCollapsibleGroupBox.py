@@ -1,14 +1,14 @@
-from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QSlider, QColorDialog, QPushButton, QLineEdit
+from PySide2.QtWidgets import QLabel, QHBoxLayout, QSlider, QColorDialog, QPushButton, QLineEdit
 from PySide2.QtCore import QSize, Signal, Qt
-from PySide2.QtGui import QIcon, QPixmap, QColor
+from PySide2.QtGui import QColor
 import os
 
-from gui2.UtilsWidgets.QCollapsibleGroupBox import QCollapsibleGroupBox
+from gui2.UtilsWidgets.CustomQGroupBox.QCollapsibleGroupBox import QCollapsibleGroupBox
 
 from utils.software_config import SoftwareConfigResources
 
 
-class LayersInteractorAnnotationCollapsibleGroupBox(QCollapsibleGroupBox):
+class AnnotationSingleLayerCollapsibleGroupBox(QCollapsibleGroupBox):
     """
 
     """
@@ -16,9 +16,9 @@ class LayersInteractorAnnotationCollapsibleGroupBox(QCollapsibleGroupBox):
     color_value_changed = Signal(str, QColor)
 
     def __init__(self, annotation_uid, parent=None):
-        super(LayersInteractorAnnotationCollapsibleGroupBox, self).__init__(annotation_uid, parent,
-                                                                            header_style='double',
-                                                                            right_header_behaviour='stand-alone')
+        super(AnnotationSingleLayerCollapsibleGroupBox, self).__init__(annotation_uid, parent,
+                                                                       header_style='double',
+                                                                       right_header_behaviour='stand-alone')
         self.parent = parent
         self.__set_interface()
         self.__set_connections()
@@ -27,10 +27,10 @@ class LayersInteractorAnnotationCollapsibleGroupBox(QCollapsibleGroupBox):
 
     def __set_interface(self):
         self.set_header_icons(unchecked_icon_path=os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                                               '../../Images/closed_eye_icon.png'),
+                                                               '../../../Images/closed_eye_icon.png'),
                               unchecked_icon_size=QSize(20, 20),
                               checked_icon_path=os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                                             '../../Images/opened_eye_icon.png'),
+                                                             '../../../Images/opened_eye_icon.png'),
                               checked_icon_size=QSize(20, 20),
                               side='right')
         self.header_pushbutton.setBaseSize(QSize(self.baseSize().width(), 20))

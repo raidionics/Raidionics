@@ -1,6 +1,5 @@
-from PySide2.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QPushButton
-from PySide2.QtGui import QIcon, QPixmap
-from PySide2.QtCore import Qt, QSize, Signal
+from PySide2.QtWidgets import QWidget, QHBoxLayout, QPushButton
+from PySide2.QtCore import Signal
 import logging
 import traceback
 import os
@@ -10,7 +9,7 @@ import threading
 import shutil
 from utils.software_config import SoftwareConfigResources
 from utils.models_download import download_model
-from gui2.UtilsWidgets.TumorTypeSelectionQDialog import TumorTypeSelectionQDialog
+from gui2.UtilsWidgets.CustomQDialog.TumorTypeSelectionQDialog import TumorTypeSelectionQDialog
 from segmentation.src.Utils.configuration_parser import generate_runtime_config
 
 
@@ -247,7 +246,6 @@ class CentralAreaExecutionWidget(QWidget):
 
     def run_reporting(self):
         logging.info("Starting standardized reporting process.")
-        from diagnosis.main import diagnose_main
         # from diagnosis.src.Utils.configuration_parser import ResourcesConfiguration
 
         # Freezing buttons

@@ -1,15 +1,15 @@
-from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QSlider, QPushButton, QLineEdit, QComboBox
-from PySide2.QtCore import QSize, Signal, Qt
+from PySide2.QtWidgets import QLabel, QHBoxLayout, QLineEdit
+from PySide2.QtCore import QSize, Signal
 from PySide2.QtGui import QIcon, QPixmap, QColor
 import os
 
-from gui2.UtilsWidgets.QCollapsibleGroupBox import QCollapsibleGroupBox
+from gui2.UtilsWidgets.CustomQGroupBox.QCollapsibleGroupBox import QCollapsibleGroupBox
 from gui2.UtilsWidgets.QCustomIconsPushButton import QCustomIconsPushButton
 
 from utils.software_config import SoftwareConfigResources
 
 
-class LayersInteractorAtlasCollapsibleGroupBox(QCollapsibleGroupBox):
+class AtlasSingleLayerCollapsibleGroupBox(QCollapsibleGroupBox):
     """
 
     """
@@ -18,9 +18,9 @@ class LayersInteractorAtlasCollapsibleGroupBox(QCollapsibleGroupBox):
     color_value_changed = Signal(str, str, QColor)  # Atlas uid, structure uid, rgb color
 
     def __init__(self, uid, parent=None):
-        super(LayersInteractorAtlasCollapsibleGroupBox, self).__init__(uid, parent,
-                                                                       header_style='double',
-                                                                       right_header_behaviour='stand-alone')
+        super(AtlasSingleLayerCollapsibleGroupBox, self).__init__(uid, parent,
+                                                                  header_style='double',
+                                                                  right_header_behaviour='stand-alone')
         self.parent = parent
         self.__set_interface()
         self.__set_connections()
@@ -29,10 +29,10 @@ class LayersInteractorAtlasCollapsibleGroupBox(QCollapsibleGroupBox):
 
     def __set_interface(self):
         self.set_header_icons(unchecked_icon_path=os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                                               '../../Images/closed_eye_icon.png'),
+                                                               '../../../Images/closed_eye_icon.png'),
                               unchecked_icon_size=QSize(20, 20),
                               checked_icon_path=os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                                             '../../Images/opened_eye_icon.png'),
+                                                             '../../../Images/opened_eye_icon.png'),
                               checked_icon_size=QSize(20, 20),
                               side='right')
         self.header_pushbutton.setBaseSize(QSize(self.baseSize().width(), 20))
@@ -61,7 +61,7 @@ class LayersInteractorAtlasCollapsibleGroupBox(QCollapsibleGroupBox):
         """
         Populate the different widgets with internal parameters specific to the current annotation volume
         """
-        atlas_volume_parameters = SoftwareConfigResources.getInstance().get_active_patient().cortical_structures_atlases[self.uid]
+        atlas_volume_parameters = SoftwareConfigResources.getInstance().get_active_patient().atlas_volumes[self.uid]
         self.title = atlas_volume_parameters.display_name
         self.header_pushbutton.blockSignals(True)
         self.header_pushbutton.setText(self.title)
@@ -77,11 +77,11 @@ class LayersInteractorAtlasCollapsibleGroupBox(QCollapsibleGroupBox):
             pb = QCustomIconsPushButton(str(s), self.parent, icon_style='right', right_behaviour='stand-alone')
             pb.setText(name)
             pb.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                                                   '../../Images/closed_eye_icon.png'))), QSize(20, 20), side='right',
-                                           checked=False)
+                                                  '../../../Images/closed_eye_icon.png'))), QSize(20, 20), side='right',
+                       checked=False)
             pb.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                                                 '../../Images/opened_eye_icon.png'))), QSize(20, 20), side='right',
-                                           checked=True)
+                                                  '../../../Images/opened_eye_icon.png'))), QSize(20, 20), side='right',
+                       checked=True)
             pb.setBaseSize(QSize(self.baseSize().width(), 20))
             pb.setFixedHeight(20)
             self.content_label_layout.insertWidget(self.content_label_layout.count() - 1, pb)

@@ -2,12 +2,12 @@ from PySide2.QtWidgets import QWidget, QVBoxLayout, QScrollArea
 from PySide2.QtCore import Qt, QSize, Signal
 from PySide2.QtGui import QColor
 
-from gui2.SinglePatientComponent.LayersInteractorSidePanel.LayersInteractorVolumesWidget import LayersInteractorVolumesWidget
-from gui2.SinglePatientComponent.LayersInteractorSidePanel.LayersInteractorAnnotationsWidget import LayersInteractorAnnotationsWidget
-from gui2.SinglePatientComponent.LayersInteractorSidePanel.LayersInteractorAtlasesWidget import LayersInteractorAtlasesWidget
+from gui2.SinglePatientComponent.LayersInteractorSidePanel.MRIVolumesInteractor.MRIVolumesLayerInteractor import MRIVolumesLayerInteractor
+from gui2.SinglePatientComponent.LayersInteractorSidePanel.AnnotationLayersInteractor.AnnotationsLayersInteractor import AnnotationsLayersInteractor
+from gui2.SinglePatientComponent.LayersInteractorSidePanel.AtlasLayersInteractor.AtlasesLayersInteractor import AtlasesLayersInteractor
 
 
-class LayersInteractorSinglePatientSidePanelWidget(QWidget):
+class SinglePatientLayersWidget(QWidget):
     """
 
     """
@@ -25,7 +25,7 @@ class LayersInteractorSinglePatientSidePanelWidget(QWidget):
     atlas_structure_view_toggled = Signal(str, str, bool)
 
     def __init__(self, parent=None):
-        super(LayersInteractorSinglePatientSidePanelWidget, self).__init__()
+        super(SinglePatientLayersWidget, self).__init__()
         self.parent = parent
         self.__set_interface()
         self.__set_connections()
@@ -50,17 +50,17 @@ class LayersInteractorSinglePatientSidePanelWidget(QWidget):
         self.overall_scrollarea_layout.setSpacing(0)
         self.overall_scrollarea_layout.setContentsMargins(0, 0, 0, 0)
 
-        self.volumes_collapsiblegroupbox = LayersInteractorVolumesWidget(self)
+        self.volumes_collapsiblegroupbox = MRIVolumesLayerInteractor(self)
         # self.volumes_collapsiblegroupbox.setFixedSize(QSize(200, self.parent.baseSize().height()))
         # self.volumes_collapsiblegroupbox.content_label.setBaseSize(QSize(200, self.parent.baseSize().height()))
         self.overall_scrollarea_layout.addWidget(self.volumes_collapsiblegroupbox)
 
-        self.annotations_collapsiblegroupbox = LayersInteractorAnnotationsWidget(self)
+        self.annotations_collapsiblegroupbox = AnnotationsLayersInteractor(self)
         # self.volumes_collapsiblegroupbox.setFixedSize(QSize(200, self.parent.baseSize().height()))
         # self.volumes_collapsiblegroupbox.content_label.setBaseSize(QSize(200, self.parent.baseSize().height()))
         self.overall_scrollarea_layout.addWidget(self.annotations_collapsiblegroupbox)
 
-        self.atlases_collapsiblegroupbox = LayersInteractorAtlasesWidget(self)
+        self.atlases_collapsiblegroupbox = AtlasesLayersInteractor(self)
         self.overall_scrollarea_layout.addWidget(self.atlases_collapsiblegroupbox)
 
         self.overall_scrollarea_layout.addStretch(1)

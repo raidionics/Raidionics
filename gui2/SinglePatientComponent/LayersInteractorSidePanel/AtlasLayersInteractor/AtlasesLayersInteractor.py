@@ -1,16 +1,14 @@
-from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QApplication
 from PySide2.QtCore import QSize, Signal
-from PySide2.QtGui import QIcon, QPixmap, QColor
+from PySide2.QtGui import QColor
 import os
 
-from gui2.UtilsWidgets.QCollapsibleGroupBox import QCollapsibleGroupBox
-from gui2.UtilsWidgets.QCustomIconsPushButton import QCustomIconsPushButton
-from gui2.SinglePatientComponent.LayersInteractorSidePanel.LayersInteractorAtlasCollapsibleGroupBox import LayersInteractorAtlasCollapsibleGroupBox
+from gui2.UtilsWidgets.CustomQGroupBox.QCollapsibleGroupBox import QCollapsibleGroupBox
+from gui2.SinglePatientComponent.LayersInteractorSidePanel.AtlasLayersInteractor.AtlasSingleLayerCollapsibleGroupBox import AtlasSingleLayerCollapsibleGroupBox
 
 from utils.software_config import SoftwareConfigResources
 
 
-class LayersInteractorAtlasesWidget(QCollapsibleGroupBox):
+class AtlasesLayersInteractor(QCollapsibleGroupBox):
     """
 
     """
@@ -19,12 +17,12 @@ class LayersInteractorAtlasesWidget(QCollapsibleGroupBox):
     atlas_color_changed = Signal(str, str, QColor)
 
     def __init__(self, parent=None):
-        super(LayersInteractorAtlasesWidget, self).__init__("Structures", self, header_style='left')
+        super(AtlasesLayersInteractor, self).__init__("Structures", self, header_style='left')
         self.set_header_icons(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                           '../../Images/arrow_right_icon.png'),
+                                           '../../../Images/arrow_right_icon.png'),
                               QSize(20, 20),
                               os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                           '../../Images/arrow_down_icon.png'),
+                                           '../../../Images/arrow_down_icon.png'),
                               QSize(20, 20), side='left')
         self.parent = parent
         self.volumes_widget = {}
@@ -74,13 +72,13 @@ class LayersInteractorAtlasesWidget(QCollapsibleGroupBox):
         # Or we should display all annotations regardless, and group them under their respective MRI parents.
         # In addition, there will be another groupbox somewhere to specify if we use the raw patient space, the
         # co-registered patient space, or the MNI space for displaying.
-        for volume_id in list(active_patient.cortical_structures_atlases.keys()):
+        for volume_id in list(active_patient.atlas_volumes.keys()):
             if not volume_id in list(self.volumes_widget.keys()):
                 self.on_import_volume(volume_id)
         self.adjustSize()  # To force a repaint of the layout with the new elements
 
     def on_import_volume(self, volume_id):
-        volume_widget = LayersInteractorAtlasCollapsibleGroupBox(uid=volume_id, parent=self)
+        volume_widget = AtlasSingleLayerCollapsibleGroupBox(uid=volume_id, parent=self)
         self.volumes_widget[volume_id] = volume_widget
         self.content_label_layout.insertWidget(self.content_label_layout.count() - 1, volume_widget)
 

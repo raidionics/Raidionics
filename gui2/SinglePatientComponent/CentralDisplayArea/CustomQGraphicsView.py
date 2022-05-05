@@ -1,13 +1,13 @@
-from PySide2.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsPixmapItem, QGraphicsOpacityEffect, QDialog
-from PySide2.QtGui import QPixmap, QImage, QPainter, QPen, QColor, QTransform, QColorConstants
-from PySide2.QtCore import Qt, QSize, Signal, QPoint
+from PySide2.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsPixmapItem, QGraphicsOpacityEffect
+from PySide2.QtGui import QPixmap, QImage, QPen, QColor, QTransform
+from PySide2.QtCore import Qt, Signal, QPoint
 import numpy as np
 import os
 
 from scipy.ndimage import rotate
 
 from utils.software_config import SoftwareConfigResources
-from gui2.UtilsWidgets.ImportDataQDialog import ImportDataQDialog
+from gui2.UtilsWidgets.CustomQDialog.ImportDataQDialog import ImportDataQDialog
 
 
 class CustomQGraphicsView(QGraphicsView):
@@ -203,8 +203,8 @@ class CustomQGraphicsView(QGraphicsView):
             self.overlaid_items[joint_uid] = QGraphicsPixmapItem()
             self.scene.addItem(self.overlaid_items[joint_uid])
         if not joint_uid in self.overlaid_items_display_parameters.keys():
-            color = SoftwareConfigResources.getInstance().get_active_patient().cortical_structures_atlases[atlas_uid].class_display_color[int(structure_uid)]
-            opacity = SoftwareConfigResources.getInstance().get_active_patient().cortical_structures_atlases[atlas_uid].class_display_opacity[int(structure_uid)]
+            color = SoftwareConfigResources.getInstance().get_active_patient().atlas_volumes[atlas_uid].class_display_color[int(structure_uid)]
+            opacity = SoftwareConfigResources.getInstance().get_active_patient().atlas_volumes[atlas_uid].class_display_opacity[int(structure_uid)]
             self.overlaid_items_display_parameters[joint_uid] = {"color": QColor.fromRgb(color[0], color[1],
                                                                                          color[2], color[3]),
                                                                  "opacity": opacity / 100.}

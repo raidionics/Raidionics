@@ -1,10 +1,8 @@
 import os
-from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QScrollArea, QPushButton, QLineEdit
+from PySide2.QtWidgets import QLabel, QHBoxLayout, QVBoxLayout, QLineEdit
 from PySide2.QtCore import QSize
-from PySide2.QtGui import QIcon, QPixmap
 
-from gui2.UtilsWidgets.QRightIconPushButton import QRightIconPushButton
-from gui2.UtilsWidgets.QCollapsibleGroupBox import QCollapsibleGroupBox
+from gui2.UtilsWidgets.CustomQGroupBox.QCollapsibleGroupBox import QCollapsibleGroupBox
 from utils.software_config import SoftwareConfigResources
 
 

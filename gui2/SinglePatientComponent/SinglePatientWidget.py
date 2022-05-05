@@ -1,15 +1,14 @@
-from PySide2.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QLabel, QPushButton, QSplitter, QDialog
+from PySide2.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QLabel, QPushButton, QSplitter
 from PySide2.QtGui import QIcon, QPixmap
 from PySide2.QtCore import Qt, QSize, Signal
 
 import os
 from utils.software_config import SoftwareConfigResources
 from gui2.SinglePatientComponent.PatientResultsSidePanel.PatientResultsSinglePatientSidePanelWidget import PatientResultsSinglePatientSidePanelWidget
-from gui2.SinglePatientComponent.CentralDisplayArea.CentralDisplayAreaWidget import CentralDisplayAreaWidget
 from gui2.SinglePatientComponent.CentralAreaWidget import CentralAreaWidget
-from gui2.SinglePatientComponent.LayersInteractorSidePanel.LayersInteractorSinglePatientSidePanelWidget import LayersInteractorSinglePatientSidePanelWidget
-from gui2.UtilsWidgets.ImportDataQDialog import ImportDataQDialog
-from gui2.UtilsWidgets.ImportDICOMDataQDialog import ImportDICOMDataQDialog
+from gui2.SinglePatientComponent.LayersInteractorSidePanel.SinglePatientWidget import SinglePatientLayersWidget
+from gui2.UtilsWidgets.CustomQDialog.ImportDataQDialog import ImportDataQDialog
+from gui2.UtilsWidgets.CustomQDialog.ImportDICOMDataQDialog import ImportDICOMDataQDialog
 
 
 class SinglePatientWidget(QWidget):
@@ -101,7 +100,7 @@ class SinglePatientWidget(QWidget):
         self.results_panel.setMaximumSize(QSize(200, self.baseSize().height()))
         self.center_panel = CentralAreaWidget(self) #CentralDisplayAreaWidget(self)
         self.center_panel.setBaseSize(QSize(self.baseSize().width() - 400, self.baseSize().height()))
-        self.layers_panel = LayersInteractorSinglePatientSidePanelWidget(self)
+        self.layers_panel = SinglePatientLayersWidget(self)
         self.layers_panel.setBaseSize(QSize(200, self.parent.baseSize().height()))
         self.layers_panel.setMaximumSize(QSize(200, self.parent.baseSize().height()))
         self.left_panel_splitter.addWidget(self.results_panel)
