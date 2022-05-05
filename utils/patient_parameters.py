@@ -6,6 +6,8 @@ from os.path import expanduser
 import nibabel as nib
 import SimpleITK as sitk
 from copy import deepcopy
+
+import pandas as pd
 from nibabel.processing import resample_to_output, resample_from_to
 import numpy as np
 from scipy.ndimage import rotate
@@ -163,13 +165,13 @@ class PatientParameters:
         try:
             # Always converting the input file to nifti, if possible, otherwise will be discarded
             # @TODO. Do we catch a potential .seg file that would be coming from 3D Slicer for annotations?
-            pre_file_extension = filename.split('.')[0]
-            file_extension = '.'.join(filename.split('.')[1:])
-            if file_extension != 'nii' or file_extension != 'nii.gz':
+            pre_file_extension = os.path.basename(filename).split('.')[0]
+            file_extension = '.'.join(os.path.basename(filename).split('.')[1:])
+            if file_extension != 'nii' and file_extension != 'nii.gz':
                 input_sitk = sitk.ReadImage(filename)
-                nifti_outfilename = os.path.join(self.output_folder, os.path.basename(pre_file_extension) + '.nii.gz')
+                nifti_outfilename = os.path.join(self.output_folder, pre_file_extension + '.nii.gz')
                 sitk.WriteImage(input_sitk, nifti_outfilename)
-
+                filename = nifti_outfilename
             if type == 'MRI':
                 image_nib = nib.load(filename)
 
@@ -243,7 +245,8 @@ class PatientParameters:
             error_message = "Failed to load standardized report from {}".format(filename)
         return error_message
 
-    def import_atlas_structures(self, filename: str, reference: str ='Patient') -> Union[str, Any]:
+    def import_atlas_structures(self, filename: str, description: str = None,
+                                reference: str = 'Patient') -> Union[str, Any]:
         data_uid = None
         error_message = None
 
@@ -253,7 +256,7 @@ class PatientParameters:
                 resampled_input_ni = resample_to_output(image_nib, order=0)
                 image_res = resampled_input_ni.get_data()[:].astype('uint8')
 
-                # Generating a unique id for the annotation volume
+                # Generating a unique id for the atlas volume
                 base_data_uid = os.path.basename(filename).strip().split('.')[0]
                 non_available_uid = True
                 while non_available_uid:
@@ -261,14 +264,17 @@ class PatientParameters:
                     if data_uid not in list(self.annotation_volumes.keys()):
                         non_available_uid = False
 
+                description_filename = os.path.join(self.output_folder, 'reporting', 'atlas_descriptions',
+                                                    base_data_uid.split('_')[0] + '_description.csv')
                 self.cortical_structures_atlases[data_uid] = AtlasVolume(uid=data_uid, filename=filename,
-                                                                         description_filename=None)
-                self.cortical_structures_atlases[data_uid].display_volume = deepcopy(image_res)
+                                                                         description_filename=description_filename)
+                self.cortical_structures_atlases[data_uid].set_display_volume(deepcopy(image_res))
             else:  # Reference is MNI space then
                 pass
         except Exception as e:
             error_message = e  # traceback.format_exc()
 
+        logging.info("New atlas file imported: {}".format(data_uid))
         return data_uid, error_message
 
     def save_patient(self):
@@ -370,9 +376,8 @@ class AnnotationVolume():
 
 class AtlasVolume():
     """
-    Class defining how an atlas volume should be handled. Meaning that each label has a specific meaning
-    as described in the description file. Could save an atlas with all labels, and specific binary files with only one
-    label in each.
+    Class defining how an atlas volume should be handled. Each label has a specific meaning as listed in the
+    description file. Could save an atlas with all labels, and specific binary files with only one label in each.
     """
     def __init__(self, uid, filename, description_filename):
         self.unique_id = uid
@@ -381,11 +386,33 @@ class AtlasVolume():
         self.display_volume_filepath = None
         self.class_description_filename = description_filename
         self.class_description = {}
+        self.class_number = 0
 
         # Display parameters, for reload/dump of the scene
-        self.display_color = [255, 255, 255, 255]  # List with format: r, g, b, a
-        self.display_opacity = 50
         self.display_name = uid
+        self.class_display_color = {}
+        self.class_display_opacity = {}
+
+        self.__setup()
+
+    def __setup(self):
+        if not self.class_description_filename or not os.path.exists(self.class_description_filename):
+            logging.info("Atlas provided without a description file with location {}.\n".format(self.raw_filepath))
+            self.class_description_filename = None
+            return
+
+        self.class_description = pd.read_csv(self.class_description_filename)
+
+    def set_display_volume(self, display_volume: np.ndarray) -> None:
+        self.display_volume = display_volume
+        total_labels = np.unique(self.display_volume)
+        self.class_number = len(total_labels) - 1
+        self.one_hot_display_volume = np.zeros(shape=(self.display_volume.shape + (self.class_number + 1,)), dtype='uint8')
+
+        for c in range(1, self.class_number + 1):
+            self.class_display_color[c] = [255, 255, 255, 255]
+            self.class_display_opacity[c] = 50
+            self.one_hot_display_volume[..., c][self.display_volume == total_labels[c]] = 1
 
 
 class ProjectParameters:

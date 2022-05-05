@@ -19,6 +19,7 @@ class CentralAreaWidget(QWidget):
     annotation_opacity_changed = Signal(str, int)
     annotation_color_changed = Signal(str, QColor)
     atlas_view_toggled = Signal(str, bool)
+    atlas_structure_view_toggled = Signal(str, str, bool)
     standardized_report_imported = Signal()
 
     def __init__(self, parent=None):
@@ -55,7 +56,8 @@ class CentralAreaWidget(QWidget):
         self.annotation_view_toggled.connect(self.display_area_widget.on_annotation_layer_toggled)
         self.annotation_opacity_changed.connect(self.display_area_widget.on_annotation_opacity_changed)
         self.annotation_color_changed.connect(self.display_area_widget.on_annotation_color_changed)
-        self.atlas_view_toggled.connect(self.display_area_widget.on_atlas_layer_toggled)
+        # self.atlas_view_toggled.connect(self.display_area_widget.on_atlas_layer_toggled)
+        self.atlas_structure_view_toggled.connect(self.display_area_widget.on_atlas_structure_view_toggled)
 
         # Connections related to data loading (from central viewer panel to update the right-handed panel)
         self.display_area_widget.mri_volume_imported.connect(self.on_import_mri_volume)

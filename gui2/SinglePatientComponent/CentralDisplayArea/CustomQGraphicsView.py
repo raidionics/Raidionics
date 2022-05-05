@@ -192,6 +192,29 @@ class CustomQGraphicsView(QGraphicsView):
         self.display_annotations[annotation_uid] = image_2d
         self.__repaint_overlay(annotation_uid)
 
+    def update_atlas_view(self, atlas_uid, structure_uid, slice):
+        """
+
+        """
+        joint_uid = atlas_uid + '_' + structure_uid
+        if not joint_uid in self.overlaid_items.keys():
+            self.original_annotations[joint_uid] = None
+            self.display_annotations[joint_uid] = None
+            self.overlaid_items[joint_uid] = QGraphicsPixmapItem()
+            self.scene.addItem(self.overlaid_items[joint_uid])
+        if not joint_uid in self.overlaid_items_display_parameters.keys():
+            color = SoftwareConfigResources.getInstance().get_active_patient().cortical_structures_atlases[atlas_uid].class_display_color[int(structure_uid)]
+            opacity = SoftwareConfigResources.getInstance().get_active_patient().cortical_structures_atlases[atlas_uid].class_display_opacity[int(structure_uid)]
+            self.overlaid_items_display_parameters[joint_uid] = {"color": QColor.fromRgb(color[0], color[1],
+                                                                                         color[2], color[3]),
+                                                                 "opacity": opacity / 100.}
+
+        self.original_annotations[joint_uid] = slice
+        image_2d = slice[:, ::-1]
+        image_2d = rotate(image_2d, -90).astype('uint8')
+        self.display_annotations[joint_uid] = image_2d
+        self.__repaint_overlay(joint_uid)
+
     def cleanse_annotations(self):
         for k in list(self.overlaid_items):
             self.remove_annotation_view(k)
@@ -206,6 +229,14 @@ class CustomQGraphicsView(QGraphicsView):
         # Should we keep the last parameters, so that it shows back as it was when it's toggled back, rather than
         # set to default values? Not much memory use for this.
         # self.overlaid_items_display_parameters.pop(annotation_uid)
+
+    def remove_atlas_view(self, atlas_uid, structure_uid):
+        joint_uid = atlas_uid + '_' + structure_uid
+        graphics_item = self.overlaid_items[joint_uid]
+        self.scene.removeItem(graphics_item)
+        self.overlaid_items.pop(joint_uid)
+        self.original_annotations.pop(joint_uid)
+        self.display_annotations.pop(joint_uid)
 
     def update_annotation_opacity(self, annotation_uid, value):
         """

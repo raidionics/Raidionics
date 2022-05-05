@@ -233,7 +233,7 @@ class CentralAreaExecutionWidget(QWidget):
             with open(rads_config_filename, 'w') as outfile:
                 rads_config.write(outfile)
 
-            subprocess.call(['raidionicsrads', '{config}'.format(config=rads_config_filename)])
+            # subprocess.call(['raidionicsrads', '{config}'.format(config=rads_config_filename)])
             os.remove(rads_config_filename)
             self.__collect_reporting_outputs(current_patient_parameters)
         except Exception:

@@ -148,7 +148,8 @@ class SinglePatientWidget(QWidget):
         self.layers_panel.annotation_view_toggled.connect(self.center_panel.on_annotation_layer_toggled)
         self.layers_panel.annotation_opacity_changed.connect(self.center_panel.on_annotation_opacity_changed)
         self.layers_panel.annotation_color_changed.connect(self.center_panel.on_annotation_color_changed)
-        self.layers_panel.atlas_view_toggled.connect(self.center_panel.on_atlas_layer_toggled)
+        # self.layers_panel.atlas_view_toggled.connect(self.center_panel.on_atlas_layer_toggled)
+        self.layers_panel.atlas_structure_view_toggled.connect(self.center_panel.atlas_structure_view_toggled)
         self.center_panel.standardized_report_imported.connect(self.results_panel.on_standardized_report_imported)
 
         # To sort

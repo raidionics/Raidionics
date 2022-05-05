@@ -33,6 +33,7 @@ class SoftwareConfigResources:
             self.__setup()
 
     def __setup(self):
+        # @TODO. The default storing place should be /home/user/raidionics, having a dot might be annoying for some.
         self.models_path = os.path.join(expanduser('~'), '.neurorads', 'resources', 'models')
         self.config_filename = os.path.join(expanduser("~"), '.neurorads', 'neurorads_config.ini')
         self.config = None

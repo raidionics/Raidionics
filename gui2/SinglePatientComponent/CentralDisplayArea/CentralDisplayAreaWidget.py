@@ -199,6 +199,20 @@ class CentralDisplayAreaWidget(QWidget):
         self.coronal_viewer.update_annotation_color(volume_uid, color)
         self.sagittal_viewer.update_annotation_color(volume_uid, color)
 
+    def on_atlas_structure_view_toggled(self, atlas_uid, structure_uid, state):
+        joint_uid = atlas_uid + '_' + structure_uid
+        if state:
+            self.current_patient_parameters = SoftwareConfigResources.getInstance().patients_parameters[SoftwareConfigResources.getInstance().active_patient_name]
+            self.overlaid_volumes[joint_uid] = self.current_patient_parameters.cortical_structures_atlases[atlas_uid].one_hot_display_volume[..., int(structure_uid)]
+            self.axial_viewer.update_atlas_view(atlas_uid, structure_uid, self.overlaid_volumes[joint_uid][:, :, self.point_clicker_position[2]])
+            self.coronal_viewer.update_atlas_view(atlas_uid, structure_uid, self.overlaid_volumes[joint_uid][:, self.point_clicker_position[1], :])
+            self.sagittal_viewer.update_atlas_view(atlas_uid, structure_uid, self.overlaid_volumes[joint_uid][self.point_clicker_position[0], :, :])
+        else:
+            self.overlaid_volumes.pop(joint_uid, None)  # None should not be necessary as the key should be in the dict
+            self.axial_viewer.remove_atlas_view(atlas_uid, structure_uid)
+            self.coronal_viewer.remove_atlas_view(atlas_uid, structure_uid)
+            self.sagittal_viewer.remove_atlas_view(atlas_uid, structure_uid)
+
     def on_atlas_layer_toggled(self, volume_uid, state):
         if state:
             self.current_patient_parameters = SoftwareConfigResources.getInstance().patients_parameters[SoftwareConfigResources.getInstance().active_patient_name]

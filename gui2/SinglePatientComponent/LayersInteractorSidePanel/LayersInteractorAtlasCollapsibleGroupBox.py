@@ -4,6 +4,7 @@ from PySide2.QtGui import QIcon, QPixmap, QColor
 import os
 
 from gui2.UtilsWidgets.QCollapsibleGroupBox import QCollapsibleGroupBox
+from gui2.UtilsWidgets.QCustomIconsPushButton import QCustomIconsPushButton
 
 from utils.software_config import SoftwareConfigResources
 
@@ -12,6 +13,9 @@ class LayersInteractorAtlasCollapsibleGroupBox(QCollapsibleGroupBox):
     """
 
     """
+    structure_view_toggled = Signal(str, str, bool)  # Atlas uid, structure uid, visible state
+    opacity_value_changed = Signal(str, str, int)  # Atlas uid, structure uid, opacity value
+    color_value_changed = Signal(str, str, QColor)  # Atlas uid, structure uid, rgb color
 
     def __init__(self, uid, parent=None):
         super(LayersInteractorAtlasCollapsibleGroupBox, self).__init__(uid, parent,
@@ -66,10 +70,29 @@ class LayersInteractorAtlasCollapsibleGroupBox(QCollapsibleGroupBox):
         self.name_lineedit.setText(self.title)
         self.name_lineedit.blockSignals(False)
 
+        for s in range(1, atlas_volume_parameters.class_number + 1):
+            name = str(s)
+            if atlas_volume_parameters.class_description_filename:
+                name = atlas_volume_parameters.class_description.iloc[[s - 1]]['text'].values[0]
+            pb = QCustomIconsPushButton(str(s), self.parent, icon_style='right', right_behaviour='stand-alone')
+            pb.setText(name)
+            pb.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                                   '../../Images/closed_eye_icon.png'))), QSize(20, 20), side='right',
+                                           checked=False)
+            pb.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                                 '../../Images/opened_eye_icon.png'))), QSize(20, 20), side='right',
+                                           checked=True)
+            pb.setBaseSize(QSize(self.baseSize().width(), 20))
+            pb.setFixedHeight(20)
+            self.content_label_layout.insertWidget(self.content_label_layout.count() - 1, pb)
+            pb.right_clicked.connect(self.__on_display_toggled)
+
+        self.adjustSize()
+
     def __on_display_name_modified(self):
         self.title = self.name_lineedit.text()
         self.header_pushbutton.setText(self.title)
 
-    def __on_display_toggled(self):
-        pass
+    def __on_display_toggled(self, structure_uid, state):
+        self.structure_view_toggled.emit(self.uid, structure_uid, state)
 

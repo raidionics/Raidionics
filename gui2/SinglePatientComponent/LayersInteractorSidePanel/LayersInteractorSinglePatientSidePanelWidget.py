@@ -22,6 +22,7 @@ class LayersInteractorSinglePatientSidePanelWidget(QWidget):
     annotation_opacity_changed = Signal(str, int)
     annotation_color_changed = Signal(str, QColor)
     atlas_view_toggled = Signal(str, bool)
+    atlas_structure_view_toggled = Signal(str, str, bool)
 
     def __init__(self, parent=None):
         super(LayersInteractorSinglePatientSidePanelWidget, self).__init__()
@@ -80,7 +81,8 @@ class LayersInteractorSinglePatientSidePanelWidget(QWidget):
         self.annotations_collapsiblegroupbox.annotation_view_toggled.connect(self.annotation_view_toggled)
         self.annotations_collapsiblegroupbox.annotation_opacity_changed.connect(self.annotation_opacity_changed)
         self.annotations_collapsiblegroupbox.annotation_color_changed.connect(self.annotation_color_changed)
-        self.atlases_collapsiblegroupbox.atlas_view_toggled.connect(self.atlas_view_toggled)
+        # self.atlases_collapsiblegroupbox.atlas_view_toggled.connect(self.atlas_view_toggled)
+        self.atlases_collapsiblegroupbox.atlas_structure_view_toggled.connect(self.atlas_structure_view_toggled)
 
         # @TODO. Can be removed, deprecated?
         self.import_data_triggered.connect(self.volumes_collapsiblegroupbox.on_import_data)

@@ -1,6 +1,6 @@
 from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QApplication
 from PySide2.QtCore import QSize, Signal
-from PySide2.QtGui import QIcon, QPixmap
+from PySide2.QtGui import QIcon, QPixmap, QColor
 import os
 
 from gui2.UtilsWidgets.QCollapsibleGroupBox import QCollapsibleGroupBox
@@ -14,7 +14,9 @@ class LayersInteractorAtlasesWidget(QCollapsibleGroupBox):
     """
 
     """
-    atlas_view_toggled = Signal(str, bool)
+    atlas_structure_view_toggled = Signal(str, str, bool)
+    atlas_opacity_changed = Signal(str, str, int)
+    atlas_color_changed = Signal(str, str, QColor)
 
     def __init__(self, parent=None):
         super(LayersInteractorAtlasesWidget, self).__init__("Structures", self, header_style='left')
@@ -72,7 +74,7 @@ class LayersInteractorAtlasesWidget(QCollapsibleGroupBox):
         # Or we should display all annotations regardless, and group them under their respective MRI parents.
         # In addition, there will be another groupbox somewhere to specify if we use the raw patient space, the
         # co-registered patient space, or the MNI space for displaying.
-        for volume_id in list(active_patient.annotation_volumes.keys()):
+        for volume_id in list(active_patient.cortical_structures_atlases.keys()):
             if not volume_id in list(self.volumes_widget.keys()):
                 self.on_import_volume(volume_id)
         self.adjustSize()  # To force a repaint of the layout with the new elements
@@ -85,8 +87,12 @@ class LayersInteractorAtlasesWidget(QCollapsibleGroupBox):
         # On-the-fly signals/slots connection for the newly created QWidget
         volume_widget.header_pushbutton.clicked.connect(self.adjustSize)
         volume_widget.right_clicked.connect(self.on_visibility_clicked)
+        volume_widget.structure_view_toggled.connect(self.on_atlas_structure_view_toggled)
         # Triggers a repaint with adjusted size for the layout
         self.adjustSize()
 
     def on_visibility_clicked(self, uid, state):
         self.atlas_view_toggled.emit(uid, state)
+
+    def on_atlas_structure_view_toggled(self, atlas_uid, structure_uid, state):
+        self.atlas_structure_view_toggled.emit(atlas_uid, structure_uid, state)
