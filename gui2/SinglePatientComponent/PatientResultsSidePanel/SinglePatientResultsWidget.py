@@ -1,5 +1,5 @@
 import os
-from PySide2.QtWidgets import QLabel, QHBoxLayout, QVBoxLayout, QLineEdit
+from PySide2.QtWidgets import QLabel, QHBoxLayout, QVBoxLayout, QLineEdit, QListWidget, QListWidgetItem
 from PySide2.QtCore import QSize
 
 from gui2.UtilsWidgets.CustomQGroupBox.QCollapsibleGroupBox import QCollapsibleGroupBox
@@ -191,6 +191,10 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.mni_corticalstructures_layout = QVBoxLayout()
         self.mni_corticalstructures_layout.setSpacing(0)
         self.mni_corticalstructures_layout.setContentsMargins(0, 0, 0, 0)
+        self.mni_corticalstructures_listwidget = QListWidget()
+        self.mni_corticalstructures_listwidget.setBaseSize(QSize(self.parent.baseSize().width(), 150))
+        self.mni_corticalstructures_listwidget.setMinimumHeight(100)
+        self.mni_corticalstructures_layout.addWidget(self.mni_corticalstructures_listwidget)
         self.corticalstructures_collapsiblegroupbox.content_label_layout.addLayout(self.mni_corticalstructures_layout)
 
     def __set_subcortical_structures_part(self):
@@ -291,15 +295,18 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
             self.multifocality_distance_label.setVisible(False)
 
         # @TODO. Not working as intended
-        mni_corticalstructures_layout = QVBoxLayout()
         for atlas in report_json['Main']['Total']['CorticalStructures']:
-            for struct in report_json['Main']['Total']['CorticalStructures'][atlas]:
+            sorted_overlaps = dict(sorted(report_json['Main']['Total']['CorticalStructures'][atlas].items(), key=lambda item: item[1], reverse=True))
+            for struct, val in sorted_overlaps.items():
                 # tmp_lay = QHBoxLayout()
                 # tmp_lay.addWidget(QLabel(struct))
                 # tmp_lay.addWidget(QLabel(str(report_json['Main']['Total']['CorticalStructures'][atlas][struct]) + ' %'))
                 # mni_corticalstructures_layout.addLayout(tmp_lay)
-                label = QLabel("{}: {} %".format(struct, str(report_json['Main']['Total']['CorticalStructures'][atlas][struct])))
-                label.setMinimumWidth(self.parent.baseSize().width())
-                label.setMinimumHeight(30)
-                mni_corticalstructures_layout.addWidget(label)
-        self.corticalstructures_collapsiblegroupbox.content_label_layout.addLayout(mni_corticalstructures_layout)
+                if val != 0.0:
+                    # label = QLabel("{}: {} %".format(struct, str(val)))
+                    # label.setMinimumWidth(self.parent.baseSize().width())
+                    # label.setMinimumHeight(30)
+                    #mni_corticalstructures_layout.addWidget(label)
+                    self.mni_corticalstructures_listwidget.addItem(QListWidgetItem("{}: {} %".format(struct, str(val))))
+        #self.corticalstructures_collapsiblegroupbox.content_label_layout.addLayout(mni_corticalstructures_layout)
+        # self.corticalstructures_collapsiblegroupbox.content_label_layout = mni_corticalstructures_layout

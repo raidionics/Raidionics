@@ -72,7 +72,7 @@ class NeuroRADSMainWindow(QMainWindow):
         # Centering the software on the user screen
         self.move(self.left, self.top)
 
-        # self.__set_mainmenu_interface()
+        self.__set_mainmenu_interface()
         self.__set_centralwidget_interface()
 
     def __set_mainmenu_interface(self):
@@ -90,14 +90,6 @@ class NeuroRADSMainWindow(QMainWindow):
         self.mode_menu.addAction(self.batch_mode_action)
 
         self.settings_menu = self.menu_bar.addMenu('Settings')
-        self.settings_seg_menu = self.settings_menu.addMenu("Segmentation...")
-        self.settings_seg_menu.setEnabled(False)
-        self.settings_seg_preproc_menu = self.settings_seg_menu.addMenu("Preprocessing...")
-        self.settings_seg_preproc_menu_p1_action = QAction("Brain-masking off (P1)", checkable=True)
-        self.settings_seg_preproc_menu_p2_action = QAction("Brain-masking on (P2)", checkable=True)
-        self.settings_seg_preproc_menu_p2_action.setChecked(True)
-        self.settings_seg_preproc_menu.addAction(self.settings_seg_preproc_menu_p1_action)
-        self.settings_seg_preproc_menu.addAction(self.settings_seg_preproc_menu_p2_action)
         self.settings_update_menu = self.settings_menu.addMenu("Update")
         self.settings_update_models_menu = self.settings_update_menu.addMenu("Models")
         self.settings_update_models_menu_active_action = QAction("Active checking", checkable=True)
@@ -132,7 +124,7 @@ class NeuroRADSMainWindow(QMainWindow):
         self.central_stackedwidget.setMinimumSize(self.size())
 
     def __set_layouts(self):
-        # self.setMenuBar(self.menu_bar)
+        self.setMenuBar(self.menu_bar)
         self.main_window_layout = QHBoxLayout()
         self.__set_mainexecution_layout()
         self.__set_maindisplay_layout()
