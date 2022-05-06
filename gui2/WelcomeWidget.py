@@ -19,7 +19,7 @@ class WelcomeWidget(QWidget):
         self.widget_name = "welcome_widget"
         self.parent = parent
         self.__set_interface()
-        # self.__set_layouts()
+        self.__set_layout_dimensions()
         self.__set_stylesheets()
         self.__set_connections()
 
@@ -28,11 +28,8 @@ class WelcomeWidget(QWidget):
         self.__set_right_panel_interface()
         self.__set_left_panel_interface()
         self.central_label = QLabel()
-        # self.central_label.setFixedSize(QSize(self.parent.baseSize().width(), self.parent.baseSize().height()))
-        self.central_label.setFixedSize(QSize(700, 400))
         self.central_label.setContentsMargins(0, 0, 0, 0)
         self.central_layout = QHBoxLayout()
-        # To ensure no space between the different widgets inside the layout, to maintain layout stylesheets as proper as possible.
         self.central_layout.setContentsMargins(0, 0, 0, 0)
         self.central_layout.setSpacing(0)
         self.central_layout.addStretch(1)
@@ -41,30 +38,19 @@ class WelcomeWidget(QWidget):
         self.central_layout.addStretch(1)
         self.central_label.setLayout(self.central_layout)
 
-        # self.widget = QWidget(self)
-        self.setBaseSize(self.parent.baseSize())
-
         self.layout = QVBoxLayout(self)
         self.center_widget_container_layout = QGridLayout()
         self.layout.addLayout(self.top_logo_panel_layout, Qt.AlignTop)
         # Always center aligning the center piece, while keeping the logo always at the top
-        # @TODO. Might we also rescale the buttons on the fly?
         self.center_widget_container_layout.addWidget(self.central_label, 0, 0, Qt.AlignCenter)
         self.layout.addLayout(self.center_widget_container_layout)
         # self.widget.setLayout(self.layout)
 
     def __top_logo_panel_interface(self):
         self.top_logo_panel_layout = QHBoxLayout()
-        # self.top_logo_panel_pushbutton = QPushButton()
-        # self.top_logo_panel_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Images/neurorads-logo.png'))))
-        # self.top_logo_panel_pushbutton.setIconSize(QSize(100, 25))
-        # self.top_logo_panel_pushbutton.setEnabled(False)
         self.top_logo_panel_label = QLabel()
-        # self.top_logo_panel_label.setFixedSize(QSize(100, 25))
         self.top_logo_panel_label.setPixmap(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                                  'Images/raidionics-logo.png')).scaled(200, 50, Qt.KeepAspectRatio))
-        # self.top_logo_panel_label.setIconSize(QSize(100, 25))
-        self.top_logo_panel_label.setFixedSize(QSize(200, 50))
         self.top_logo_panel_layout.addWidget(self.top_logo_panel_label, Qt.AlignLeft)
         self.top_logo_panel_layout.addStretch(1)
 
@@ -116,11 +102,9 @@ class WelcomeWidget(QWidget):
 
         self.left_panel_welcome_label = QLabel()
         self.left_panel_welcome_label.setText("Welcome to Raidionics")
-        self.left_panel_welcome_label.setFixedSize(QSize(240, 20))
         self.left_panel_layout.addWidget(self.left_panel_welcome_label)
         self.left_panel_startby_label = QLabel()
         self.left_panel_startby_label.setText("Start by: ")
-        self.left_panel_startby_label.setFixedSize(QSize(200, 20))
         self.left_panel_layout.addWidget(self.left_panel_startby_label)
         self.left_panel_spaceritem = QSpacerItem(1, 15)
         self.left_panel_layout.addItem(self.left_panel_spaceritem)
@@ -129,7 +113,6 @@ class WelcomeWidget(QWidget):
         self.left_panel_single_patient_pushbutton.setIcon(self.left_panel_single_patient_pushbutton_icon)
         self.left_panel_single_patient_pushbutton.setIconSize(QSize(50, 25))
         self.left_panel_single_patient_pushbutton.setText("New single patient")
-        self.left_panel_single_patient_pushbutton.setFixedSize(QSize(220, 40))
         self.left_panel_layout.addWidget(self.left_panel_single_patient_pushbutton)
 
         self.left_panel_or_layout = QHBoxLayout()
@@ -151,16 +134,28 @@ class WelcomeWidget(QWidget):
         self.left_panel_multiple_patients_pushbutton_icon = QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Images/multiple_patients_icon_colored.png')))
         self.left_panel_multiple_patients_pushbutton.setIcon(self.left_panel_multiple_patients_pushbutton_icon)
         self.left_panel_multiple_patients_pushbutton.setIconSize(QSize(50, 25))
-        self.left_panel_multiple_patients_pushbutton.setFixedSize(QSize(220, 40))
         self.left_panel_layout.addWidget(self.left_panel_multiple_patients_pushbutton)
         self.left_panel_layout.addStretch(1)
 
-        self.left_panel_label.setFixedSize(QSize(350, 400))
         self.left_panel_label.setLayout(self.left_panel_layout)
 
-    def __set_layouts(self):
-        self.__set_left_panel_layouts()
-        self.__set_right_panel_layouts()
+    def __set_layout_dimensions(self):
+        # WHOLE WIDGET #
+        # self.central_label.setMinimumSize(QSize(0.75 * self.parent.baseSize().width(),
+        #                                         0.75 * self.parent.baseSize().height()))
+        self.setBaseSize(self.parent.baseSize())
+        self.central_label.setMinimumSize(QSize((1164 / SoftwareConfigResources.getInstance().get_optimal_dimensions().width()) * self.parent.baseSize().width(),
+                                                (535 / SoftwareConfigResources.getInstance().get_optimal_dimensions().height()) * self.parent.baseSize().height()))  # Optimal QSize(1164, 535)
+
+        # LOGO PANEL #
+        self.top_logo_panel_label.setFixedSize(QSize(200, 50))
+
+        # LEFT PANEL #
+        self.left_panel_welcome_label.setFixedSize(QSize(240, 20))
+        self.left_panel_startby_label.setFixedSize(QSize(200, 20))
+        self.left_panel_single_patient_pushbutton.setFixedSize(QSize(220, 40))
+        self.left_panel_multiple_patients_pushbutton.setFixedSize(QSize(220, 40))
+        self.left_panel_label.setFixedSize(QSize(350, 400))
 
     def __set_stylesheets(self):
         self.central_label.setStyleSheet("QLabel{border:1px solid; background-color:rgb(255,0,0); border-color:rgb(230,230,230);}")

@@ -23,6 +23,7 @@ class SinglePatientWidget(QWidget):
         self.parent = parent
         self.widget_name = "single_patient_widget"
         self.__set_interface()
+        self.__set_layout_dimensions()
         self.__set_stylesheets()
         self.__set_connections()
 
@@ -33,8 +34,6 @@ class SinglePatientWidget(QWidget):
         self.__center_display_panel_interface()
         self.__right_options_panel_interface()
         self.central_label = QLabel()
-        self.central_label.setFixedSize(QSize(self.parent.baseSize().width(), self.parent.baseSize().height()))
-        # self.central_label.setFixedSize(QSize(1440, 850))
         self.central_label.setContentsMargins(0, 0, 0, 0)
         self.central_layout = QHBoxLayout()
         self.central_layout.setContentsMargins(0, 0, 0, 0)
@@ -84,7 +83,6 @@ class SinglePatientWidget(QWidget):
     def __left_results_panel_interface(self):
         self.left_panel_layout = QVBoxLayout()
         self.left_panel_splitter = QSplitter(self, Qt.Horizontal)
-        self.left_panel_splitter.setFixedSize(QSize(1290, 850))
         # self.left_dock = QLabel()
         # self.left_dock.setMaximumSize(QSize(150, 850))
         # self.left_dock.setStyleSheet("QLabel{background-color:rgb(255,0,0);}")
@@ -96,18 +94,12 @@ class SinglePatientWidget(QWidget):
         # self.center_dock.setMaximumSize(QSize(1440, 850))
         # self.center_dock.setStyleSheet("QLabel{background-color:rgb(0,0,255);}")
         self.results_panel = PatientResultsSinglePatientSidePanelWidget(self)
-        self.results_panel.setBaseSize(QSize(200, self.baseSize().height()))
-        self.results_panel.setMaximumSize(QSize(200, self.baseSize().height()))
         self.center_panel = CentralAreaWidget(self) #CentralDisplayAreaWidget(self)
-        self.center_panel.setBaseSize(QSize(self.baseSize().width() - 400, self.baseSize().height()))
         self.layers_panel = SinglePatientLayersWidget(self)
-        self.layers_panel.setBaseSize(QSize(200, self.parent.baseSize().height()))
-        self.layers_panel.setMaximumSize(QSize(200, self.parent.baseSize().height()))
         self.left_panel_splitter.addWidget(self.results_panel)
         self.left_panel_splitter.addWidget(self.center_panel)
         self.left_panel_splitter.setCollapsible(1, False)
         self.right_panel_splitter = QSplitter(self, Qt.Horizontal)
-        self.right_panel_splitter.setFixedSize(QSize(1140, 850))
         self.right_panel_splitter.addWidget(self.left_panel_splitter)
         self.right_panel_splitter.addWidget(self.layers_panel)
         self.right_panel_splitter.setCollapsible(0, False)
@@ -120,9 +112,23 @@ class SinglePatientWidget(QWidget):
     def __right_options_panel_interface(self):
         pass
 
+    def __set_layout_dimensions(self):
+        self.central_label.setFixedSize(QSize(self.parent.baseSize().width(), self.parent.baseSize().height()))
+
+        self.results_panel.setBaseSize(QSize(200, self.baseSize().height()))
+        self.results_panel.setMaximumSize(QSize(200, self.baseSize().height()))
+
+        self.center_panel.setBaseSize(QSize(self.baseSize().width() - 400, self.baseSize().height()))
+
+        self.layers_panel.setBaseSize(QSize(200, self.parent.baseSize().height()))
+        self.layers_panel.setMaximumSize(QSize(200, self.parent.baseSize().height()))
+
+        self.left_panel_splitter.setFixedSize(QSize(1290, 850))
+        self.right_panel_splitter.setFixedSize(QSize(1140, 850))
+
     def __set_stylesheets(self):
         self.setStyleSheet("QWidget{font:11px;}")
-        pass
+        # pass
 
     def __set_connections(self):
         self.top_logo_panel_label_import_file_pushbutton.clicked.connect(self.__on_import_file_clicked)

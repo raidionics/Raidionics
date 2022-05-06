@@ -5,6 +5,7 @@ from os.path import expanduser
 import numpy as np
 from typing import Union, Any
 import names
+from PySide2.QtCore import QSize
 
 from utils.patient_parameters import PatientParameters
 from diagnosis.src.Utils.configuration_parser import ResourcesConfiguration
@@ -37,7 +38,8 @@ class SoftwareConfigResources:
         self.models_path = os.path.join(expanduser('~'), '.neurorads', 'resources', 'models')
         self.config_filename = os.path.join(expanduser("~"), '.neurorads', 'neurorads_config.ini')
         self.config = None
-        self.optimal_dimensions = [1440, 900]
+        self.optimal_dimensions = QSize(1440, 1024)  # Figma project dimensions
+        # self.optimal_dimensions = QSize(1920, 1080)  # Full high definition screen
         self.accepted_image_format = ['nii', 'nii.gz', 'mhd', 'mha', 'nrrd']  # @TODO. Should I have an exhaustive list?
         self.accepted_scene_file_format = ['neurorads']
         self.diagnostics_runner = None
@@ -107,3 +109,6 @@ class SoftwareConfigResources:
 
     def get_active_patient(self):
         return self.patients_parameters[self.active_patient_name]
+
+    def get_optimal_dimensions(self):
+        return self.optimal_dimensions

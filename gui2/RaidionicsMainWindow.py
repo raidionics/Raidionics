@@ -31,12 +31,12 @@ class WorkerThread(QThread):
         sys.stdout = sys.__stdout__
 
 
-class NeuroRADSMainWindow(QMainWindow):
+class RaidionicsMainWindow(QMainWindow):
 
-    new_patient_clicked = Signal(str)
+    new_patient_clicked = Signal(str)  # Internal unique_id of the clicked patient
 
     def __init__(self, application, *args, **kwargs):
-        super(NeuroRADSMainWindow, self).__init__(*args, **kwargs)
+        super(RaidionicsMainWindow, self).__init__(*args, **kwargs)
 
         self.app = application
         self.app.setStyle("Fusion")
@@ -45,7 +45,7 @@ class NeuroRADSMainWindow(QMainWindow):
         self.__set_stylesheet()
         self.__set_connections()
 
-        self.setWindowState(Qt.WindowState.WindowActive) # Bring window to foreground? To check!
+        self.setWindowState(Qt.WindowState.WindowActive)  # Bring window to foreground? To check!
 
         # self.printer_thread = WorkerThread()
         # self.printer_thread.message.connect(self.standardOutputWritten)
@@ -65,7 +65,8 @@ class NeuroRADSMainWindow(QMainWindow):
 
     def __set_interface(self):
         self.setWindowTitle("Raidionics")
-        self.__getScreenDimensions()
+        self.__get_screen_dimensions()
+        self.__set_default_application_dimensions()
         self.button_width = 0.35
         self.button_height = 0.05
 
@@ -175,18 +176,34 @@ class NeuroRADSMainWindow(QMainWindow):
     def __set_menubar_connections(self):
         pass
 
-    def __getScreenDimensions(self):
+    def __get_screen_dimensions(self):
         screen = self.app.primaryScreen()
-        size = screen.size()
-        self.width = 0.75 * size.width()
-        self.height = 0.75 * size.height()
-        self.fixed_width = 0.75 * size.width()
-        self.fixed_height = 0.75 * size.height()
-        self.left = (size.width() - self.width) / 2
-        self.top = (size.height() - self.height) / 2
+        self.primary_screen_dimensions = screen.size()
+        logging.debug("Detected primary screen size [w: {}, h: {}]".format(self.primary_screen_dimensions.width(),
+                                                                           self.primary_screen_dimensions.height()))
+
+    def __set_default_application_dimensions(self):
+        # QSize(1280, 720), QSize(1920, 1080)  # High definition format, Full high definition format
+        # Figma project working dimensions
+        self.width = SoftwareConfigResources.getInstance().get_optimal_dimensions().width()
+        self.height = SoftwareConfigResources.getInstance().get_optimal_dimensions().height()
+        if self.primary_screen_dimensions.width() < self.width:
+            self.width = self.primary_screen_dimensions.width()
+            logging.warning("Native application dimensions can't be set because of too small screen dimensions")
+        if self.primary_screen_dimensions.height() < self.height:
+            self.height = self.primary_screen_dimensions.height()
+            logging.warning("Native application dimensions can't be set because of too small screen dimensions")
+        # ratio = 0.90
+        # self.width = ratio * self.primary_screen_dimensions.width()
+        # self.height = ratio * self.primary_screen_dimensions.height()
+        self.fixed_width = self.width
+        self.fixed_height = self.height
+        self.left = (self.primary_screen_dimensions.width() - self.width) / 2
+        self.top = (self.primary_screen_dimensions.height() - self.height) / 2
+        self.setMinimumSize(QSize(self.width, self.height))
+        self.setMaximumSize(QSize(self.primary_screen_dimensions.width(), self.primary_screen_dimensions.height()))
         self.setBaseSize(QSize(self.width, self.height))
-        logging.debug("Setting default dimensions to [{}, {}]".format(self.width, self.height))
-        # self.setGeometry(self.left, self.top, self.width * 0.5, self.height * 0.5)
+        logging.debug("Setting application dimensions to [w: {}, h: {}]".format(self.width, self.height))
 
     def __on_central_stacked_widget_index_changed(self, index):
         pass

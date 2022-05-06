@@ -17,7 +17,7 @@ import sys
 from PySide2.QtWidgets import QApplication
 # from main_gui import MainWindow
 from gui.GSIRADSMainWindow import MainWindow
-from gui2.NeuroRADSMainWindow import NeuroRADSMainWindow
+from gui2.RaidionicsMainWindow import RaidionicsMainWindow
 import logging
 
 
@@ -61,7 +61,7 @@ def main(argv):
 
             # @TODO. The runtime_config.ini should be cleared before running the GUI, maybe keeping the system params?
             # window = MainWindow(application=app)
-            window = NeuroRADSMainWindow(application=app)
+            window = RaidionicsMainWindow(application=app)
             window.show()
 
             app.exec_()
