@@ -12,7 +12,6 @@ import traceback, time
 import threading
 import numpy as np
 import warnings
-
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 from utils.runtime_config_parser import RuntimeResources
@@ -54,7 +53,7 @@ class MainWindow(QMainWindow):
         self.printer_thread.stop()
 
     def __set_interface(self):
-        self.setWindowTitle("NeuroRADS")
+        self.setWindowTitle("Raidionics")
         self.__getScreenDimensions()
         self.button_width = 0.35
         self.button_height = 0.05
@@ -234,7 +233,7 @@ class MainWindow(QMainWindow):
                       '  * Amsterdam University Medical Center\n\n'
                       'Contact: David Bouget, Andre Pedersen\n\n'
                       'For questions about the software, please visit:\n'
-                      'https://github.com/SINTEFMedtek/GSI-RADS\n'
+                      'https://github.com/dbouget/raidionics (or https://github.com/SINTEFMedtek/GSI-RADS)\n'
                       'For questions about the methodological aspect, please refer to the original publication:\n'
                       'https://www.mdpi.com/2072-6694/13/12/2854/review_report')
         popup.exec_()

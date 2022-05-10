@@ -7,7 +7,7 @@ class PreProcessingParser:
     def __init__(self, model_name):
         # self.preprocessing_filename = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../',
         #                                            'resources/models', model_name, 'pre_processing.ini')
-        self.preprocessing_filename = os.path.join(expanduser("~"), '.neurorads', 'resources/models', model_name,
+        self.preprocessing_filename = os.path.join(expanduser("~"), '.raidionics', 'resources/models', model_name,
                                                    'pre_processing.ini')
         if not os.path.exists(self.preprocessing_filename):
             raise ValueError('Missing configuration file with pre-processing parameters: {}'.

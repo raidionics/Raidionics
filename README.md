@@ -1,4 +1,4 @@
-# NeuroRADS
+# Raidionics
 
 [![Build Actions Status](https://github.com/dbouget/neuro_rads_prototype/workflows/Build/badge.svg)](https://github.com/dbouget/neuro_rads_prototype/actions)
 
@@ -69,8 +69,8 @@ The binary release will be placed in dist/.
 
 5. Run the release:
 ```
-Ubuntu and macOS > ./dist/NeuroRADS
-Windows > ./dist/NeuroRADS.exe
+Ubuntu and macOS > ./dist/Raidionics
+Windows > ./dist/Raidionics.exe
 ```
 
 ## Building package installer
@@ -86,12 +86,12 @@ git clone https://github.com/scriptingosx/quickpkg.git
 
 2. Build package (OS can be {Windows, macOS, Ubuntu}):
 ```
-quickpkg/quickpkg dist/GSI-RADS.app --output GSI-RADS-{version}-{OS}.pkg
+quickpkg/quickpkg dist/Raidionics.app --output Raidionics-{version}-{OS}.pkg
 ```
 
 3. (optional) Install application (without sudo - installs in the user's local /Applications folder):
 ```
-installer -pkg GSI-RADS-{version}_{OS}.pkg -target CurrentUserHomeDirectory
+installer -pkg Raidionics-{version}_{OS}.pkg -target CurrentUserHomeDirectory
 ```
 
 Regarding the usage of quickpkg. See [here](https://scriptingosx.com/2017/05/relocatable-package-installers-and-quickpkg-update/) for information on which problem it solves.
@@ -102,12 +102,12 @@ Regarding the usage of quickpkg. See [here](https://scriptingosx.com/2017/05/rel
 
 2. Build package (using makensis CLI and predefined NSI-file):
 ```
-makensis.exe .\GSI-RADS.nsi
+makensis.exe .\Raidionics.nsi
 ```
 
 3. (optional) Install application:
 ```
-.\GSI-RADS-{version}-{OS}.exe
+.\Raidionics-{version}-{OS}.exe
 ```
 
 See [here](https://nsis.sourceforge.io/Simple_tutorials) for an example and [here](http://sfriederichs.github.io/how-to/nsis/2018/05/16/NSIS.html) for a tutorial on how to build installers using NSIS. [This](https://github.com/huggle/huggle3-qt-lx/blob/master/windows/Huggle.nsi) is what I used as inspiration for my implementation.
@@ -117,19 +117,19 @@ Based on [this](https://www.internalpointers.com/post/build-binary-deb-package-p
 
 1. Move application/executable to the Project directory:
 ```
-cp -r dist/GSI-RADS GSI-RADS-{version}-{OS}/usr/local/bin
+cp -r dist/Raidionics Raidionics-{version}-{OS}/usr/local/bin
 ```
 2. Build package:
 ```
-dpkg-deb --build --root-owner-group GSI-RADS-{version}_{OS}
+dpkg-deb --build --root-owner-group Raidionics-{version}_{OS}
 ```
 3. (optional) Install application:
 ```
-sudo dpkg -i GSI-RADS-{version}_{OS}.deb
+sudo dpkg -i Raidionics-{version}_{OS}.deb
 ```
 4. (optional) execute the application (open a new terminal and simply run the software):
 ```
-GSI-RADS
+Raidionics
 ```
 
 

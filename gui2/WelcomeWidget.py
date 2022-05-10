@@ -145,7 +145,7 @@ class WelcomeWidget(QWidget):
         #                                         0.75 * self.parent.baseSize().height()))
         self.setBaseSize(self.parent.baseSize())
         self.central_label.setMinimumSize(QSize((1164 / SoftwareConfigResources.getInstance().get_optimal_dimensions().width()) * self.parent.baseSize().width(),
-                                                (535 / SoftwareConfigResources.getInstance().get_optimal_dimensions().height()) * self.parent.baseSize().height()))  # Optimal QSize(1164, 535)
+                                                (535 / SoftwareConfigResources.getInstance().get_optimal_dimensions().height()) * self.parent.baseSize().height()))
 
         # LOGO PANEL #
         self.top_logo_panel_label.setFixedSize(QSize(200, 50))

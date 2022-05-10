@@ -1,14 +1,13 @@
 import os
 from os.path import expanduser
-import logging
-
 from segmentation.src.Utils.configuration_parser import *
 from segmentation.src.PreProcessing.pre_processing import run_pre_processing
 from segmentation.src.Inference.predictions import run_predictions
 from segmentation.src.Inference.predictions_reconstruction import reconstruct_post_predictions
 from segmentation.src.Utils.io import dump_predictions
 
-MODELS_PATH = os.path.join(expanduser('~'), '.neurorads', 'resources/models')
+#MODELS_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../', 'resources/models')
+MODELS_PATH = os.path.join(expanduser('~'), '.raidionics', 'resources/models')
 sys.path.insert(1, MODELS_PATH)
 
 
@@ -27,20 +26,12 @@ def predict(input_filename, output_path, selected_model, brain_mask_filename=Non
     if not os.path.exists(model_path):
         raise ValueError('Could not find any model on Docker image matching the requested type \'{}\'.'.format(selected_model))
 
-    logging.debug("SEGMENTATION - STARTING PREPROCESSING.\n")
     nib_volume, resampled_volume, data, crop_bbox = run_pre_processing(filename=input_filename,
                                                                        pre_processing_parameters=pre_processing_parameters,
                                                                        storage_prefix=output_path,
                                                                        brain_mask_filename=brain_mask_filename)
-    logging.debug("SEGMENTATION - FINISH PREPROCESSING.\n")
-    logging.debug("SEGMENTATION - STARTING INFERENCE.\n")
     predictions = run_predictions(data=data, model_path=model_path, parameters=pre_processing_parameters)
-    logging.debug("SEGMENTATION - FINISH INFERENCE.\n")
-    logging.debug("SEGMENTATION - STARTING RESAMPLING.\n")
     final_predictions = reconstruct_post_predictions(predictions=predictions, parameters=pre_processing_parameters,
                                                      crop_bbox=crop_bbox, nib_volume=nib_volume, resampled_volume=resampled_volume)
-    logging.debug("SEGMENTATION - FINISH RESAMPLING.\n")
-    logging.debug("SEGMENTATION - STARTING DUMP.\n")
     dump_predictions(predictions=final_predictions, parameters=pre_processing_parameters, nib_volume=nib_volume,
                      storage_prefix=output_path)
-    logging.debug("SEGMENTATION - STARTING DUMP.\n")
