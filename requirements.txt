@@ -9,7 +9,7 @@ charset-normalizer==2.0.12
 chart-studio==1.1.0
 colorama==0.4.4
 cycler==0.11.0
-dataclasses==0.8
+#dataclasses==0.8
 decorator==4.4.2
 dipy==1.5.0
 filelock==3.4.1
