@@ -14,7 +14,7 @@ numpy
 *.ckpt
 *.mhd
 *.raw
-venv/
+venv*/
 tmp_dependencies/
 build/
 dist/

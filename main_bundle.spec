@@ -12,22 +12,16 @@ import shutil
 
 block_cipher = None
 
-#@TODO: This is stupid, but it works. It solves some issues with dependencies not properly included
+# fix hidden imports
 hidden_imports = loadtxt("requirements.txt", comments="#", delimiter=",", unpack=False, dtype=str)
 hidden_imports = [x.split("=")[0] for x in hidden_imports] + ["medpy", "ants", "sklearn", "scikit-learn", "statsmodels", "gevent", "distutils", "PySide2", "gdown"]
 hidden_imports = [x.lower() for x in hidden_imports]
 
-print("hidden imports: ")
-print(hidden_imports)
-
 # copy dependencies and overwrite if already exists (as well as images)
 if os.path.exists("./tmp_dependencies/"):
     shutil.rmtree("./tmp_dependencies/")
-shutil.copytree("./diagnosis/", "./tmp_dependencies/diagnosis/")
-shutil.copytree("./segmentation/", "./tmp_dependencies/segmentation/")
 shutil.copytree("./images/", "./tmp_dependencies/images/")
-shutil.copytree("./gui/", "./tmp_dependencies/gui/")
-shutil.copytree("./resources/", "./tmp_dependencies/resources/")
+shutil.copytree("./gui2/", "./tmp_dependencies/gui2/")
 
 a = Analysis(['./main.py'],
              pathex=['.'],
@@ -56,7 +50,8 @@ exe = EXE(pyz,
           bootloader_ignore_signals=False,
           strip=False,
           upx=True,
-          console=True
+          console=True,
+          icon="./tmp_dependencies/images/raidionics-logo.ico",
 )
 coll = COLLECT(exe,
                a.binaries,
@@ -70,6 +65,15 @@ coll = COLLECT(exe,
 )
 app = BUNDLE(coll,
              name='Raidionics.app',
-             icon=None,
+             icon="./tmp_dependencies/images/raidionics-logo.ico",
              bundle_identifier=None,
+             info_plist={
+                'CFBundleDisplayName': 'Raidionics',
+                'CFBundleExecutable': 'Raidionics',
+                'CFBundleIdentifier': 'Raidionics',
+                'CFBundleInfoDictionaryVersion': '6.0',
+                'CFBundleName': 'Raidionics',
+                'CFBundlePackageType': 'APPL',
+                'LSBackgroundOnly': 'false',
+            },
 )
