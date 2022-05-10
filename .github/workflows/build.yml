@@ -39,7 +39,6 @@ jobs:
             CMD_BUILD: "ls"
             OUT_FILE_NAME: Raidionics-1.0.0-win.exe
             ASSET_MIME: application/vnd.microsoft.portable-executable
-
     steps:
     - uses: actions/checkout@v1
     - name: Set up Python 3.7
@@ -56,7 +55,6 @@ jobs:
       name: Build application
       run: |
         pip install https://github.com/andreped/tensorflow-windows-wheel/raw/master/1.13.1/py37/CPU/sse2/tensorflow-1.13.1-cp37-cp37m-win_amd64.whl
-#        pip install https://github.com/SGotla/ANTsPy/releases/download/0.1.7Win64/antspy-0.1.7-cp37-cp37m-win_amd64.whl
         pip install raidionicsrads @ https://github.com/dbouget/raidionics-rads-lib/releases/download/v0.1.0-alpha/raidionicsrads-0.1.0-py3-none-win_amd64.whl
         pyinstaller --noconfirm --clean main.spec
         makensis.exe Raidionics.nsi
