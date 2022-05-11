@@ -58,6 +58,7 @@ jobs:
       name: Build application
       run: |
         pip install https://github.com/dbouget/raidionics-rads-lib/releases/download/v0.1.0-alpha/raidionicsrads-0.1.0-py3-none-win_amd64.whl
+        pip install statsmodels==0.12.2
         pip install pyinstaller
         pyinstaller --noconfirm --clean main.spec
         makensis.exe Raidionics.nsi
