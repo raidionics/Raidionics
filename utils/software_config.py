@@ -35,13 +35,13 @@ class SoftwareConfigResources:
 
     def __setup(self):
         # @TODO. The default storing place should be /home/user/raidionics, having a dot might be annoying for some.
-        self.models_path = os.path.join(expanduser('~'), '.neurorads', 'resources', 'models')
-        self.config_filename = os.path.join(expanduser("~"), '.neurorads', 'neurorads_config.ini')
+        self.models_path = os.path.join(expanduser('~'), '.raidionics', 'resources', 'models')
+        self.config_filename = os.path.join(expanduser("~"), '.raidionics', 'raidionics_config.ini')
         self.config = None
         self.optimal_dimensions = QSize(1440, 1024)  # Figma project dimensions
         # self.optimal_dimensions = QSize(1920, 1080)  # Full high definition screen
         self.accepted_image_format = ['nii', 'nii.gz', 'mhd', 'mha', 'nrrd']  # @TODO. Should I have an exhaustive list?
-        self.accepted_scene_file_format = ['neurorads']
+        self.accepted_scene_file_format = ['raidionics']
         self.diagnostics_runner = None
 
         self.__set_default_values()

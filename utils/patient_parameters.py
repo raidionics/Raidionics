@@ -53,7 +53,7 @@ class PatientParameters:
 
         # Initially, everything is dumped in the software temp place, until a destination is chosen by the user.
         # Should we have a patient-named folder, so that the user only needs to choose the global destination directory
-        self.output_dir = os.path.join(expanduser("~"), '.neurorads')
+        self.output_dir = os.path.join(expanduser("~"), '.raidionics')
         os.makedirs(self.output_dir, exist_ok=True)
 
         # By default, the temp_patient folder is created
@@ -81,7 +81,7 @@ class PatientParameters:
         Defines the structure of the save configuration parameters for the patient, stored as json information inside
         a custom file with the specific raidionics extension.
         """
-        self.patient_parameters_project_filename = os.path.join(self.output_folder, self.patient_visible_name.strip().lower().replace(" ", "_") + '_scene.neurorads')
+        self.patient_parameters_project_filename = os.path.join(self.output_folder, self.patient_visible_name.strip().lower().replace(" ", "_") + '_scene.raidionics')
         self.patient_parameters_project_json = {}
         self.patient_parameters_project_json['Parameters'] = {}
         self.patient_parameters_project_json['Parameters']['Default'] = {}
@@ -282,7 +282,7 @@ class PatientParameters:
         Exporting the scene for the current patient into the specified output_folder
         """
         logging.info("Saving patient results in: {}".format(self.output_folder))
-        self.patient_parameters_project_filename = os.path.join(self.output_folder, self.patient_visible_name.strip().lower().replace(" ", "_") + '_scene.neurorads')
+        self.patient_parameters_project_filename = os.path.join(self.output_folder, self.patient_visible_name.strip().lower().replace(" ", "_") + '_scene.raidionics')
         self.patient_parameters_project_json['Parameters']['Default']['Patient_uid'] = self.patient_id
         self.patient_parameters_project_json['Parameters']['Default']['Patient_visible_name'] = self.patient_visible_name
 

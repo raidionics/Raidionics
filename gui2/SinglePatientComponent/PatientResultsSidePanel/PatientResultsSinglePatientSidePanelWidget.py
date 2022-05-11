@@ -16,6 +16,7 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         super(PatientResultsSinglePatientSidePanelWidget, self).__init__()
         self.parent = parent
         self.__set_interface()
+        self.__set_layout_dimensions()
         self.__set_connections()
         self.__set_stylesheets()
         self.patient_results_widgets = {}
@@ -32,7 +33,6 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         self.patient_list_scrollarea_dummy_widget = QLabel()
         self.patient_list_scrollarea_layout.setSpacing(0)
         self.patient_list_scrollarea_layout.setContentsMargins(0, 0, 0, 0)
-        self.patient_list_scrollarea.setBaseSize(QSize(200, self.parent.baseSize().height())) #setMaximumSize(QSize(200, 850))
         self.patient_list_scrollarea_layout.addStretch(1)
         self.patient_list_scrollarea_dummy_widget.setLayout(self.patient_list_scrollarea_layout)
         self.patient_list_scrollarea.setWidget(self.patient_list_scrollarea_dummy_widget)
@@ -43,6 +43,11 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         self.bottom_layout.addWidget(self.bottom_add_patient_pushbutton)
         self.layout.addWidget(self.patient_list_scrollarea)
         self.layout.addLayout(self.bottom_layout)
+
+    def __set_layout_dimensions(self):
+        self.setBaseSize(QSize(200, self.height() - 100))
+        self.patient_list_scrollarea.setBaseSize(QSize(200, self.height() - 100))
+        self.patient_list_scrollarea.setMinimumSize(QSize(200, self.height() - 100))
 
     def __set_connections(self):
         self.bottom_add_patient_pushbutton.clicked.connect(self.on_add_new_empty_patient)

@@ -93,7 +93,7 @@ class CentralAreaExecutionWidget(QWidget):
         # Freezing buttons
         self.run_segmentation_pushbutton.setEnabled(False)
         self.run_reporting_pushbutton.setEnabled(False)
-
+        seg_config_filename = ""
         try:
             current_patient_parameters = SoftwareConfigResources.getInstance().patients_parameters[
                 SoftwareConfigResources.getInstance().active_patient_name]
@@ -112,8 +112,7 @@ class CentralAreaExecutionWidget(QWidget):
             with open(seg_config_filename, 'w') as outfile:
                 seg_config.write(outfile)
 
-            subprocess.call(['raidionicsseg', '{config}'.format(config=seg_config_filename)])
-            os.remove(seg_config_filename)
+            subprocess.call(['raidionicsseg', seg_config_filename])
 
             seg_file = os.path.join(current_patient_parameters.output_folder, 'labels_Tumor.nii.gz')
             shutil.move(seg_file, os.path.join(current_patient_parameters.output_folder, 'patient_tumor.nii.gz'))
@@ -131,7 +130,12 @@ class CentralAreaExecutionWidget(QWidget):
             print('{}'.format(traceback.format_exc()))
             self.run_segmentation_pushbutton.setEnabled(True)
             self.run_reporting_pushbutton.setEnabled(True)
+            if os.path.exists(seg_config_filename):
+                os.remove(seg_config_filename)
             return
+
+        if os.path.exists(seg_config_filename):
+            os.remove(seg_config_filename)
 
         self.run_segmentation_pushbutton.setEnabled(True)
         self.run_reporting_pushbutton.setEnabled(True)
@@ -207,7 +211,7 @@ class CentralAreaExecutionWidget(QWidget):
         # Freezing buttons
         self.run_segmentation_pushbutton.setEnabled(False)
         self.run_reporting_pushbutton.setEnabled(False)
-
+        rads_config_filename = ''
         try:
             download_model(model_name=self.model_name)
             current_patient_parameters = SoftwareConfigResources.getInstance().patients_parameters[
@@ -232,8 +236,7 @@ class CentralAreaExecutionWidget(QWidget):
             with open(rads_config_filename, 'w') as outfile:
                 rads_config.write(outfile)
 
-            subprocess.call(['raidionicsrads', '{config}'.format(config=rads_config_filename)])
-            os.remove(rads_config_filename)
+            subprocess.call(['raidionicsrads', rads_config_filename])
             self.__collect_reporting_outputs(current_patient_parameters)
         except Exception:
             print('{}'.format(traceback.format_exc()))
@@ -241,6 +244,8 @@ class CentralAreaExecutionWidget(QWidget):
             self.run_reporting_pushbutton.setEnabled(True)
             return
 
+        if os.path.exists(rads_config_filename):
+            os.remove(rads_config_filename)
         self.run_segmentation_pushbutton.setEnabled(True)
         self.run_reporting_pushbutton.setEnabled(True)
 

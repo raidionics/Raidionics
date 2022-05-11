@@ -107,12 +107,12 @@ class ImportDataQDialog(QDialog):
         if "PYCHARM_HOSTED" in os.environ:
             input_filepaths, filters = input_image_filedialog.getOpenFileNames(self, caption='Select input file(s)',
                                                                                directory=self.tr(self.current_folder),
-                                                                               filter="Files (*.nii *.nii.gz *.nrrd *.mha *.mhd *.neurorads)",
+                                                                               filter="Files (*.nii *.nii.gz *.nrrd *.mha *.mhd *.raidionics)",
                                                                                options=QFileDialog.DontUseNativeDialog)
         else:
             input_filepaths, filters = input_image_filedialog.getOpenFileNames(self, caption='Select input file(s)',
                                                                                directory=self.tr(self.current_folder),
-                                                                               filter="Files (*.nii *.nii.gz *.nrrd *.mha *.mhd *.neurorads)")  # , options=QFileDialog.DontUseNativeDialog
+                                                                               filter="Files (*.nii *.nii.gz *.nrrd *.mha *.mhd *.raidionics)")  # , options=QFileDialog.DontUseNativeDialog
         if len(input_filepaths) != 0 and input_filepaths[0] != "":
             self.current_folder = os.path.dirname(input_filepaths[0])
         self.setup_interface_from_files(input_filepaths)
@@ -232,7 +232,7 @@ class ImportDataLineWidget(QWidget):
         dialog = QFileDialog(self)
         input_filepath = dialog.getOpenFileName(self, caption='Modify input filepath',
                                                 directory=os.path.dirname(self.filepath_lineedit.text()),
-                                                filter="Files (*.nii *.nii.gz *.nrrd *.mha *.mhd *.neurorads)")[0]
+                                                filter="Files (*.nii *.nii.gz *.nrrd *.mha *.mhd *.raidionics)")[0]
         if input_filepath != "":
             self.filepath_lineedit.setText(input_filepath)
 

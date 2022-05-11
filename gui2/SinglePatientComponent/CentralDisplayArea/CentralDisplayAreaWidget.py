@@ -57,15 +57,15 @@ class CentralDisplayAreaWidget(QWidget):
         self.setFixedSize(QSize((950 / SoftwareConfigResources.getInstance().get_optimal_dimensions().width()) * self.parent.baseSize().width(),
                                 (950 / SoftwareConfigResources.getInstance().get_optimal_dimensions().height()) * self.parent.baseSize().height()))
 
-        # self.empty_label.setMinimumSize(QSize(int(1140 / 2), int(850 / 2)))
-        # self.empty_label.setBaseSize(QSize(int(self.parent.size().width() / 2), int(self.parent.size().height()-150 / 2)))
-        # self.axial_viewer.setMinimumSize(QSize(int(1140 / 2), int(850 / 2)))
-        # self.axial_viewer.setBaseSize(QSize(int(self.parent.size().width() / 2), int(self.parent.size().height()-150 / 2)))
-        # self.sagittal_viewer.setMinimumSize(QSize(int(1140 / 2), int(850 / 2)))
-        # self.sagittal_viewer.setBaseSize(QSize(int(self.parent.size().width() / 2), int(self.parent.size().height()-150 / 2)))
-        # self.coronal_viewer.setMinimumSize(QSize(int(1140 / 2), int(850 / 2)))
-        # self.coronal_viewer.setFixedSize(QSize(int(self.parent.size().width() / 2), int(self.parent.size().height()-150 / 2)))
-        # self.coronal_viewer.setStyleSheet("QGraphicsView{background-color:rgb(127,128,129);}")
+        self.empty_label.setMinimumSize(QSize(int(1140 / 2), int(850 / 2)))
+        self.empty_label.setBaseSize(QSize(int(self.parent.size().width() / 2), int(self.parent.size().height()-150 / 2)))
+        self.axial_viewer.setMinimumSize(QSize(int(1140 / 2), int(850 / 2)))
+        self.axial_viewer.setBaseSize(QSize(int(self.parent.size().width() / 2), int(self.parent.size().height()-150 / 2)))
+        self.sagittal_viewer.setMinimumSize(QSize(int(1140 / 2), int(850 / 2)))
+        self.sagittal_viewer.setBaseSize(QSize(int(self.parent.size().width() / 2), int(self.parent.size().height()-150 / 2)))
+        self.coronal_viewer.setMinimumSize(QSize(int(1140 / 2), int(850 / 2)))
+        self.coronal_viewer.setFixedSize(QSize(int(self.parent.size().width() / 2), int(self.parent.size().height()-150 / 2)))
+        self.coronal_viewer.setStyleSheet("QGraphicsView{background-color:rgb(127,128,129);}")
 
     def __set_stylesheets(self):
         self.empty_label.setStyleSheet("QLabel{background-color:rgb(255,0,0);}")
