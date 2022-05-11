@@ -21,6 +21,7 @@ hidden_imports = [x.lower() for x in hidden_imports]
 if os.path.exists("./tmp_dependencies/"):
     shutil.rmtree("./tmp_dependencies/")
 shutil.copytree("./images/", "./tmp_dependencies/images/")
+shutil.copytree("./utils/", "./tmp_dependencies/utils/")
 shutil.copytree("./gui2/", "./tmp_dependencies/gui2/")
 
 a = Analysis(['./main.py'],
