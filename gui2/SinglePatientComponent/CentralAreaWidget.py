@@ -27,6 +27,7 @@ class CentralAreaWidget(QWidget):
         self.parent = parent
         self.widget_name = "central_area_widget"
         self.__set_interface()
+        self.__set_layout_dimensions()
         self.__set_stylesheets()
         self.__set_connections()
 
@@ -37,8 +38,8 @@ class CentralAreaWidget(QWidget):
         self.base_layout.setSpacing(0)
         self.display_area_widget = CentralDisplayAreaWidget(self)
         self.execution_area_widget = CentralAreaExecutionWidget(self)
-        self.base_layout.addWidget(self.display_area_widget)
         self.base_layout.addWidget(self.execution_area_widget)
+        self.base_layout.addWidget(self.display_area_widget)
 
     def __set_stylesheets(self):
         pass
@@ -72,6 +73,9 @@ class CentralAreaWidget(QWidget):
 
         # Connections from the left patient panel
         self.patient_view_toggled.connect(self.display_area_widget.on_patient_selected)
+
+    def __set_layout_dimensions(self):
+        pass
 
     def get_widget_name(self):
         return self.widget_name

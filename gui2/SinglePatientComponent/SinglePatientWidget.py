@@ -1,3 +1,5 @@
+import logging
+
 from PySide2.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QLabel, QPushButton, QSplitter
 from PySide2.QtGui import QIcon, QPixmap
 from PySide2.QtCore import Qt, QSize, Signal
@@ -58,7 +60,6 @@ class SinglePatientWidget(QWidget):
         self.top_logo_panel_label = QLabel()
         self.top_logo_panel_label.setPixmap(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                                  '../Images/raidionics-logo.png')).scaled(150, 30, Qt.KeepAspectRatio))
-        self.top_logo_panel_label.setFixedSize(QSize(150, 30))
         self.top_logo_panel_layout.addWidget(self.top_logo_panel_label, Qt.AlignLeft)
         self.top_logo_panel_label_import_file_pushbutton = QPushButton()
         self.top_logo_panel_label_import_file_pushbutton.setFixedSize(QSize(30, 30))
@@ -113,7 +114,14 @@ class SinglePatientWidget(QWidget):
         pass
 
     def __set_layout_dimensions(self):
-        self.central_label.setFixedSize(QSize(self.parent.baseSize().width(), self.parent.baseSize().height()))
+        self.setMinimumSize(self.parent.baseSize())
+        self.setBaseSize(self.parent.baseSize())
+        logging.debug("Setting SinglePatientWidget dimensions to {}.\n".format(self.size()))
+        self.top_logo_panel_label.setFixedSize(QSize(150, 30))
+        self.central_label.setMinimumSize(QSize(self.parent.baseSize().width(), self.parent.baseSize().height() - self.top_logo_panel_label.size().height()))
+        self.central_label.setBaseSize(QSize(self.parent.baseSize().width(),
+                                                self.parent.baseSize().height() - self.top_logo_panel_label.size().height()))
+        logging.debug("Setting SinglePatientWidget::CentralAreawidget dimensions to {}.\n".format(self.central_label.size()))
 
         self.results_panel.setBaseSize(QSize(200, self.baseSize().height()))
         self.results_panel.setMaximumSize(QSize(200, self.baseSize().height()))

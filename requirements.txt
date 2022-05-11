@@ -1,2 +1,3 @@
-PySide2==5.15.2
+gdown==4.4.0
 names==0.3.0
+PySide2==5.15.2
