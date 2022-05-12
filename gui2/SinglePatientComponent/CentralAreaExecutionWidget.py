@@ -112,7 +112,7 @@ class CentralAreaExecutionWidget(QWidget):
             with open(seg_config_filename, 'w') as outfile:
                 seg_config.write(outfile)
 
-            subprocess.call(['raidionicsseg', seg_config_filename])
+            subprocess.call(['raidionicsseg_bin', seg_config_filename])
 
             seg_file = os.path.join(current_patient_parameters.output_folder, 'labels_Tumor.nii.gz')
             shutil.move(seg_file, os.path.join(current_patient_parameters.output_folder, 'patient_tumor.nii.gz'))
@@ -236,7 +236,7 @@ class CentralAreaExecutionWidget(QWidget):
             with open(rads_config_filename, 'w') as outfile:
                 rads_config.write(outfile)
 
-            subprocess.call(['raidionicsrads', rads_config_filename])
+            subprocess.call(['raidionicsrads_bin', rads_config_filename])
             self.__collect_reporting_outputs(current_patient_parameters)
         except Exception:
             print('{}'.format(traceback.format_exc()))

@@ -19,8 +19,6 @@ hidden_imports = [x.split("=")[0] for x in hidden_imports] + ["medpy", "ants", "
 hidden_imports = [x.lower() for x in hidden_imports]
 
 # copy dependencies and overwrite if already exists (as well as images)
-if os.path.exists("./tmp_dependencies/"):
-    shutil.rmtree("./tmp_dependencies/")
 shutil.copytree("./images/", "./tmp_dependencies/images/")
 shutil.copytree("./utils/", "./tmp_dependencies/utils/")
 shutil.copytree("./gui2/", "./tmp_dependencies/gui2/")
