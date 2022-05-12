@@ -1,7 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 
 # necessary for MacOS
-import os 
+import os
 os.environ['LC_CTYPE'] = "en_US.UTF-8"
 os.environ['LANG'] = "en_US.UTF-8"
 
@@ -24,6 +24,10 @@ if os.path.exists("./tmp_dependencies/"):
 shutil.copytree("./images/", "./tmp_dependencies/images/")
 shutil.copytree("./utils/", "./tmp_dependencies/utils/")
 shutil.copytree("./gui2/", "./tmp_dependencies/gui2/")
+
+# add external binaries
+shutil.copytree("./raidionicsrads*", "./tmp_dependencies/")
+shutil.copytree("./raidionicsseg*", "./tmp_dependencies/")
 
 a = Analysis(['./main.py'],
              pathex=['.'],
