@@ -34,7 +34,7 @@ jobs:
                        pip install pyinstaller &&
                        mkdir tmp_dependencies &&
                        cp -v $(which raidionicsrads) ./tmp_dependencies/raidionicsrads_bin &&
-                       cp -v $(which raidionicsseg) ./tmp_dependencies/raidionicsrads_bin &&
+                       cp -v $(which raidionicsseg) ./tmp_dependencies/raidionicsseg_bin &&
                        pyinstaller --noconfirm --clean main_bundle.spec &&
                        git clone https://github.com/andreped/quickpkg.git &&
                        quickpkg/quickpkg dist/Raidionics.app --output Raidionics-1.0.0-macOS.pkg &&
@@ -66,7 +66,7 @@ jobs:
         pip install pyinstaller
         mkdir tmp_dependencies
         cp (get-command raidionicsrads).Path ./tmp_dependencies/raidionicsrads_bin.exe
-        cp (get-command raidionicsseg).Path ./tmp_dependencies/raidionicsrads_bin.exe
+        cp (get-command raidionicsseg).Path ./tmp_dependencies/raidionicsseg_bin.exe
         pyinstaller --noconfirm --clean main.spec
         makensis.exe Raidionics.nsi
         cp -r Raidionics-1.0.0-win.exe dist/Raidionics-1.0.0-win.exe
