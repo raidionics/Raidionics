@@ -17,8 +17,9 @@ jobs:
             TARGET: ubuntu
             CMD_BUILD: "pip install https://github.com/dbouget/raidionics-rads-lib/releases/download/v0.1.0-alpha/raidionicsrads-0.1.0-py3-none-manylinux1_x86_64.whl &&
                        pip install pyinstaller &&
-                       cp -v $(which raidionicsrads) . &&
-                       cp -v $(which raidionicsseg) . &&
+                       mkdir tmp_dependencies &&
+                       cp -v $(which raidionicsrads) ./tmp_dependencies/ &&
+                       cp -v $(which raidionicsseg) ./tmp_dependencies/ &&
                        pyinstaller --noconfirm --clean main.spec &&
                        mkdir -p Raidionics_ubuntu/usr/local/bin &&
                        cp -r dist/Raidionics Raidionics_ubuntu/usr/local/bin &&
@@ -31,8 +32,9 @@ jobs:
             TARGET: macos
             CMD_BUILD: "pip install https://github.com/dbouget/raidionics-rads-lib/releases/download/v0.1.0-alpha/raidionicsrads-0.1.0-py3-none-macosx_10_13_x86_64.whl &&
                        pip install pyinstaller &&
-                       cp -v $(which raidionicsrads) . &&
-                       cp -v $(which raidionicsseg) . &&
+                       mkdir tmp_dependencies &&
+                       cp -v $(which raidionicsrads) ./tmp_dependencies/ &&
+                       cp -v $(which raidionicsseg) ./tmp_dependencies/ &&
                        pyinstaller --noconfirm --clean main_bundle.spec &&
                        git clone https://github.com/andreped/quickpkg.git &&
                        quickpkg/quickpkg dist/Raidionics.app --output Raidionics-1.0.0-macOS.pkg &&
@@ -62,8 +64,9 @@ jobs:
       run: |
         pip install https://github.com/dbouget/raidionics-rads-lib/releases/download/v0.1.0-alpha/raidionicsrads-0.1.0-py3-none-win_amd64.whl
         pip install pyinstaller
-        cp (get-command raidionicsrads).Path .
-        cp (get-command raidionicsseg).Path .
+        mkdir tmp_dependencies
+        cp (get-command raidionicsrads).Path ./tmp_dependencies/
+        cp (get-command raidionicsseg).Path ./tmp_dependencies/
         pyinstaller --noconfirm --clean main.spec
         makensis.exe Raidionics.nsi
         cp -r Raidionics-1.0.0-win.exe dist/Raidionics-1.0.0-win.exe

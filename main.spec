@@ -25,14 +25,6 @@ shutil.copytree("./images/", "./tmp_dependencies/images/")
 shutil.copytree("./utils/", "./tmp_dependencies/utils/")
 shutil.copytree("./gui2/", "./tmp_dependencies/gui2/")
 
-# add external binaries
-if os.name == "nt":
-    shutil.copytree("./raidionicsrads.exe", "./tmp_dependencies/")
-    shutil.copytree("./raidionicsseg.exe", "./tmp_dependencies/")
-else:
-    shutil.copytree("./raidionicsrads", "./tmp_dependencies/")
-    shutil.copytree("./raidionicsseg", "./tmp_dependencies/")
-
 a = Analysis(['./main.py'],
              pathex=['.'],
              binaries=[],
