@@ -7,6 +7,7 @@ import subprocess
 import configparser
 import threading
 import shutil
+import multiprocessing as mp
 from utils.software_config import SoftwareConfigResources
 from utils.models_download import download_model
 from gui2.UtilsWidgets.CustomQDialog.TumorTypeSelectionQDialog import TumorTypeSelectionQDialog
@@ -80,7 +81,8 @@ class CentralAreaExecutionWidget(QWidget):
         elif diag.tumor_type == 'Metastasis':
             self.model_name = "MRI_Metastasis"
 
-        self.segmentation_main_wrapper()
+        # self.segmentation_main_wrapper()
+        self.run_segmentation()
 
     def segmentation_main_wrapper(self):
         self.run_segmentation_thread = threading.Thread(target=self.run_segmentation_cli)
@@ -142,46 +144,63 @@ class CentralAreaExecutionWidget(QWidget):
 
     def run_segmentation(self):
         logging.info("Starting segmentation process.")
-        from segmentation.main import main_segmentation
 
         # Freezing buttons
         self.run_segmentation_pushbutton.setEnabled(False)
         self.run_reporting_pushbutton.setEnabled(False)
-
-        # @TODO. Include a dialog to dump the current progress of the process.
+        seg_config_filename = ""
         try:
-            runtime = generate_runtime_config(method='thresholding', order='resample_first')
-            runtime_fn = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../', 'resources',
-                                             'segmentation_runtime_config.ini')
-            with open(runtime_fn, 'w') as cf:
-                runtime.write(cf)
+            current_patient_parameters = SoftwareConfigResources.getInstance().patients_parameters[
+                SoftwareConfigResources.getInstance().active_patient_name]
+            download_model(model_name=self.model_name)
+            seg_config = configparser.ConfigParser()
+            seg_config.add_section('System')
+            seg_config.set('System', 'gpu_id', "-1")
+            seg_config.set('System', 'input_filename',
+                           current_patient_parameters.mri_volumes[self.selected_mri_uid].raw_filepath)
+            seg_config.set('System', 'output_folder', current_patient_parameters.output_folder)
+            seg_config.set('System', 'model_folder',
+                           os.path.join(SoftwareConfigResources.getInstance().models_path, self.model_name))
+            seg_config.add_section('Runtime')
+            seg_config.set('Runtime', 'reconstruction_method', 'thresholding')
+            seg_config.set('Runtime', 'reconstruction_order', 'resample_first')
+            seg_config_filename = os.path.join(current_patient_parameters.output_folder, 'seg_config.ini')
+            with open(seg_config_filename, 'w') as outfile:
+                seg_config.write(outfile)
 
-            current_patient_parameters = SoftwareConfigResources.getInstance().patients_parameters[SoftwareConfigResources.getInstance().active_patient_name]
-            # @TODO. Should maybe subprocess this also, for safety?
-            main_segmentation(input_filename=current_patient_parameters.mri_volumes[self.selected_mri_uid].raw_filepath,
-                              output_folder=current_patient_parameters.output_folder + '/',
-                              model_name=self.model_name)
-            seg_file = os.path.join(current_patient_parameters.output_folder, '-labels_Tumor.nii.gz')
+            from raidionicsseg.fit import run_model
+            logging.debug("Spawning multiprocess...")
+            mp.set_start_method('spawn', force=True)
+            with mp.Pool(processes=1, maxtasksperchild=1) as p:  # , initializer=initializer)
+                result = p.map_async(run_model, [seg_config_filename])
+                logging.debug("Collecting results from multiprocess...")
+                ret = result.get()[0]
+
+            seg_file = os.path.join(current_patient_parameters.output_folder, 'labels_Tumor.nii.gz')
             shutil.move(seg_file, os.path.join(current_patient_parameters.output_folder, 'patient_tumor.nii.gz'))
-            data_uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_data(os.path.join(current_patient_parameters.output_folder, 'patient_tumor.nii.gz'), type='Annotation')
+            data_uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_data(
+                os.path.join(current_patient_parameters.output_folder, 'patient_tumor.nii.gz'), type='Annotation')
             self.annotation_volume_imported.emit(data_uid)
-            #@TODO. Check if a brain mask has been created?
-            seg_file = os.path.join(current_patient_parameters.output_folder, '-labels_Brain.nii.gz')
+            # @TODO. Check if a brain mask has been created?
+            seg_file = os.path.join(current_patient_parameters.output_folder, 'labels_Brain.nii.gz')
             if os.path.exists(seg_file):
                 shutil.move(seg_file, os.path.join(current_patient_parameters.output_folder, 'patient_brain.nii.gz'))
-                data_uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_data(os.path.join(current_patient_parameters.output_folder, 'patient_brain.nii.gz'), type='Annotation')
+                data_uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_data(
+                    os.path.join(current_patient_parameters.output_folder, 'patient_brain.nii.gz'), type='Annotation')
                 self.annotation_volume_imported.emit(data_uid)
-            #@TODO. Should show directly ?
-        except Exception as e:
+        except Exception:
             print('{}'.format(traceback.format_exc()))
             self.run_segmentation_pushbutton.setEnabled(True)
             self.run_reporting_pushbutton.setEnabled(True)
-            # self.standardOutputWritten('Process could not be completed - Issue arose.\n')
+            if os.path.exists(seg_config_filename):
+                os.remove(seg_config_filename)
             return
+
+        if os.path.exists(seg_config_filename):
+            os.remove(seg_config_filename)
 
         self.run_segmentation_pushbutton.setEnabled(True)
         self.run_reporting_pushbutton.setEnabled(True)
-        # self.processing_thread_signal.processing_thread_finished.emit(True, 'segmentation')
 
     def on_run_reporting(self):
         diag = TumorTypeSelectionQDialog(self)
@@ -194,7 +213,8 @@ class CentralAreaExecutionWidget(QWidget):
         elif diag.tumor_type == 'Metastasis':
             self.model_name = "MRI_Metastasis"
 
-        self.reporting_main_wrapper()
+        # self.reporting_main_wrapper()
+        self.run_reporting()
 
     def reporting_main_wrapper(self):
         self.run_reporting_thread = threading.Thread(target=self.run_reporting_cli)
@@ -250,45 +270,59 @@ class CentralAreaExecutionWidget(QWidget):
         self.run_reporting_pushbutton.setEnabled(True)
 
     def run_reporting(self):
-        logging.info("Starting standardized reporting process.")
-        # from diagnosis.src.Utils.configuration_parser import ResourcesConfiguration
+        """
+        Results of the standardized reporting will be stored inside a /reporting subfolder within the patient
+        output folder.
+        """
+        logging.info("Starting RADS process.")
 
         # Freezing buttons
         self.run_segmentation_pushbutton.setEnabled(False)
         self.run_reporting_pushbutton.setEnabled(False)
-
-        # @TODO. Include a dialog to dump the current progress of the process.
+        rads_config_filename = ''
         try:
+            download_model(model_name=self.model_name)
             current_patient_parameters = SoftwareConfigResources.getInstance().patients_parameters[
                 SoftwareConfigResources.getInstance().active_patient_name]
-            # if self.diagnostics_runner == None:
-            #     from diagnosis.src.NeuroDiagnosis.neuro_diagnostics import NeuroDiagnostics
-            #     self.diagnostics_runner = NeuroDiagnostics()
-            #     ResourcesConfiguration.getInstance().set_environment(output_dir=current_patient_parameters.output_folder)
-            #     self.diagnostics_runner.prepare_to_run()
+            reporting_folder = os.path.join(current_patient_parameters.output_folder, 'reporting')
+            os.makedirs(reporting_folder, exist_ok=True)
+            rads_config = configparser.ConfigParser()
+            rads_config.add_section('Default')
+            rads_config.set('Default', 'task', 'neuro_diagnosis')
+            rads_config.set('Default', 'caller', 'raidionics')
+            rads_config.add_section('System')
+            rads_config.set('System', 'gpu_id', "-1")
+            rads_config.set('System', 'input_filename',
+                            current_patient_parameters.mri_volumes[self.selected_mri_uid].raw_filepath)
+            rads_config.set('System', 'output_folder', reporting_folder)
+            rads_config.set('System', 'model_folder',
+                            os.path.join(SoftwareConfigResources.getInstance().models_path, self.model_name))
+            rads_config.add_section('Runtime')
+            rads_config.set('Runtime', 'reconstruction_method', 'thresholding')
+            rads_config.set('Runtime', 'reconstruction_order', 'resample_first')
+            rads_config_filename = os.path.join(current_patient_parameters.output_folder, 'rads_config.ini')
+            with open(rads_config_filename, 'w') as outfile:
+                rads_config.write(outfile)
 
-            runtime = generate_runtime_config(method='thresholding', order='resample_first')
-            runtime_fn = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../', 'resources',
-                                             'segmentation_runtime_config.ini')
-            with open(runtime_fn, 'w') as cf:
-                runtime.write(cf)
+            from raidionicsrads.compute import run_rads
+            logging.debug("Spawning multiprocess...")
+            mp.set_start_method('spawn', force=True)
+            with mp.Pool(processes=1, maxtasksperchild=1) as p:  # , initializer=initializer)
+                result = p.map_async(run_rads, [rads_config_filename])
+                logging.debug("Collecting result from multiprocess...")
+                ret = result.get()[0]
 
-            # @TODO. Should maybe subprocess this also, for safety?
-            # diagnose_main(input_volume_filename=current_patient_parameters.mri_volumes[self.selected_mri_uid].raw_filepath,
-            #               input_segmentation_filename="",
-            #               output_folder=current_patient_parameters.output_folder + '/', tumor_type=self.model_name)
             self.__collect_reporting_outputs(current_patient_parameters)
-
-        except Exception as e:
+        except Exception:
             print('{}'.format(traceback.format_exc()))
             self.run_segmentation_pushbutton.setEnabled(True)
             self.run_reporting_pushbutton.setEnabled(True)
-            # self.standardOutputWritten('Process could not be completed - Issue arose.\n')
             return
 
+        if os.path.exists(rads_config_filename):
+            os.remove(rads_config_filename)
         self.run_segmentation_pushbutton.setEnabled(True)
         self.run_reporting_pushbutton.setEnabled(True)
-        # self.processing_thread_signal.processing_thread_finished.emit(True, 'segmentation')
 
     def __collect_reporting_outputs(self, current_patient_parameters):
         # Collecting the automatic tumor and brain segmentations
