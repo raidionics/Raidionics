@@ -15,11 +15,10 @@ jobs:
         include:
           - os: ubuntu-18.04
             TARGET: ubuntu
-            CMD_BUILD: "pip install https://github.com/dbouget/raidionics-rads-lib/releases/download/v0.1.0-alpha/raidionicsrads-0.1.0-py3-none-manylinux1_x86_64.whl &&
+            CMD_BUILD: "pip install tensorflow==1.13.1 && 
+                       pip install antspyx &&
                        pip install pyinstaller &&
                        mkdir tmp_dependencies &&
-                       cp -v $(which raidionicsrads) ./tmp_dependencies/raidionicsrads_bin &&
-                       cp -v $(which raidionicsseg) ./tmp_dependencies/raidionicsseg_bin &&
                        pyinstaller --noconfirm --clean main.spec &&
                        mkdir -p Raidionics_ubuntu/usr/local/bin &&
                        cp -r dist/Raidionics Raidionics_ubuntu/usr/local/bin &&
@@ -30,11 +29,13 @@ jobs:
 
           - os: macos-10.15
             TARGET: macos
-            CMD_BUILD: "pip install https://github.com/dbouget/raidionics-rads-lib/releases/download/v0.1.0-alpha/raidionicsrads-0.1.0-py3-none-macosx_10_13_x86_64.whl &&
+            CMD_BUILD: "pip install https://github.com/ANTsX/ANTsPy/releases/download/v0.1.8/antspyx-0.1.8-cp37-cp37m-macosx_10_14_x86_64.whl &&
+                       pip install pandas==1.1.5 && 
+                       pip install scikit-learn==0.24.2 &&
+                       pip install statsmodels==0.12.2 &&
+                       pip install tensorflow==1.13.1 && 
                        pip install pyinstaller &&
                        mkdir tmp_dependencies &&
-                       cp -v $(which raidionicsrads) ./tmp_dependencies/raidionicsrads_bin &&
-                       cp -v $(which raidionicsseg) ./tmp_dependencies/raidionicsseg_bin &&
                        pyinstaller --noconfirm --clean main_bundle.spec &&
                        git clone https://github.com/andreped/quickpkg.git &&
                        quickpkg/quickpkg dist/Raidionics.app --output Raidionics-1.0.0-macOS.pkg &&
@@ -57,16 +58,21 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
+        pip install -r raidionics_rads_lib/raidionics_seg_lib/requirements.txt
+        pip install -r raidionics_rads_lib/requirements.txt
         pip install -r requirements.txt
 
     - if: matrix.os == 'windows-2019'
       name: Build application
-      run: |
-        pip install https://github.com/dbouget/raidionics-rads-lib/releases/download/v0.1.0-alpha/raidionicsrads-0.1.0-py3-none-win_amd64.whl
+      run: |       
+        pip install https://github.com/SGotla/ANTsPy/releases/download/0.1.7Win64/antspy-0.1.7-cp37-cp37m-win_amd64.whl
+        pip install tensorflow==1.13.1
+        pip install pandas==1.1.5 && 
+        pip install scikit-learn==0.24.2 &&
+        pip install statsmodels==0.12.2 &&
+        
         pip install pyinstaller
         mkdir tmp_dependencies
-        cp (get-command raidionicsrads).Path ./tmp_dependencies/raidionicsrads_bin.exe
-        cp (get-command raidionicsseg).Path ./tmp_dependencies/raidionicsseg_bin.exe
         pyinstaller --noconfirm --clean main.spec
         makensis.exe Raidionics.nsi
         cp -r Raidionics-1.0.0-win.exe dist/Raidionics-1.0.0-win.exe
