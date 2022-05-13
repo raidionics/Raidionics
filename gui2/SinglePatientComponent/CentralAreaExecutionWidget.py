@@ -81,11 +81,11 @@ class CentralAreaExecutionWidget(QWidget):
         elif diag.tumor_type == 'Metastasis':
             self.model_name = "MRI_Metastasis"
 
-        # self.segmentation_main_wrapper()
-        self.run_segmentation()
+        self.segmentation_main_wrapper()
+        # self.run_segmentation()
 
     def segmentation_main_wrapper(self):
-        self.run_segmentation_thread = threading.Thread(target=self.run_segmentation_cli)
+        self.run_segmentation_thread = threading.Thread(target=self.run_segmentation)
         self.run_segmentation_thread.daemon = True  # using daemon thread the thread is killed gracefully if program is abruptly closed
         self.run_segmentation_thread.start()
 
@@ -169,12 +169,13 @@ class CentralAreaExecutionWidget(QWidget):
                 seg_config.write(outfile)
 
             from raidionicsseg.fit import run_model
-            logging.debug("Spawning multiprocess...")
-            mp.set_start_method('spawn', force=True)
-            with mp.Pool(processes=1, maxtasksperchild=1) as p:  # , initializer=initializer)
-                result = p.map_async(run_model, [seg_config_filename])
-                logging.debug("Collecting results from multiprocess...")
-                ret = result.get()[0]
+            run_model(seg_config_filename)
+            # logging.debug("Spawning multiprocess...")
+            # mp.set_start_method('spawn', force=True)
+            # with mp.Pool(processes=1, maxtasksperchild=1) as p:  # , initializer=initializer)
+            #    result = p.map_async(run_model, [seg_config_filename])
+            #    logging.debug("Collecting results from multiprocess...")
+            #    ret = result.get()[0]
 
             seg_file = os.path.join(current_patient_parameters.output_folder, 'labels_Tumor.nii.gz')
             shutil.move(seg_file, os.path.join(current_patient_parameters.output_folder, 'patient_tumor.nii.gz'))
@@ -269,7 +270,7 @@ class CentralAreaExecutionWidget(QWidget):
         self.run_segmentation_pushbutton.setEnabled(True)
         self.run_reporting_pushbutton.setEnabled(True)
 
-    def run_reporting(self):
+    def run_reporting(self, fake=None):
         """
         Results of the standardized reporting will be stored inside a /reporting subfolder within the patient
         output folder.
@@ -305,11 +306,12 @@ class CentralAreaExecutionWidget(QWidget):
                 rads_config.write(outfile)
 
             from raidionicsrads.compute import run_rads
+            # run_rads(rads_config_filename)
             logging.debug("Spawning multiprocess...")
             mp.set_start_method('spawn', force=True)
             with mp.Pool(processes=1, maxtasksperchild=1) as p:  # , initializer=initializer)
                 result = p.map_async(run_rads, [rads_config_filename])
-                logging.debug("Collecting result from multiprocess...")
+                logging.debug("Collecting results from multiprocess...")
                 ret = result.get()[0]
 
             self.__collect_reporting_outputs(current_patient_parameters)
