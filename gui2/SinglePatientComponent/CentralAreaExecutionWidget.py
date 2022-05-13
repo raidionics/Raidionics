@@ -168,7 +168,8 @@ class CentralAreaExecutionWidget(QWidget):
             with open(seg_config_filename, 'w') as outfile:
                 seg_config.write(outfile)
 
-            from raidionicsseg.fit import run_model
+            #from raidionicsseg.fit import run_model
+            from raidionics_rads_lib.raidionics_seg_lib.raidionicsseg.fit import run_model
             run_model(seg_config_filename)
             # logging.debug("Spawning multiprocess...")
             # mp.set_start_method('spawn', force=True)
@@ -214,8 +215,8 @@ class CentralAreaExecutionWidget(QWidget):
         elif diag.tumor_type == 'Metastasis':
             self.model_name = "MRI_Metastasis"
 
-        # self.reporting_main_wrapper()
-        self.run_reporting()
+        self.reporting_main_wrapper()
+        # self.run_reporting()
 
     def reporting_main_wrapper(self):
         self.run_reporting_thread = threading.Thread(target=self.run_reporting_cli)
@@ -305,14 +306,14 @@ class CentralAreaExecutionWidget(QWidget):
             with open(rads_config_filename, 'w') as outfile:
                 rads_config.write(outfile)
 
-            from raidionicsrads.compute import run_rads
-            # run_rads(rads_config_filename)
-            logging.debug("Spawning multiprocess...")
-            mp.set_start_method('spawn', force=True)
-            with mp.Pool(processes=1, maxtasksperchild=1) as p:  # , initializer=initializer)
-                result = p.map_async(run_rads, [rads_config_filename])
-                logging.debug("Collecting results from multiprocess...")
-                ret = result.get()[0]
+            from raidionics_rads_lib.raidionicsrads.compute import run_rads
+            run_rads(rads_config_filename)
+            # logging.debug("Spawning multiprocess...")
+            # mp.set_start_method('spawn', force=True)
+            # with mp.Pool(processes=1, maxtasksperchild=1) as p:  # , initializer=initializer)
+            #     result = p.map_async(run_rads, [rads_config_filename])
+            #     logging.debug("Collecting results from multiprocess...")
+            #     ret = result.get()[0]
 
             self.__collect_reporting_outputs(current_patient_parameters)
         except Exception:
