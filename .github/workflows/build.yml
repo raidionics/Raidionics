@@ -55,8 +55,8 @@ jobs:
       with:
         python-version: 3.7
 
-    - uses: actions/checkout@v3
     - name: Collect submodules
+      uses: actions/checkout@v3
       with:
         submodules: 'recursive'
 
