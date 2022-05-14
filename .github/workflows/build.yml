@@ -2,7 +2,7 @@ name: Build
 
 on:
   push:
-    branches: [ master, design_update ]
+    branches: [ master, design_update, submodule_libs ]
   pull_request:
     branches: [ master, design_update ]
 
