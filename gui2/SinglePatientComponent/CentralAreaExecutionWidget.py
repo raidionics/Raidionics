@@ -168,7 +168,7 @@ class CentralAreaExecutionWidget(QWidget):
             with open(seg_config_filename, 'w') as outfile:
                 seg_config.write(outfile)
 
-            from raidionics_rads_lib.raidionics_seg_lib.raidionicsseg.fit import run_model
+            from raidionicsseg.fit import run_model
             # from raidionics_rads_lib.raidionics_seg_lib.main import main as main_seg
             # main_seg(['-c', seg_config_filename, '-v', 'debug'])
             run_model(seg_config_filename)
@@ -307,7 +307,7 @@ class CentralAreaExecutionWidget(QWidget):
             with open(rads_config_filename, 'w') as outfile:
                 rads_config.write(outfile)
 
-            from raidionics_rads_lib.raidionicsrads.compute import run_rads
+            from raidionicsrads.compute import run_rads
             run_rads(rads_config_filename)
             # logging.debug("Spawning multiprocess...")
             # mp.set_start_method('spawn', force=True)

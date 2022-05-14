@@ -86,9 +86,15 @@ copyright = {Creative Commons Attribution 4.0 International}}
 ```
 
 # Note
-Including the rads/seg backend, but how to setup the global virtualenv?
+Including the rads/seg backend the first time.
+But how to setup the global virtualenv? No recursive pip install setup.py across submodules
 
 ```
 git submodule add -b submodule_seg https://github.com/dbouget/raidionics_rads_lib.git
 git submodule update --init --recursive
+```
+
+For updating Raidionics after backend update
+```
+git pull --recurse-submodules
 ```

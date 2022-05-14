@@ -15,9 +15,7 @@ jobs:
         include:
           - os: ubuntu-18.04
             TARGET: ubuntu
-            CMD_BUILD: "pip install tensorflow==1.13.1 && 
-                       pip install antspyx &&
-                       pip install pyinstaller &&
+            CMD_BUILD: "pip install pyinstaller &&
                        mkdir tmp_dependencies &&
                        pyinstaller --noconfirm --clean main.spec &&
                        mkdir -p Raidionics_ubuntu/usr/local/bin &&
@@ -29,12 +27,7 @@ jobs:
 
           - os: macos-10.15
             TARGET: macos
-            CMD_BUILD: "pip install https://github.com/ANTsX/ANTsPy/releases/download/v0.1.8/antspyx-0.1.8-cp37-cp37m-macosx_10_14_x86_64.whl &&
-                       pip install pandas==1.1.5 && 
-                       pip install scikit-learn==0.24.2 &&
-                       pip install statsmodels==0.12.2 &&
-                       pip install tensorflow==1.13.1 && 
-                       pip install pyinstaller &&
+            CMD_BUILD: "pip install pyinstaller &&
                        mkdir tmp_dependencies &&
                        pyinstaller --noconfirm --clean main_bundle.spec &&
                        git clone https://github.com/andreped/quickpkg.git &&
@@ -63,19 +56,14 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r raidionics_rads_lib/raidionics_seg_lib/requirements.txt
-        pip install -r raidionics_rads_lib/requirements.txt
+        # pip install -r raidionics_rads_lib/raidionics_seg_lib/requirements.txt
+        # pip install -r raidionics_rads_lib/requirements.txt
         pip install -r requirements.txt
+        pip install -e .
 
     - if: matrix.os == 'windows-2019'
       name: Build application
-      run: |       
-        pip install https://github.com/SGotla/ANTsPy/releases/download/0.1.7Win64/antspy-0.1.7-cp37-cp37m-win_amd64.whl
-        pip install tensorflow==1.13.1
-        pip install pandas==1.1.5 && 
-        pip install scikit-learn==0.24.2 &&
-        pip install statsmodels==0.12.2 &&
-        
+      run: |              
         pip install pyinstaller
         mkdir tmp_dependencies
         pyinstaller --noconfirm --clean main.spec

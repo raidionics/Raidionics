@@ -1,6 +1,7 @@
 import getopt, traceback
 # macOS relevant
 import os
+from pathlib import PurePath
 os.environ['LC_CTYPE'] = "en_US.UTF-8"
 os.environ['LANG'] = "en_US.UTF-8"
 
