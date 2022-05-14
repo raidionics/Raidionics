@@ -168,8 +168,9 @@ class CentralAreaExecutionWidget(QWidget):
             with open(seg_config_filename, 'w') as outfile:
                 seg_config.write(outfile)
 
-            #from raidionicsseg.fit import run_model
             from raidionics_rads_lib.raidionics_seg_lib.raidionicsseg.fit import run_model
+            # from raidionics_rads_lib.raidionics_seg_lib.main import main as main_seg
+            # main_seg(['-c', seg_config_filename, '-v', 'debug'])
             run_model(seg_config_filename)
             # logging.debug("Spawning multiprocess...")
             # mp.set_start_method('spawn', force=True)
@@ -219,7 +220,7 @@ class CentralAreaExecutionWidget(QWidget):
         # self.run_reporting()
 
     def reporting_main_wrapper(self):
-        self.run_reporting_thread = threading.Thread(target=self.run_reporting_cli)
+        self.run_reporting_thread = threading.Thread(target=self.run_reporting)
         self.run_reporting_thread.daemon = True  # using daemon thread the thread is killed gracefully if program is abruptly closed
         self.run_reporting_thread.start()
 
