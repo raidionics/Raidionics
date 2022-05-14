@@ -59,7 +59,7 @@ jobs:
         # pip install -r raidionics_rads_lib/raidionics_seg_lib/requirements.txt
         # pip install -r raidionics_rads_lib/requirements.txt
         pip install -r requirements.txt
-        pip install -e git+https://github.com/dbouget/raidionics_rads_lib.git@submodule_seg#egg=pip
+        pip install -e git+https://github.com/dbouget/raidionics_rads_lib.git@submodule_seg#egg=raidionicsrads
 
     - if: matrix.os == 'windows-2019'
       name: Build application
