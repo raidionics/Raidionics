@@ -82,7 +82,6 @@ class CentralAreaExecutionWidget(QWidget):
             self.model_name = "MRI_Metastasis"
 
         self.segmentation_main_wrapper()
-        # self.run_segmentation()
 
     def segmentation_main_wrapper(self):
         self.run_segmentation_thread = threading.Thread(target=self.run_segmentation)
@@ -164,13 +163,12 @@ class CentralAreaExecutionWidget(QWidget):
             seg_config.add_section('Runtime')
             seg_config.set('Runtime', 'reconstruction_method', 'thresholding')
             seg_config.set('Runtime', 'reconstruction_order', 'resample_first')
+            # @TODO. Have to include the brain segmentation filename if it exists.
             seg_config_filename = os.path.join(current_patient_parameters.output_folder, 'seg_config.ini')
             with open(seg_config_filename, 'w') as outfile:
                 seg_config.write(outfile)
 
             from raidionicsseg.fit import run_model
-            # from raidionics_rads_lib.raidionics_seg_lib.main import main as main_seg
-            # main_seg(['-c', seg_config_filename, '-v', 'debug'])
             run_model(seg_config_filename)
             # logging.debug("Spawning multiprocess...")
             # mp.set_start_method('spawn', force=True)
@@ -217,7 +215,6 @@ class CentralAreaExecutionWidget(QWidget):
             self.model_name = "MRI_Metastasis"
 
         self.reporting_main_wrapper()
-        # self.run_reporting()
 
     def reporting_main_wrapper(self):
         self.run_reporting_thread = threading.Thread(target=self.run_reporting)
@@ -272,7 +269,7 @@ class CentralAreaExecutionWidget(QWidget):
         self.run_segmentation_pushbutton.setEnabled(True)
         self.run_reporting_pushbutton.setEnabled(True)
 
-    def run_reporting(self, fake=None):
+    def run_reporting(self):
         """
         Results of the standardized reporting will be stored inside a /reporting subfolder within the patient
         output folder.
@@ -303,6 +300,9 @@ class CentralAreaExecutionWidget(QWidget):
             rads_config.add_section('Runtime')
             rads_config.set('Runtime', 'reconstruction_method', 'thresholding')
             rads_config.set('Runtime', 'reconstruction_order', 'resample_first')
+            rads_config.set('Neuro', 'cortical_features', 'MNI, Schaefer7, Schaefer17, Harvard-Oxford')
+            rads_config.set('Neuro', 'subcortical_features', 'BCB')
+            #@TODO. Include filenames for brain and tumor segmentation if existing.
             rads_config_filename = os.path.join(current_patient_parameters.output_folder, 'rads_config.ini')
             with open(rads_config_filename, 'w') as outfile:
                 rads_config.write(outfile)

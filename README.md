@@ -96,5 +96,9 @@ git submodule update --init --recursive
 
 For updating Raidionics after backend update
 ```
+cd raidionics_rads_lib
 git pull --recurse-submodules
+pip install raidionics_seg_lib
+cd ..
+pip install raidionics_rads_lib
 ```

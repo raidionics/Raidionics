@@ -38,8 +38,8 @@ class CentralAreaWidget(QWidget):
         self.base_layout.setSpacing(0)
         self.display_area_widget = CentralDisplayAreaWidget(self)
         self.execution_area_widget = CentralAreaExecutionWidget(self)
-        self.base_layout.addWidget(self.display_area_widget)
         self.base_layout.addWidget(self.execution_area_widget)
+        self.base_layout.addWidget(self.display_area_widget)
 
     def __set_stylesheets(self):
         pass
