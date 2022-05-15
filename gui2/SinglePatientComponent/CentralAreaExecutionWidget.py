@@ -300,6 +300,7 @@ class CentralAreaExecutionWidget(QWidget):
             rads_config.add_section('Runtime')
             rads_config.set('Runtime', 'reconstruction_method', 'thresholding')
             rads_config.set('Runtime', 'reconstruction_order', 'resample_first')
+            rads_config.add_section('Neuro')
             rads_config.set('Neuro', 'cortical_features', 'MNI, Schaefer7, Schaefer17, Harvard-Oxford')
             rads_config.set('Neuro', 'subcortical_features', 'BCB')
             #@TODO. Include filenames for brain and tumor segmentation if existing.
