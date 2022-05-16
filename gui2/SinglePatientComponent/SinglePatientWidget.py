@@ -8,7 +8,7 @@ import os
 from utils.software_config import SoftwareConfigResources
 from gui2.SinglePatientComponent.PatientResultsSidePanel.PatientResultsSinglePatientSidePanelWidget import PatientResultsSinglePatientSidePanelWidget
 from gui2.SinglePatientComponent.CentralAreaWidget import CentralAreaWidget
-from gui2.SinglePatientComponent.LayersInteractorSidePanel.SinglePatientWidget import SinglePatientLayersWidget
+from gui2.SinglePatientComponent.LayersInteractorSidePanel.SinglePatientLayersWidget import SinglePatientLayersWidget
 from gui2.UtilsWidgets.CustomQDialog.ImportDataQDialog import ImportDataQDialog
 from gui2.UtilsWidgets.CustomQDialog.ImportDICOMDataQDialog import ImportDICOMDataQDialog
 
@@ -28,6 +28,10 @@ class SinglePatientWidget(QWidget):
         self.import_data_dialog = ImportDataQDialog(self)
         self.import_dicom_dialog = ImportDICOMDataQDialog(self)
 
+        self.setMinimumSize(self.parent.baseSize())
+        self.setBaseSize(self.parent.baseSize())
+        logging.debug("Setting SinglePatientWidget dimensions to {}.\n".format(self.size()))
+
         self.__set_interface()
         self.__set_layout_dimensions()
         self.__set_stylesheets()
@@ -35,33 +39,13 @@ class SinglePatientWidget(QWidget):
 
     def __set_interface(self):
         self.__top_logo_options_panel_interface()
-        # self.__center_display_panel_interface()
-
-        # self.layout = QVBoxLayout(self)
-        # self.layout.setSpacing(0)
-        # self.layout.setContentsMargins(0, 0, 0, 0)
-        # self.layout.addLayout(self.top_logo_panel_layout, Qt.AlignTop)
-        # self.layout.addLayout(self.right_panel_splitter)
-
-        self.__left_results_panel_interface()
-        # self.__right_options_panel_interface()
-
-        self.central_label = QLabel()
-        self.central_label.setContentsMargins(0, 0, 0, 0)
-        self.central_layout = QHBoxLayout()
-        self.central_layout.setContentsMargins(0, 0, 0, 0)
-        self.central_layout.setSpacing(0)
-        # self.central_layout.addStretch(1)
-        self.central_layout.addLayout(self.left_panel_layout)
-        # self.central_layout.addWidget(self.right_panel_label)
-        # self.central_layout.addStretch(1)
-        self.central_label.setLayout(self.central_layout)
+        self.__center_display_panel_interface()
 
         self.layout = QVBoxLayout(self)
-        self.center_widget_container_layout = QGridLayout()
+        self.layout.setSpacing(0)
+        self.layout.setContentsMargins(0, 0, 0, 25)  # To prevent the bottom objects to be invisible below screen
         self.layout.addLayout(self.top_logo_panel_layout, Qt.AlignTop)
-        self.center_widget_container_layout.addWidget(self.central_label, 0, 0, Qt.AlignCenter)
-        self.layout.addLayout(self.center_widget_container_layout)
+        self.layout.addLayout(self.center_panel_layout)
 
     def __top_logo_options_panel_interface(self):
         self.top_logo_panel_layout = QHBoxLayout()
@@ -89,78 +73,20 @@ class SinglePatientWidget(QWidget):
 
         self.top_logo_panel_layout.addStretch(1)
 
-    def __left_results_panel_interface(self):
-        self.left_panel_layout = QVBoxLayout()
-        self.left_panel_splitter = QSplitter(self, Qt.Horizontal)
-        # self.left_dock = QLabel()
-        # self.left_dock.setMaximumSize(QSize(150, 850))
-        # self.left_dock.setStyleSheet("QLabel{background-color:rgb(255,0,0);}")
-        # self.right_dock = QLabel()
-        # self.right_dock.setMaximumSize(QSize(150, 850))
-        # self.right_dock.setStyleSheet("QLabel{background-color:rgb(0,255,0);}")
-        # self.center_dock = QLabel()
-        # # self.center_dock.setMinimumSize(QSize(1140, 850))
-        # self.center_dock.setMaximumSize(QSize(1440, 850))
-        # self.center_dock.setStyleSheet("QLabel{background-color:rgb(0,0,255);}")
-        self.results_panel = PatientResultsSinglePatientSidePanelWidget(self)
-        self.center_panel = CentralAreaWidget(self) #CentralDisplayAreaWidget(self)
-        self.layers_panel = SinglePatientLayersWidget(self)
-        self.left_panel_splitter.addWidget(self.results_panel)
-        self.left_panel_splitter.addWidget(self.center_panel)
-        self.left_panel_splitter.setCollapsible(1, False)
-        self.right_panel_splitter = QSplitter(self, Qt.Horizontal)
-        self.right_panel_splitter.addWidget(self.left_panel_splitter)
-        self.right_panel_splitter.addWidget(self.layers_panel)
-        self.right_panel_splitter.setCollapsible(0, False)
-
-        self.left_panel_layout.addWidget(self.right_panel_splitter)
-
     def __center_display_panel_interface(self):
+        self.center_panel_layout = QHBoxLayout()
         self.results_panel = PatientResultsSinglePatientSidePanelWidget(self)
         self.center_panel = CentralAreaWidget(self)
-        self.center_panel_placeholder = QLabel()
-        self.center_panel_placeholder.setStyleSheet("QLabel{background-color:rgb(127,128,129);}")
         self.layers_panel = SinglePatientLayersWidget(self)
-
-        self.left_panel_layout = QVBoxLayout()
-        self.left_panel_splitter = QSplitter(self, Qt.Horizontal)
-        self.left_panel_splitter.addWidget(self.results_panel)
-        self.left_panel_splitter.addWidget(self.center_panel_placeholder)
-        self.left_panel_splitter.setCollapsible(1, False)
-        self.right_panel_splitter = QSplitter(self, Qt.Horizontal)
-        self.right_panel_splitter.addWidget(self.left_panel_splitter)
-        self.right_panel_splitter.addWidget(self.layers_panel)
-        self.right_panel_splitter.setCollapsible(0, False)
-
-        # self.left_panel_layout.addWidget(self.right_panel_splitter)
-
-    def __right_options_panel_interface(self):
-        pass
+        self.center_panel_layout.addWidget(self.results_panel)
+        self.center_panel_layout.addWidget(self.center_panel)
+        self.center_panel_layout.addWidget(self.layers_panel)
 
     def __set_layout_dimensions(self):
-        self.setMinimumSize(self.parent.baseSize())
-        self.setBaseSize(self.parent.baseSize())
-        logging.debug("Setting SinglePatientWidget dimensions to {}.\n".format(self.size()))
         self.top_logo_panel_label.setFixedSize(QSize(150, 30))
-        self.central_label.setMinimumSize(QSize(self.parent.baseSize().width(), self.parent.baseSize().height() - self.top_logo_panel_label.size().height()))
-        self.central_label.setBaseSize(QSize(self.parent.baseSize().width(),
-                                                self.parent.baseSize().height() - self.top_logo_panel_label.size().height()))
-        logging.debug("Setting SinglePatientWidget::CentralAreawidget dimensions to {}.\n".format(self.central_label.size()))
-
-        self.results_panel.setBaseSize(QSize(200, self.baseSize().height()))
-        self.results_panel.setMaximumSize(QSize(200, self.baseSize().height()))
-
-        self.center_panel.setBaseSize(QSize(self.baseSize().width() - 400, self.baseSize().height()))
-
-        self.layers_panel.setBaseSize(QSize(200, self.parent.baseSize().height()))
-        self.layers_panel.setMaximumSize(QSize(200, self.parent.baseSize().height()))
-
-        self.left_panel_splitter.setFixedSize(QSize(1290, 850))
-        self.right_panel_splitter.setFixedSize(QSize(1140, 850))
 
     def __set_stylesheets(self):
         self.setStyleSheet("QWidget{font:11px;}")
-        # pass
 
     def __set_connections(self):
         self.top_logo_panel_label_import_file_pushbutton.clicked.connect(self.__on_import_file_clicked)

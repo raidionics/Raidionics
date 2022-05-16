@@ -112,7 +112,7 @@ class WelcomeWidget(QWidget):
         self.left_panel_single_patient_pushbutton_icon = QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Images/single_patient_icon_colored.png')))
         self.left_panel_single_patient_pushbutton.setIcon(self.left_panel_single_patient_pushbutton_icon)
         self.left_panel_single_patient_pushbutton.setIconSize(QSize(50, 25))
-        self.left_panel_single_patient_pushbutton.setText("New single patient")
+        self.left_panel_single_patient_pushbutton.setText("Start new")
         self.left_panel_layout.addWidget(self.left_panel_single_patient_pushbutton)
 
         self.left_panel_or_layout = QHBoxLayout()
@@ -130,7 +130,7 @@ class WelcomeWidget(QWidget):
         self.left_panel_layout.addLayout(self.left_panel_or_layout)
 
         self.left_panel_multiple_patients_pushbutton = QPushButton()
-        self.left_panel_multiple_patients_pushbutton.setText("New multiple patients")
+        self.left_panel_multiple_patients_pushbutton.setText("New study")
         self.left_panel_multiple_patients_pushbutton_icon = QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Images/multiple_patients_icon_colored.png')))
         self.left_panel_multiple_patients_pushbutton.setIcon(self.left_panel_multiple_patients_pushbutton_icon)
         self.left_panel_multiple_patients_pushbutton.setIconSize(QSize(50, 25))

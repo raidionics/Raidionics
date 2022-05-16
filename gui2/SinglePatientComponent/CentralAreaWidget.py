@@ -1,7 +1,8 @@
 from PySide2.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLabel
 from PySide2.QtGui import QIcon, QPixmap, QColor
 from PySide2.QtCore import Qt, QSize, Signal
-
+import logging
+from utils.software_config import SoftwareConfigResources
 from gui2.SinglePatientComponent.CentralDisplayArea.CentralDisplayAreaWidget import CentralDisplayAreaWidget
 from gui2.SinglePatientComponent.CentralAreaExecutionWidget import CentralAreaExecutionWidget
 
@@ -26,20 +27,24 @@ class CentralAreaWidget(QWidget):
         super(CentralAreaWidget, self).__init__()
         self.parent = parent
         self.widget_name = "central_area_widget"
+        self.setBaseSize(QSize((885 / SoftwareConfigResources.getInstance().get_optimal_dimensions().width()) * self.parent.baseSize().width(),
+                               ((935 / SoftwareConfigResources.getInstance().get_optimal_dimensions().height()) * self.parent.baseSize().height())))
+        logging.debug("Setting CentralAreaWidget dimensions to {}.\n".format(self.size()))
+
         self.__set_interface()
         self.__set_layout_dimensions()
         self.__set_stylesheets()
         self.__set_connections()
 
     def __set_interface(self):
-        self.setBaseSize(self.parent.baseSize())
+        # self.setBaseSize(self.parent.baseSize())
         self.base_layout = QVBoxLayout(self)
         self.base_layout.setContentsMargins(0, 0, 0, 0)
         self.base_layout.setSpacing(0)
         self.display_area_widget = CentralDisplayAreaWidget(self)
         self.execution_area_widget = CentralAreaExecutionWidget(self)
-        self.base_layout.addWidget(self.execution_area_widget)
         self.base_layout.addWidget(self.display_area_widget)
+        self.base_layout.addWidget(self.execution_area_widget)
 
     def __set_stylesheets(self):
         pass
@@ -75,8 +80,7 @@ class CentralAreaWidget(QWidget):
         self.patient_view_toggled.connect(self.display_area_widget.on_patient_selected)
 
     def __set_layout_dimensions(self):
-        self.setBaseSize(self.parent.size())
-        self.setMinimumSize(self.parent.minimumSize())
+        pass
 
     def get_widget_name(self):
         return self.widget_name

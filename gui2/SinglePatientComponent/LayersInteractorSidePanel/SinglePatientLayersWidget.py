@@ -5,6 +5,7 @@ from PySide2.QtGui import QColor
 from gui2.SinglePatientComponent.LayersInteractorSidePanel.MRIVolumesInteractor.MRIVolumesLayerInteractor import MRIVolumesLayerInteractor
 from gui2.SinglePatientComponent.LayersInteractorSidePanel.AnnotationLayersInteractor.AnnotationsLayersInteractor import AnnotationsLayersInteractor
 from gui2.SinglePatientComponent.LayersInteractorSidePanel.AtlasLayersInteractor.AtlasesLayersInteractor import AtlasesLayersInteractor
+from utils.software_config import SoftwareConfigResources
 
 
 class SinglePatientLayersWidget(QWidget):
@@ -27,6 +28,7 @@ class SinglePatientLayersWidget(QWidget):
     def __init__(self, parent=None):
         super(SinglePatientLayersWidget, self).__init__()
         self.parent = parent
+        self.setFixedWidth((315 / SoftwareConfigResources.getInstance().get_optimal_dimensions().width()) * self.parent.baseSize().width())
         self.__set_interface()
         self.__set_connections()
         self.__set_stylesheets()

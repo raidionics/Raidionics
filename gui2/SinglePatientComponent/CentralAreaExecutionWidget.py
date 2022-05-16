@@ -1,5 +1,5 @@
-from PySide2.QtWidgets import QWidget, QHBoxLayout, QPushButton
-from PySide2.QtCore import Signal, QCoreApplication
+from PySide2.QtWidgets import QWidget, QHBoxLayout, QPushButton, QLabel
+from PySide2.QtCore import Signal, QCoreApplication, QSize
 import logging
 import traceback
 import os
@@ -14,7 +14,7 @@ from gui2.UtilsWidgets.CustomQDialog.TumorTypeSelectionQDialog import TumorTypeS
 from segmentation.src.Utils.configuration_parser import generate_runtime_config
 
 
-class CentralAreaExecutionWidget(QWidget):
+class CentralAreaExecutionWidget(QLabel):
     """
 
     """
@@ -33,13 +33,14 @@ class CentralAreaExecutionWidget(QWidget):
         self.selected_mri_uid = None
 
     def __set_interface(self):
-        self.setBaseSize(self.parent.baseSize())
         self.base_layout = QHBoxLayout(self)
         self.base_layout.setSpacing(0)
         self.base_layout.setContentsMargins(0, 0, 0, 0)
 
         self.run_segmentation_pushbutton = QPushButton("Run segmentation")
+        self.run_segmentation_pushbutton.setFixedSize(QSize(175, 15))
         self.run_reporting_pushbutton = QPushButton("Run reporting")
+        self.run_reporting_pushbutton.setFixedSize(QSize(175, 15))
         self.run_segmentation_pushbutton.setEnabled(False)
         self.run_reporting_pushbutton.setEnabled(False)
         self.base_layout.addStretch(1)
@@ -48,7 +49,7 @@ class CentralAreaExecutionWidget(QWidget):
         self.base_layout.addStretch(1)
 
     def __set_stylesheets(self):
-        pass
+        self.setStyleSheet("QLabel{background-color: rgb(0,0,0);}")
 
     def __set_connections(self):
         self.__set_inner_connections()

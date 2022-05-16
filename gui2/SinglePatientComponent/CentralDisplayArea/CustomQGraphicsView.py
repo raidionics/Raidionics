@@ -1,8 +1,9 @@
 from PySide2.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsPixmapItem, QGraphicsOpacityEffect
 from PySide2.QtGui import QPixmap, QImage, QPen, QColor, QTransform
-from PySide2.QtCore import Qt, Signal, QPoint
+from PySide2.QtCore import Qt, Signal, QPoint, QSize
 import numpy as np
 import os
+import logging
 
 from scipy.ndimage import rotate
 
@@ -19,9 +20,12 @@ class CustomQGraphicsView(QGraphicsView):
     patient_imported = Signal(str)  # From the drag/drop event to include more patients to the project?
     coordinates_changed = Signal(int, int)  # From the mouse move event to change the point-of-view.
 
-    def __init__(self, view_type='axial', parent=None):
+    def __init__(self, view_type='axial', size=QSize(150, 150), parent=None):
         super(CustomQGraphicsView, self).__init__()
         self.parent = parent
+        # self.setBaseSize(size)
+        # self.setMinimumSize(size)
+        # logging.debug("Setting CustomQGraphicsView dimensions to {}.\n".format(self.size()))
         self.view_type = view_type
         self.original_annotations = {}  # Placeholder for the raw annotation 2d slices
         self.display_annotations = {}  # Placeholder for the annotation 2d slices, after display transform
@@ -60,6 +64,8 @@ class CustomQGraphicsView(QGraphicsView):
         # Equivalent to keep aspect ratio. Has to be recomputed everytime a new 3D volume is loaded
         scale_ratio = min((self.parent.size().width() / 2) / qimage.size().width(),
                           (self.parent.size().height() / 2) / qimage.size().height())
+        # scale_ratio = min(self.size().width() / qimage.size().width(),
+        #                   self.size().height() / qimage.size().height())
         self.map_transform = self.map_transform.scale(scale_ratio, scale_ratio)
         self.inverse_map_transform, _ = self.map_transform.inverted()
         qimage = qimage.transformed(self.map_transform)
@@ -77,10 +83,6 @@ class CustomQGraphicsView(QGraphicsView):
         self.setScene(self.scene)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-
-        self.width_diff = int(self.parent.size().width() / 2) - self.pixmap.width()
-        self.height_diff = int(self.parent.size().height() / 2) - self.pixmap.height()
-
 
     def __set_stylesheets(self):
         self.setStyleSheet("QGraphicsView{background-color:rgb(0,0,0);}")
@@ -303,6 +305,8 @@ class CustomQGraphicsView(QGraphicsView):
         qimage = QImage(color_image.data, w, h, bytes_per_line, QImage.Format_RGB888)
         qimage = qimage.convertToFormat(QImage.Format_RGBA8888)
         scale_ratio = min((self.parent.size().width() / 2) / qimage.size().width(), (self.parent.size().height() / 2) / qimage.size().height())
+        # scale_ratio = min(self.size().width() / qimage.size().width(),
+        #                   self.size().height() / qimage.size().height())
         # scale_ratio = 1.0
         scale_ratio = scale_ratio * self.zoom_ratio
 
@@ -331,6 +335,8 @@ class CustomQGraphicsView(QGraphicsView):
         qimage = QImage(color_image.data, w, h, bytes_per_line, QImage.Format_RGB888)
         qimage = qimage.convertToFormat(QImage.Format_RGBA8888)
         scale_ratio = min((self.parent.size().width() / 2) / qimage.size().width(), (self.parent.size().height() / 2) / qimage.size().height())
+        # scale_ratio = min(self.size().width() / qimage.size().width(),
+        #                   self.size().height() / qimage.size().height())
         scale_ratio = scale_ratio * self.zoom_ratio
 
         self.map_transform = QTransform()

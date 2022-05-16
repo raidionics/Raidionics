@@ -1,6 +1,7 @@
 from PySide2.QtWidgets import QWidget, QLabel, QGridLayout, QPushButton
 from PySide2.QtCore import QSize, Signal
 import numpy as np
+import logging
 
 from gui2.SinglePatientComponent.CentralDisplayArea.CustomQGraphicsView import CustomQGraphicsView
 from utils.software_config import SoftwareConfigResources
@@ -23,8 +24,13 @@ class CentralDisplayAreaWidget(QWidget):
     def __init__(self, parent=None):
         super(CentralDisplayAreaWidget, self).__init__()
         self.parent = parent
+        # self.setMinimumWidth((int(885/4) / SoftwareConfigResources.getInstance().get_optimal_dimensions().width()) * self.parent.size().width())
+        # self.setMinimumHeight((int(800/4) / SoftwareConfigResources.getInstance().get_optimal_dimensions().height()) * self.parent.size().height())
+        self.setBaseSize(QSize((1325 / SoftwareConfigResources.getInstance().get_optimal_dimensions().width()) * self.parent.baseSize().width(),
+                               ((950 / SoftwareConfigResources.getInstance().get_optimal_dimensions().height()) * self.parent.baseSize().height())))
+        logging.debug("Setting CentralDisplayAreaWidget dimensions to {}.\n".format(self.size()))
         self.__set_interface()
-        self.__set_layout_dimensions()
+        # self.__set_layout_dimensions()
         self.__set_stylesheets()
         self.__set_connections()
         self.current_patient_parameters = None
@@ -42,9 +48,9 @@ class CentralDisplayAreaWidget(QWidget):
         self.layout.setVerticalSpacing(0)
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.empty_label = QLabel()
-        self.axial_viewer = CustomQGraphicsView(view_type='axial', parent=self)
-        self.sagittal_viewer = CustomQGraphicsView(view_type='sagittal', parent=self)
-        self.coronal_viewer = CustomQGraphicsView(view_type='coronal', parent=self)
+        self.axial_viewer = CustomQGraphicsView(view_type='axial', size=QSize(int(self.minimumWidth() / 2), int(self.minimumHeight() / 2)), parent=self)
+        self.sagittal_viewer = CustomQGraphicsView(view_type='sagittal', size=QSize(int(self.minimumWidth() / 2), int(self.minimumHeight() / 2)), parent=self)
+        self.coronal_viewer = CustomQGraphicsView(view_type='coronal', size=QSize(int(self.minimumWidth() / 2), int(self.minimumHeight() / 2)), parent=self)
 
         self.layout.addWidget(self.axial_viewer, 0, 0)
         self.layout.addWidget(self.empty_label, 0, 1)
@@ -57,14 +63,23 @@ class CentralDisplayAreaWidget(QWidget):
         # self.setFixedSize(QSize((950 / SoftwareConfigResources.getInstance().get_optimal_dimensions().width()) * self.parent.baseSize().width(),
         #                         (950 / SoftwareConfigResources.getInstance().get_optimal_dimensions().height()) * self.parent.baseSize().height()))
 
-        self.empty_label.setMinimumSize(QSize(int(1140 / 2), int(850 / 2)))
-        self.empty_label.setBaseSize(QSize(int(self.parent.size().width() / 2), int(self.parent.size().height()-150 / 2)))
-        self.axial_viewer.setMinimumSize(QSize(int(1140 / 2), int(850 / 2)))
-        self.axial_viewer.setBaseSize(QSize(int(self.parent.size().width() / 2), int(self.parent.size().height()-150 / 2)))
-        self.sagittal_viewer.setMinimumSize(QSize(int(1140 / 2), int(850 / 2)))
-        self.sagittal_viewer.setBaseSize(QSize(int(self.parent.size().width() / 2), int(self.parent.size().height()-150 / 2)))
-        self.coronal_viewer.setMinimumSize(QSize(int(1140 / 2), int(850 / 2)))
-        self.coronal_viewer.setBaseSize(QSize(int(self.parent.size().width() / 2), int(self.parent.size().height()-150 / 2)))
+        # self.empty_label.setMinimumSize(QSize(int(self.minimumWidth() / 2), int(self.minimumHeight() / 2)))
+        # self.empty_label.setBaseSize(QSize(int(self.minimumWidth() / 2), int(self.minimumHeight() / 2)))
+        # self.axial_viewer.setMinimumSize(QSize(int(self.minimumWidth() / 2), int(self.minimumHeight() / 2)))
+        # self.axial_viewer.setBaseSize(QSize(int(self.minimumWidth() / 2), int(self.minimumHeight() / 2)))
+        # self.sagittal_viewer.setMinimumSize(QSize(int(self.minimumWidth() / 2), int(self.minimumHeight() / 2)))
+        # self.sagittal_viewer.setBaseSize(QSize(int(self.minimumWidth() / 2), int(self.minimumHeight() / 2)))
+        # self.coronal_viewer.setMinimumSize(QSize(int(self.minimumWidth() / 2), int(self.minimumHeight() / 2)))
+        # self.coronal_viewer.setBaseSize(QSize(int(self.minimumWidth() / 2), int(self.minimumHeight() / 2)))
+
+        self.empty_label.setMinimumSize(QSize(int(1000 / 2), int(400 / 2)))
+        # self.empty_label.setBaseSize(QSize(int(self.minimumWidth() / 2), int(self.minimumHeight() / 2)))
+        self.axial_viewer.setMinimumSize(QSize(int(500 / 2), int(200 / 2)))
+        # self.axial_viewer.setBaseSize(QSize(int(self.parent.size().width() / 2), int(self.parent.size().height()-150 / 2)))
+        self.sagittal_viewer.setMinimumSize(QSize(int(1000 / 2), int(400 / 2)))
+        # self.sagittal_viewer.setBaseSize(QSize(int(self.parent.size().width() / 2), int(self.parent.size().height()-150 / 2)))
+        self.coronal_viewer.setMinimumSize(QSize(int(1000 / 2), int(400 / 2)))
+        # self.coronal_viewer.setBaseSize(QSize(int(self.parent.size().width() / 2), int(self.parent.size().height()-150 / 2)))
         # self.coronal_viewer.setStyleSheet("QGraphicsView{background-color:rgb(127,128,129);}")
 
     def __set_stylesheets(self):
