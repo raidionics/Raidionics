@@ -47,6 +47,8 @@ class PatientParameters:
         """
         Default id value set to -1, the only time a default value is needed is when a patient will be loaded from
         a .raidionics file on disk whereby the correct id will be recovered from the json file.
+        @TODO. All filenames should be relative to the output_folder, so that if the patient folder is copy/paste'd
+        somewhere else, the content could still be reopened.
         """
         self.patient_id = id.replace(" ", '_').strip()
         self.patient_visible_name = self.patient_id
