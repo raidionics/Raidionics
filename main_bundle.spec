@@ -15,14 +15,14 @@ block_cipher = None
 # fix hidden imports
 hidden_imports = loadtxt("requirements.txt", comments="#", delimiter=",", unpack=False, dtype=str)
 hidden_imports = [x.split("=")[0] for x in hidden_imports] + ["medpy", "ants", "sklearn", "scikit-learn",
- "statsmodels", "gevent", "distutils", "PySide2", "gdown"]
+ "statsmodels", "gevent", "distutils", "PySide2", "gdown", "raidionicsrads", "raidionicsseg"]
 hidden_imports = [x.lower() for x in hidden_imports]
 
 # copy dependencies and overwrite if already exists (as well as images)
 shutil.copytree("./images/", "./tmp_dependencies/images/")
 shutil.copytree("./utils/", "./tmp_dependencies/utils/")
 shutil.copytree("./gui2/", "./tmp_dependencies/gui2/")
-shutil.copytree("./raidionics_rads_lib/", "./tmp_dependencies/raidionics_rads_lib/")
+# shutil.copytree("./raidionics_rads_lib/", "./tmp_dependencies/raidionics_rads_lib/")
 
 a = Analysis(['./main.py'],
              pathex=['.'],
