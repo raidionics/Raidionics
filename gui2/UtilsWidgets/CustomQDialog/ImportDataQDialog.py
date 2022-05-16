@@ -183,7 +183,7 @@ class ImportDataQDialog(QDialog):
                 wid.filepath_lineedit.setText(fp)
 
                 extension = '.'.join(os.path.basename(fp).split('.')[1:])
-                if extension == 'neurorads':
+                if extension == 'raidionics':
                     wid.file_type_selection_combobox.setCurrentIndex(2)
                 else:
                     wid.file_type_selection_combobox.setCurrentIndex(0)  # Assuming loading an MRI volume by default

@@ -94,7 +94,7 @@ git submodule add -b submodule_seg https://github.com/dbouget/raidionics_rads_li
 git submodule update --init --recursive
 ```
 
-For updating Raidionics after backend update
+For updating Raidionics after backend update, might have to git checkout master in head submodule before pulling...
 ```
 cd raidionics_rads_lib
 git pull --recurse-submodules
