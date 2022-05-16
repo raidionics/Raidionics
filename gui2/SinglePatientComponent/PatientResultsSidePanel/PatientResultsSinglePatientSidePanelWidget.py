@@ -33,6 +33,7 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         self.patient_list_scrollarea.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.patient_list_scrollarea.setWidgetResizable(True)
         self.patient_list_scrollarea_dummy_widget = QLabel()
+        self.patient_list_scrollarea_dummy_widget.setStyleSheet("QLabel{background-color:rgb(1, 10, 100);)}")
         self.patient_list_scrollarea_layout.setSpacing(0)
         self.patient_list_scrollarea_layout.setContentsMargins(0, 0, 0, 0)
         self.patient_list_scrollarea_layout.addStretch(1)
@@ -47,7 +48,7 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         self.layout.addLayout(self.bottom_layout)
 
     def __set_layout_dimensions(self):
-        self.patient_list_scrollarea.setBaseSize(QSize(self.width(), 500))
+        # self.patient_list_scrollarea.setBaseSize(QSize(self.width(), 500))
         self.patient_list_scrollarea.setMinimumSize(QSize(self.width(), 300))
 
     def __set_connections(self):

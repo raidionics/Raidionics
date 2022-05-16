@@ -1,3 +1,4 @@
+import logging
 import os
 from PySide2.QtWidgets import QLabel, QHBoxLayout, QVBoxLayout, QLineEdit, QListWidget, QListWidgetItem
 from PySide2.QtCore import QSize
@@ -220,7 +221,7 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.subcorticalstructures_collapsiblegroupbox.header_pushbutton.clicked.connect(self.adjustSize)
 
     def __set_stylesheets(self):
-        self.content_label.setStyleSheet("QLabel{background-color:rgb(254,254,254);}")
+        self.content_label.setStyleSheet("QLabel{background-color:rgb(4,254,2);}")
         self.header_pushbutton.setStyleSheet("QPushButton{background-color:rgba(254, 254, 254, 1); font:bold;}")
 
         self.default_collapsiblegroupbox.content_label.setStyleSheet("QLabel{background-color:rgb(204, 204, 204);}")
@@ -248,6 +249,8 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
                         self.corticalstructures_collapsiblegroupbox.sizeHint().height() + \
                         self.subcorticalstructures_collapsiblegroupbox.sizeHint().height()
         self.content_label.setFixedSize(QSize(self.size().width(), actual_height))
+        self.setFixedSize(QSize(self.size().width(), actual_height))
+        logging.debug("SinglePatientResultsWidget size set to {}.\n".format(self.content_label.size()))
 
     def __on_patient_name_modified(self):
         # @TODO. Have to check that the name does not already exist, otherwise it will conflict in the dict.
