@@ -36,6 +36,7 @@ class SoftwareConfigResources:
 
     def __setup(self):
         # @TODO. The default storing place should be /home/user/raidionics, having a dot might be annoying for some.
+        self.session_log_filename = os.path.join(expanduser('~'), '.raidionics', 'session_log.log')
         self.models_path = os.path.join(expanduser('~'), '.raidionics', 'resources', 'models')
         self.config_filename = os.path.join(expanduser("~"), '.raidionics', 'raidionics_config.ini')
         self.config = None

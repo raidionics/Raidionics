@@ -22,6 +22,9 @@ class CentralAreaWidget(QWidget):
     atlas_view_toggled = Signal(str, bool)
     atlas_structure_view_toggled = Signal(str, str, bool)
     standardized_report_imported = Signal()
+    process_started = Signal()
+    process_finished = Signal()
+
 
     def __init__(self, parent=None):
         super(CentralAreaWidget, self).__init__()
@@ -76,6 +79,8 @@ class CentralAreaWidget(QWidget):
         self.execution_area_widget.annotation_volume_imported.connect(self.on_import_annotation)
         self.execution_area_widget.atlas_volume_imported.connect(self.on_import_atlas)
         self.execution_area_widget.standardized_report_imported.connect(self.standardized_report_imported)
+        self.execution_area_widget.process_started.connect(self.process_started)
+        self.execution_area_widget.process_finished.connect(self.process_finished)
         self.volume_view_toggled.connect(self.execution_area_widget.on_volume_layer_toggled)
 
         # Connections from the left patient panel

@@ -10,6 +10,7 @@ from utils.software_config import SoftwareConfigResources
 from gui2.SinglePatientComponent.PatientResultsSidePanel.PatientResultsSinglePatientSidePanelWidget import PatientResultsSinglePatientSidePanelWidget
 from gui2.SinglePatientComponent.CentralAreaWidget import CentralAreaWidget
 from gui2.SinglePatientComponent.LayersInteractorSidePanel.SinglePatientLayersWidget import SinglePatientLayersWidget
+from gui2.SinglePatientComponent.ProcessProgressWidget import ProcessProgressWidget
 from gui2.UtilsWidgets.CustomQDialog.ImportDataQDialog import ImportDataQDialog
 from gui2.UtilsWidgets.CustomQDialog.ImportDICOMDataQDialog import ImportDICOMDataQDialog
 
@@ -47,10 +48,12 @@ class SinglePatientWidget(QWidget):
         self.results_panel = PatientResultsSinglePatientSidePanelWidget(self)
         self.center_panel = CentralAreaWidget(self)
         self.layers_panel = SinglePatientLayersWidget(self)
-        # self.right_panel_stackedwidget.addWidget(self.layers_panel)
+        self.process_progress_panel = ProcessProgressWidget(self)
+        self.right_panel_stackedwidget.addWidget(self.layers_panel)
+        self.right_panel_stackedwidget.addWidget(self.process_progress_panel)
         self.center_panel_layout.addWidget(self.results_panel)
         self.center_panel_layout.addWidget(self.center_panel)
-        self.center_panel_layout.addWidget(self.layers_panel)
+        self.center_panel_layout.addWidget(self.right_panel_stackedwidget)
 
         self.layout = QVBoxLayout(self)
         self.layout.setSpacing(0)
@@ -86,6 +89,7 @@ class SinglePatientWidget(QWidget):
 
     def __set_layout_dimensions(self):
         self.top_logo_panel_label.setFixedSize(QSize(150, 30))
+        self.right_panel_stackedwidget.setFixedWidth((315 / SoftwareConfigResources.getInstance().get_optimal_dimensions().width()) * self.parent.baseSize().width())
 
     def __set_stylesheets(self):
         self.setStyleSheet("QWidget{font:11px;}")
@@ -115,6 +119,11 @@ class SinglePatientWidget(QWidget):
         self.layers_panel.annotation_color_changed.connect(self.center_panel.on_annotation_color_changed)
         # self.layers_panel.atlas_view_toggled.connect(self.center_panel.on_atlas_layer_toggled)
         self.layers_panel.atlas_structure_view_toggled.connect(self.center_panel.atlas_structure_view_toggled)
+
+        self.center_panel.process_started.connect(self.on_process_started)
+        self.center_panel.process_finished.connect(self.on_process_finished)
+        self.center_panel.process_started.connect(self.process_progress_panel.on_process_started)
+        self.center_panel.process_finished.connect(self.process_progress_panel.on_process_finished)
         self.center_panel.standardized_report_imported.connect(self.results_panel.on_standardized_report_imported)
 
         # To sort
@@ -154,3 +163,9 @@ class SinglePatientWidget(QWidget):
 
     def on_single_patient_clicked(self, patient_name):
         self.results_panel.add_new_patient(patient_name)
+
+    def on_process_started(self):
+        self.right_panel_stackedwidget.setCurrentIndex(1)
+
+    def on_process_finished(self):
+        self.right_panel_stackedwidget.setCurrentIndex(0)

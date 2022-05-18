@@ -54,7 +54,8 @@ def main(argv):
         elif opt in ("-t", "--task"):
             task = arg
     try:
-        logging.basicConfig()  # stream=sys.stdout
+        from utils.software_config import SoftwareConfigResources
+        logging.basicConfig(filename=SoftwareConfigResources.getInstance().session_log_filename, filemode='w')  # stream=sys.stdout
         logging.getLogger().setLevel(logging.DEBUG)
         if gui_usage == 1:
             app = QApplication(sys.argv)

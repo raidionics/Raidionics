@@ -1,7 +1,6 @@
 import time
-
 from PySide2.QtWidgets import QWidget, QHBoxLayout, QPushButton, QLabel
-from PySide2.QtCore import Signal, QCoreApplication, QSize, QThread
+from PySide2.QtCore import Signal, QCoreApplication, QSize
 import logging
 import traceback
 import sys
@@ -17,21 +16,6 @@ from gui2.UtilsWidgets.CustomQDialog.TumorTypeSelectionQDialog import TumorTypeS
 from segmentation.src.Utils.configuration_parser import generate_runtime_config
 
 
-class WorkerThread(QThread):
-    message = Signal(str)
-
-    def run(self) -> None:
-        sys.stdout = self
-
-    time.sleep(0.01)
-
-    def write(self, text):
-        self.message.emit(text)
-
-    def stop(self):
-        sys.stdout = sys.__stdout__
-
-
 class CentralAreaExecutionWidget(QLabel):
     """
 
@@ -39,6 +23,8 @@ class CentralAreaExecutionWidget(QLabel):
     annotation_volume_imported = Signal(str)
     atlas_volume_imported = Signal(str)
     standardized_report_imported = Signal()
+    process_started = Signal()
+    process_finished = Signal()
 
     def __init__(self, parent=None):
         super(CentralAreaExecutionWidget, self).__init__()
@@ -50,8 +36,6 @@ class CentralAreaExecutionWidget(QLabel):
         self.__set_connections()
 
         self.selected_mri_uid = None
-        self.process_monitoring_thread = WorkerThread()
-        self.process_monitoring_thread.message.connect(self.on_process_message)
 
     def __set_interface(self):
         self.base_layout = QHBoxLayout(self)
@@ -106,9 +90,8 @@ class CentralAreaExecutionWidget(QLabel):
         elif diag.tumor_type == 'Metastasis':
             self.model_name = "MRI_Metastasis"
 
-        self.process_monitoring_thread.start()
+        self.process_started.emit()
         self.segmentation_main_wrapper()
-        self.process_monitoring_thread.stop()
 
     def segmentation_main_wrapper(self):
         self.run_segmentation_thread = threading.Thread(target=self.run_segmentation)
@@ -222,6 +205,7 @@ class CentralAreaExecutionWidget(QLabel):
             self.run_reporting_pushbutton.setEnabled(True)
             if os.path.exists(seg_config_filename):
                 os.remove(seg_config_filename)
+            self.process_finished.emit()
             return
 
         if os.path.exists(seg_config_filename):
@@ -229,6 +213,7 @@ class CentralAreaExecutionWidget(QLabel):
 
         self.run_segmentation_pushbutton.setEnabled(True)
         self.run_reporting_pushbutton.setEnabled(True)
+        self.process_finished.emit()
 
     def on_run_reporting(self):
         diag = TumorTypeSelectionQDialog(self)
@@ -241,9 +226,8 @@ class CentralAreaExecutionWidget(QLabel):
         elif diag.tumor_type == 'Metastasis':
             self.model_name = "MRI_Metastasis"
 
-        self.process_monitoring_thread.start()
+        self.process_started.emit()
         self.reporting_main_wrapper()
-        self.process_monitoring_thread.stop()
 
     def reporting_main_wrapper(self):
         self.run_reporting_thread = threading.Thread(target=self.run_reporting)
@@ -351,12 +335,14 @@ class CentralAreaExecutionWidget(QLabel):
             print('{}'.format(traceback.format_exc()))
             self.run_segmentation_pushbutton.setEnabled(True)
             self.run_reporting_pushbutton.setEnabled(True)
+            self.process_finished.emit()
             return
 
         if os.path.exists(rads_config_filename):
             os.remove(rads_config_filename)
         self.run_segmentation_pushbutton.setEnabled(True)
         self.run_reporting_pushbutton.setEnabled(True)
+        self.process_finished.emit()
 
     def __collect_reporting_outputs(self, current_patient_parameters):
         # Collecting the automatic tumor and brain segmentations
