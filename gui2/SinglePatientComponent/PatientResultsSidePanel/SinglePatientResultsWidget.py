@@ -1,7 +1,7 @@
 import logging
 import os
 from PySide2.QtWidgets import QLabel, QHBoxLayout, QVBoxLayout, QLineEdit, QListWidget, QListWidgetItem
-from PySide2.QtCore import QSize
+from PySide2.QtCore import QSize, Signal
 
 from gui2.UtilsWidgets.CustomQGroupBox.QCollapsibleGroupBox import QCollapsibleGroupBox
 from utils.software_config import SoftwareConfigResources
@@ -12,6 +12,7 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
     """
 
     """
+    resizeRequested = Signal()
 
     def __init__(self, uid, parent=None):
         super(SinglePatientResultsWidget, self).__init__(uid, parent)
@@ -214,11 +215,24 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.patient_name_label.setFixedHeight(20)
         self.patient_name_lineedit.setFixedHeight(20)
         self.default_collapsiblegroupbox.content_label.setFixedHeight(50)
+
         self.tumor_found_header_label.setFixedHeight(20)
         self.tumor_found_label.setFixedHeight(20)
         self.overall_collapsiblegroupbox.content_label.setFixedHeight(20)
-        # self.default_collapsiblegroupbox.content_label.setFixedSize(QSize(self.size().width(), 40))
-        # self.volumes_collapsiblegroupbox.content_label.setFixedSize(QSize(self.size().width(), 40))
+
+        self.original_space_volume_header_label.setFixedHeight(20)
+        self.original_space_volume_label.setFixedHeight(20)
+        self.mni_space_volume_header_label.setFixedHeight(20)
+        self.mni_space_volume_label.setFixedHeight(20)
+        self.volumes_collapsiblegroupbox.content_label.setFixedHeight(50)
+
+        self.laterality_right_header_label.setFixedHeight(20)
+        self.laterality_right_label.setFixedHeight(20)
+        self.laterality_left_header_label.setFixedHeight(20)
+        self.laterality_left_label.setFixedHeight(20)
+        self.laterality_midline_header_label.setFixedHeight(20)
+        self.laterality_midline_label.setFixedHeight(20)
+        self.laterality_collapsiblegroupbox.content_label.setFixedHeight(60)
 
     def __set_connections(self):
         self.patient_name_lineedit.returnPressed.connect(self.__on_patient_name_modified)
@@ -260,8 +274,9 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
                         self.corticalstructures_collapsiblegroupbox.sizeHint().height() + \
                         self.subcorticalstructures_collapsiblegroupbox.sizeHint().height()
         self.content_label.setFixedSize(QSize(self.size().width(), actual_height))
-        self.setFixedSize(QSize(self.size().width(), actual_height))
+        # self.setFixedSize(QSize(self.size().width(), actual_height))
         logging.debug("SinglePatientResultsWidget size set to {}.\n".format(self.content_label.size()))
+        self.resizeRequested.emit()
 
     def __on_patient_name_modified(self):
         # @TODO. Have to check that the name does not already exist, otherwise it will conflict in the dict.

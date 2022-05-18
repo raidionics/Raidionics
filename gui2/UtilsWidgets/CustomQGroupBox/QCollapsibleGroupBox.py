@@ -59,7 +59,8 @@ class QCollapsibleGroupBox(QWidget):
         self.collapsed = state
         self.content_label.setVisible(state)
         self.clicked_signal.emit(state, self.uid)
-        self.adjustSize()
+        # self.adjustSize()  # @TODO. Should not call adjustSize here, but rather when the content_label is filled in
+        # order to avoid hyper-extension of the layouts.
 
     def set_header_icons(self, unchecked_icon_path=None, unchecked_icon_size=QSize(), checked_icon_path=None,
                        checked_icon_size=QSize(), side='right'):
@@ -100,4 +101,5 @@ class QCollapsibleGroupBox(QWidget):
                 actual_height += size.height()
             else:
                 pass
-        self.content_label.resize(QSize(self.size().width(), actual_height))
+        # N-B: setFixedSize must be used, a simple .resize does not trigger the size update and repainting
+        self.content_label.setFixedSize(QSize(self.size().width(), actual_height))

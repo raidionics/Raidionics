@@ -25,7 +25,7 @@ class ProcessProgressWidget(QWidget):
     def __set_interface(self):
         self.layout = QVBoxLayout(self)
         self.cancel_process_pushbutton = QPushButton('Cancel...')
-        self.progress_label = QLabel()
+        self.progress_label = QLabel('Overall progress: ???')
         self.detailed_progression_label = QLabel()
         self.layout.addWidget(self.progress_label)
         self.layout.addWidget(self.detailed_progression_label)
