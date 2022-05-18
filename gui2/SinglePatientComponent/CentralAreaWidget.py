@@ -1,4 +1,4 @@
-from PySide2.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLabel
+from PySide2.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QStackedWidget
 from PySide2.QtGui import QIcon, QPixmap, QColor
 from PySide2.QtCore import Qt, QSize, Signal
 import logging
@@ -41,9 +41,11 @@ class CentralAreaWidget(QWidget):
         self.base_layout = QVBoxLayout(self)
         self.base_layout.setContentsMargins(0, 0, 0, 0)
         self.base_layout.setSpacing(0)
+        self.view_stackedwidget = QStackedWidget()
         self.display_area_widget = CentralDisplayAreaWidget(self)
         self.execution_area_widget = CentralAreaExecutionWidget(self)
-        self.base_layout.addWidget(self.display_area_widget)
+        self.view_stackedwidget.addWidget(self.display_area_widget)
+        self.base_layout.addWidget(self.view_stackedwidget)
         self.base_layout.addWidget(self.execution_area_widget)
 
     def __set_stylesheets(self):
@@ -80,7 +82,7 @@ class CentralAreaWidget(QWidget):
         self.patient_view_toggled.connect(self.display_area_widget.on_patient_selected)
 
     def __set_layout_dimensions(self):
-        pass
+        self.view_stackedwidget.setBaseSize(QSize(self.baseSize().width(), self.baseSize().height()-150))
 
     def get_widget_name(self):
         return self.widget_name

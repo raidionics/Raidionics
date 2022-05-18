@@ -1,6 +1,7 @@
 import logging
 
-from PySide2.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QLabel, QPushButton, QSplitter
+from PySide2.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QLabel, QPushButton, QSplitter,\
+    QStackedWidget
 from PySide2.QtGui import QIcon, QPixmap
 from PySide2.QtCore import Qt, QSize, Signal
 
@@ -39,7 +40,17 @@ class SinglePatientWidget(QWidget):
 
     def __set_interface(self):
         self.__top_logo_options_panel_interface()
-        self.__center_display_panel_interface()
+        self.right_panel_stackedwidget = QStackedWidget()
+        self.center_panel_layout = QHBoxLayout()
+        self.center_panel_layout.setSpacing(0)
+        self.center_panel_layout.setContentsMargins(0, 0, 0, 0)
+        self.results_panel = PatientResultsSinglePatientSidePanelWidget(self)
+        self.center_panel = CentralAreaWidget(self)
+        self.layers_panel = SinglePatientLayersWidget(self)
+        # self.right_panel_stackedwidget.addWidget(self.layers_panel)
+        self.center_panel_layout.addWidget(self.results_panel)
+        self.center_panel_layout.addWidget(self.center_panel)
+        self.center_panel_layout.addWidget(self.layers_panel)
 
         self.layout = QVBoxLayout(self)
         self.layout.setSpacing(0)
@@ -72,15 +83,6 @@ class SinglePatientWidget(QWidget):
         self.top_logo_panel_layout.addWidget(self.top_logo_panel_label_save_pushbutton)
 
         self.top_logo_panel_layout.addStretch(1)
-
-    def __center_display_panel_interface(self):
-        self.center_panel_layout = QHBoxLayout()
-        self.results_panel = PatientResultsSinglePatientSidePanelWidget(self)
-        self.center_panel = CentralAreaWidget(self)
-        self.layers_panel = SinglePatientLayersWidget(self)
-        self.center_panel_layout.addWidget(self.results_panel)
-        self.center_panel_layout.addWidget(self.center_panel)
-        self.center_panel_layout.addWidget(self.layers_panel)
 
     def __set_layout_dimensions(self):
         self.top_logo_panel_label.setFixedSize(QSize(150, 30))

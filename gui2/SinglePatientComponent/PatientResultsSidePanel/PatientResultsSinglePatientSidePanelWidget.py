@@ -39,7 +39,6 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         self.patient_list_scrollarea_layout.addStretch(1)
         self.patient_list_scrollarea_dummy_widget.setLayout(self.patient_list_scrollarea_layout)
         self.patient_list_scrollarea.setWidget(self.patient_list_scrollarea_dummy_widget)
-
         self.bottom_layout = QHBoxLayout()
         self.bottom_add_patient_pushbutton = QPushButton("Import patient")
         self.bottom_add_patient_pushbutton.setFixedSize(QSize(80, 30))
@@ -87,7 +86,7 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         # @TODO. Have to connect signals/slots from each dynamic widget, to enforce the one active patient at all time.
         pat_widget = SinglePatientResultsWidget(patient_name, self)
         pat_widget.setBaseSize(QSize(self.baseSize().width(), self.baseSize().height()))
-        pat_widget.setMaximumSize(QSize(self.baseSize().width(), self.baseSize().height()))
+        # pat_widget.setMaximumSize(QSize(self.baseSize().width(), self.baseSize().height()))
         pat_widget.setMinimumSize(QSize(self.baseSize().width(), int(self.baseSize().height() / 2)))
         pat_widget.populate_from_patient(patient_name)
         self.patient_results_widgets[patient_name] = pat_widget

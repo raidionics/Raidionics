@@ -201,7 +201,8 @@ class RaidionicsMainWindow(QMainWindow):
         self.left = (self.primary_screen_dimensions.width() - self.width) / 2
         self.top = (self.primary_screen_dimensions.height() - self.height) / 2
         self.setMinimumSize(QSize(self.width, self.height))
-        self.setMaximumSize(QSize(self.primary_screen_dimensions.width(), self.primary_screen_dimensions.height()))
+        # A maximum size would prevent from maximizing on Windows.
+        # self.setMaximumSize(QSize(self.primary_screen_dimensions.width(), self.primary_screen_dimensions.height()))
         self.setBaseSize(QSize(self.width, self.height))
         logging.debug("Setting application dimensions to [w: {}, h: {}]".format(self.width, self.height))
 

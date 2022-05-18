@@ -1,5 +1,6 @@
 import os
 import configparser
+import platform
 import traceback
 from os.path import expanduser
 import numpy as np
@@ -39,6 +40,8 @@ class SoftwareConfigResources:
         self.config_filename = os.path.join(expanduser("~"), '.raidionics', 'raidionics_config.ini')
         self.config = None
         self.optimal_dimensions = QSize(1440, 1024)  # Figma project dimensions
+        if platform.system() == 'Windows':
+            self.optimal_dimensions = QSize(1440, 974)  # Minor decrease because of the bottom menu bar...
         # self.optimal_dimensions = QSize(1920, 1080)  # Full high definition screen
         self.accepted_image_format = ['nii', 'nii.gz', 'mhd', 'mha', 'nrrd']  # @TODO. Should I have an exhaustive list?
         self.accepted_scene_file_format = ['raidionics']

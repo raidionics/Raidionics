@@ -18,6 +18,7 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.title = uid
         self.parent = parent
         self.__set_interface()
+        self.__set_layout_dimensions()
         self.__set_connections()
         self.__set_stylesheets()
 
@@ -209,6 +210,16 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.subcorticalstructures_collapsiblegroupbox.setBaseSize(QSize(self.parent.baseSize().width(), 150))
         self.content_label_layout.addWidget(self.subcorticalstructures_collapsiblegroupbox)
 
+    def __set_layout_dimensions(self):
+        self.patient_name_label.setFixedHeight(20)
+        self.patient_name_lineedit.setFixedHeight(20)
+        self.default_collapsiblegroupbox.content_label.setFixedHeight(50)
+        self.tumor_found_header_label.setFixedHeight(20)
+        self.tumor_found_label.setFixedHeight(20)
+        self.overall_collapsiblegroupbox.content_label.setFixedHeight(20)
+        # self.default_collapsiblegroupbox.content_label.setFixedSize(QSize(self.size().width(), 40))
+        # self.volumes_collapsiblegroupbox.content_label.setFixedSize(QSize(self.size().width(), 40))
+
     def __set_connections(self):
         self.patient_name_lineedit.returnPressed.connect(self.__on_patient_name_modified)
         # self.header_pushbutton.clicked.connect(self.__on_header_pushbutton_clicked)
@@ -221,7 +232,7 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.subcorticalstructures_collapsiblegroupbox.header_pushbutton.clicked.connect(self.adjustSize)
 
     def __set_stylesheets(self):
-        self.content_label.setStyleSheet("QLabel{background-color:rgb(4,254,2);}")
+        self.content_label.setStyleSheet("QLabel{background-color:rgb(124,254,2);}")
         self.header_pushbutton.setStyleSheet("QPushButton{background-color:rgba(254, 254, 254, 1); font:bold;}")
 
         self.default_collapsiblegroupbox.content_label.setStyleSheet("QLabel{background-color:rgb(204, 204, 204);}")

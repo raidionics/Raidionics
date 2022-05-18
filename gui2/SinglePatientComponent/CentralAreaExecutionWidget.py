@@ -1,7 +1,10 @@
+import time
+
 from PySide2.QtWidgets import QWidget, QHBoxLayout, QPushButton, QLabel
-from PySide2.QtCore import Signal, QCoreApplication, QSize
+from PySide2.QtCore import Signal, QCoreApplication, QSize, QThread
 import logging
 import traceback
+import sys
 import os
 import subprocess
 import configparser
@@ -12,6 +15,21 @@ from utils.software_config import SoftwareConfigResources
 from utils.models_download import download_model
 from gui2.UtilsWidgets.CustomQDialog.TumorTypeSelectionQDialog import TumorTypeSelectionQDialog
 from segmentation.src.Utils.configuration_parser import generate_runtime_config
+
+
+class WorkerThread(QThread):
+    message = Signal(str)
+
+    def run(self) -> None:
+        sys.stdout = self
+
+    time.sleep(0.01)
+
+    def write(self, text):
+        self.message.emit(text)
+
+    def stop(self):
+        sys.stdout = sys.__stdout__
 
 
 class CentralAreaExecutionWidget(QLabel):
@@ -27,10 +45,13 @@ class CentralAreaExecutionWidget(QLabel):
         self.parent = parent
         self.widget_name = "central_area_execution_widget"
         self.__set_interface()
+        self.__set_layout_dimensions()
         self.__set_stylesheets()
         self.__set_connections()
 
         self.selected_mri_uid = None
+        self.process_monitoring_thread = WorkerThread()
+        self.process_monitoring_thread.message.connect(self.on_process_message)
 
     def __set_interface(self):
         self.base_layout = QHBoxLayout(self)
@@ -38,15 +59,18 @@ class CentralAreaExecutionWidget(QLabel):
         self.base_layout.setContentsMargins(0, 0, 0, 0)
 
         self.run_segmentation_pushbutton = QPushButton("Run segmentation")
-        self.run_segmentation_pushbutton.setFixedSize(QSize(175, 15))
+        self.run_segmentation_pushbutton.setFixedSize(QSize(175, 25))
         self.run_reporting_pushbutton = QPushButton("Run reporting")
-        self.run_reporting_pushbutton.setFixedSize(QSize(175, 15))
+        self.run_reporting_pushbutton.setFixedSize(QSize(175, 25))
         self.run_segmentation_pushbutton.setEnabled(False)
         self.run_reporting_pushbutton.setEnabled(False)
         self.base_layout.addStretch(1)
         self.base_layout.addWidget(self.run_segmentation_pushbutton)
         self.base_layout.addWidget(self.run_reporting_pushbutton)
         self.base_layout.addStretch(1)
+
+    def __set_layout_dimensions(self):
+        self.setMinimumHeight(40)
 
     def __set_stylesheets(self):
         self.setStyleSheet("QLabel{background-color: rgb(0,0,0);}")
@@ -82,7 +106,9 @@ class CentralAreaExecutionWidget(QLabel):
         elif diag.tumor_type == 'Metastasis':
             self.model_name = "MRI_Metastasis"
 
+        self.process_monitoring_thread.start()
         self.segmentation_main_wrapper()
+        self.process_monitoring_thread.stop()
 
     def segmentation_main_wrapper(self):
         self.run_segmentation_thread = threading.Thread(target=self.run_segmentation)
@@ -215,7 +241,9 @@ class CentralAreaExecutionWidget(QLabel):
         elif diag.tumor_type == 'Metastasis':
             self.model_name = "MRI_Metastasis"
 
+        self.process_monitoring_thread.start()
         self.reporting_main_wrapper()
+        self.process_monitoring_thread.stop()
 
     def reporting_main_wrapper(self):
         self.run_reporting_thread = threading.Thread(target=self.run_reporting)
@@ -365,3 +393,6 @@ class CentralAreaExecutionWidget(QLabel):
         for m in cortical_masks:
             data_uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_atlas_structures(os.path.join(cortical_folder, m), reference='Patient')
             self.atlas_volume_imported.emit(data_uid)
+
+    def on_process_message(self, mess):
+        print("Collected message: {}.\n".format(mess))

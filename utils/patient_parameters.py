@@ -47,8 +47,6 @@ class PatientParameters:
         """
         Default id value set to -1, the only time a default value is needed is when a patient will be loaded from
         a .raidionics file on disk whereby the correct id will be recovered from the json file.
-        @TODO. All filenames should be relative to the output_folder, so that if the patient folder is copy/paste'd
-        somewhere else, the content could still be reopened.
         """
         self.patient_id = id.replace(" ", '_').strip()
         self.patient_visible_name = self.patient_id
@@ -128,7 +126,7 @@ class PatientParameters:
             for volume_id in list(self.patient_parameters_project_json['Volumes'].keys()):
                 try:
                     mri_volume = MRIVolume(uid=volume_id, filename=self.patient_parameters_project_json['Volumes'][volume_id]['raw_volume_filepath'])
-                    mri_volume.display_volume_filepath = self.patient_parameters_project_json['Volumes'][volume_id]['display_volume_filepath']
+                    mri_volume.display_volume_filepath = os.path.join(self.output_folder, self.patient_parameters_project_json['Volumes'][volume_id]['display_volume_filepath'])
                     mri_volume.display_volume = nib.load(mri_volume.display_volume_filepath).get_data()[:]
                     # @TODO. Have to convert from string to AEnum type.
                     mri_volume.sequence_type = self.patient_parameters_project_json['Volumes'][volume_id]['sequence_type']
@@ -141,8 +139,9 @@ class PatientParameters:
 
             for volume_id in list(self.patient_parameters_project_json['Annotations'].keys()):
                 try:
+                    # @TODO. Should also check if the raw filepath is within the folder or somewhere else on the machine
                     annotation_volume = MRIVolume(uid=volume_id, filename=self.patient_parameters_project_json['Annotations'][volume_id]['raw_volume_filepath'])
-                    annotation_volume.display_volume_filepath = self.patient_parameters_project_json['Annotations'][volume_id]['display_volume_filepath']
+                    annotation_volume.display_volume_filepath = os.path.join(self.output_folder, self.patient_parameters_project_json['Annotations'][volume_id]['display_volume_filepath'])
                     annotation_volume.display_volume = nib.load(annotation_volume.display_volume_filepath).get_data()[:]
                     annotation_volume.display_color = self.patient_parameters_project_json['Annotations'][volume_id]['display_color']
                     annotation_volume.display_opacity = self.patient_parameters_project_json['Annotations'][volume_id]['display_opacity']
@@ -296,7 +295,7 @@ class PatientParameters:
             self.patient_parameters_project_json['Volumes'][disp] = {}
             self.patient_parameters_project_json['Volumes'][disp]['display_name'] = self.mri_volumes[disp].display_name
             self.patient_parameters_project_json['Volumes'][disp]['raw_volume_filepath'] = self.mri_volumes[disp].raw_filepath
-            self.patient_parameters_project_json['Volumes'][disp]['display_volume_filepath'] = volume_dump_filename
+            self.patient_parameters_project_json['Volumes'][disp]['display_volume_filepath'] = os.path.relpath(volume_dump_filename, self.output_folder)
             nib.save(nib.Nifti1Image(self.mri_volumes[disp].display_volume,
                                      affine=[[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]),
                      volume_dump_filename)
@@ -306,7 +305,9 @@ class PatientParameters:
             volume_dump_filename = os.path.join(display_folder, disp + '_display.nii.gz')
             self.patient_parameters_project_json['Annotations'][disp] = {}
             self.patient_parameters_project_json['Annotations'][disp]['raw_volume_filepath'] = self.annotation_volumes[disp].raw_filepath
-            self.patient_parameters_project_json['Annotations'][disp]['display_volume_filepath'] = volume_dump_filename
+            if self.output_folder in self.annotation_volumes[disp].raw_filepath:
+                self.patient_parameters_project_json['Annotations'][disp]['raw_volume_filepath'] = os.path.relpath(self.annotation_volumes[disp].raw_filepath, self.output_folder)
+            self.patient_parameters_project_json['Annotations'][disp]['display_volume_filepath'] = os.path.relpath(volume_dump_filename, self.output_folder)
             nib.save(nib.Nifti1Image(self.annotation_volumes[disp].display_volume,
                                      affine=[[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]),
                      volume_dump_filename)
@@ -319,9 +320,9 @@ class PatientParameters:
             volume_dump_filename = os.path.join(display_folder, atlas + '_display.nii.gz')
             self.patient_parameters_project_json['CorticalStructures'][atlas] = {}
             self.patient_parameters_project_json['CorticalStructures'][atlas]['display_name'] = self.atlas_volumes[atlas].display_name
-            self.patient_parameters_project_json['CorticalStructures'][atlas]['raw_volume_filepath'] = self.atlas_volumes[atlas].raw_filepath
-            self.patient_parameters_project_json['CorticalStructures'][atlas]['display_volume_filepath'] = volume_dump_filename
-            self.patient_parameters_project_json['CorticalStructures'][atlas]['description_filepath'] = self.atlas_volumes[atlas].class_description_filename
+            self.patient_parameters_project_json['CorticalStructures'][atlas]['raw_volume_filepath'] = os.path.relpath(self.atlas_volumes[atlas].raw_filepath, self.output_folder)
+            self.patient_parameters_project_json['CorticalStructures'][atlas]['display_volume_filepath'] = os.path.relpath(volume_dump_filename, self.output_folder)
+            self.patient_parameters_project_json['CorticalStructures'][atlas]['description_filepath'] = os.path.relpath(self.atlas_volumes[atlas].class_description_filename, self.output_folder)
 
         # Saving the json file last, as it must be populated from the previous dumps beforehand
         with open(self.patient_parameters_project_filename, 'w') as outfile:
