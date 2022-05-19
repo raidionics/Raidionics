@@ -1,6 +1,7 @@
 import time
 from PySide2.QtWidgets import QWidget, QHBoxLayout, QPushButton, QLabel
 from PySide2.QtCore import Signal, QCoreApplication, QSize
+from PySide2.QtGui import QIcon, QPixmap
 import logging
 import traceback
 import sys
@@ -44,8 +45,13 @@ class CentralAreaExecutionWidget(QLabel):
 
         self.run_segmentation_pushbutton = QPushButton("Run segmentation")
         self.run_segmentation_pushbutton.setFixedSize(QSize(175, 25))
+        self.arrow_icon = QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/filled_arrow_right.png')))
+        self.run_segmentation_pushbutton.setIcon(self.arrow_icon)
+        self.run_segmentation_pushbutton.setIconSize(QSize(40, 15))
         self.run_reporting_pushbutton = QPushButton("Run reporting")
         self.run_reporting_pushbutton.setFixedSize(QSize(175, 25))
+        self.run_reporting_pushbutton.setIcon(self.arrow_icon)
+        self.run_reporting_pushbutton.setIconSize(QSize(40, 15))
         self.run_segmentation_pushbutton.setEnabled(False)
         self.run_reporting_pushbutton.setEnabled(False)
         self.base_layout.addStretch(1)
@@ -58,7 +64,12 @@ class CentralAreaExecutionWidget(QLabel):
 
     def __set_stylesheets(self):
         self.setStyleSheet("QLabel{background-color: rgb(0,0,0);}")
-
+        self.run_segmentation_pushbutton.setStyleSheet("QPushButton{color:rgb(0, 0, 0); background-color: rgb(255, 255, 255); border-radius:10px;margin-left:5px;margin-right:5px;font:bold}"
+                                                      "QPushButton:pressed{background-color: rgb(235, 235, 235);border-style:inset}"
+                                                       "QPushButton:disabled{color: rgb(127, 127, 127);}")
+        self.run_reporting_pushbutton.setStyleSheet("QPushButton{color:rgb(0, 0, 0); background-color: rgb(255, 255, 255); border-radius:10px;margin-left:5px;margin-right:5px;font:bold}"
+                                                      "QPushButton:pressed{background-color: rgb(235, 235, 235);border-style:inset}"
+                                                       "QPushButton:disabled{color: rgb(127, 127, 127);}")
     def __set_connections(self):
         self.__set_inner_connections()
         self.__set_cross_connections()
@@ -322,7 +333,7 @@ class CentralAreaExecutionWidget(QLabel):
                 rads_config.write(outfile)
 
             from raidionicsrads.compute import run_rads
-            run_rads(rads_config_filename)
+            # run_rads(rads_config_filename)
             # logging.debug("Spawning multiprocess...")
             # mp.set_start_method('spawn', force=True)
             # with mp.Pool(processes=1, maxtasksperchild=1) as p:  # , initializer=initializer)

@@ -74,7 +74,7 @@ class CustomQGraphicsView(QGraphicsView):
         self.scene.addItem(self.image_item)
 
         pen = QPen()
-        pen.setColor(QColor(0, 0, 255))
+        pen.setColor(QColor(60, 255, 137))
         pen.setStyle(Qt.DashLine)
         self.line1 = self.scene.addLine(int(self.pixmap.size().width() / 2), 0, int(self.pixmap.size().width() / 2),
                                         self.pixmap.size().height(), pen)

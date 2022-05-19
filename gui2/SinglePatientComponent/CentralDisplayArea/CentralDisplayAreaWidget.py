@@ -52,10 +52,16 @@ class CentralDisplayAreaWidget(QWidget):
         self.sagittal_viewer = CustomQGraphicsView(view_type='sagittal', size=QSize(int(self.minimumWidth() / 2), int(self.minimumHeight() / 2)), parent=self)
         self.coronal_viewer = CustomQGraphicsView(view_type='coronal', size=QSize(int(self.minimumWidth() / 2), int(self.minimumHeight() / 2)), parent=self)
 
+        self.horizontal_line = QLabel()
+        self.horizontal_line.setFixedHeight(3)
+        self.vertical_line = QLabel()
+        self.vertical_line.setFixedWidth(3)
         self.layout.addWidget(self.axial_viewer, 0, 0)
-        self.layout.addWidget(self.empty_label, 0, 1)
-        self.layout.addWidget(self.sagittal_viewer, 1, 0)
-        self.layout.addWidget(self.coronal_viewer, 1, 1)
+        self.layout.addWidget(self.empty_label, 0, 2)
+        self.layout.addWidget(self.horizontal_line, 1, 0, columnSpan=3)
+        self.layout.addWidget(self.sagittal_viewer, 2, 0)
+        self.layout.addWidget(self.coronal_viewer, 2, 2)
+        self.layout.addWidget(self.vertical_line, 0, 1, rowSpan=3)
 
     def __set_layout_dimensions(self):
         # self.setMinimumSize(QSize(1140, 850))
@@ -83,8 +89,9 @@ class CentralDisplayAreaWidget(QWidget):
         # self.coronal_viewer.setStyleSheet("QGraphicsView{background-color:rgb(127,128,129);}")
 
     def __set_stylesheets(self):
-        self.empty_label.setStyleSheet("QLabel{background-color:rgb(255,0,0);}")
-        # self.setStyleSheet("QWidget{background-color:rgb(0,0,128);}")
+        self.empty_label.setStyleSheet("QLabel{background-color:rgb(0, 0, 0);}")
+        self.horizontal_line.setStyleSheet("""QLabel{background-color: rgba(214, 214, 214, 1);}""")
+        self.vertical_line.setStyleSheet("""QLabel{background-color: rgba(214, 214, 214, 1);}""")
 
     def __set_connections(self):
         self.axial_viewer.coordinates_changed.connect(self.__on_axial_coordinates_changed)

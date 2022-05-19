@@ -1,5 +1,6 @@
 from PySide2.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QScrollArea, QPushButton, QLabel, QSpacerItem, QGridLayout
 from PySide2.QtCore import QSize, Qt, Signal
+from PySide2.QtGui import QIcon, QPixmap
 import os
 import logging
 from gui2.SinglePatientComponent.PatientResultsSidePanel.SinglePatientResultsWidget import SinglePatientResultsWidget
@@ -45,7 +46,9 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         self.patient_list_scrollarea.setWidget(self.patient_list_scrollarea_dummy_widget)
         self.bottom_layout = QHBoxLayout()
         self.bottom_add_patient_pushbutton = QPushButton("Import patient")
-        self.bottom_add_patient_pushbutton.setFixedSize(QSize(80, 30))
+        self.bottom_add_patient_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                                            '../../Images/download_icon.png'))))
+        self.bottom_add_patient_pushbutton.setIconSize(QSize(40, 30))
         self.bottom_layout.addWidget(self.bottom_add_patient_pushbutton)
         self.layout.addWidget(self.patient_list_scrollarea)
         self.layout.addLayout(self.bottom_layout)
@@ -53,15 +56,23 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
     def __set_layout_dimensions(self):
         # self.patient_list_scrollarea.setBaseSize(QSize(self.width(), 500))
         self.patient_list_scrollarea.setBaseSize(QSize(self.width(), 300))
-        # pass
+        self.bottom_add_patient_pushbutton.setFixedHeight(40)
 
     def __set_connections(self):
         self.bottom_add_patient_pushbutton.clicked.connect(self.on_add_new_empty_patient)
 
     def __set_stylesheets(self):
         # self.overall_label.setStyleSheet("QLabel{background-color:rgb(0, 255, 0);}")
-        self.patient_list_scrollarea.setStyleSheet("QScrollArea{background-color:rgb(0, 0, 128);}")
-        # self.patient_list_scrollarea_dummy_widget.setStyleSheet("""QLabel{background-color:rgb(0, 128, 0);}""")
+        self.patient_list_scrollarea.setStyleSheet("QScrollArea{background-color:rgb(255, 255, 255);}")
+        self.bottom_add_patient_pushbutton.setStyleSheet("""QPushButton{
+        background-color: rgba(0, 0, 0, 1);
+        color: rgba(255, 255, 255, 1);
+        font-size: 16px;
+        }
+        QPushButton:pressed{
+        background-color: rgba(50, 50, 50, 1);
+        border-style:inset;
+        }""")
 
     def adjustSize(self) -> None:
         items = (self.patient_list_scrollarea_layout.itemAt(i) for i in range(self.patient_list_scrollarea_layout.count()))
@@ -116,6 +127,10 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         pat_widget.setBaseSize(QSize(self.baseSize().width(), self.baseSize().height()))
         # pat_widget.setMaximumSize(QSize(self.baseSize().width(), self.baseSize().height()))
         pat_widget.setMinimumSize(QSize(self.baseSize().width(), int(self.baseSize().height() / 2)))
+        pat_widget.setStyleSheet("""SinglePatientResultsWidget{        
+        color: rgba(67, 88, 90, 1);
+        font-size:14px;
+        }""")
         pat_widget.populate_from_patient(patient_name)
         self.patient_results_widgets[patient_name] = pat_widget
         self.patient_list_scrollarea_layout.insertWidget(self.patient_list_scrollarea_layout.count() - 1, pat_widget)
@@ -139,6 +154,7 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         SoftwareConfigResources.getInstance().set_active_patient(widget_id)
         # When a patient is selected in the left panel, a visual update of the central/right panel is triggered
         self.patient_selected.emit(widget_id)
+        self.adjustSize()  # To trigger a removal of the side scroll bar if needs be.
 
     def on_add_new_empty_patient(self):
         uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_patient("Temp Patient")
