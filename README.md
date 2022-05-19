@@ -10,8 +10,7 @@ The software was introduced in the article "Brain tumor preoperative surgery ima
 segmentation and standardized reporting", which has been submitted to [Frontiers in Neurology](https://www.frontiersin.org/journals/neurology).
 
 ## 2. Softwares and usage
-An installer is provided for the three main Operating Systems: Windows (~v10, 64-bit), macOS (>= Catalina), and Ubuntu Linux (>= 18.04).
-The software can be downloaded from [here](https://github.com/dbouget/Raidionics/releases) (see **Assets**). 
+An installer is provided for the three main Operating Systems: Windows (>= v10, 64-bit), macOS (>= Catalina), and Ubuntu Linux (>= 18.04). Software has been tested and found working on the newest Windows 11 and macOS Monterey operating systems.The software can be downloaded from [here](https://github.com/dbouget/Raidionics/releases) (see **Assets**). 
 
 ### 2.1 Download and installation
 These steps are only needed to do once:
