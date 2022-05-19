@@ -15,7 +15,7 @@ class MRIVolumesLayerInteractor(QCollapsibleGroupBox):
     volume_view_toggled = Signal(str, bool)
 
     def __init__(self, parent=None):
-        super(MRIVolumesLayerInteractor, self).__init__("Input MRI volumes", self, header_style='left')
+        super(MRIVolumesLayerInteractor, self).__init__("MRI Series", self, header_style='left')
         self.set_header_icons(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                            '../../../Images/arrow_right_icon.png'),
                               QSize(20, 20),

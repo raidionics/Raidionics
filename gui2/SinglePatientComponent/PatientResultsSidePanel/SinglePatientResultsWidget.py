@@ -35,29 +35,16 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
 
     def __set_system_part(self):
         self.default_collapsiblegroupbox = QCollapsibleGroupBox("System", self)
-        # self.default_collapsiblegroupbox.set_header_icons(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-        #                                                                '../../Images/uncollapsed_icon.png'),
-        #                                                   QSize(30, 30),
-        #                                                   os.path.join(os.path.dirname(os.path.realpath(__file__)),
-        #                                                                '../../Images/collapsed_icon.png'),
-        #                                                   QSize(30, 30))
-        # self.default_collapsiblegroupbox.setBaseSize(QSize(self.parent.baseSize().width(), 150))
-        # self.content_label_layout.addWidget(self.default_collapsiblegroupbox)
-
-        self.patient_name_label = QLabel("Patient ")
+        self.patient_name_label = QLabel("Name (ID) ")
         self.patient_name_lineedit = QLineEdit()
         self.patient_name_lineedit.setAlignment(Qt.AlignRight)
         self.patient_name_layout = QHBoxLayout()
         self.patient_name_layout.setContentsMargins(20, 0, 20, 0)
         self.patient_name_layout.addWidget(self.patient_name_label)
         self.patient_name_layout.addWidget(self.patient_name_lineedit)
-        # @TODO. something's off with the base sizes (too small)
-        # self.patient_name_label.setBaseSize(QSize(int(self.parent.baseSize().width() / 2.5), 50))
-        # self.patient_name_lineedit.setBaseSize(QSize(int(self.parent.baseSize().width() / 2.5), 50))
-        # self.default_collapsiblegroupbox.content_label_layout.addLayout(self.patient_name_layout)
         self.content_label_layout.addLayout(self.patient_name_layout)
 
-        self.output_dir_label = QLabel("Output ")
+        self.output_dir_label = QLabel("Location ")
         self.output_dir_lineedit = QLineEdit()
         self.output_dir_lineedit.setAlignment(Qt.AlignRight)
         self.output_dir_layout = QHBoxLayout()
@@ -214,9 +201,11 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.content_label_layout.addWidget(self.subcorticalstructures_collapsiblegroupbox)
 
     def __set_layout_dimensions(self):
-        self.patient_name_label.setFixedHeight(30)
-        self.patient_name_lineedit.setFixedHeight(30)
-        self.default_collapsiblegroupbox.content_label.setFixedHeight(60)
+        self.patient_name_label.setFixedHeight(20)
+        self.patient_name_lineedit.setFixedHeight(20)
+        self.output_dir_label.setFixedHeight(20)
+        self.output_dir_lineedit.setFixedHeight(20)
+        # self.default_collapsiblegroupbox.content_label.setFixedHeight(40)
 
         self.tumor_found_header_label.setFixedHeight(20)
         self.tumor_found_label.setFixedHeight(20)
@@ -276,8 +265,8 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         }""")
         self.patient_name_lineedit.setStyleSheet("""
         QLineEdit{
-        color: rgba(67, 88, 90, 1);
-        font:semibold;
+        color: rgba(0, 0, 0, 1);
+        font:bold;
         font-size:14px;
         }""")
         self.output_dir_label.setStyleSheet("""
@@ -289,7 +278,7 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         }""")
         self.output_dir_lineedit.setStyleSheet("""
         QLineEdit{
-        color: rgba(67, 88, 90, 1);
+        color: rgba(0, 0, 0, 1);
         font:semibold;
         font-size:14px;
         }""")
@@ -568,6 +557,47 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
                     struct_display_name = struct.replace('_', ' ').replace('-', ' ')
                     label_header = QLabel("{} ".format(struct_display_name))
                     label = QLabel("{:.2f} %".format(val))
+                    label_header.setFixedHeight(20)
+                    label.setFixedHeight(20)
+                    lay.addWidget(label_header)
+                    lay.addStretch(1)
+                    lay.addWidget(label)
+                    label_header.setStyleSheet("""
+                    QLabel{
+                    color: rgba(67, 88, 90, 1);
+                    text-align:left;
+                    font:semibold;
+                    font-size:13px;
+                    }""")
+                    label.setStyleSheet("""
+                    QLabel{
+                    color: rgba(67, 88, 90, 1);
+                    text-align:right;
+                    font:semibold;
+                    font-size:13px;
+                    }""")
+                    self.subcorticalstructures_collapsiblegroupbox.content_label_layout.addLayout(lay)
+
+            sorted_distances = dict(sorted(report_json['Main']['Total']['SubcorticalStructures'][atlas]['Distance'].items(), key=lambda item: item[1], reverse=False))
+            label = QLabel("{} atlas".format(atlas))
+            label.setFixedHeight(20)
+            label.setStyleSheet("""
+            QLabel{
+            color: rgba(67, 88, 90, 1);
+            text-align:left;
+            font:bold;
+            font-size:14px;
+            }""")
+            line_label = QLabel()
+            line_label.setFixedHeight(3)
+            line_label.setStyleSheet("QLabel{background-color: rgb(214, 214, 214);}")
+            self.subcorticalstructures_collapsiblegroupbox.content_label_layout.addWidget(line_label)
+            for struct, val in sorted_distances.items():
+                if val != -1.0:
+                    lay = QHBoxLayout()
+                    struct_display_name = struct.replace('_', ' ').replace('-', ' ')
+                    label_header = QLabel("{} ".format(struct_display_name))
+                    label = QLabel("{:.2f} mm".format(val))
                     label_header.setFixedHeight(20)
                     label.setFixedHeight(20)
                     lay.addWidget(label_header)

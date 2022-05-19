@@ -131,6 +131,15 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         color: rgba(67, 88, 90, 1);
         font-size:14px;
         }""")
+        pat_widget.header_pushbutton.setFixedHeight(40)
+        pat_widget.header_pushbutton.setStyleSheet("""
+        QPushButton{
+        background-color:rgb(248, 248, 248);
+        color: rgba(67, 88, 90, 1);
+        text-align:center;
+        font:bold;
+        font-size:16px;
+        }""")
         pat_widget.populate_from_patient(patient_name)
         self.patient_results_widgets[patient_name] = pat_widget
         self.patient_list_scrollarea_layout.insertWidget(self.patient_list_scrollarea_layout.count() - 1, pat_widget)
