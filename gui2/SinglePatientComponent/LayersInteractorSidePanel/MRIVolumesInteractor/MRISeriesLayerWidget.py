@@ -1,4 +1,5 @@
-from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QLineEdit, QComboBox, QGridLayout, QPushButton, QRadioButton
+from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QLineEdit, QComboBox, QGridLayout, QPushButton,\
+    QRadioButton, QMenu, QAction
 from PySide2.QtCore import Qt, QSize, Signal
 from PySide2.QtGui import QPixmap, QIcon
 import os
@@ -35,6 +36,13 @@ class MRISeriesLayerWidget(QWidget):
         self.icon_label.setPixmap(pix)
         self.display_name_lineedit = QLineEdit()
         self.options_pushbutton = QPushButton("...")
+        self.options_pushbutton.setContextMenuPolicy(Qt.CustomContextMenu)
+        # create context menu
+        self.options_menu = QMenu(self)
+        self.options_menu.addAction(QAction('DICOM Metadata', self))
+        self.options_menu.addAction(QAction('Delete', self))
+        self.options_menu.addSeparator()
+
         self.sequence_type_label = QLabel("Sequence type")
         self.sequence_type_combobox = QComboBox()
         self.sequence_type_combobox.addItems([str(e) for e in MRISequenceType])
@@ -61,7 +69,11 @@ class MRISeriesLayerWidget(QWidget):
         self.display_toggle_radiobutton.setFixedSize(QSize(20, 20))
 
     def __set_connections(self):
+        self.display_name_lineedit.textEdited.connect(self.on_name_change)
         self.display_toggle_radiobutton.toggled.connect(self.on_visibility_toggled)
+        self.options_pushbutton.customContextMenuRequested.connect(self.on_options_clicked)
+        self.sequence_type_combobox.currentTextChanged.connect(self.on_sequence_type_changed)
+        self.contrast_adjuster_pushbutton.clicked.connect(self.on_contrast_adjustment_clicked)
 
     def __set_stylesheets(self):
         self.display_name_lineedit.setStyleSheet("""
@@ -97,3 +109,16 @@ class MRISeriesLayerWidget(QWidget):
     def on_visibility_toggled(self, state):
         self.setStyleSheet("""MRISeriesLayerWidget{background-color: rgba(239, 255, 245, 1);}""")
         self.visibility_toggled.emit(self.uid, state)
+
+    def on_name_change(self, text):
+        SoftwareConfigResources.getInstance().get_active_patient().mri_volumes[self.uid].set_display_name(text)
+
+    def on_sequence_type_changed(self, text) -> None:
+        # SoftwareConfigResources.getInstance().get_active_patient().mri_volumes[self.uid].set_sequence_type(text)
+        pass
+
+    def on_contrast_adjustment_clicked(self):
+        pass
+
+    def on_options_clicked(self, point):
+        self.options_menu.exec_(self.options_pushbutton.mapToGlobal(point))

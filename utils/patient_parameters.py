@@ -358,6 +358,15 @@ class MRIVolume():
         else:
             self.sequence_type = MRISequenceType.T1w
 
+    def set_display_name(self, text):
+        self.display_name = text
+
+    def set_sequence_type(self, type):
+        if isinstance(type, str):
+            pass
+        elif isinstance(type, MRISequenceType):
+            self.sequence_type = type
+
 
 class AnnotationVolume():
     """
@@ -375,6 +384,15 @@ class AnnotationVolume():
         self.display_name = uid
         # @TODO. If we generate the probability map, could store it here and give the possibility to adjust the
         # cut-off threshold for refinement?
+
+    def set_display_name(self, name):
+        self.display_name = name
+
+    def set_display_opacity(self, opacity):
+        self.display_opacity = opacity
+
+    def set_display_color(self, color):
+        self.display_color = color
 
 
 class AtlasVolume():

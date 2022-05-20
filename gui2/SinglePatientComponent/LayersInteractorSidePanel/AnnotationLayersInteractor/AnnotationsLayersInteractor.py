@@ -1,4 +1,4 @@
-from PySide2.QtWidgets import QHBoxLayout, QVBoxLayout, QGridLayout, QSpacerItem
+from PySide2.QtWidgets import QHBoxLayout, QVBoxLayout, QGridLayout, QSpacerItem, QLabel
 from PySide2.QtCore import QSize, Signal
 from PySide2.QtGui import QColor
 import os
@@ -6,6 +6,7 @@ import logging
 
 from gui2.UtilsWidgets.CustomQGroupBox.QCollapsibleGroupBox import QCollapsibleGroupBox
 from gui2.SinglePatientComponent.LayersInteractorSidePanel.AnnotationLayersInteractor.AnnotationSingleLayerCollapsibleGroupBox import AnnotationSingleLayerCollapsibleGroupBox
+from gui2.SinglePatientComponent.LayersInteractorSidePanel.AnnotationLayersInteractor.AnnotationSingleLayerWidget import AnnotationSingleLayerWidget
 
 from utils.software_config import SoftwareConfigResources
 
@@ -129,13 +130,19 @@ class AnnotationsLayersInteractor(QCollapsibleGroupBox):
         self.adjustSize()  # To force a repaint of the layout with the new elements
 
     def on_import_volume(self, volume_id):
-        volume_widget = AnnotationSingleLayerCollapsibleGroupBox(annotation_uid=volume_id, parent=self)
+        # volume_widget = AnnotationSingleLayerCollapsibleGroupBox(annotation_uid=volume_id, parent=self)
+        volume_widget = AnnotationSingleLayerWidget(uid=volume_id, parent=self)
         self.volumes_widget[volume_id] = volume_widget
         self.content_label_layout.insertWidget(self.content_label_layout.count() - 1, volume_widget)
+        line_label = QLabel()
+        line_label.setFixedHeight(3)
+        line_label.setStyleSheet("QLabel{background-color: rgb(214, 214, 214);}")
+        self.content_label_layout.insertWidget(self.content_label_layout.count() - 1, line_label)
 
-        # On-the-fly signals/slots connection for the newly created QWidget
-        volume_widget.header_pushbutton.clicked.connect(self.adjustSize)
-        volume_widget.right_clicked.connect(self.on_visibility_clicked)
+        ## On-the-fly signals/slots connection for the newly created QWidget
+        volume_widget.visibility_toggled.connect(self.on_visibility_clicked)
+        volume_widget.resizeRequested.connect(self.adjustSize)
+        volume_widget.display_name_changed.connect(self.on_name_changed)
         volume_widget.opacity_value_changed.connect(self.on_opacity_changed)
         volume_widget.color_value_changed.connect(self.on_color_changed)
 
@@ -145,12 +152,16 @@ class AnnotationsLayersInteractor(QCollapsibleGroupBox):
     def on_visibility_clicked(self, uid, state):
         self.annotation_view_toggled.emit(uid, state)
 
+    def on_name_changed(self, uid, name):
+        pat_params = SoftwareConfigResources.getInstance().get_active_patient()
+        pat_params.annotation_volumes[uid].set_display_name(name)
+
     def on_opacity_changed(self, uid, value):
         pat_params = SoftwareConfigResources.getInstance().get_active_patient()
-        pat_params.annotation_volumes[uid].display_opacity = value
+        pat_params.annotation_volumes[uid].set_display_opacity(value)
         self.annotation_opacity_changed.emit(uid, value)
 
     def on_color_changed(self, uid, color):
         pat_params = SoftwareConfigResources.getInstance().get_active_patient()
-        pat_params.annotation_volumes[uid].display_color = color.getRgb()
+        pat_params.annotation_volumes[uid].set_display_color(color.getRgb())
         self.annotation_color_changed.emit(uid, color)
