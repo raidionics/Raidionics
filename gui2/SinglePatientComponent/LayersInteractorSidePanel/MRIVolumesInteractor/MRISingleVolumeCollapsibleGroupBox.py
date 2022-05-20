@@ -69,7 +69,7 @@ class MRISingleVolumeCollapsibleGroupBox(QCollapsibleGroupBox):
 
     def __init_from_parameters(self):
         """
-        Populate the different widgets with internal parameters specific to the current annotation volume
+        Populate the different widgets with internal parameters specific to the current MRI volume
         """
         mri_volume_parameters = SoftwareConfigResources.getInstance().get_active_patient().mri_volumes[self.uid]
         self.title = mri_volume_parameters.display_name

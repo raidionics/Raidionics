@@ -1,6 +1,8 @@
+from PySide2.QtWidgets import QHBoxLayout, QVBoxLayout, QGridLayout, QSpacerItem
 from PySide2.QtCore import QSize, Signal
 from PySide2.QtGui import QColor
 import os
+import logging
 
 from gui2.UtilsWidgets.CustomQGroupBox.QCollapsibleGroupBox import QCollapsibleGroupBox
 from gui2.SinglePatientComponent.LayersInteractorSidePanel.AnnotationLayersInteractor.AnnotationSingleLayerCollapsibleGroupBox import AnnotationSingleLayerCollapsibleGroupBox
@@ -27,20 +29,58 @@ class AnnotationsLayersInteractor(QCollapsibleGroupBox):
         self.parent = parent
         self.volumes_widget = {}
         self.__set_interface()
+        self.__set_layout_dimensions()
         self.__set_stylesheets()
 
     def __set_interface(self):
         self.content_label_layout.addStretch(1)
 
+    def __set_layout_dimensions(self):
+        self.header_pushbutton.setFixedHeight(45)
+
     def __set_stylesheets(self):
-        self.content_label.setStyleSheet("QLabel{background-color:rgb(255,128,255);}")
+        self.header_pushbutton.setStyleSheet("""
+        QPushButton{background-color: rgb(214, 214, 214);
+        font:bold;
+        font-size:14px;
+        padding-left:40px;
+        text-align:left;
+        }""")
+        self.content_label.setStyleSheet("QLabel{background-color:rgb(248, 248, 248);}")
+
+    # def adjustSize(self):
+    #     actual_height = 0
+    #     for w in self.volumes_widget:
+    #         size = self.volumes_widget[w].sizeHint()
+    #         actual_height += size.height()
+    #     self.content_label.setFixedSize(QSize(self.size().width(), actual_height))
 
     def adjustSize(self):
+        # actual_height = 0
+        # for w in self.volumes_widget:
+        #     size = self.volumes_widget[w].sizeHint()
+        #     actual_height += size.height()
+        # self.content_label.setFixedSize(QSize(self.size().width(), actual_height))
+        items = (self.content_label_layout.itemAt(i) for i in range(self.content_label_layout.count()))
         actual_height = 0
-        for w in self.volumes_widget:
-            size = self.volumes_widget[w].sizeHint()
-            actual_height += size.height()
+        for w in items:
+            if (w.__class__ == QHBoxLayout) or (w.__class__ == QVBoxLayout):
+                max_height = 0
+                sub_items = [w.itemAt(i) for i in range(w.count())]
+                for sw in sub_items:
+                    if sw.__class__ != QSpacerItem:
+                        if sw.wid.sizeHint().height() > max_height:
+                            max_height = sw.wid.sizeHint().height()
+                actual_height += max_height
+            elif w.__class__ == QGridLayout:
+                pass
+            elif w.__class__ != QSpacerItem:
+                size = w.wid.sizeHint()
+                actual_height += size.height()
+            else:
+                pass
         self.content_label.setFixedSize(QSize(self.size().width(), actual_height))
+        logging.debug("Annotations container set to {}.\n".format(QSize(self.size().width(), actual_height)))
 
     def reset(self):
         """

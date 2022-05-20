@@ -1,9 +1,11 @@
-from PySide2.QtWidgets import QApplication
+from PySide2.QtWidgets import QApplication, QHBoxLayout, QVBoxLayout, QSpacerItem, QGridLayout
 from PySide2.QtCore import QSize, Signal
 import os
+import logging
 
 from gui2.UtilsWidgets.CustomQGroupBox.QCollapsibleGroupBox import QCollapsibleGroupBox
 from gui2.SinglePatientComponent.LayersInteractorSidePanel.MRIVolumesInteractor.MRISingleVolumeCollapsibleGroupBox import MRISingleVolumeCollapsibleGroupBox
+from gui2.SinglePatientComponent.LayersInteractorSidePanel.MRIVolumesInteractor.MRISeriesLayerWidget import MRISeriesLayerWidget
 
 from utils.software_config import SoftwareConfigResources
 
@@ -25,20 +27,51 @@ class MRIVolumesLayerInteractor(QCollapsibleGroupBox):
         self.parent = parent
         self.volumes_widget = {}
         self.__set_interface()
+        self.__set_layout_dimensions()
         self.__set_stylesheets()
 
     def __set_interface(self):
         self.content_label_layout.addStretch(1)
 
+    def __set_layout_dimensions(self):
+        self.header_pushbutton.setFixedHeight(45)
+
     def __set_stylesheets(self):
-        self.content_label.setStyleSheet("QLabel{background-color:rgb(255,0,255);}")
+        self.header_pushbutton.setStyleSheet("""
+        QPushButton{background-color: rgb(214, 214, 214);
+        font:bold;
+        font-size:14px;
+        padding-left:40px;
+        text-align: left;
+        }""")
+        self.content_label.setStyleSheet("QLabel{background-color:rgb(248, 248, 248);}")
 
     def adjustSize(self):
+        # actual_height = 0
+        # for w in self.volumes_widget:
+        #     size = self.volumes_widget[w].sizeHint()
+        #     actual_height += size.height()
+        # self.content_label.setFixedSize(QSize(self.size().width(), actual_height))
+        items = (self.content_label_layout.itemAt(i) for i in range(self.content_label_layout.count()))
         actual_height = 0
-        for w in self.volumes_widget:
-            size = self.volumes_widget[w].sizeHint()
-            actual_height += size.height()
+        for w in items:
+            if (w.__class__ == QHBoxLayout) or (w.__class__ == QVBoxLayout):
+                max_height = 0
+                sub_items = [w.itemAt(i) for i in range(w.count())]
+                for sw in sub_items:
+                    if sw.__class__ != QSpacerItem:
+                        if sw.wid.sizeHint().height() > max_height:
+                            max_height = sw.wid.sizeHint().height()
+                actual_height += max_height
+            elif w.__class__ == QGridLayout:
+                pass
+            elif w.__class__ != QSpacerItem:
+                size = w.wid.sizeHint()
+                actual_height += size.height()
+            else:
+                pass
         self.content_label.setFixedSize(QSize(self.size().width(), actual_height))
+        logging.debug("MRI Series container set to {}.\n".format(QSize(self.size().width(), actual_height)))
 
     def reset(self):
         for w in list(self.volumes_widget):
@@ -57,8 +90,10 @@ class MRIVolumesLayerInteractor(QCollapsibleGroupBox):
 
         # The first MRI volume loaded is displayed by default, hence toggling the eye-iconed push button.
         if len(self.volumes_widget) > 0:
-            self.volumes_widget[list(self.volumes_widget.keys())[0]].header_pushbutton.right_icon_widget.setChecked(True)
-            self.volumes_widget[list(self.volumes_widget.keys())[0]].header_pushbutton.right_icon_widget.clicked.emit()
+            # self.volumes_widget[list(self.volumes_widget.keys())[0]].header_pushbutton.right_icon_widget.setChecked(True)
+            # self.volumes_widget[list(self.volumes_widget.keys())[0]].header_pushbutton.right_icon_widget.clicked.emit()
+            self.volumes_widget[list(self.volumes_widget.keys())[0]].display_toggle_radiobutton.setChecked(True)
+            self.volumes_widget[list(self.volumes_widget.keys())[0]].display_toggle_radiobutton.clicked.emit()
         # Triggers a repaint with adjusted size for the layout
         self.adjustSize()
 
@@ -85,8 +120,10 @@ class MRIVolumesLayerInteractor(QCollapsibleGroupBox):
 
         # The first MRI volume loaded is displayed by default, hence toggling the eye-iconed push button.
         if len(self.volumes_widget) > 0:
-            self.volumes_widget[list(self.volumes_widget.keys())[0]].header_pushbutton.right_icon_widget.setChecked(True)
-            self.volumes_widget[list(self.volumes_widget.keys())[0]].header_pushbutton.right_icon_widget.clicked.emit()
+            # self.volumes_widget[list(self.volumes_widget.keys())[0]].header_pushbutton.right_icon_widget.setChecked(True)
+            # self.volumes_widget[list(self.volumes_widget.keys())[0]].header_pushbutton.right_icon_widget.clicked.emit()
+            self.volumes_widget[list(self.volumes_widget.keys())[0]].display_toggle_radiobutton.setChecked(True)
+            self.volumes_widget[list(self.volumes_widget.keys())[0]].display_toggle_radiobutton.clicked.emit()
 
          # @TODO. None of the below methods actually repaint the widget properly...
         self.content_label.repaint()
@@ -95,11 +132,16 @@ class MRIVolumesLayerInteractor(QCollapsibleGroupBox):
 
     def on_import_volume(self, volume_id):
         volume_widget = MRISingleVolumeCollapsibleGroupBox(mri_uid=volume_id, parent=self)
-        self.volumes_widget[volume_id] = volume_widget
-        self.content_label_layout.insertWidget(self.content_label_layout.count() - 1, volume_widget)
+        # self.volumes_widget[volume_id] = volume_widget
+        # self.content_label_layout.insertWidget(self.content_label_layout.count() - 1, volume_widget)
+        #
+        # volume_widget.header_pushbutton.clicked.connect(self.adjustSize)
+        # volume_widget.right_clicked.connect(self.on_visibility_clicked)
 
-        volume_widget.header_pushbutton.clicked.connect(self.adjustSize)
-        volume_widget.right_clicked.connect(self.on_visibility_clicked)
+        wid_bis = MRISeriesLayerWidget(mri_uid=volume_id, parent=self)
+        self.volumes_widget[volume_id] = wid_bis
+        self.content_label_layout.insertWidget(self.content_label_layout.count() - 1, wid_bis)
+        wid_bis.visibility_toggled.connect(self.on_visibility_clicked)
 
     def on_visibility_clicked(self, uid, state):
         # @TODO. Auto-exclusive behaviour, should be a cleaner way to achieve this.
@@ -107,6 +149,10 @@ class MRIVolumesLayerInteractor(QCollapsibleGroupBox):
             self.volume_view_toggled.emit(uid, state)
             for w in list(self.volumes_widget.keys()):
                 if w != uid:
-                    self.volumes_widget[w].header_pushbutton.right_icon_widget.setChecked(False)
+                    #self.volumes_widget[w].header_pushbutton.right_icon_widget.setChecked(False)
+                    self.volumes_widget[w].display_toggle_radiobutton.blockSignals(True)
+                    self.volumes_widget[w].display_toggle_radiobutton.setChecked(False)
+                    self.volumes_widget[w].display_toggle_radiobutton.blockSignals(False)
+                    self.volumes_widget[w].setStyleSheet("""MRISeriesLayerWidget{background-color: rgba(248, 248, 248, 1);}""")
         else:  # Trying to undisplay an image, not possible.
-            self.volumes_widget[uid].header_pushbutton.right_icon_widget.setChecked(True)
+            self.volumes_widget[uid].display_toggle_radiobutton.setChecked(True)

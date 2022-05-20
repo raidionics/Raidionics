@@ -22,8 +22,8 @@ from utils.patient_dicom import DICOMSeries
 class MRISequenceType(Enum):
     _init_ = 'value string'
 
-    T1w = 0, 'T1-weighted'
-    T1c = 1, 'Gd-enhanced T1-weighted'
+    T1w = 0, 'T1-w'
+    T1c = 1, 'T1-CE'
     T2 = 2, 'T2'
     FLAIR = 3, 'FLAIR'
 

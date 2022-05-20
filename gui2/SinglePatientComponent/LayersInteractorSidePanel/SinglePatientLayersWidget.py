@@ -92,11 +92,6 @@ class SinglePatientLayersWidget(QWidget):
 
     def __set_stylesheets(self):
         self.overall_scrollarea.setStyleSheet("QScrollArea{background-color:rgb(0, 0, 255);}")
-        self.volumes_collapsiblegroupbox.header_pushbutton.setStyleSheet("QPushButton{font:11px;}")
-        self.volumes_collapsiblegroupbox.content_label.setStyleSheet("QLabel{background-color:rgb(128, 128, 255);}")
-
-        self.annotations_collapsiblegroupbox.header_pushbutton.setStyleSheet("QPushButton{font:11px;}")
-        self.annotations_collapsiblegroupbox.content_label.setStyleSheet("QLabel{background-color:rgb(255, 128, 128);}")
 
     def on_mri_volume_import(self, uid):
         self.mri_volume_imported.emit(uid)
