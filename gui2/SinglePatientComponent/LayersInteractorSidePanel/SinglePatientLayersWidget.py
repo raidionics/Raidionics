@@ -91,7 +91,8 @@ class SinglePatientLayersWidget(QWidget):
         self.import_data_triggered.connect(self.annotations_collapsiblegroupbox.on_import_data)
 
     def __set_stylesheets(self):
-        self.overall_scrollarea.setStyleSheet("QScrollArea{background-color:rgb(0, 0, 255);}")
+        # self.overall_scrollarea.setStyleSheet("QScrollArea{background-color:rgb(0, 0, 255);}")
+        pass
 
     def on_mri_volume_import(self, uid):
         self.mri_volume_imported.emit(uid)

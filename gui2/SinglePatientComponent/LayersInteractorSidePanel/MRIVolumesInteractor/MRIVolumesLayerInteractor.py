@@ -94,8 +94,6 @@ class MRIVolumesLayerInteractor(QCollapsibleGroupBox):
             # self.volumes_widget[list(self.volumes_widget.keys())[0]].header_pushbutton.right_icon_widget.clicked.emit()
             self.volumes_widget[list(self.volumes_widget.keys())[0]].display_toggle_radiobutton.setChecked(True)
             self.volumes_widget[list(self.volumes_widget.keys())[0]].display_toggle_radiobutton.clicked.emit()
-        # Triggers a repaint with adjusted size for the layout
-        self.adjustSize()
 
     def on_import_data(self):
         active_patient = SoftwareConfigResources.getInstance().get_active_patient()
@@ -131,17 +129,12 @@ class MRIVolumesLayerInteractor(QCollapsibleGroupBox):
         QApplication.processEvents()
 
     def on_import_volume(self, volume_id):
-        volume_widget = MRISingleVolumeCollapsibleGroupBox(mri_uid=volume_id, parent=self)
-        # self.volumes_widget[volume_id] = volume_widget
-        # self.content_label_layout.insertWidget(self.content_label_layout.count() - 1, volume_widget)
-        #
-        # volume_widget.header_pushbutton.clicked.connect(self.adjustSize)
-        # volume_widget.right_clicked.connect(self.on_visibility_clicked)
-
-        wid_bis = MRISeriesLayerWidget(mri_uid=volume_id, parent=self)
-        self.volumes_widget[volume_id] = wid_bis
-        self.content_label_layout.insertWidget(self.content_label_layout.count() - 1, wid_bis)
-        wid_bis.visibility_toggled.connect(self.on_visibility_clicked)
+        volume_widget = MRISeriesLayerWidget(mri_uid=volume_id, parent=self)
+        self.volumes_widget[volume_id] = volume_widget
+        self.content_label_layout.insertWidget(self.content_label_layout.count() - 1, volume_widget)
+        volume_widget.visibility_toggled.connect(self.on_visibility_clicked)
+        # Triggers a repaint with adjusted size for the layout
+        self.adjustSize()
 
     def on_visibility_clicked(self, uid, state):
         # @TODO. Auto-exclusive behaviour, should be a cleaner way to achieve this.

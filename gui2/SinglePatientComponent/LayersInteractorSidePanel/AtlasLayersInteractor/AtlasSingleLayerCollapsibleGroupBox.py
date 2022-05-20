@@ -23,6 +23,7 @@ class AtlasSingleLayerCollapsibleGroupBox(QCollapsibleGroupBox):
                                                                   right_header_behaviour='stand-alone')
         self.parent = parent
         self.__set_interface()
+        self.__set_layout_dimensions()
         self.__set_connections()
         self.__set_stylesheets()
         self.__init_from_parameters()
@@ -35,20 +36,23 @@ class AtlasSingleLayerCollapsibleGroupBox(QCollapsibleGroupBox):
                                                              '../../../Images/opened_eye_icon.png'),
                               checked_icon_size=QSize(20, 20),
                               side='right')
-        self.header_pushbutton.setBaseSize(QSize(self.baseSize().width(), 20))
-        self.header_pushbutton.setFixedHeight(20)
-        self.content_label.setMinimumSize(QSize(self.baseSize().width(), 120))
 
-        self.name_label = QLabel("Name:")
-        self.name_label.setFixedHeight(20)
+        self.name_label = QLabel("Name ")
         self.name_lineedit = QLineEdit()
         self.name_lineedit.setText(self.uid)
         self.name_layout = QHBoxLayout()
         self.name_layout.addWidget(self.name_label)
         self.name_layout.addWidget(self.name_lineedit)
         self.name_layout.addStretch(1)
+        self.content_label_layout.setContentsMargins(20, 0, 20, 0)
         self.content_label_layout.addLayout(self.name_layout)
         self.content_label_layout.addStretch(1)
+
+    def __set_layout_dimensions(self):
+        self.header_pushbutton.setFixedHeight(20)
+        # self.header_pushbutton.setMaximumWidth(250)
+        self.name_lineedit.setFixedHeight(20)
+        # self.content_label.setMaximumWidth(250)
 
     def __set_connections(self):
         self.header_pushbutton.right_icon_widget.clicked.connect(self.__on_display_toggled)
@@ -82,8 +86,9 @@ class AtlasSingleLayerCollapsibleGroupBox(QCollapsibleGroupBox):
             pb.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                   '../../../Images/opened_eye_icon.png'))), QSize(20, 20), side='right',
                        checked=True)
-            pb.setBaseSize(QSize(self.baseSize().width(), 20))
+            # pb.setBaseSize(QSize(self.baseSize().width(), 20))
             pb.setFixedHeight(20)
+            pb.setMaximumWidth(250)
             self.content_label_layout.insertWidget(self.content_label_layout.count() - 1, pb)
             pb.right_clicked.connect(self.__on_display_toggled)
 

@@ -27,13 +27,24 @@ class AtlasesLayersInteractor(QCollapsibleGroupBox):
         self.parent = parent
         self.volumes_widget = {}
         self.__set_interface()
+        self.__set_layout_dimensions()
         self.__set_stylesheets()
 
     def __set_interface(self):
         self.content_label_layout.addStretch(1)
 
+    def __set_layout_dimensions(self):
+        self.header_pushbutton.setFixedHeight(45)
+
     def __set_stylesheets(self):
-        self.content_label.setStyleSheet("QLabel{background-color:rgb(255,0,255);}")
+        self.header_pushbutton.setStyleSheet("""
+        QPushButton{background-color: rgb(214, 214, 214);
+        font:bold;
+        font-size:14px;
+        padding-left:40px;
+        text-align: left;
+        }""")
+        self.content_label.setStyleSheet("QLabel{background-color:rgb(248, 248, 248);}")
 
     def adjustSize(self):
         actual_height = 0
