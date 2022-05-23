@@ -2,7 +2,7 @@ from PySide2.QtWidgets import QLabel, QHBoxLayout, QLineEdit
 from PySide2.QtCore import QSize, Signal
 from PySide2.QtGui import QIcon, QPixmap, QColor
 import os
-
+import collections
 from gui2.UtilsWidgets.CustomQGroupBox.QCollapsibleGroupBox import QCollapsibleGroupBox
 from gui2.UtilsWidgets.QCustomIconsPushButton import QCustomIconsPushButton
 
@@ -74,11 +74,17 @@ class AtlasSingleLayerCollapsibleGroupBox(QCollapsibleGroupBox):
         self.name_lineedit.setText(self.title)
         self.name_lineedit.blockSignals(False)
 
-        for s in range(1, atlas_volume_parameters.class_number + 1):
-            name = str(s)
-            if atlas_volume_parameters.class_description_filename:
-                name = atlas_volume_parameters.class_description.iloc[[s - 1]]['text'].values[0]
-            pb = QCustomIconsPushButton(str(s), self.parent, icon_style='right', right_behaviour='stand-alone')
+        #@TODO. Should be alphabetically ordered, easier to go through, so the loop should be made different.
+        visible_labels = {}
+        for s in atlas_volume_parameters.visible_class_labels[1:]:
+            name = atlas_volume_parameters.class_description.loc[atlas_volume_parameters.class_description['label'] == s]['text'].values[0]
+            visible_labels[name] = s
+
+        self.visible_labels = collections.OrderedDict(sorted(visible_labels.items()))
+
+        for item in self.visible_labels.items():
+            name = item[0]
+            pb = QCustomIconsPushButton(name, self.parent, icon_style='right', right_behaviour='stand-alone')
             pb.setText(name)
             pb.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                   '../../../Images/closed_eye_icon.png'))), QSize(20, 20), side='right',
@@ -99,5 +105,6 @@ class AtlasSingleLayerCollapsibleGroupBox(QCollapsibleGroupBox):
         self.header_pushbutton.setText(self.title)
 
     def __on_display_toggled(self, structure_uid, state):
-        self.structure_view_toggled.emit(self.uid, structure_uid, state)
-
+        params = SoftwareConfigResources.getInstance().patients_parameters[SoftwareConfigResources.getInstance().active_patient_name].atlas_volumes[self.uid].visible_class_labels
+        label_val = params.index(self.visible_labels[structure_uid])
+        self.structure_view_toggled.emit(self.uid, str(label_val), state)

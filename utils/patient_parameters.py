@@ -408,6 +408,7 @@ class AtlasVolume():
         self.class_description_filename = description_filename
         self.class_description = {}
         self.class_number = 0
+        self.visible_class_labels = []
 
         # Display parameters, for reload/dump of the scene
         self.display_name = uid
@@ -426,15 +427,15 @@ class AtlasVolume():
 
     def set_display_volume(self, display_volume: np.ndarray) -> None:
         self.display_volume = display_volume
-        total_labels = np.unique(self.display_volume)
-        self.class_number = len(total_labels) - 1
+        self.visible_class_labels = list(np.unique(self.display_volume))
+        self.class_number = len(self.visible_class_labels) - 1
         self.one_hot_display_volume = np.zeros(shape=(self.display_volume.shape + (self.class_number + 1,)),
                                                dtype='uint8')
 
         for c in range(1, self.class_number + 1):
             self.class_display_color[c] = [255, 255, 255, 255]
             self.class_display_opacity[c] = 50
-            self.one_hot_display_volume[..., c][self.display_volume == total_labels[c]] = 1
+            self.one_hot_display_volume[..., c][self.display_volume == self.visible_class_labels[c]] = 1
 
 
 class ProjectParameters:
