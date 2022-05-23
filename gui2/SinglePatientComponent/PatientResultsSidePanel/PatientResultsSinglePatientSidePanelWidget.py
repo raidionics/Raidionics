@@ -31,14 +31,11 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.patient_list_scrollarea = QScrollArea()
         self.patient_list_scrollarea.show()
-        # self.patient_list_scrollarea.setStyleSheet("QScrollArea{background-color:rgb(255, 0, 100);)}")
         self.patient_list_scrollarea_layout = QVBoxLayout()
         self.patient_list_scrollarea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.patient_list_scrollarea.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.patient_list_scrollarea.setWidgetResizable(True)
         self.patient_list_scrollarea_dummy_widget = QLabel()
-        # self.patient_list_scrollarea_dummy_widget.setStyleSheet("QLabel{background-color:rgb(255, 100, 100);)}")
-        # self.patient_list_scrollarea_dummy_widget.setMinimumSize(QSize(self.parent.baseSize().width(), 500))
         self.patient_list_scrollarea_layout.setSpacing(0)
         self.patient_list_scrollarea_layout.setContentsMargins(0, 0, 0, 0)
         self.patient_list_scrollarea_layout.addStretch(1)
@@ -54,7 +51,6 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         self.layout.addLayout(self.bottom_layout)
 
     def __set_layout_dimensions(self):
-        # self.patient_list_scrollarea.setBaseSize(QSize(self.width(), 500))
         self.patient_list_scrollarea.setBaseSize(QSize(self.width(), 300))
         self.bottom_add_patient_pushbutton.setFixedHeight(40)
 
@@ -62,9 +58,13 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         self.bottom_add_patient_pushbutton.clicked.connect(self.on_add_new_empty_patient)
 
     def __set_stylesheets(self):
-        # self.overall_label.setStyleSheet("QLabel{background-color:rgb(0, 255, 0);}")
-        self.patient_list_scrollarea.setStyleSheet("QScrollArea{background-color:rgb(255, 255, 255);}")
-        self.bottom_add_patient_pushbutton.setStyleSheet("""QPushButton{
+        self.patient_list_scrollarea.setStyleSheet("""
+        QScrollArea{
+        background-color:rgb(255, 255, 255);
+        }""")
+
+        self.bottom_add_patient_pushbutton.setStyleSheet("""
+        QPushButton{
         background-color: rgba(0, 0, 0, 1);
         color: rgba(255, 255, 255, 1);
         font-size: 16px;
@@ -94,8 +94,7 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
             else:
                 pass
         self.patient_list_scrollarea_dummy_widget.setFixedSize(QSize(self.size().width(), actual_height))
-        # self.patient_list_scrollarea.resize(QSize(self.size().width(), actual_height))
-        logging.debug("Scroll area size set to {}.\n".format(QSize(self.size().width(), actual_height)))
+        logging.debug("Patient results scroll area size set to {}.\n".format(QSize(self.size().width(), actual_height)))
 
     def on_import_data(self):
         """

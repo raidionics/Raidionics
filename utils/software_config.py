@@ -49,6 +49,7 @@ class SoftwareConfigResources:
         self.diagnostics_runner = None
 
         self.__set_default_values()
+        self.__set_default_stylesheet_components()
         if os.path.exists(self.config_filename):
             self.config = configparser.ConfigParser()
             self.config.read(self.config_filename)
@@ -57,6 +58,12 @@ class SoftwareConfigResources:
     def __set_default_values(self):
         self.patients_parameters = {}  # Storing open patients with a key (name) and a class instance
         self.active_patient_name = None  # ID of the patient currently displayed in the single mode?
+
+    def __set_default_stylesheet_components(self):
+        self.stylesheet_components = {}
+        self.stylesheet_components["Color1"] = "rgba(0, 0, 0, 1)"
+        self.stylesheet_components["Color2"] = "rgba(255, 255, 255, 1)"
+        self.stylesheet_components["Color7"] = "rgba(67, 88, 90, 1)"
 
     def __parse_config(self):
         pass

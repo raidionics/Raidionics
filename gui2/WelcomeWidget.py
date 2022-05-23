@@ -8,8 +8,6 @@ import logging
 from utils.software_config import SoftwareConfigResources
 
 
-#@FIXME. Inheriting directly from QWidget prevents to use stylesheets on that object. If white painting is needed, might
-# have to inherit from QLabel or something.
 class WelcomeWidget(QWidget):
     """
     Starting page when launching the software.
@@ -158,32 +156,102 @@ class WelcomeWidget(QWidget):
         self.left_panel_label.setFixedSize(QSize(350, 400))
 
     def __set_stylesheets(self):
-        self.central_label.setStyleSheet("QLabel{border:1px solid; background-color:rgb(255,0,0); border-color:rgb(230,230,230);}")
+        software_ss = SoftwareConfigResources.getInstance().stylesheet_components
+        self.central_label.setStyleSheet("""
+        QLabel{
+        border:1px solid; 
+        background-color:rgb(255,0,0); 
+        border-color:rgb(230,230,230);
+        }""")
 
-        # self.widget.setStyleSheet("QWidget:{background-color:rgb(255,0,0);}")
-        self.right_panel_label.setStyleSheet("QLabel{background-color:rgba(235, 235, 235, 1);}")
-        self.right_panel_more_info_label.setStyleSheet("QLabel{color:rgb(67, 88, 90);border: 0px; font-size:16px;}")
-        self.right_panel_about_us_pushbutton.setStyleSheet("QPushButton{color: rgba(0, 0, 0, 0); border:none;}")
-        self.right_panel_show_around_pushbutton.setStyleSheet("QPushButton{color: rgba(0, 0, 0, 0); border:none;}")
-        self.right_panel_community_pushbutton.setStyleSheet("QPushButton{color: rgba(0, 0, 0, 0); border:none;}")
+        self.right_panel_label.setStyleSheet("""
+        QLabel{
+        background-color:rgba(235, 235, 235, 1);
+        }""")
 
-        self.left_panel_label.setStyleSheet("QLabel{background-color:rgba(255, 255, 255, 1);}")
+        self.right_panel_more_info_label.setStyleSheet("""
+        QLabel{
+        color: """ + software_ss["Color7"] + """;
+        border: 0px;
+        font-size:16px;
+        }""")
+
+        self.right_panel_about_us_pushbutton.setStyleSheet("""
+        QPushButton{
+        color: """ + software_ss["Color1"] + """;
+        border:none;
+        }""")
+        self.right_panel_show_around_pushbutton.setStyleSheet("""
+        QPushButton{
+        color: """ + software_ss["Color1"] + """;
+        border:none;
+        }""")
+        self.right_panel_community_pushbutton.setStyleSheet("""
+        QPushButton{
+        color: """ + software_ss["Color1"] + """;
+        border:none;
+        }""")
+
+        self.left_panel_label.setStyleSheet("""
+        QLabel{
+        background-color:rgba(255, 255, 255, 1);
+        }""")
+
         self.left_panel_welcome_label.setStyleSheet("""
         QLabel{
-        color:rgb(67, 88, 90);
+        color: """ + software_ss["Color7"] + """;
         font:bold;
         font-size:20px;
         border: 0px;}
         """)
-        self.left_panel_startby_label.setStyleSheet("QLabel{color:rgb(67, 88, 90); border: 0px; font-size:16px;}")
-        self.left_panel_center_or_label.setStyleSheet("QLabel{color:rgb(67, 88, 90); border: 0px;}")
-        self.left_panel_single_patient_pushbutton.setStyleSheet("QPushButton{color:rgb(67, 88, 90); background-color: rgb(214, 252, 229); border-radius:20px;margin-left:5px;margin-right:5px;font:bold}"
-                                                      "QPushButton:pressed{background-color: rgb(161, 207, 179);border-style:inset}")
-        self.left_panel_multiple_patients_pushbutton.setStyleSheet("QPushButton{color:rgb(67, 88, 90); background-color: rgb(214, 252, 229); border-radius:20px;margin-left:5px;margin-right:5px;font:bold}"
-                                                      "QPushButton:pressed{background-color: rgb(161, 207, 179);border-style:inset}")
 
-        self.left_panel_right_line_or_label.setStyleSheet("QLabel{background-color: rgb(214, 252, 229);}")
-        self.left_panel_left_line_or_label.setStyleSheet("QLabel{background-color: rgb(214, 252, 229);}")
+        self.left_panel_startby_label.setStyleSheet("""
+        QLabel{
+        color: """ + software_ss["Color7"] + """;
+        border: 0px;
+        font-size:16px;
+        }""")
+
+        self.left_panel_center_or_label.setStyleSheet("""
+        QLabel{
+        color: """ + software_ss["Color7"] + """;
+        border: 0px;
+        }""")
+
+        self.left_panel_single_patient_pushbutton.setStyleSheet("""
+        QPushButton{
+        color: """ + software_ss["Color7"] + """;
+        background-color: rgb(214, 252, 229);
+        border-radius:20px;
+        margin-left:5px;
+        margin-right:5px;
+        font:bold}
+        QPushButton:pressed{
+        background-color: rgb(161, 207, 179);
+        border-style:inset
+        }""")
+
+        self.left_panel_multiple_patients_pushbutton.setStyleSheet("""
+        QPushButton{
+        color: """ + software_ss["Color7"] + """;
+        background-color: rgb(214, 252, 229);
+        border-radius:20px;
+        margin-left:5px;
+        margin-right:5px;
+        font:bold}
+        QPushButton:pressed{
+        background-color: rgb(161, 207, 179);
+        border-style:inset
+        }""")
+        self.left_panel_right_line_or_label.setStyleSheet("""
+        QLabel{
+        background-color: rgb(214, 252, 229);
+        }""")
+
+        self.left_panel_left_line_or_label.setStyleSheet("""
+        QLabel{
+        background-color: rgb(214, 252, 229);
+        }""")
 
     def __set_connections(self):
         self.left_panel_single_patient_pushbutton.pressed.connect(self.__on_left_panel_single_patient_pressed)

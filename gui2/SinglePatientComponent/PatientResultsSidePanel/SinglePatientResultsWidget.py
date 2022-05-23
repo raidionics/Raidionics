@@ -249,16 +249,36 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.subcorticalstructures_collapsiblegroupbox.header_pushbutton.clicked.connect(self.adjustSize)
 
     def __set_stylesheets(self):
-        self.content_label.setStyleSheet("QLabel{background-color:rgb(255, 255, 255);}")
-        self.header_pushbutton.setStyleSheet("QPushButton{background-color:rgba(254, 254, 254, 1); font:bold;}")
+        software_ss = SoftwareConfigResources.getInstance().stylesheet_components
+        self.content_label.setStyleSheet("""
+        QLabel{
+        background-color: """ + software_ss["Color2"] + """;
+        }""")
 
-        self.default_collapsiblegroupbox.content_label.setStyleSheet("QLabel{background-color:rgb(204, 204, 204);}")
-        self.default_collapsiblegroupbox.header_pushbutton.setStyleSheet("QPushButton{background-color:rgb(248, 248, 248); text-align:left;}")
-        self.overall_collapsiblegroupbox.header_pushbutton.setStyleSheet("QPushButton{background-color:rgb(248, 248, 248); text-align:left;}")
+        self.header_pushbutton.setStyleSheet("""
+        QPushButton{
+        background-color:rgba(254, 254, 254, 1);
+        font:bold;
+        }""")
+
+        self.default_collapsiblegroupbox.content_label.setStyleSheet("""
+        QLabel{
+        background-color:rgb(204, 204, 204);
+        }""")
+        self.default_collapsiblegroupbox.header_pushbutton.setStyleSheet("""
+        QPushButton{
+        background-color:rgb(248, 248, 248);
+        text-align:left;
+        }""")
+        self.overall_collapsiblegroupbox.header_pushbutton.setStyleSheet("""
+        QPushButton{
+        background-color:rgb(248, 248, 248);
+        text-align:left;
+        }""")
 
         self.patient_name_label.setStyleSheet("""
         QLabel{
-        color: rgba(67, 88, 90, 1);
+        color: """ + software_ss["Color7"] + """;
         text-align:left;
         font:semibold;
         font-size:14px;
@@ -271,7 +291,7 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         }""")
         self.output_dir_label.setStyleSheet("""
         QLabel{
-        color: rgba(67, 88, 90, 1);
+        color: """ + software_ss["Color7"] + """;
         text-align:left;
         font:semibold;
         font-size:14px;
@@ -286,7 +306,7 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.volumes_collapsiblegroupbox.header_pushbutton.setStyleSheet("""
         QPushButton{
         background-color:rgb(248, 248, 248);
-        color: rgba(67, 88, 90, 1);
+        color: """ + software_ss["Color7"] + """;
         text-align:left;
         font:bold;
         font-size:14px;
@@ -296,28 +316,28 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.volumes_collapsiblegroupbox.content_label.setStyleSheet("QLabel{background-color:rgb(254,254,254);}")
         self.mni_space_volume_header_label.setStyleSheet("""
         QLabel{
-        color: rgba(67, 88, 90, 1);
+        color: """ + software_ss["Color7"] + """;
         text-align:left;
         font:semibold;
         font-size:14px;
         }""")
         self.mni_space_volume_label.setStyleSheet("""
         QLabel{
-        color: rgba(67, 88, 90, 1);
+        color: """ + software_ss["Color7"] + """;
         text-align:right;
         font:semibold;
         font-size:14px;
         }""")
         self.original_space_volume_header_label.setStyleSheet("""
         QLabel{
-        color: rgba(67, 88, 90, 1);
+        color: """ + software_ss["Color7"] + """;
         text-align:left;
         font:semibold;
         font-size:14px;
         }""")
         self.original_space_volume_label.setStyleSheet("""
         QLabel{
-        color: rgba(67, 88, 90, 1);
+        color: """ + software_ss["Color7"] + """;
         text-align:right;
         font:semibold;
         font-size:14px;
@@ -325,8 +345,9 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
 
         ######################################### LATERALITY GROUPBOX ################################################
         self.laterality_collapsiblegroupbox.header_pushbutton.setStyleSheet("""
-        QPushButton{background-color:rgb(248, 248, 248);
-        color: rgba(67, 88, 90, 1);
+        QPushButton{
+        background-color:rgb(248, 248, 248);
+        color: """ + software_ss["Color7"] + """;
         text-align:left;
         font:bold;
         font-size:14px;
@@ -336,42 +357,42 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.laterality_collapsiblegroupbox.content_label.setStyleSheet("QLabel{background-color:rgb(254,254,254);}")
         self.laterality_left_header_label.setStyleSheet("""
         QLabel{
-        color: rgba(67, 88, 90, 1);
+        color: """ + software_ss["Color7"] + """;
         text-align:left;
         font:semibold;
         font-size:14px;
         }""")
         self.laterality_left_label.setStyleSheet("""
         QLabel{
-        color: rgba(67, 88, 90, 1);
+        color: """ + software_ss["Color7"] + """;
         text-align:right;
         font:semibold;
         font-size:14px;
         }""")
         self.laterality_right_header_label.setStyleSheet("""
         QLabel{
-        color: rgba(67, 88, 90, 1);
+        color: """ + software_ss["Color7"] + """;
         text-align:left;
         font:semibold;
         font-size:14px;
         }""")
         self.laterality_right_label.setStyleSheet("""
         QLabel{
-        color: rgba(67, 88, 90, 1);
+        color: """ + software_ss["Color7"] + """;
         text-align:right;
         font:semibold;
         font-size:14px;
         }""")
         self.laterality_midline_header_label.setStyleSheet("""
         QLabel{
-        color: rgba(67, 88, 90, 1);
+        color: """ + software_ss["Color7"] + """;
         text-align:left;
         font:semibold;
         font-size:14px;
         }""")
         self.laterality_midline_label.setStyleSheet("""
         QLabel{
-        color: rgba(67, 88, 90, 1)};
+        color: """ + software_ss["Color7"] + """;
         text-align:right;
         font:semibold;
         font-size:14px;
@@ -380,7 +401,7 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         ######################################### MULTIFOCALITY GROUPBOX ##############################################
         self.multifocality_collapsiblegroupbox.header_pushbutton.setStyleSheet("""
         QPushButton{background-color:rgb(248, 248, 248);
-        color: rgba(67, 88, 90, 1);
+        color: """ + software_ss["Color7"] + """;
         text-align:left;
         font:bold;
         font-size:14px;
@@ -392,7 +413,7 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         ######################################### CORTICAL STRUCTURES GROUPBOX #########################################
         self.corticalstructures_collapsiblegroupbox.header_pushbutton.setStyleSheet("""
         QPushButton{background-color:rgb(248, 248, 248);
-        color: rgba(67, 88, 90, 1);
+        color: """ + software_ss["Color7"] + """;
         text-align:left;
         font:bold;
         font-size:14px;
@@ -404,16 +425,23 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         ###################################### SUBCORTICAL STRUCTURES GROUPBOX #########################################
         self.subcorticalstructures_collapsiblegroupbox.header_pushbutton.setStyleSheet("""
         QPushButton{background-color:rgb(248, 248, 248);
-        color: rgba(67, 88, 90, 1);
+        color: """ + software_ss["Color7"] + """;
         text-align:left;
         font:bold;
         font-size:14px;
         padding-left:20px;
         padding-right:20px;
         }""")
-        self.subcorticalstructures_collapsiblegroupbox.content_label.setStyleSheet("QLabel{background-color:rgb(254,254,254);}")
 
-        self.overall_collapsiblegroupbox.content_label.setStyleSheet("QLabel{background-color:rgb(254,254,254);}")
+        self.subcorticalstructures_collapsiblegroupbox.content_label.setStyleSheet("""
+        QLabel{
+        background-color:rgb(254,254,254);
+        }""")
+
+        self.overall_collapsiblegroupbox.content_label.setStyleSheet("""
+        QLabel{
+        background-color:rgb(254,254,254);
+        }""")
 
     def adjustSize(self):
         actual_height = self.default_collapsiblegroupbox.sizeHint().height() + \
@@ -455,6 +483,7 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.header_pushbutton.setText(self.title)
 
     def on_standardized_report_imported(self):
+        software_ss = SoftwareConfigResources.getInstance().stylesheet_components
         report_json = SoftwareConfigResources.getInstance().patients_parameters[self.uid].standardized_report
 
         self.original_space_volume_label.setText(str(report_json['Main']['Total']['Volume original (ml)']) + ' ml')
@@ -483,7 +512,7 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
             label.setFixedHeight(20)
             label.setStyleSheet("""
             QLabel{
-            color: rgba(67, 88, 90, 1);
+            color: """ + software_ss["Color7"] + """;
             text-align:left;
             font:bold;
             font-size:14px;
@@ -511,14 +540,14 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
                     lay.addWidget(label)
                     label_header.setStyleSheet("""
                     QLabel{
-                    color: rgba(67, 88, 90, 1);
+                    color: """ + software_ss["Color7"] + """;
                     text-align:left;
                     font:semibold;
                     font-size:13px;
                     }""")
                     label.setStyleSheet("""
                     QLabel{
-                    color: rgba(67, 88, 90, 1);
+                    color: """ + software_ss["Color7"] + """;
                     text-align:right;
                     font:semibold;
                     font-size:13px;
@@ -536,7 +565,7 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
             label.setFixedHeight(20)
             label.setStyleSheet("""
             QLabel{
-            color: rgba(67, 88, 90, 1);
+            color: """ + software_ss["Color7"] + """;
             text-align:left;
             font:bold;
             font-size:14px;
@@ -564,14 +593,14 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
                     lay.addWidget(label)
                     label_header.setStyleSheet("""
                     QLabel{
-                    color: rgba(67, 88, 90, 1);
+                    color: """ + software_ss["Color7"] + """;
                     text-align:left;
                     font:semibold;
                     font-size:13px;
                     }""")
                     label.setStyleSheet("""
                     QLabel{
-                    color: rgba(67, 88, 90, 1);
+                    color: """ + software_ss["Color7"] + """;
                     text-align:right;
                     font:semibold;
                     font-size:13px;
