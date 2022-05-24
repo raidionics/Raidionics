@@ -333,7 +333,7 @@ class CentralAreaExecutionWidget(QLabel):
                 rads_config.write(outfile)
 
             from raidionicsrads.compute import run_rads
-            # run_rads(rads_config_filename)
+            run_rads(rads_config_filename)
             # logging.debug("Spawning multiprocess...")
             # mp.set_start_method('spawn', force=True)
             # with mp.Pool(processes=1, maxtasksperchild=1) as p:  # , initializer=initializer)

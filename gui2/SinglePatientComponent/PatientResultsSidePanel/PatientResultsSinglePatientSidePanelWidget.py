@@ -1,5 +1,6 @@
-from PySide2.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QScrollArea, QPushButton, QLabel, QSpacerItem, QGridLayout
-from PySide2.QtCore import QSize, Qt, Signal
+from PySide2.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QScrollArea, QPushButton, QLabel, QSpacerItem,\
+    QGridLayout, QMenu, QAction
+from PySide2.QtCore import QSize, Qt, Signal, QPoint
 from PySide2.QtGui import QIcon, QPixmap
 import os
 import logging
@@ -13,6 +14,9 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
     and maybe the SinglePatientResultsWidget if the scroll area is filled.
     """
     patient_selected = Signal(str)  # Unique internal id of the selected patient
+    import_patient_from_dicom_requested = Signal()
+    import_patient_from_data_requested = Signal()
+    import_patient_from_custom_requested = Signal()
 
     def __init__(self, parent=None):
         super(PatientResultsSinglePatientSidePanelWidget, self).__init__()
@@ -41,35 +45,76 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         self.patient_list_scrollarea_layout.addStretch(1)
         self.patient_list_scrollarea_dummy_widget.setLayout(self.patient_list_scrollarea_layout)
         self.patient_list_scrollarea.setWidget(self.patient_list_scrollarea_dummy_widget)
-        self.bottom_layout = QHBoxLayout()
+        self.bottom_layout = QVBoxLayout()
+        self.bottom_add_patient_empty_pushbutton = QPushButton("Empty Patient")
+        self.bottom_add_patient_empty_pushbutton.setVisible(False)
+        self.bottom_add_patient_raidionics_pushbutton = QPushButton("Raidionics file")
+        self.bottom_add_patient_raidionics_pushbutton.setVisible(False)
+        self.bottom_add_patient_dicom_pushbutton = QPushButton("DICOM")
+        self.bottom_add_patient_dicom_pushbutton.setVisible(False)
+        self.bottom_add_patient_files_pushbutton = QPushButton("Other Data Type (*.nii)")
+        self.bottom_add_patient_files_pushbutton.setVisible(False)
         self.bottom_add_patient_pushbutton = QPushButton("Import patient")
         self.bottom_add_patient_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                                             '../../Images/download_icon.png'))))
         self.bottom_add_patient_pushbutton.setIconSize(QSize(40, 30))
         self.bottom_layout.addWidget(self.bottom_add_patient_pushbutton)
+        self.bottom_add_patient_pushbutton.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.options_menu = QMenu(self)
+        self.add_empty_patient_action = QAction('Empty patient', self)
+        self.options_menu.addAction(self.add_empty_patient_action)
+        self.add_raidionics_patient_action = QAction('Raidionics', self)
+        self.options_menu.addAction(self.add_raidionics_patient_action)
+        self.add_dicom_patient_action = QAction('DICOM', self)
+        self.options_menu.addAction(self.add_dicom_patient_action)
+        self.add_other_data_action = QAction('Other data type (*.nii)', self)
+        self.options_menu.addAction(self.add_other_data_action)
+        self.options_menu.addSeparator()
+
         self.layout.addWidget(self.patient_list_scrollarea)
         self.layout.addLayout(self.bottom_layout)
 
     def __set_layout_dimensions(self):
         self.patient_list_scrollarea.setBaseSize(QSize(self.width(), 300))
         self.bottom_add_patient_pushbutton.setFixedHeight(40)
+        self.options_menu.setFixedSize(QSize(self.width(), 115))
 
     def __set_connections(self):
-        self.bottom_add_patient_pushbutton.clicked.connect(self.on_add_new_empty_patient)
+        self.bottom_add_patient_pushbutton.clicked.connect(self.on_import_options_clicked)
+        # self.bottom_add_patient_pushbutton.customContextMenuRequested.connect(self.on_import_options_clicked)
+        self.add_empty_patient_action.triggered.connect(self.on_add_new_empty_patient)
 
     def __set_stylesheets(self):
+        software_ss = SoftwareConfigResources.getInstance().stylesheet_components
+
         self.patient_list_scrollarea.setStyleSheet("""
         QScrollArea{
-        background-color:rgb(255, 255, 255);
+        background-color: """ + software_ss["Color2"] + """;
         }""")
 
         self.bottom_add_patient_pushbutton.setStyleSheet("""
         QPushButton{
-        background-color: rgba(0, 0, 0, 1);
-        color: rgba(255, 255, 255, 1);
+        background-color: """ + software_ss["Color1"] + """;
+        color: """ + software_ss["Color2"] + """;
         font-size: 16px;
         }
         QPushButton:pressed{
+        background-color: rgba(50, 50, 50, 1);
+        border-style:inset;
+        }""")
+
+        # Note: For QMenu, :selected must be used to specify the on-hover stylesheet (:hover does not work.)
+        # https://stackoverflow.com/questions/47082375/how-to-set-hover-on-qmenu
+        self.options_menu.setStyleSheet("""
+        QMenu{
+        background-color: """ + software_ss["Color1"] + """;
+        color: """ + software_ss["Color2"] + """;
+        font-size: 16px;
+        }
+        QMenu:selected{
+        background-color: rgba(50, 50, 50, 1);
+        }
+        QMenu:pressed{
         background-color: rgba(50, 50, 50, 1);
         border-style:inset;
         }""")
@@ -170,3 +215,6 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
 
     def on_standardized_report_imported(self):
         self.patient_results_widgets[SoftwareConfigResources.getInstance().get_active_patient().patient_id].on_standardized_report_imported()
+
+    def on_import_options_clicked(self, point):
+        self.options_menu.exec_(self.bottom_add_patient_pushbutton.mapToGlobal(QPoint(0, -75)))

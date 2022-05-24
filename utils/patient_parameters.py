@@ -50,6 +50,7 @@ class PatientParameters:
         """
         self.patient_id = id.replace(" ", '_').strip()
         self.patient_visible_name = self.patient_id
+        self.unsaved_changes = False
 
         # Initially, everything is dumped in the software temp place, until a destination is chosen by the user.
         # Should we have a patient-named folder, so that the user only needs to choose the global destination directory
@@ -67,14 +68,8 @@ class PatientParameters:
         self.mri_volumes = {}
         self.annotation_volumes = {}
         self.atlas_volumes = {}
-        # @TODO. Do we consider all atlases the same, or should separate cortical and subcortical?
         self.standardized_report_filename = None
         self.standardized_report = None
-
-        # self.import_raw_data = {}
-        # self.import_display_data = {}
-        # self.raw_annotation = {}
-        # self.display_annotation = {}
 
     def __init_json_config(self):
         """
@@ -89,7 +84,7 @@ class PatientParameters:
         self.patient_parameters_project_json['Parameters']['Default']['Patient_visible_name'] = self.patient_visible_name
         self.patient_parameters_project_json['Volumes'] = {}
         self.patient_parameters_project_json['Annotations'] = {}
-        self.patient_parameters_project_json['CorticalStructures'] = {}
+        self.patient_parameters_project_json['Atlases'] = {}
 
     def set_visible_name(self, new_name):
         self.patient_visible_name = new_name.strip()
@@ -140,13 +135,28 @@ class PatientParameters:
             for volume_id in list(self.patient_parameters_project_json['Annotations'].keys()):
                 try:
                     # @TODO. Should also check if the raw filepath is within the folder or somewhere else on the machine
-                    annotation_volume = MRIVolume(uid=volume_id, filename=self.patient_parameters_project_json['Annotations'][volume_id]['raw_volume_filepath'])
+                    annotation_volume = AnnotationVolume(uid=volume_id, filename=self.patient_parameters_project_json['Annotations'][volume_id]['raw_volume_filepath'])
                     annotation_volume.display_volume_filepath = os.path.join(self.output_folder, self.patient_parameters_project_json['Annotations'][volume_id]['display_volume_filepath'])
                     annotation_volume.display_volume = nib.load(annotation_volume.display_volume_filepath).get_data()[:]
                     annotation_volume.display_color = self.patient_parameters_project_json['Annotations'][volume_id]['display_color']
                     annotation_volume.display_opacity = self.patient_parameters_project_json['Annotations'][volume_id]['display_opacity']
                     annotation_volume.display_name = self.patient_parameters_project_json['Annotations'][volume_id]['display_name']
                     self.annotation_volumes[volume_id] = annotation_volume
+                except Exception:
+                    if error_message:
+                        error_message = error_message + "\nImport annotation failed, for volume {}".format(volume_id)
+                    else:
+                        error_message = "Import annotation failed, for volume {}".format(volume_id)
+
+            for volume_id in list(self.patient_parameters_project_json['Atlases'].keys()):
+                try:
+                    atlas_volume = AtlasVolume(uid=volume_id,
+                                               filename=os.path.join(self.output_folder, self.patient_parameters_project_json['Atlases'][volume_id]['raw_volume_filepath']),
+                                               description_filename=os.path.join(self.output_folder, self.patient_parameters_project_json['Atlases'][volume_id]['description_filepath']))
+                    atlas_volume.display_volume_filepath = os.path.join(self.output_folder, self.patient_parameters_project_json['Annotations'][volume_id]['display_volume_filepath'])
+                    atlas_volume.set_display_volume(display_volume=nib.load(atlas_volume.display_volume_filepath).get_data()[:])
+                    atlas_volume.display_name = self.patient_parameters_project_json['Atlases'][volume_id]['display_name']
+                    self.atlas_volumes[volume_id] = atlas_volume
                 except Exception:
                     if error_message:
                         error_message = error_message + "\nImport annotation failed, for volume {}".format(volume_id)
@@ -318,11 +328,11 @@ class PatientParameters:
 
         for i, atlas in enumerate(list(self.atlas_volumes.keys())):
             volume_dump_filename = os.path.join(display_folder, atlas + '_display.nii.gz')
-            self.patient_parameters_project_json['CorticalStructures'][atlas] = {}
-            self.patient_parameters_project_json['CorticalStructures'][atlas]['display_name'] = self.atlas_volumes[atlas].display_name
-            self.patient_parameters_project_json['CorticalStructures'][atlas]['raw_volume_filepath'] = os.path.relpath(self.atlas_volumes[atlas].raw_filepath, self.output_folder)
-            self.patient_parameters_project_json['CorticalStructures'][atlas]['display_volume_filepath'] = os.path.relpath(volume_dump_filename, self.output_folder)
-            self.patient_parameters_project_json['CorticalStructures'][atlas]['description_filepath'] = os.path.relpath(self.atlas_volumes[atlas].class_description_filename, self.output_folder)
+            self.patient_parameters_project_json['Atlases'][atlas] = {}
+            self.patient_parameters_project_json['Atlases'][atlas]['display_name'] = self.atlas_volumes[atlas].display_name
+            self.patient_parameters_project_json['Atlases'][atlas]['raw_volume_filepath'] = os.path.relpath(self.atlas_volumes[atlas].raw_filepath, self.output_folder)
+            self.patient_parameters_project_json['Atlases'][atlas]['display_volume_filepath'] = os.path.relpath(volume_dump_filename, self.output_folder)
+            self.patient_parameters_project_json['Atlases'][atlas]['description_filepath'] = os.path.relpath(self.atlas_volumes[atlas].class_description_filename, self.output_folder)
 
         # Saving the json file last, as it must be populated from the previous dumps beforehand
         with open(self.patient_parameters_project_filename, 'w') as outfile:
