@@ -47,12 +47,7 @@ class RaidionicsMainWindow(QMainWindow):
 
         self.setWindowState(Qt.WindowState.WindowActive)  # Bring window to foreground? To check!
 
-        # self.printer_thread = WorkerThread()
-        # self.printer_thread.message.connect(self.standardOutputWritten)
-        # self.printer_thread.start()
-
     def closeEvent(self, event):
-        # self.printer_thread.stop()
         pass
 
     def resizeEvent(self, event):
@@ -61,7 +56,6 @@ class RaidionicsMainWindow(QMainWindow):
         self.height = 0.75 * new_size.height()
         self.fixed_width = 0.75 * new_size.width()
         self.fixed_height = 0.75 * new_size.height()
-        # @TODO. How to propagate the info correctly?
 
     def __set_interface(self):
         self.setWindowTitle("Raidionics")
@@ -127,8 +121,6 @@ class RaidionicsMainWindow(QMainWindow):
     def __set_layouts(self):
         self.setMenuBar(self.menu_bar)
         self.main_window_layout = QHBoxLayout()
-        self.__set_mainexecution_layout()
-        self.__set_maindisplay_layout()
 
         self.central_label = QLabel()
         self.central_label.setLayout(self.main_window_layout)
@@ -136,29 +128,12 @@ class RaidionicsMainWindow(QMainWindow):
         self.central_stackedwidget.setMinimumSize(self.central_stackedwidget.currentWidget().minimumSize())
         self.setCentralWidget(self.central_stackedwidget)
 
-    def __set_mainexecution_layout(self):
-        self.mainexecution_layout = QVBoxLayout()
-        # self.main_window_layout.addWidget(self.processing_area_widget)
-
-    def __set_maindisplay_layout(self):
-        self.maindisplay_layout = QHBoxLayout()
-        # self.main_window_layout.addWidget(self.display_area_widget)
-
     def __set_stylesheet(self):
-        return
-        self.welcome_label.setStyleSheet("QLabel{font:bold;font-size:20px;}")
-        # self.central_label.setStyleSheet(
-        #     'QLabel{background-color: #E7EFF1;}') #qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0 rgba(207, 209, 207, 255), stop:1 rgba(230, 229, 230, 255));}')
-
-        # self.main_selection_pushbutton1.setFixedWidth(self.width * self.button_width)
-        # self.main_selection_pushbutton1.setFixedHeight(self.height * self.button_height * 1.5)
-        self.main_selection_pushbutton1.setStyleSheet("QPushButton{background-color: rgb(214, 252, 229); border-radius:20px;margin-left:5px;margin-right:5px;font:bold} QPushButton:pressed{background-color: rgb(161, 207, 179);border-style:inset}")
-
-        self.main_selection_pushbutton2.setStyleSheet("QPushButton{background-color: rgb(214, 252, 229); border-radius:20px;margin-left:5px;margin-right:5px;font:bold} QPushButton:pressed{background-color: rgb(161, 207, 179);border-style:inset}")
-
-        # Or spacer
-        self.right_line_or_label.setStyleSheet("QLabel{background-color: rgb(214, 252, 229);}")
-        self.left_line_or_label.setStyleSheet("QLabel{background-color: rgb(214, 252, 229);}")
+        software_ss = SoftwareConfigResources.getInstance().stylesheet_components
+        self.setStyleSheet("""
+        QMainWindow{
+        background-color: """ + software_ss["Color2"] + """;
+        }""")
 
     def __set_connections(self):
         self.__set_menubar_connections()
@@ -174,7 +149,7 @@ class RaidionicsMainWindow(QMainWindow):
         self.new_patient_clicked.connect(self.single_patient_widget.on_single_patient_clicked)
 
     def __set_menubar_connections(self):
-        pass
+        self.quit_action.triggered.connect(sys.exit)
 
     def __get_screen_dimensions(self):
         screen = self.app.primaryScreen()
@@ -201,7 +176,7 @@ class RaidionicsMainWindow(QMainWindow):
         self.left = (self.primary_screen_dimensions.width() - self.width) / 2
         self.top = (self.primary_screen_dimensions.height() - self.height) / 2
         self.setMinimumSize(QSize(self.width, self.height))
-        # A maximum size would prevent from maximizing on Windows.
+        # A maximum size would prevent from maximizing on Windows...
         # self.setMaximumSize(QSize(self.primary_screen_dimensions.width(), self.primary_screen_dimensions.height()))
         self.setBaseSize(QSize(self.width, self.height))
         logging.debug("Setting application dimensions to [w: {}, h: {}]".format(self.width, self.height))
@@ -256,11 +231,6 @@ class RaidionicsMainWindow(QMainWindow):
                       'For questions about the methodological aspect, please refer to the original publication:\n'
                       'https://www.mdpi.com/2072-6694/13/12/2854/review_report')
         popup.exec_()
-
-    def quit_action_triggered(self):
-        self.processing_area_widget.closeEvent(QCloseEvent())
-        self.printer_thread.stop()
-        sys.exit()
 
     def help_action_triggered(self):
         # opens browser with specified url, directs user to Issues section of GitHub repo

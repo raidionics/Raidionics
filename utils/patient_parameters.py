@@ -16,30 +16,8 @@ from aenum import Enum, unique
 import logging
 from typing import Union, Any
 from utils.patient_dicom import DICOMSeries
-
-
-@unique
-class MRISequenceType(Enum):
-    _init_ = 'value string'
-
-    T1w = 0, 'T1-w'
-    T1c = 1, 'T1-CE'
-    T2 = 2, 'T2'
-    FLAIR = 3, 'FLAIR'
-
-    def __str__(self):
-        return self.string
-
-
-@unique
-class AnnotationClassType(Enum):
-    _init_ = 'value string'
-
-    Brain = 0, 'Brain'
-    Tumor = 1, 'Tumor'
-
-    def __str__(self):
-        return self.string
+from utils.data_structures.MRIVolumeStructure import MRIVolume
+from utils.data_structures.AnnotationStructure import AnnotationVolume
 
 
 class PatientParameters:
@@ -86,6 +64,9 @@ class PatientParameters:
         self.patient_parameters_project_json['Annotations'] = {}
         self.patient_parameters_project_json['Atlases'] = {}
 
+    def has_unsaved_changes(self) -> bool:
+        return self.unsaved_changes
+
     def set_visible_name(self, new_name):
         self.patient_visible_name = new_name.strip()
         new_output_folder = os.path.join(self.output_dir, "patients", self.patient_visible_name.lower().replace(" ", '_'))
@@ -123,14 +104,14 @@ class PatientParameters:
                     mri_volume = MRIVolume(uid=volume_id, filename=self.patient_parameters_project_json['Volumes'][volume_id]['raw_volume_filepath'])
                     mri_volume.display_volume_filepath = os.path.join(self.output_folder, self.patient_parameters_project_json['Volumes'][volume_id]['display_volume_filepath'])
                     mri_volume.display_volume = nib.load(mri_volume.display_volume_filepath).get_data()[:]
-                    # @TODO. Have to convert from string to AEnum type.
-                    mri_volume.sequence_type = self.patient_parameters_project_json['Volumes'][volume_id]['sequence_type']
+                    mri_volume.set_display_name(self.patient_parameters_project_json['Volumes'][volume_id]['display_name'])
+                    mri_volume.set_sequence_type(self.patient_parameters_project_json['Volumes'][volume_id]['sequence_type'])
                     self.mri_volumes[volume_id] = mri_volume
                 except Exception:
                     if error_message:
-                        error_message = error_message + "\nImport MRI failed, for volume {}".format(volume_id)
+                        error_message = error_message + "\nImport MRI failed, for volume {}.\n".format(volume_id) + str(traceback.format_exc())
                     else:
-                        error_message = "Import MRI failed, for volume {}".format(volume_id)
+                        error_message = "Import MRI failed, for volume {}.\n".format(volume_id) + str(traceback.format_exc())
 
             for volume_id in list(self.patient_parameters_project_json['Annotations'].keys()):
                 try:
@@ -138,32 +119,32 @@ class PatientParameters:
                     annotation_volume = AnnotationVolume(uid=volume_id, filename=self.patient_parameters_project_json['Annotations'][volume_id]['raw_volume_filepath'])
                     annotation_volume.display_volume_filepath = os.path.join(self.output_folder, self.patient_parameters_project_json['Annotations'][volume_id]['display_volume_filepath'])
                     annotation_volume.display_volume = nib.load(annotation_volume.display_volume_filepath).get_data()[:]
-                    annotation_volume.display_color = self.patient_parameters_project_json['Annotations'][volume_id]['display_color']
-                    annotation_volume.display_opacity = self.patient_parameters_project_json['Annotations'][volume_id]['display_opacity']
-                    annotation_volume.display_name = self.patient_parameters_project_json['Annotations'][volume_id]['display_name']
+                    annotation_volume.set_display_color(self.patient_parameters_project_json['Annotations'][volume_id]['display_color'])
+                    annotation_volume.set_display_opacity(self.patient_parameters_project_json['Annotations'][volume_id]['display_opacity'])
+                    annotation_volume.set_display_name(self.patient_parameters_project_json['Annotations'][volume_id]['display_name'])
                     self.annotation_volumes[volume_id] = annotation_volume
                 except Exception:
                     if error_message:
-                        error_message = error_message + "\nImport annotation failed, for volume {}".format(volume_id)
+                        error_message = error_message + "\nImport annotation failed, for volume {}.\n".format(volume_id) + str(traceback.format_exc())
                     else:
-                        error_message = "Import annotation failed, for volume {}".format(volume_id)
+                        error_message = "Import annotation failed, for volume {}.\n".format(volume_id) + str(traceback.format_exc())
 
             for volume_id in list(self.patient_parameters_project_json['Atlases'].keys()):
                 try:
                     atlas_volume = AtlasVolume(uid=volume_id,
                                                filename=os.path.join(self.output_folder, self.patient_parameters_project_json['Atlases'][volume_id]['raw_volume_filepath']),
                                                description_filename=os.path.join(self.output_folder, self.patient_parameters_project_json['Atlases'][volume_id]['description_filepath']))
-                    atlas_volume.display_volume_filepath = os.path.join(self.output_folder, self.patient_parameters_project_json['Annotations'][volume_id]['display_volume_filepath'])
-                    atlas_volume.set_display_volume(display_volume=nib.load(atlas_volume.display_volume_filepath).get_data()[:])
+                    atlas_volume.display_volume_filepath = os.path.join(self.output_folder, self.patient_parameters_project_json['Atlases'][volume_id]['display_volume_filepath'])
+                    atlas_volume.set_display_volume(display_volume=nib.load(os.path.join(self.output_folder, atlas_volume.display_volume_filepath)).get_data()[:])
                     atlas_volume.display_name = self.patient_parameters_project_json['Atlases'][volume_id]['display_name']
                     self.atlas_volumes[volume_id] = atlas_volume
                 except Exception:
                     if error_message:
-                        error_message = error_message + "\nImport annotation failed, for volume {}".format(volume_id)
+                        error_message = error_message + "\nImport atlas failed, for volume {}.\n".format(volume_id) + str(traceback.format_exc())
                     else:
-                        error_message = "Import annotation failed, for volume {}".format(volume_id)
+                        error_message = "Import atlas failed, for volume {}.\n".format(volume_id) + str(traceback.format_exc())
         except Exception:
-            error_message = "Import patient failed, from {}".format(os.path.basename(filename))
+            error_message = "Import patient failed, from {}.\n".format(os.path.basename(filename)) + str(traceback.format_exc())
         return error_message
 
     def import_data(self, filename: str, type: str = "MRI") -> Union[str, Any]:
@@ -227,6 +208,7 @@ class PatientParameters:
             error_message = e #traceback.format_exc()
 
         logging.info("New data file imported: {}".format(data_uid))
+        self.unsaved_changes = True
         return data_uid, error_message
 
     def import_dicom_data(self, dicom_series: DICOMSeries) -> Union[str, Any]:
@@ -303,13 +285,13 @@ class PatientParameters:
         for i, disp in enumerate(list(self.mri_volumes.keys())):
             volume_dump_filename = os.path.join(display_folder, disp + '_display.nii.gz')
             self.patient_parameters_project_json['Volumes'][disp] = {}
-            self.patient_parameters_project_json['Volumes'][disp]['display_name'] = self.mri_volumes[disp].display_name
+            self.patient_parameters_project_json['Volumes'][disp]['display_name'] = self.mri_volumes[disp].get_display_name()
             self.patient_parameters_project_json['Volumes'][disp]['raw_volume_filepath'] = self.mri_volumes[disp].raw_filepath
             self.patient_parameters_project_json['Volumes'][disp]['display_volume_filepath'] = os.path.relpath(volume_dump_filename, self.output_folder)
             nib.save(nib.Nifti1Image(self.mri_volumes[disp].display_volume,
                                      affine=[[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]),
                      volume_dump_filename)
-            self.patient_parameters_project_json['Volumes'][disp]['sequence_type'] = str(self.mri_volumes[disp].sequence_type)
+            self.patient_parameters_project_json['Volumes'][disp]['sequence_type'] = str(self.mri_volumes[disp].get_sequence_type_str())
 
         for i, disp in enumerate(list(self.annotation_volumes.keys())):
             volume_dump_filename = os.path.join(display_folder, disp + '_display.nii.gz')
@@ -332,77 +314,15 @@ class PatientParameters:
             self.patient_parameters_project_json['Atlases'][atlas]['display_name'] = self.atlas_volumes[atlas].display_name
             self.patient_parameters_project_json['Atlases'][atlas]['raw_volume_filepath'] = os.path.relpath(self.atlas_volumes[atlas].raw_filepath, self.output_folder)
             self.patient_parameters_project_json['Atlases'][atlas]['display_volume_filepath'] = os.path.relpath(volume_dump_filename, self.output_folder)
+            nib.save(nib.Nifti1Image(self.atlas_volumes[atlas].display_volume,
+                                     affine=[[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]),
+                     volume_dump_filename)
             self.patient_parameters_project_json['Atlases'][atlas]['description_filepath'] = os.path.relpath(self.atlas_volumes[atlas].class_description_filename, self.output_folder)
 
         # Saving the json file last, as it must be populated from the previous dumps beforehand
         with open(self.patient_parameters_project_filename, 'w') as outfile:
             json.dump(self.patient_parameters_project_json, outfile, indent=4, sort_keys=True)
-
-
-class MRIVolume():
-    """
-    Class defining how an MRI volume should be handled.
-    """
-    def __init__(self, uid, filename):
-        self.unique_id = uid
-        self.raw_filepath = filename
-        self.display_volume = None
-        self.display_volume_filepath = None
-        self.sequence_type = MRISequenceType.T1c
-        #@TODO. Should also add the registered versions in here.
-        # Display parameters, for reload/dump of the scene
-        self.display_name = uid
-
-        self.__parse_sequence_type()
-
-    def __parse_sequence_type(self):
-        base_name = self.unique_id.lower()
-        if "t2" in base_name and "tirm" in base_name:
-            self.sequence_type = MRISequenceType.FLAIR
-        elif "flair" in base_name:
-            self.sequence_type = MRISequenceType.FLAIR
-        elif "t2" in base_name:
-            self.sequence_type = MRISequenceType.T2
-        elif "gd" in base_name:
-            self.sequence_type = MRISequenceType.T1c
-        else:
-            self.sequence_type = MRISequenceType.T1w
-
-    def set_display_name(self, text):
-        self.display_name = text
-
-    def set_sequence_type(self, type):
-        if isinstance(type, str):
-            pass
-        elif isinstance(type, MRISequenceType):
-            self.sequence_type = type
-
-
-class AnnotationVolume():
-    """
-    Class defining how an annotation volume should be handled.
-    """
-    def __init__(self, uid, filename):
-        self.unique_id = uid
-        self.raw_filepath = filename
-        self.display_volume = None
-        self.display_volume_filepath = None
-        self.annotation_class = AnnotationClassType.Tumor
-        # Display parameters, for reload/dump of the scene
-        self.display_color = [255, 255, 255, 255]  # List with format: r, g, b, a
-        self.display_opacity = 50
-        self.display_name = uid
-        # @TODO. If we generate the probability map, could store it here and give the possibility to adjust the
-        # cut-off threshold for refinement?
-
-    def set_display_name(self, name):
-        self.display_name = name
-
-    def set_display_opacity(self, opacity):
-        self.display_opacity = opacity
-
-    def set_display_color(self, color):
-        self.display_color = color
+        self.unsaved_changes = False
 
 
 class AtlasVolume():

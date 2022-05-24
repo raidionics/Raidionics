@@ -7,7 +7,6 @@ import logging
 from gui2.UtilsWidgets.CustomQGroupBox.QCollapsibleGroupBox import QCollapsibleGroupBox
 
 from utils.software_config import SoftwareConfigResources
-from utils.patient_parameters import MRISequenceType
 
 
 class AnnotationSingleLayerWidget(QWidget):
@@ -147,17 +146,13 @@ class AnnotationSingleLayerWidget(QWidget):
 
     def __init_from_parameters(self):
         params = SoftwareConfigResources.getInstance().get_active_patient().annotation_volumes[self.uid]
-        self.display_name_lineedit.setText(params.display_name)
+        self.display_name_lineedit.setText(params.get_display_name())
         self.opacity_slider.blockSignals(True)
-        self.opacity_slider.setSliderPosition(params.display_opacity)
+        self.opacity_slider.setSliderPosition(params.get_display_opacity())
         self.opacity_slider.blockSignals(False)
-        self.color_dialog.setCurrentColor(QColor.fromRgb(params.display_color[0],
-                                                         params.display_color[1],
-                                                         params.display_color[2],
-                                                         params.display_color[3]))
-        custom_color_str = "background-color:rgb({}, {}, {})".format(params.display_color[0],
-                                                                     params.display_color[1],
-                                                                     params.display_color[2])
+        pcol = params.get_display_color()
+        self.color_dialog.setCurrentColor(QColor.fromRgb(pcol[0], pcol[1], pcol[2], pcol[3]))
+        custom_color_str = "background-color:rgba({}, {}, {}, {})".format(pcol[0], pcol[1], pcol[2], pcol[3])
         custom_ss = "QPushButton{" + custom_color_str + ";}"
         self.color_dialogpushbutton.setStyleSheet(self.color_dialogpushbutton_base_ss + custom_ss)
 

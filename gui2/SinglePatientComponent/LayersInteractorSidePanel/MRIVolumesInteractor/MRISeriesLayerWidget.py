@@ -7,7 +7,7 @@ import os
 from gui2.UtilsWidgets.CustomQGroupBox.QCollapsibleGroupBox import QCollapsibleGroupBox
 
 from utils.software_config import SoftwareConfigResources
-from utils.patient_parameters import MRISequenceType
+from utils.data_structures.MRIVolumeStructure import MRISequenceType
 
 
 class MRISeriesLayerWidget(QWidget):
@@ -76,9 +76,10 @@ class MRISeriesLayerWidget(QWidget):
         self.contrast_adjuster_pushbutton.clicked.connect(self.on_contrast_adjustment_clicked)
 
     def __set_stylesheets(self):
+        software_ss = SoftwareConfigResources.getInstance().stylesheet_components
         self.display_name_lineedit.setStyleSheet("""
         QLineEdit{
-        color: rgba(67, 88, 90, 1);
+        color: """ + software_ss["Color7"] + """;
         font: 14px;
         }""")
 
@@ -89,21 +90,21 @@ class MRISeriesLayerWidget(QWidget):
 
         self.sequence_type_label.setStyleSheet("""
         QLabel{
-        color: rgba(67, 88, 90, 1);
+        color: """ + software_ss["Color7"] + """;
         font: 10px;
         }""")
 
         self.sequence_type_combobox.setStyleSheet("""
         QComboBox{
-        color: rgba(67, 88, 90, 1);
+        color: """ + software_ss["Color7"] + """;
         font: bold;
         font-size: 12px;
         }""")
 
     def __init_from_parameters(self):
         mri_volume_parameters = SoftwareConfigResources.getInstance().get_active_patient().mri_volumes[self.uid]
-        self.display_name_lineedit.setText(mri_volume_parameters.display_name)
-        sequence_index = self.sequence_type_combobox.findText(str(mri_volume_parameters.sequence_type))
+        self.display_name_lineedit.setText(mri_volume_parameters.get_display_name())
+        sequence_index = self.sequence_type_combobox.findText(mri_volume_parameters.get_sequence_type_str())
         self.sequence_type_combobox.setCurrentIndex(sequence_index)
 
     def on_visibility_toggled(self, state):
@@ -114,8 +115,7 @@ class MRISeriesLayerWidget(QWidget):
         SoftwareConfigResources.getInstance().get_active_patient().mri_volumes[self.uid].set_display_name(text)
 
     def on_sequence_type_changed(self, text) -> None:
-        # SoftwareConfigResources.getInstance().get_active_patient().mri_volumes[self.uid].set_sequence_type(text)
-        pass
+        SoftwareConfigResources.getInstance().get_active_patient().mri_volumes[self.uid].set_sequence_type(text)
 
     def on_contrast_adjustment_clicked(self):
         pass

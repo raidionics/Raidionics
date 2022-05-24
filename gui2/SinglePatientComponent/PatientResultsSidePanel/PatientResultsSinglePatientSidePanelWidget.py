@@ -83,6 +83,9 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         self.bottom_add_patient_pushbutton.clicked.connect(self.on_import_options_clicked)
         # self.bottom_add_patient_pushbutton.customContextMenuRequested.connect(self.on_import_options_clicked)
         self.add_empty_patient_action.triggered.connect(self.on_add_new_empty_patient)
+        self.add_raidionics_patient_action.triggered.connect(self.import_patient_from_custom_requested)
+        self.add_dicom_patient_action.triggered.connect(self.import_patient_from_dicom_requested)
+        self.add_other_data_action.triggered.connect(self.import_patient_from_data_requested)
 
     def __set_stylesheets(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components

@@ -65,21 +65,15 @@ class SinglePatientWidget(QWidget):
         self.top_logo_panel_layout = QHBoxLayout()
         self.top_logo_panel_layout.setSpacing(5)
         self.top_logo_panel_label_import_file_pushbutton = QPushButton("Data")
-        self.top_logo_panel_label_import_file_pushbutton.setFixedSize(QSize(60, 20))
         self.top_logo_panel_label_import_file_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/upload_icon.png'))))
-        self.top_logo_panel_label_import_file_pushbutton.setIconSize(QSize(30, 30))
         self.top_logo_panel_layout.addWidget(self.top_logo_panel_label_import_file_pushbutton)
 
         self.top_logo_panel_label_import_dicom_pushbutton = QPushButton("DICOM")
-        self.top_logo_panel_label_import_dicom_pushbutton.setFixedSize(QSize(70, 20))
         self.top_logo_panel_label_import_dicom_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/upload_icon.png'))))
-        self.top_logo_panel_label_import_dicom_pushbutton.setIconSize(QSize(30, 30))
         self.top_logo_panel_layout.addWidget(self.top_logo_panel_label_import_dicom_pushbutton)
 
-        self.top_logo_panel_label_save_pushbutton = QPushButton()
-        self.top_logo_panel_label_save_pushbutton.setFixedSize(QSize(20, 20))
-        self.top_logo_panel_label_save_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/data_save_icon.png'))))
-        self.top_logo_panel_label_save_pushbutton.setIconSize(QSize(30, 30))
+        self.top_logo_panel_label_save_pushbutton = QPushButton("Save")
+        self.top_logo_panel_label_save_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/download_icon_black.png'))))
         self.top_logo_panel_layout.addWidget(self.top_logo_panel_label_save_pushbutton)
 
         self.top_logo_panel_layout.addStretch(1)
@@ -90,7 +84,16 @@ class SinglePatientWidget(QWidget):
         self.top_logo_panel_layout.addWidget(self.top_logo_panel_label, Qt.AlignLeft)
 
     def __set_layout_dimensions(self):
+        ################################## LOGO PANEL ######################################
         self.top_logo_panel_label.setFixedSize(QSize(150, 30))
+        self.top_logo_panel_label_import_file_pushbutton.setFixedSize(QSize(70, 20))
+        self.top_logo_panel_label_import_file_pushbutton.setIconSize(QSize(30, 30))
+        self.top_logo_panel_label_import_dicom_pushbutton.setFixedSize(QSize(70, 20))
+        self.top_logo_panel_label_import_dicom_pushbutton.setIconSize(QSize(30, 30))
+        self.top_logo_panel_label_save_pushbutton.setFixedSize(QSize(70, 20))
+        self.top_logo_panel_label_save_pushbutton.setIconSize(QSize(30, 30))
+
+        ################################## RIGHT PANEL ######################################
         self.right_panel_stackedwidget.setFixedWidth((315 / SoftwareConfigResources.getInstance().get_optimal_dimensions().width()) * self.parent.baseSize().width())
 
     def __set_stylesheets(self):
@@ -109,6 +112,11 @@ class SinglePatientWidget(QWidget):
         self.import_data_dialog.patient_imported.connect(self.results_panel.on_import_patient)
         self.import_dicom_dialog.patient_imported.connect(self.results_panel.on_import_patient)
         self.import_dicom_dialog.mri_volume_imported.connect(self.layers_panel.on_mri_volume_import)
+
+        # Connections relating patient selection (left-hand side) with data import
+        self.results_panel.import_patient_from_data_requested.connect(self.__on_import_file_clicked)
+        self.results_panel.import_patient_from_custom_requested.connect(self.__on_import_file_clicked)
+        self.results_panel.import_patient_from_dicom_requested.connect(self.__on_import_dicom_clicked)
 
         # Connections relating patient selection (left-hand side) with data display
         self.results_panel.patient_selected.connect(self.center_panel.on_patient_selected)

@@ -42,7 +42,6 @@ class WelcomeWidget(QWidget):
         # Always center aligning the center piece, while keeping the logo always at the top
         self.center_widget_container_layout.addWidget(self.central_label, 0, 0, Qt.AlignCenter)
         self.layout.addLayout(self.center_widget_container_layout)
-        # self.widget.setLayout(self.layout)
 
     def __top_logo_panel_interface(self):
         self.top_logo_panel_layout = QHBoxLayout()
@@ -67,26 +66,19 @@ class WelcomeWidget(QWidget):
         self.right_panel_layout.addItem(QSpacerItem(1, 15))
         self.right_panel_about_us_pushbutton = QPushButton()
         self.right_panel_about_us_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Images/find_more_icon.png'))))
-        self.right_panel_about_us_pushbutton.setIconSize(QSize(220, 60))
-        self.right_panel_about_us_pushbutton.setFixedSize(QSize(220, 40))
         self.right_panel_layout.addWidget(self.right_panel_about_us_pushbutton)
 
         self.right_panel_layout.addItem(QSpacerItem(1, 10))
         self.right_panel_show_around_pushbutton = QPushButton()
         self.right_panel_show_around_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Images/show_around_icon.png'))))
-        self.right_panel_show_around_pushbutton.setIconSize(QSize(220, 60))
-        self.right_panel_show_around_pushbutton.setFixedSize(QSize(220, 40))
         self.right_panel_layout.addWidget(self.right_panel_show_around_pushbutton)
 
         self.right_panel_layout.addItem(QSpacerItem(1, 10))
         self.right_panel_community_pushbutton = QPushButton()
         self.right_panel_community_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Images/research_community_icon.png'))))
-        self.right_panel_community_pushbutton.setIconSize(QSize(220, 60))
-        self.right_panel_community_pushbutton.setFixedSize(QSize(220, 40))
         self.right_panel_layout.addWidget(self.right_panel_community_pushbutton)
         self.right_panel_layout.addStretch(1)
 
-        self.right_panel_label.setFixedSize(QSize(350, 400))
         self.right_panel_label.setLayout(self.right_panel_layout)
 
     def __set_left_panel_interface(self):
@@ -109,7 +101,6 @@ class WelcomeWidget(QWidget):
         self.left_panel_single_patient_pushbutton = QPushButton()
         self.left_panel_single_patient_pushbutton_icon = QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Images/single_patient_icon_colored.png')))
         self.left_panel_single_patient_pushbutton.setIcon(self.left_panel_single_patient_pushbutton_icon)
-        self.left_panel_single_patient_pushbutton.setIconSize(QSize(50, 25))
         self.left_panel_single_patient_pushbutton.setText("Start new")
         self.left_panel_layout.addWidget(self.left_panel_single_patient_pushbutton)
 
@@ -131,41 +122,49 @@ class WelcomeWidget(QWidget):
         self.left_panel_multiple_patients_pushbutton.setText("New study")
         self.left_panel_multiple_patients_pushbutton_icon = QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Images/multiple_patients_icon_colored.png')))
         self.left_panel_multiple_patients_pushbutton.setIcon(self.left_panel_multiple_patients_pushbutton_icon)
-        self.left_panel_multiple_patients_pushbutton.setIconSize(QSize(50, 25))
         self.left_panel_layout.addWidget(self.left_panel_multiple_patients_pushbutton)
         self.left_panel_layout.addStretch(1)
 
         self.left_panel_label.setLayout(self.left_panel_layout)
 
     def __set_layout_dimensions(self):
-        # WHOLE WIDGET #
-        # self.central_label.setMinimumSize(QSize(0.75 * self.parent.baseSize().width(),
-        #                                         0.75 * self.parent.baseSize().height()))
+        ################################## WIDGET ######################################
         self.setBaseSize(self.parent.baseSize())
         self.central_label.setMinimumSize(QSize((1164 / SoftwareConfigResources.getInstance().get_optimal_dimensions().width()) * self.parent.baseSize().width(),
                                                 (535 / SoftwareConfigResources.getInstance().get_optimal_dimensions().height()) * self.parent.baseSize().height()))
 
-        # LOGO PANEL #
+        ################################## LOGO PANEL ######################################
         self.top_logo_panel_label.setFixedSize(QSize(200, 50))
 
-        # LEFT PANEL #
+        ################################## LEFT PANEL ######################################
         self.left_panel_welcome_label.setFixedSize(QSize(240, 20))
         self.left_panel_startby_label.setFixedSize(QSize(200, 20))
         self.left_panel_single_patient_pushbutton.setFixedSize(QSize(220, 40))
+        self.left_panel_single_patient_pushbutton.setIconSize(QSize(50, 25))
         self.left_panel_multiple_patients_pushbutton.setFixedSize(QSize(220, 40))
+        self.left_panel_multiple_patients_pushbutton.setIconSize(QSize(50, 25))
         self.left_panel_label.setFixedSize(QSize(350, 400))
+
+        ################################## RIGHT PANEL ######################################
+        self.right_panel_about_us_pushbutton.setFixedSize(QSize(220, 40))
+        self.right_panel_about_us_pushbutton.setIconSize(QSize(220, 60))
+        self.right_panel_show_around_pushbutton.setIconSize(QSize(220, 60))
+        self.right_panel_show_around_pushbutton.setFixedSize(QSize(220, 40))
+        self.right_panel_community_pushbutton.setIconSize(QSize(220, 60))
+        self.right_panel_community_pushbutton.setFixedSize(QSize(220, 40))
+        self.right_panel_label.setFixedSize(QSize(350, 400))
 
     def __set_stylesheets(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
         self.central_label.setStyleSheet("""
         QLabel{
-        border:1px solid; 
-        background-color:rgb(255,0,0); 
-        border-color:rgb(230,230,230);
+        background-color: """ + software_ss["Color2"] + """;
         }""")
 
         self.right_panel_label.setStyleSheet("""
         QLabel{
+        border:1px solid; 
+        border-color: rgba(235, 235, 235, 0.75);
         background-color:rgba(235, 235, 235, 1);
         }""")
 
@@ -194,6 +193,8 @@ class WelcomeWidget(QWidget):
 
         self.left_panel_label.setStyleSheet("""
         QLabel{
+        border:1px solid; 
+        border-color: rgba(235, 235, 235, 0.75);
         background-color:rgba(255, 255, 255, 1);
         }""")
 

@@ -8,6 +8,8 @@ from utils.software_config import SoftwareConfigResources
 
 
 class ImportDataQDialog(QDialog):
+    # @TODO. Should provide a flag to create a new patient, or fill the current one (if loading nifti files).
+    # @TODO. Should not have a drop-down for MRI/Annotation, but rather look at the content and determine automatically if MRI or annotation file.
     # The str is the unique id for the mri volume, belonging to the active patient
     mri_volume_imported = Signal(str)
     # The str is the unique id for the annotation volume, belonging to the active patient
