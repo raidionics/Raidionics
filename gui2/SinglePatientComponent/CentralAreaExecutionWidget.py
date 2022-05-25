@@ -177,7 +177,7 @@ class CentralAreaExecutionWidget(QLabel):
             seg_config.add_section('System')
             seg_config.set('System', 'gpu_id', "-1")
             seg_config.set('System', 'input_filename',
-                           current_patient_parameters.mri_volumes[self.selected_mri_uid].raw_filepath)
+                           current_patient_parameters.mri_volumes[self.selected_mri_uid].get_usable_input_filepath())
             seg_config.set('System', 'output_folder', current_patient_parameters.output_folder)
             seg_config.set('System', 'model_folder',
                            os.path.join(SoftwareConfigResources.getInstance().models_path, self.model_name))
@@ -317,7 +317,7 @@ class CentralAreaExecutionWidget(QLabel):
             rads_config.add_section('System')
             rads_config.set('System', 'gpu_id', "-1")
             rads_config.set('System', 'input_filename',
-                            current_patient_parameters.mri_volumes[self.selected_mri_uid].raw_filepath)
+                            current_patient_parameters.mri_volumes[self.selected_mri_uid].get_usable_input_filepath())
             rads_config.set('System', 'output_folder', reporting_folder)
             rads_config.set('System', 'model_folder',
                             os.path.join(SoftwareConfigResources.getInstance().models_path, self.model_name))

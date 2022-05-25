@@ -77,7 +77,7 @@ class AtlasSingleLayerCollapsibleGroupBox(QCollapsibleGroupBox):
         #@TODO. Should be alphabetically ordered, easier to go through, so the loop should be made different.
         visible_labels = {}
         for s in atlas_volume_parameters.visible_class_labels[1:]:
-            name = atlas_volume_parameters.class_description.loc[atlas_volume_parameters.class_description['label'] == s]['text'].values[0]
+            name = atlas_volume_parameters.get_class_description().loc[atlas_volume_parameters.get_class_description()['label'] == s]['text'].values[0]
             visible_labels[name] = s
 
         self.visible_labels = collections.OrderedDict(sorted(visible_labels.items()))

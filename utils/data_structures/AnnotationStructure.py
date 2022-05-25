@@ -1,8 +1,13 @@
 from aenum import Enum, unique
 import logging
 from typing import Union, Any, Tuple
+import numpy as np
+import nibabel as nib
+from nibabel.processing import resample_to_output
+from copy import deepcopy
+import os
 
-from utils.utilities import get_type_from_string
+from utils.utilities import get_type_from_string, input_file_type_conversion
 
 
 @unique
@@ -17,24 +22,33 @@ class AnnotationClassType(Enum):
         return self.string
 
 
-class AnnotationVolume():
+class AnnotationVolume:
     """
     Class defining how an annotation volume should be handled.
     """
-    _unique_id = -1
+    # @TODO. If we generate the probability map, could store it here and give the possibility to adjust the
+    # cut-off threshold for refinement?
+
+    _unique_id = ""  # Internal unique identifier for the annotation volume
+    _raw_input_filepath = ""
+    _output_patient_folder = ""
     _annotation_class = AnnotationClassType.Tumor
     _display_name = ""
+    _display_volume = None
     _display_opacity = 50
     _display_color = [255, 255, 255, 255]  # List with format: r, g, b, a
 
-    def __init__(self, uid, filename):
+    def __init__(self, uid: str, input_filename: str, output_patient_folder: str, reload_params: {} = None) -> None:
         self._unique_id = uid
-        self.raw_filepath = filename
-        self.display_volume = None
+        self._raw_input_filepath = input_filename
+        self._output_patient_folder = output_patient_folder
         self.display_volume_filepath = None
         self._display_name = uid
-        # @TODO. If we generate the probability map, could store it here and give the possibility to adjust the
-        # cut-off threshold for refinement?
+
+        if reload_params:
+            self.__reload_from_disk(reload_params)
+        else:
+            self.__init_from_scratch()
 
     def get_annotation_class_enum(self) -> Enum:
         return self._annotation_class
@@ -67,3 +81,57 @@ class AnnotationVolume():
 
     def set_display_color(self, color: Tuple[int]) -> None:
         self._display_color = color
+
+    def get_display_volume(self) -> np.ndarray:
+        return self._display_volume
+
+    def save(self) -> dict:
+        # Disk operations
+        volume_dump_filename = os.path.join(self._output_patient_folder, 'display', self._unique_id + '_display.nii.gz')
+        nib.save(nib.Nifti1Image(self._display_volume, affine=[[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]),
+                 volume_dump_filename)
+
+        # Parameters-filling operations
+        volume_params = {}
+        volume_params['display_name'] = self._display_name
+        if self._output_patient_folder in self._raw_input_filepath:
+            volume_params['raw_input_filepath'] = os.path.relpath(self._raw_input_filepath, self._output_patient_folder)
+        else:
+            volume_params['raw_input_filepath'] = self._raw_input_filepath
+
+        if self._output_patient_folder in self._usable_input_filepath:
+            volume_params['usable_input_filepath'] = os.path.relpath(self._usable_input_filepath, self._output_patient_folder)
+        else:
+            volume_params['usable_input_filepath'] = self._usable_input_filepath
+
+        volume_params['display_volume_filepath'] = os.path.relpath(volume_dump_filename, self._output_patient_folder)
+        volume_params['annotation_class'] = str(self._annotation_class)
+        volume_params['display_name'] = self._display_name
+        volume_params['display_color'] = self._display_color
+        volume_params['display_opacity'] = self._display_opacity
+        return volume_params
+
+    def __init_from_scratch(self) -> None:
+        self._usable_input_filepath = input_file_type_conversion(input_filename=self._raw_input_filepath,
+                                                                 output_folder=self._output_patient_folder)
+        self.__generate_display_volume()
+
+    def __reload_from_disk(self, parameters: dict) -> None:
+        if os.path.exists(parameters['usable_input_filepath']):
+            self._usable_input_filepath = parameters['usable_input_filepath']
+        else:
+            self._usable_input_filepath = os.path.join(self._output_patient_folder, parameters['usable_input_filepath'])
+        self._display_volume_filepath = os.path.join(self._output_patient_folder, parameters['display_volume_filepath'])
+        self._display_volume = nib.load(self._display_volume_filepath).get_data()[:]
+        self.set_annotation_class_type(type=parameters['annotation_class'])
+        self._display_name = parameters['display_name']
+        self._display_color = parameters['display_color']
+        self._display_opacity = parameters['display_opacity']
+
+    def __generate_display_volume(self):
+        image_nib = nib.load(self._usable_input_filepath)
+        resampled_input_ni = resample_to_output(image_nib, order=0)
+        image_res = resampled_input_ni.get_data()[:].astype('uint8')
+        # @TODO. Check if more than one label?
+
+        self._display_volume = deepcopy(image_res)
