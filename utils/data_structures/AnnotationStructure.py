@@ -22,6 +22,18 @@ class AnnotationClassType(Enum):
         return self.string
 
 
+@unique
+class AnnotationGenerationType(Enum):
+    _init_ = 'value string'
+
+    Automatic = 0, 'Automatic'
+    Manual = 1, 'Manual'
+    Other = 999, 'Other'
+
+    def __str__(self):
+        return self.string
+
+
 class AnnotationVolume:
     """
     Class defining how an annotation volume should be handled.
@@ -33,6 +45,8 @@ class AnnotationVolume:
     _raw_input_filepath = ""
     _output_patient_folder = ""
     _annotation_class = AnnotationClassType.Tumor
+    _parent_mri_uid = ""  # Internal unique identifier for the MRI volume to which this annotation is linked
+    _generation_type = AnnotationGenerationType.Automatic
     _display_name = ""
     _display_volume = None
     _display_opacity = 50
@@ -56,19 +70,25 @@ class AnnotationVolume:
     def get_annotation_class_str(self) -> str:
         return str(self._annotation_class)
 
-    def set_annotation_class_type(self, type: str) -> None:
-        if isinstance(type, str):
-            ctype = get_type_from_string(AnnotationClassType, type)
+    def set_annotation_class_type(self, anno_type: Union[str, Enum]) -> None:
+        if isinstance(anno_type, str):
+            ctype = get_type_from_string(AnnotationClassType, anno_type)
             if ctype != -1:
                 self._annotation_class = ctype
-        elif isinstance(type, AnnotationClassType):
-            self._annotation_class = type
+        elif isinstance(anno_type, AnnotationClassType):
+            self._annotation_class = anno_type
 
     def get_display_name(self) -> str:
         return self._display_name
 
     def set_display_name(self, name: str) -> None:
         self._display_name = name
+
+    def set_output_patient_folder(self, output_folder: str) -> None:
+        self._output_patient_folder = output_folder
+
+    def get_output_patient_folder(self) -> str:
+        return self._output_patient_folder
 
     def get_display_opacity(self) -> int:
         return self._display_opacity
@@ -84,6 +104,26 @@ class AnnotationVolume:
 
     def get_display_volume(self) -> np.ndarray:
         return self._display_volume
+
+    def get_parent_mri_uid(self) -> str:
+        return self._parent_mri_uid
+
+    def set_parent_mri_uid(self, parent_uid: str) -> None:
+        self._parent_mri_uid = parent_uid
+
+    def get_generation_type_enum(self) -> Enum:
+        return self._generation_type
+
+    def get_generation_type_str(self) -> str:
+        return str(self._generation_type)
+
+    def set_generation_type(self, generation_type: Union[str, Enum]) -> None:
+        if isinstance(generation_type, str):
+            ctype = get_type_from_string(AnnotationGenerationType, generation_type)
+            if ctype != -1:
+                self._generation_type = ctype
+        elif isinstance(generation_type, AnnotationGenerationType):
+            self._generation_type = generation_type
 
     def save(self) -> dict:
         # Disk operations
@@ -106,6 +146,8 @@ class AnnotationVolume:
 
         volume_params['display_volume_filepath'] = os.path.relpath(volume_dump_filename, self._output_patient_folder)
         volume_params['annotation_class'] = str(self._annotation_class)
+        volume_params['generation_type'] = str(self._generation_type)
+        volume_params['parent_mri_uid'] = self._parent_mri_uid
         volume_params['display_name'] = self._display_name
         volume_params['display_color'] = self._display_color
         volume_params['display_opacity'] = self._display_opacity
@@ -123,7 +165,9 @@ class AnnotationVolume:
             self._usable_input_filepath = os.path.join(self._output_patient_folder, parameters['usable_input_filepath'])
         self._display_volume_filepath = os.path.join(self._output_patient_folder, parameters['display_volume_filepath'])
         self._display_volume = nib.load(self._display_volume_filepath).get_data()[:]
-        self.set_annotation_class_type(type=parameters['annotation_class'])
+        self.set_annotation_class_type(anno_type=parameters['annotation_class'])
+        self.set_generation_type(generation_type=parameters['generation_type'])
+        self._parent_mri_uid = parameters['parent_mri_uid']
         self._display_name = parameters['display_name']
         self._display_color = parameters['display_color']
         self._display_opacity = parameters['display_opacity']

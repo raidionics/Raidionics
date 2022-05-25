@@ -33,6 +33,8 @@ class MRIVolume:
     _output_patient_folder = ""
     _sequence_type = MRISequenceType.T1c
     _resampled_input_volume = None  # np.ndarray with the raw intensity values from the display volume
+    _dicom_metadata = None  # If the MRI series originate from a DICOM folder, the metadata tags are stored here
+    _contrast_window = [-1, -1]  # Min and max intensity values for the display of the current MRI volume
     _display_name = ""
     _display_volume = None
     _display_volume_filepath = ""  # Display MRI volume filepath, in its latest state after potential user modifiers
@@ -50,17 +52,26 @@ class MRIVolume:
         else:
             self.__init_from_scratch()
 
+    def get_unique_id(self) -> str:
+        return self._unique_id
+
     def get_display_name(self) -> str:
         return self._display_name
+
+    def set_display_name(self, text: str) -> None:
+        self._display_name = text
+
+    def set_output_patient_folder(self, output_folder: str) -> None:
+        self._output_patient_folder = output_folder
+
+    def get_output_patient_folder(self) -> str:
+        return self._output_patient_folder
 
     def get_sequence_type_enum(self) -> Enum:
         return self._sequence_type
 
     def get_sequence_type_str(self) -> str:
         return str(self._sequence_type)
-
-    def set_display_name(self, text: str) -> None:
-        self._display_name = text
 
     def set_sequence_type(self, type: str) -> None:
         if isinstance(type, str):
@@ -75,6 +86,20 @@ class MRIVolume:
 
     def get_usable_input_filepath(self) -> str:
         return self._usable_input_filepath
+
+    def get_contrast_window_minimum(self) -> int:
+        return self._contrast_window[0]
+
+    def get_contrast_window_maximum(self) -> int:
+        return self._contrast_window[1]
+
+    def set_contrast_window_minimum(self, value: int) -> None:
+        self._contrast_window[0] = value
+        # @TODO. Should trigger a volume_display update, followed by a signal emitted to update the views.
+        # Maybe the signal just needs to be emitted from the Dialog.
+
+    def set_contrast_window_maximum(self, value: int) -> None:
+        self._contrast_window[1] = value
 
     def load_in_memory(self) -> None:
         pass
@@ -146,3 +171,4 @@ class MRIVolume:
         image_res2 = image_res.astype('uint8')
 
         self._display_volume = deepcopy(image_res2)
+        self._contrast_window = [np.min(image_res), np.max(image_res)]

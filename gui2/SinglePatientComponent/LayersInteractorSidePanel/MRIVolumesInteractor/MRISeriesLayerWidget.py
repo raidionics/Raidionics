@@ -5,6 +5,7 @@ from PySide2.QtGui import QPixmap, QIcon
 import os
 
 from gui2.UtilsWidgets.CustomQGroupBox.QCollapsibleGroupBox import QCollapsibleGroupBox
+from gui2.UtilsWidgets.CustomQDialog.ContrastAdjustmentDialog import ContrastAdjustmentDialog
 
 from utils.software_config import SoftwareConfigResources
 from utils.data_structures.MRIVolumeStructure import MRISequenceType
@@ -49,6 +50,8 @@ class MRISeriesLayerWidget(QWidget):
         self.display_toggle_radiobutton = QRadioButton()
         self.contrast_adjuster_pushbutton = QPushButton("Contrast")
         self.contrast_adjuster_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../Images/contrast_icon.png'))))
+        self.contrast_adjuster = ContrastAdjustmentDialog(volume_uid=self.uid) #, parent=
+        # self.contrast_adjuster = ContrastAdjustmentDialog(volume_uid=self.uid, parent=self)
 
         self.layout.addWidget(self.icon_label, 0, 0)
         self.layout.addWidget(self.display_name_lineedit, 0, 1, columnSpan=2)
@@ -118,7 +121,7 @@ class MRISeriesLayerWidget(QWidget):
         SoftwareConfigResources.getInstance().get_active_patient().mri_volumes[self.uid].set_sequence_type(text)
 
     def on_contrast_adjustment_clicked(self):
-        pass
+        self.contrast_adjuster.exec_()
 
     def on_options_clicked(self, point):
         self.options_menu.exec_(self.options_pushbutton.mapToGlobal(point))

@@ -2,6 +2,7 @@ from aenum import Enum, unique
 from typing import Union
 import os
 import SimpleITK as sitk
+import numpy as np
 
 
 def get_type_from_string(enum_type: Enum, string: str) -> Union[str, int]:
@@ -15,6 +16,21 @@ def get_type_from_string(enum_type: Enum, string: str) -> Union[str, int]:
         return string
     else: #Unmanaged input type
         return -1
+
+
+def input_file_category_disambiguation(input_filename: str) -> str:
+    category = None
+    reader = sitk.ImageFileReader()
+    reader.SetFileName(input_filename)
+    image = reader.Execute()
+    image_type = image.GetPixelIDTypeAsString()
+    array = sitk.GetArrayFromImage(image)
+
+    if len(np.unique(array)) > 255 or np.max(array) > 255 or np.min(array) < -1:
+        category = "MRI"
+    else:
+        category = "Annotation"
+    return category
 
 
 def input_file_type_conversion(input_filename: str, output_folder: str) -> str:

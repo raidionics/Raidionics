@@ -16,10 +16,11 @@ from utils.patient_dicom import DICOMSeries
 from utils.data_structures.MRIVolumeStructure import MRIVolume
 from utils.data_structures.AnnotationStructure import AnnotationVolume
 from utils.data_structures.AtlasStructure import AtlasVolume
+from utils.utilities import input_file_category_disambiguation
 
 
 class PatientParameters:
-    def __init__(self, id="-1"):
+    def __init__(self, id: str = "-1"):
         """
         Default id value set to -1, the only time a default value is needed is when a patient will be loaded from
         a .raidionics file on disk whereby the correct id will be recovered from the json file.
@@ -66,6 +67,7 @@ class PatientParameters:
         return self.unsaved_changes
 
     def set_visible_name(self, new_name):
+        # @TOOD. Why is there 2 functions with different names but doing the same thing?
         self.patient_visible_name = new_name.strip()
         new_output_folder = os.path.join(self.output_dir, "patients", self.patient_visible_name.lower().replace(" ", '_'))
         if os.path.exists(new_output_folder):
@@ -74,6 +76,12 @@ class PatientParameters:
         else:
             shutil.move(src=self.output_folder, dst=new_output_folder, copy_function=shutil.copytree)
             self.output_folder = new_output_folder
+
+            for i, disp in enumerate(list(self.mri_volumes.keys())):
+                self.mri_volumes[disp].set_output_patient_folder(self.output_folder)
+
+            for i, disp in enumerate(list(self.annotation_volumes.keys())):
+                self.annotation_volumes[disp].set_output_patient_folder(self.output_folder)
             logging.info("Renamed current output folder to: {}".format(self.output_folder))
 
     def update_visible_name(self, new_name):
@@ -85,6 +93,11 @@ class PatientParameters:
         else:
             shutil.move(src=self.output_folder, dst=new_output_folder, copy_function=shutil.copytree)
             self.output_folder = new_output_folder
+            for i, disp in enumerate(list(self.mri_volumes.keys())):
+                self.mri_volumes[disp].set_output_patient_folder(self.output_folder)
+
+            for i, disp in enumerate(list(self.annotation_volumes.keys())):
+                self.annotation_volumes[disp].set_output_patient_folder(self.output_folder)
             logging.info("Renamed current output folder to: {}".format(self.output_folder))
 
     def import_patient(self, filename):
@@ -152,6 +165,7 @@ class PatientParameters:
         error_message = None
 
         try:
+            type = input_file_category_disambiguation(filename)
             if type == 'MRI':
                 # Generating a unique id for the MRI volume
                 base_data_uid = os.path.basename(filename).strip().split('.')[0]
