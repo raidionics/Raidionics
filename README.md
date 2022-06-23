@@ -7,7 +7,7 @@
 Software to automatically segment brain tumors from pre-operative MRI scans, compute their characteristics (e.g., volume, location), and generate a standardized report.
 
 The software was introduced in the article "Brain tumor preoperative surgery imaging: models and software solutions for
-segmentation and standardized reporting", which has been submitted to [Frontiers in Neurology](https://www.frontiersin.org/journals/neurology).
+segmentation and standardized reporting", which has been accepted for publication in [Frontiers in Neurology](https://www.frontiersin.org/journals/neurology).
 
 ## 2. Softwares and usage
 An installer is provided for the three main Operating Systems: Windows (>= v10, 64-bit), macOS (>= Catalina), and Ubuntu Linux (>= 18.04). Software has been tested and found working on the newest Windows 11 and macOS Monterey operating systems.The software can be downloaded from [here](https://github.com/dbouget/Raidionics/releases) (see **Assets**). 
