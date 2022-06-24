@@ -19,6 +19,7 @@ class SinglePatientLayersWidget(QWidget):
     import_data_triggered = Signal()
     patient_view_toggled = Signal(str)
     volume_view_toggled = Signal(str, bool)
+    volume_contrast_changed = Signal(str)
     annotation_view_toggled = Signal(str, bool)
     annotation_opacity_changed = Signal(str, int)
     annotation_color_changed = Signal(str, QColor)
@@ -80,6 +81,7 @@ class SinglePatientLayersWidget(QWidget):
 
         self.volumes_collapsiblegroupbox.volume_view_toggled.connect(self.volume_view_toggled)
         self.volumes_collapsiblegroupbox.volume_view_toggled.connect(self.annotations_collapsiblegroupbox.on_volume_view_toggled)
+        self.volumes_collapsiblegroupbox.contrast_changed.connect(self.volume_contrast_changed)
         self.annotations_collapsiblegroupbox.annotation_view_toggled.connect(self.annotation_view_toggled)
         self.annotations_collapsiblegroupbox.annotation_opacity_changed.connect(self.annotation_opacity_changed)
         self.annotations_collapsiblegroupbox.annotation_color_changed.connect(self.annotation_color_changed)

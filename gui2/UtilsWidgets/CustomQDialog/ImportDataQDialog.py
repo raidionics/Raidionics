@@ -1,3 +1,5 @@
+import logging
+
 from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QGridLayout, QDialog, QDialogButtonBox,\
     QComboBox, QPushButton, QScrollArea, QLineEdit, QFileDialog, QMessageBox, QProgressBar
 from PySide2.QtCore import Qt, QSize, Signal
@@ -102,12 +104,19 @@ class ImportDataQDialog(QDialog):
     def reset(self):
         """
         Remove all entries in the import scroll area, each entry being a ImportDataLineWidget
-        @FIXME. Still clunky, giving some error messages.
         """
-        widgets = (self.import_scrollarea_layout.itemAt(i).widget() for i in range(self.import_scrollarea_layout.count() - 1))
-        for w in widgets:
-            w.setParent(None)
-            w.deleteLater()
+        # Mandatory to perform the operation backwards => https://stackoverflow.com/questions/4528347/clear-all-widgets-in-a-layout-in-pyqt
+        items = (self.import_scrollarea_layout.itemAt(i) for i in reversed(range(self.import_scrollarea_layout.count())))
+        for i in items:
+            try:
+                if i and i.widget():
+                    w = i.widget()
+                    w.setParent(None)
+                    w.deleteLater()
+                else:
+                    pass
+            except Exception as e:
+                pass
 
     def __on_import_directory_clicked(self):
         input_image_filedialog = QFileDialog(self)
@@ -153,7 +162,7 @@ class ImportDataQDialog(QDialog):
 
         # @Behaviour. Do we force the user to create a patient, or allow on-the-fly creation when loading data?
         if len(SoftwareConfigResources.getInstance().patients_parameters) == 0:
-            uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_patient('')
+            uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_patient()
             if error_msg:
                 diag = QMessageBox()
                 diag.setText("Unable to create empty patient.\nError message: {}.\n".format(error_msg))

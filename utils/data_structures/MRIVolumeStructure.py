@@ -33,11 +33,15 @@ class MRIVolume:
     _output_patient_folder = ""
     _sequence_type = MRISequenceType.T1c
     _resampled_input_volume = None  # np.ndarray with the raw intensity values from the display volume
+    _resampled_input_volume_filepath = None  # Filepath for storing the aforementioned volume
     _dicom_metadata = None  # If the MRI series originate from a DICOM folder, the metadata tags are stored here
-    _contrast_window = [-1, -1]  # Min and max intensity values for the display of the current MRI volume
+    _contrast_window = [None, None]  # Min and max intensity values for the display of the current MRI volume
+    _intensity_histogram = None  #
     _display_name = ""
     _display_volume = None
     _display_volume_filepath = ""  # Display MRI volume filepath, in its latest state after potential user modifiers
+    _default_affine = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]  # Affine matrix for dumping resampled files
+    _unsaved_changes = False  # Documenting any change, for suggesting saving when swapping between patients
 
     def __init__(self, uid: str, input_filename: str, output_patient_folder: str, reload_params: dict = None) -> None:
         # @TODO. Should also add the registered versions in here.
@@ -52,14 +56,34 @@ class MRIVolume:
         else:
             self.__init_from_scratch()
 
+    def load_in_memory(self) -> None:
+        if self._resampled_input_volume_filepath and os.path.exists(self._resampled_input_volume_filepath):
+            self._resampled_input_volume = nib.load(self._resampled_input_volume_filepath).get_data()[:]
+        else:
+            # @TODO. Should not occur, but then should regardless call the regular data load from scratch?
+            pass
+
+        if self._display_volume_filepath and os.path.exists(self._display_volume_filepath):
+            self._display_volume = nib.load(self._display_volume_filepath).get_data()[:]
+        else:
+            pass
+
+    def release_from_memory(self) -> None:
+        self._resampled_input_volume = None
+        self._display_volume = None
+
     def get_unique_id(self) -> str:
         return self._unique_id
+
+    def has_unsaved_changes(self) -> bool:
+        return self._unsaved_changes
 
     def get_display_name(self) -> str:
         return self._display_name
 
     def set_display_name(self, text: str) -> None:
         self._display_name = text
+        self._unsaved_changes = True
 
     def set_output_patient_folder(self, output_folder: str) -> None:
         self._output_patient_folder = output_folder
@@ -81,11 +105,19 @@ class MRIVolume:
         elif isinstance(type, MRISequenceType):
             self._sequence_type = type
 
+        self._unsaved_changes = True
+
     def get_display_volume(self) -> np.ndarray:
         return self._display_volume
 
     def get_usable_input_filepath(self) -> str:
         return self._usable_input_filepath
+
+    def get_resampled_minimum_intensity(self) -> int:
+        return np.min(self._resampled_input_volume)
+
+    def get_resampled_maximum_intensity(self) -> int:
+        return np.max(self._resampled_input_volume)
 
     def get_contrast_window_minimum(self) -> int:
         return self._contrast_window[0]
@@ -95,31 +127,40 @@ class MRIVolume:
 
     def set_contrast_window_minimum(self, value: int) -> None:
         self._contrast_window[0] = value
-        # @TODO. Should trigger a volume_display update, followed by a signal emitted to update the views.
-        # Maybe the signal just needs to be emitted from the Dialog.
+        self.__apply_contrast_scaling_to_display_volume()
 
     def set_contrast_window_maximum(self, value: int) -> None:
         self._contrast_window[1] = value
+        self.__apply_contrast_scaling_to_display_volume()
 
-    def load_in_memory(self) -> None:
-        pass
+    def confirm_contrast_modifications(self) -> None:
+        """
+        Since contrast adjustment modifications can be cancelled for various reasons (e.g. not satisfied with the
+        selection), the changes should not be saved until the QDialog has been successfully exited.
+        """
+        self._unsaved_changes = True
 
-    def offload_from_memory(self) -> None:
-        pass
+    def get_intensity_histogram(self):
+        return self._intensity_histogram
 
     def save(self) -> dict:
         # Disk operations
-        volume_dump_filename = os.path.join(self._output_patient_folder, 'display', self._unique_id + '_display.nii.gz')
-        nib.save(nib.Nifti1Image(self._display_volume, affine=[[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]),
-                 volume_dump_filename)
+        self._display_volume_filepath = os.path.join(self._output_patient_folder, 'display', self._unique_id + '_display.nii.gz')
+        nib.save(nib.Nifti1Image(self._display_volume, affine=self._default_affine), self._display_volume_filepath)
+
+        self._resampled_input_volume_filepath = os.path.join(self._output_patient_folder, 'display', self._unique_id + '_resampled.nii.gz')
+        nib.save(nib.Nifti1Image(self._resampled_input_volume, affine=self._default_affine), self._resampled_input_volume_filepath)
 
         # Parameters-filling operations
         volume_params = {}
         volume_params['display_name'] = self._display_name
         volume_params['raw_input_filepath'] = self._raw_input_filepath
+        volume_params['resample_input_filepath'] = os.path.relpath(self._resampled_input_volume_filepath, self._output_patient_folder)
         volume_params['usable_input_filepath'] = self._usable_input_filepath
-        volume_params['display_volume_filepath'] = os.path.relpath(volume_dump_filename, self._output_patient_folder)
+        volume_params['display_volume_filepath'] = os.path.relpath(self._display_volume_filepath, self._output_patient_folder)
         volume_params['sequence_type'] = str(self._sequence_type)
+        volume_params['contrast_window'] = str(self._contrast_window[0]) + ',' + str(self._contrast_window[1])
+        self._unsaved_changes = False
         return volume_params
 
     def __init_from_scratch(self) -> None:
@@ -133,10 +174,12 @@ class MRIVolume:
             self._usable_input_filepath = parameters['usable_input_filepath']
         else:
             self._usable_input_filepath = os.path.join(self._output_patient_folder, parameters['usable_input_filepath'])
+        self._resampled_input_volume_filepath = os.path.join(self._output_patient_folder, parameters['resample_input_filepath'])
         self._display_volume_filepath = os.path.join(self._output_patient_folder, parameters['display_volume_filepath'])
         self._display_volume = nib.load(self._display_volume_filepath).get_data()[:]
         self._display_name = parameters['display_name']
         self.set_sequence_type(type=parameters['sequence_type'])
+        self._contrast_window = [int(x) for x in parameters['contrast_window'].split(',')]
 
     def __parse_sequence_type(self):
         base_name = self._unique_id.lower()
@@ -152,23 +195,34 @@ class MRIVolume:
             self._sequence_type = MRISequenceType.T1w
 
     def __generate_display_volume(self) -> None:
+        """
+        Generate a display-compatible volume from the raw MRI volume the first time it is loaded in the software.
+        """
         # @TODO. Should add the contrast window or other contrast parameters, to make this method generic enough
         # to be used when the user modifies the contrast parameters.
-        # @TODO2. Might have to save the resample nib file on disk, otherwise contrast adjustment will "lag"
-        # but in that case, there should be a memory allocation/release to keep only the current patient in RAM.
         image_nib = nib.load(self._usable_input_filepath)
 
         # Resampling to standard output for viewing purposes.
         resampled_input_ni = resample_to_output(image_nib, order=1)
-        image_res = resampled_input_ni.get_data()[:]
+        self._resampled_input_volume = resampled_input_ni.get_data()[:]
+        # self._intensity_histogram = np.histogram(self._resampled_input_volume, bins=20)
+        self._intensity_histogram = np.histogram(self._resampled_input_volume[self._resampled_input_volume != 0], bins=30)
 
+        # The first time, the intensity boundaries must be retrieved
+        self._contrast_window[0] = int(np.min(self._resampled_input_volume))
+        self._contrast_window[1] = int(np.max(self._resampled_input_volume))
+
+        self.__apply_contrast_scaling_to_display_volume()
+
+    def __apply_contrast_scaling_to_display_volume(self) -> None:
+        """
+        Generate a display volume according to the contrast parameters set by the user.
+        """
         # Scaling data to uint8
-        min_val = np.min(image_res)
-        max_val = np.max(image_res)
-        if (max_val - min_val) != 0:
-            tmp = (image_res - min_val) / (max_val - min_val)
+        image_res = deepcopy(self._resampled_input_volume)
+        if (self._contrast_window[1] - self._contrast_window[0]) != 0:
+            tmp = (image_res - self._contrast_window[0]) / (self._contrast_window[1] - self._contrast_window[0])
             image_res = tmp * 255.
-        image_res2 = image_res.astype('uint8')
+        image_res = image_res.astype('uint8')
 
-        self._display_volume = deepcopy(image_res2)
-        self._contrast_window = [np.min(image_res), np.max(image_res)]
+        self._display_volume = deepcopy(image_res)

@@ -20,6 +20,8 @@ from utils.utilities import input_file_category_disambiguation
 
 
 class PatientParameters:
+    _unsaved_changes = False  # Documenting any change, for suggesting saving when swapping between patients
+
     def __init__(self, id: str = "-1"):
         """
         Default id value set to -1, the only time a default value is needed is when a patient will be loaded from
@@ -27,7 +29,6 @@ class PatientParameters:
         """
         self.patient_id = id.replace(" ", '_').strip()
         self.patient_visible_name = self.patient_id
-        self.unsaved_changes = False
 
         # Initially, everything is dumped in the software temp place, until a destination is chosen by the user.
         # Should we have a patient-named folder, so that the user only needs to choose the global destination directory
@@ -63,8 +64,37 @@ class PatientParameters:
         self.patient_parameters_project_json['Annotations'] = {}
         self.patient_parameters_project_json['Atlases'] = {}
 
+    def release_from_memory(self) -> None:
+        """
+        Releasing all data objects from memory when not viewing the results for the current patient.
+        Otherwise, for computer with limited RAM and many opened patients, it might freeze the computer
+        """
+        logging.debug("Unloading patient {} from memory.".format(self.patient_id))
+        for im in self.mri_volumes:
+            self.mri_volumes[im].release_from_memory()
+        for an in self.annotation_volumes:
+            self.annotation_volumes[an].release_from_memory()
+
+    def load_in_memory(self) -> None:
+        """
+        When a patient has been manually selected to be visible, all data objects are loaded from disk and restored
+        in memory. Necessary for performing on-the-fly operations such as contrast adjustment for which a grip on the
+        raw MRI volumes is mandatory.
+        """
+        logging.debug("Loading patient {} from memory.".format(self.patient_id))
+        for im in self.mri_volumes:
+            self.mri_volumes[im].load_in_memory()
+        for an in self.annotation_volumes:
+            self.annotation_volumes[an].load_in_memory()
+
     def has_unsaved_changes(self) -> bool:
-        return self.unsaved_changes
+        status = self._unsaved_changes
+        for im in self.mri_volumes:
+            status = status | self.mri_volumes[im].has_unsaved_changes()
+        for an in self.annotation_volumes:
+            status = status | self.annotation_volumes[an].has_unsaved_changes()
+
+        return status
 
     def set_visible_name(self, new_name):
         # @TOOD. Why is there 2 functions with different names but doing the same thing?
@@ -193,7 +223,7 @@ class PatientParameters:
             logging.error(str(traceback.format_exc()))
 
         logging.info("New data file imported: {}".format(data_uid))
-        self.unsaved_changes = True
+        self._unsaved_changes = True
         return data_uid, error_message
 
     def import_dicom_data(self, dicom_series: DICOMSeries) -> Union[str, Any]:
@@ -287,7 +317,7 @@ class PatientParameters:
         # Saving the json file last, as it must be populated from the previous dumps beforehand
         with open(self.patient_parameters_project_filename, 'w') as outfile:
             json.dump(self.patient_parameters_project_json, outfile, indent=4, sort_keys=True)
-        self.unsaved_changes = False
+        self._unsaved_changes = False
 
 
 class ProjectParameters:

@@ -51,6 +51,7 @@ class AnnotationVolume:
     _display_volume = None
     _display_opacity = 50
     _display_color = [255, 255, 255, 255]  # List with format: r, g, b, a
+    _unsaved_changes = False  # Documenting any change, for suggesting saving when swapping between patients
 
     def __init__(self, uid: str, input_filename: str, output_patient_folder: str, reload_params: {} = None) -> None:
         self._unique_id = uid
@@ -63,6 +64,18 @@ class AnnotationVolume:
             self.__reload_from_disk(reload_params)
         else:
             self.__init_from_scratch()
+
+    def load_in_memory(self) -> None:
+        if self._display_volume_filepath and os.path.exists(self._display_volume_filepath):
+            self._display_volume = nib.load(self._display_volume_filepath).get_data()[:]
+        else:
+            pass
+
+    def release_from_memory(self) -> None:
+        self._display_volume = None
+
+    def has_unsaved_changes(self) -> bool:
+        return self._unsaved_changes
 
     def get_annotation_class_enum(self) -> Enum:
         return self._annotation_class
@@ -77,6 +90,7 @@ class AnnotationVolume:
                 self._annotation_class = ctype
         elif isinstance(anno_type, AnnotationClassType):
             self._annotation_class = anno_type
+        self._unsaved_changes = True
 
     def get_display_name(self) -> str:
         return self._display_name
@@ -95,12 +109,14 @@ class AnnotationVolume:
 
     def set_display_opacity(self, opacity: int) -> None:
         self._display_opacity = opacity
+        self._unsaved_changes = True
 
     def get_display_color(self) -> Tuple[int]:
         return self._display_color
 
     def set_display_color(self, color: Tuple[int]) -> None:
         self._display_color = color
+        self._unsaved_changes = True
 
     def get_display_volume(self) -> np.ndarray:
         return self._display_volume
@@ -110,6 +126,7 @@ class AnnotationVolume:
 
     def set_parent_mri_uid(self, parent_uid: str) -> None:
         self._parent_mri_uid = parent_uid
+        self._unsaved_changes = True
 
     def get_generation_type_enum(self) -> Enum:
         return self._generation_type
@@ -124,12 +141,13 @@ class AnnotationVolume:
                 self._generation_type = ctype
         elif isinstance(generation_type, AnnotationGenerationType):
             self._generation_type = generation_type
+        self._unsaved_changes = True
 
     def save(self) -> dict:
         # Disk operations
-        volume_dump_filename = os.path.join(self._output_patient_folder, 'display', self._unique_id + '_display.nii.gz')
+        self._display_volume_filepath = os.path.join(self._output_patient_folder, 'display', self._unique_id + '_display.nii.gz')
         nib.save(nib.Nifti1Image(self._display_volume, affine=[[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]),
-                 volume_dump_filename)
+                 self._display_volume_filepath)
 
         # Parameters-filling operations
         volume_params = {}
@@ -144,13 +162,14 @@ class AnnotationVolume:
         else:
             volume_params['usable_input_filepath'] = self._usable_input_filepath
 
-        volume_params['display_volume_filepath'] = os.path.relpath(volume_dump_filename, self._output_patient_folder)
+        volume_params['display_volume_filepath'] = os.path.relpath(self._display_volume_filepath, self._output_patient_folder)
         volume_params['annotation_class'] = str(self._annotation_class)
         volume_params['generation_type'] = str(self._generation_type)
         volume_params['parent_mri_uid'] = self._parent_mri_uid
         volume_params['display_name'] = self._display_name
         volume_params['display_color'] = self._display_color
         volume_params['display_opacity'] = self._display_opacity
+        self._unsaved_changes = False
         return volume_params
 
     def __init_from_scratch(self) -> None:

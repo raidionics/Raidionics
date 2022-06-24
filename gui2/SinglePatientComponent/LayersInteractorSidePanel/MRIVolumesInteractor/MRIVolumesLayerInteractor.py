@@ -15,6 +15,7 @@ class MRIVolumesLayerInteractor(QCollapsibleGroupBox):
 
     """
     volume_view_toggled = Signal(str, bool)
+    contrast_changed = Signal(str)  # Unique id of the volume for which contrast has been altered
 
     def __init__(self, parent=None):
         super(MRIVolumesLayerInteractor, self).__init__("MRI Series", self, header_style='left')
@@ -133,6 +134,7 @@ class MRIVolumesLayerInteractor(QCollapsibleGroupBox):
         self.volumes_widget[volume_id] = volume_widget
         self.content_label_layout.insertWidget(self.content_label_layout.count() - 1, volume_widget)
         volume_widget.visibility_toggled.connect(self.on_visibility_clicked)
+        volume_widget.contrast_changed.connect(self.contrast_changed)
         # Triggers a repaint with adjusted size for the layout
         self.adjustSize()
 

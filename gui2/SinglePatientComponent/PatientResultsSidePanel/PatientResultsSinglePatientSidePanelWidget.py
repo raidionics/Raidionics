@@ -5,6 +5,7 @@ from PySide2.QtGui import QIcon, QPixmap
 import os
 import logging
 from gui2.SinglePatientComponent.PatientResultsSidePanel.SinglePatientResultsWidget import SinglePatientResultsWidget
+from gui2.UtilsWidgets.CustomQDialog.SavePatientChangesDialog import SavePatientChangesDialog
 from utils.software_config import SoftwareConfigResources
 
 
@@ -83,9 +84,9 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         self.bottom_add_patient_pushbutton.clicked.connect(self.on_import_options_clicked)
         # self.bottom_add_patient_pushbutton.customContextMenuRequested.connect(self.on_import_options_clicked)
         self.add_empty_patient_action.triggered.connect(self.on_add_new_empty_patient)
-        self.add_raidionics_patient_action.triggered.connect(self.import_patient_from_custom_requested)
-        self.add_dicom_patient_action.triggered.connect(self.import_patient_from_dicom_requested)
-        self.add_other_data_action.triggered.connect(self.import_patient_from_data_requested)
+        self.add_raidionics_patient_action.triggered.connect(self.on_import_patient_from_custom_requested)
+        self.add_dicom_patient_action.triggered.connect(self.on_import_patient_from_dicom_requested)
+        self.add_other_data_action.triggered.connect(self.on_import_patient_from_data_requested)
 
     def __set_stylesheets(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
@@ -202,6 +203,12 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         self.adjustSize()
 
     def __on_patient_selection(self, state, widget_id):
+        if SoftwareConfigResources.getInstance().get_active_patient().has_unsaved_changes():
+            dialog = SavePatientChangesDialog()
+            code = dialog.exec_()
+            if code == 0:  # Operation cancelled
+                return
+
         # @TODO. Must better handle the interaction between all patient results objects
         for i, wid in enumerate(list(self.patient_results_widgets.keys())):
             if wid != widget_id:
@@ -213,11 +220,36 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         self.adjustSize()  # To trigger a removal of the side scroll bar if needs be.
 
     def on_add_new_empty_patient(self):
-        uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_patient("Temp Patient")
-        self.add_new_patient(uid)
+        if SoftwareConfigResources.getInstance().active_patient_name and\
+                SoftwareConfigResources.getInstance().get_active_patient().has_unsaved_changes():
+            dialog = SavePatientChangesDialog()
+            code = dialog.exec_()
+            if code == 1:  # Changes have been either saved or discarded
+                uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_patient()
+                self.add_new_patient(uid)
+                # Both lines are needed to uncollapse the widget for the new patient and collapse the previous
+                self.patient_results_widgets[uid].manual_header_pushbutton_clicked(True)
+                self.__on_patient_selection(True, uid)
+        else:
+            uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_patient()
+            self.add_new_patient(uid)
+            self.patient_results_widgets[uid].manual_header_pushbutton_clicked(True)
+            self.__on_patient_selection(True, uid)
 
     def on_standardized_report_imported(self):
         self.patient_results_widgets[SoftwareConfigResources.getInstance().get_active_patient().patient_id].on_standardized_report_imported()
 
     def on_import_options_clicked(self, point):
         self.options_menu.exec_(self.bottom_add_patient_pushbutton.mapToGlobal(QPoint(0, -75)))
+
+    def on_import_patient_from_data_requested(self):
+        self.on_add_new_empty_patient()
+        self.import_patient_from_data_requested.emit()
+
+    def on_import_patient_from_dicom_requested(self):
+        self.on_add_new_empty_patient()
+        self.import_patient_from_dicom_requested.emit()
+
+    def on_import_patient_from_custom_requested(self):
+        self.on_add_new_empty_patient()
+        self.import_patient_from_custom_requested.emit()

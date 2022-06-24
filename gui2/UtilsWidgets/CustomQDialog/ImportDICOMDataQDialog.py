@@ -136,7 +136,7 @@ class ImportDICOMDataQDialog(QDialog):
         # @Behaviour. Do we force the user to create a patient, or allow on-the-fly creation when loading data?
         # In case of DICOM data, do we rename the patient with the content of the metadata tag?
         if len(SoftwareConfigResources.getInstance().patients_parameters) == 0:
-            uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_patient('')
+            uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_patient()
             if error_msg:
                 diag = QMessageBox()
                 diag.setText("Unable to create empty patient.\nError message: {}.\n".format(error_msg))

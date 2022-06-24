@@ -124,6 +124,7 @@ class SinglePatientWidget(QWidget):
 
         # Connections related to data display (from right-hand panel to update the central viewer)
         self.layers_panel.volume_view_toggled.connect(self.center_panel.on_volume_layer_toggled)
+        self.layers_panel.volume_contrast_changed.connect(self.center_panel.on_volume_contrast_changed)
         self.layers_panel.annotation_view_toggled.connect(self.center_panel.on_annotation_layer_toggled)
         self.layers_panel.annotation_opacity_changed.connect(self.center_panel.on_annotation_opacity_changed)
         self.layers_panel.annotation_color_changed.connect(self.center_panel.on_annotation_color_changed)

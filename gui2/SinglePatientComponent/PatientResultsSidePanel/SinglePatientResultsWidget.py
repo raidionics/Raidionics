@@ -474,6 +474,7 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
             self.header_pushbutton.setEnabled(False)
         else:
             self.header_pushbutton.setEnabled(True)
+        self.repaint()  # Not sure if the repaint is actually needed.
 
     def populate_from_patient(self, patient_uid):
         patient_parameters = SoftwareConfigResources.getInstance().patients_parameters[patient_uid]

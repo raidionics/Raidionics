@@ -15,8 +15,8 @@ class MRISeriesLayerWidget(QWidget):
     """
 
     """
-    visibility_toggled = Signal(str, bool)
-    contrast_changed = Signal(str, int, int)
+    visibility_toggled = Signal(str, bool)  # unique_id and visibility state
+    contrast_changed = Signal(str)  # unique_id
 
     def __init__(self, mri_uid, parent=None):
         super(MRISeriesLayerWidget, self).__init__(parent)
@@ -77,6 +77,7 @@ class MRISeriesLayerWidget(QWidget):
         self.options_pushbutton.customContextMenuRequested.connect(self.on_options_clicked)
         self.sequence_type_combobox.currentTextChanged.connect(self.on_sequence_type_changed)
         self.contrast_adjuster_pushbutton.clicked.connect(self.on_contrast_adjustment_clicked)
+        self.contrast_adjuster.contrast_intensity_changed.connect(self.on_contrast_changed)
 
     def __set_stylesheets(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
@@ -125,3 +126,6 @@ class MRISeriesLayerWidget(QWidget):
 
     def on_options_clicked(self, point):
         self.options_menu.exec_(self.options_pushbutton.mapToGlobal(point))
+
+    def on_contrast_changed(self):
+        self.contrast_changed.emit(self.uid)

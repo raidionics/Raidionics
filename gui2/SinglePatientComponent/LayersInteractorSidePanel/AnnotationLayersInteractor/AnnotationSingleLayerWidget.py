@@ -98,7 +98,10 @@ class AnnotationSingleLayerWidget(QWidget):
         self.color_label = QLabel("Color ")
         self.color_dialogpushbutton = QPushButton()
         self.color_dialogpushbutton.setEnabled(False)
-        self.color_dialog = QColorDialog(parent=self.parent)  # @FIXME. GtkDialog mapped without a transient parent. This is discouraged.
+        self.color_dialog = QColorDialog(parent=self.parent)
+        # NB: Below is mandatory on Linux to avoid => "GtkDialog mapped without a transient parent. This is discouraged."
+        # What is the behaviour on Mac/Windows?
+        self.color_dialog.setOption(QColorDialog.DontUseNativeDialog)
         self.color_layout = QHBoxLayout()
         self.color_layout.addWidget(self.color_label)
         self.color_layout.addWidget(self.color_dialogpushbutton)

@@ -16,6 +16,7 @@ class CentralAreaWidget(QWidget):
     atlas_volume_imported = Signal(str)  # The str is the unique id for the atlas volume, belonging to the active patient
     patient_view_toggled = Signal(str)
     volume_view_toggled = Signal(str, bool)
+    volume_contrast_changed = Signal(str)
     annotation_view_toggled = Signal(str, bool)
     annotation_opacity_changed = Signal(str, int)
     annotation_color_changed = Signal(str, QColor)
@@ -64,6 +65,7 @@ class CentralAreaWidget(QWidget):
     def __set_cross_connections(self):
         # Connections related to data display (from right-hand panel to update the central viewer)
         self.volume_view_toggled.connect(self.display_area_widget.on_volume_layer_toggled)
+        self.volume_contrast_changed.connect(self.display_area_widget.on_volume_contrast_changed)
         self.annotation_view_toggled.connect(self.display_area_widget.on_annotation_layer_toggled)
         self.annotation_opacity_changed.connect(self.display_area_widget.on_annotation_opacity_changed)
         self.annotation_color_changed.connect(self.display_area_widget.on_annotation_color_changed)
@@ -106,6 +108,9 @@ class CentralAreaWidget(QWidget):
 
     def on_volume_layer_toggled(self, uid, state):
         self.volume_view_toggled.emit(uid, state)
+
+    def on_volume_contrast_changed(self, uid):
+        self.volume_contrast_changed.emit(uid)
 
     def on_annotation_layer_toggled(self, uid, state):
         self.annotation_view_toggled.emit(uid, state)

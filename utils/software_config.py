@@ -7,6 +7,7 @@ import numpy as np
 from typing import Union, Any
 import names
 from PySide2.QtCore import QSize
+import logging
 
 from utils.patient_parameters import PatientParameters
 from diagnosis.src.Utils.configuration_parser import ResourcesConfiguration
@@ -68,7 +69,7 @@ class SoftwareConfigResources:
     def __parse_config(self):
         pass
 
-    def add_new_empty_patient(self, patient_name: str) -> Union[str, Any]:
+    def add_new_empty_patient(self) -> Union[str, Any]:
         """
         At startup a new empty patient is created by default. Otherwise, a new empty patient is created everytime
         the user presses the corresponding button in the left-hand side panel.
@@ -76,6 +77,7 @@ class SoftwareConfigResources:
         non_available_uid = True
         patient_uid = None
         error_message = None
+        logging.debug("New patient creation requested.")
         try:
             while non_available_uid:
                 patient_uid = str(np.random.randint(0, 100000))
@@ -116,7 +118,15 @@ class SoftwareConfigResources:
         self.patients_parameters[self.active_patient_name].update_visible_name(new_name)
 
     def set_active_patient(self, patient_uid):
+        # @TODO. Should do the memory release for the previously active patient and then reload in memory the relevant
+        # stuff for the display of this patient!
+
+        # At the very first call, there is no previously active patient.
+        logging.debug("Active patient uid changed from {} to {}.".format(self.active_patient_name, patient_uid))
+        if self.active_patient_name:
+            self.patients_parameters[self.active_patient_name].release_from_memory()
         self.active_patient_name = patient_uid
+        self.patients_parameters[self.active_patient_name].load_in_memory()
 
     def get_active_patient(self):
         return self.patients_parameters[self.active_patient_name]

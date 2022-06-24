@@ -131,16 +131,12 @@ class CentralDisplayAreaWidget(QWidget):
                 self.displayed_image = self.current_patient_parameters.mri_volumes[list(self.current_patient_parameters.mri_volumes.keys())[0]].get_display_volume()
                 self.point_clicker_position = [int(self.displayed_image.shape[0] / 2), int(self.displayed_image.shape[1] / 2),
                                                int(self.displayed_image.shape[2] / 2)]
-                self.axial_viewer.update_slice_view(self.displayed_image[:, :, self.point_clicker_position[2]], self.point_clicker_position[0], self.point_clicker_position[1])
-                self.coronal_viewer.update_slice_view(self.displayed_image[:, self.point_clicker_position[1], :], self.point_clicker_position[0], self.point_clicker_position[2])
-                self.sagittal_viewer.update_slice_view(self.displayed_image[self.point_clicker_position[0], :, :], self.point_clicker_position[1], self.point_clicker_position[2])
+                self.update_viewers_image()
             else:
                 self.displayed_image = np.zeros(shape=(150, 150, 150), dtype='uint8')
                 self.point_clicker_position = [int(self.displayed_image.shape[0] / 2), int(self.displayed_image.shape[1] / 2),
                                                int(self.displayed_image.shape[2] / 2)]
-                self.axial_viewer.update_slice_view(self.displayed_image[:, :, self.point_clicker_position[2]], self.point_clicker_position[0], self.point_clicker_position[1])
-                self.coronal_viewer.update_slice_view(self.displayed_image[:, self.point_clicker_position[1], :], self.point_clicker_position[0], self.point_clicker_position[2])
-                self.sagittal_viewer.update_slice_view(self.displayed_image[self.point_clicker_position[0], :, :], self.point_clicker_position[1], self.point_clicker_position[2])
+                self.update_viewers_image()
                 # self.axial_viewer.setEnabled(False)
                 # self.coronal_viewer.setEnabled(False)
                 # self.sagittal_viewer.setEnabled(False)
@@ -159,12 +155,7 @@ class CentralDisplayAreaWidget(QWidget):
             self.point_clicker_position = [int(self.displayed_image.shape[0] / 2),
                                            int(self.displayed_image.shape[1] / 2),
                                            int(self.displayed_image.shape[2] / 2)]
-            self.axial_viewer.update_slice_view(self.displayed_image[:, :, self.point_clicker_position[2]],
-                                                self.point_clicker_position[0], self.point_clicker_position[1])
-            self.coronal_viewer.update_slice_view(self.displayed_image[:, self.point_clicker_position[1], :],
-                                                  self.point_clicker_position[0], self.point_clicker_position[2])
-            self.sagittal_viewer.update_slice_view(self.displayed_image[self.point_clicker_position[0], :, :],
-                                                   self.point_clicker_position[1], self.point_clicker_position[2])
+            self.update_viewers_image()
         # If empty patient, setting an empty volume to avoid issues.
         else:
             self.displayed_image = np.zeros(shape=(150, 150, 150), dtype='uint8')
@@ -172,12 +163,7 @@ class CentralDisplayAreaWidget(QWidget):
             self.point_clicker_position = [int(self.displayed_image.shape[0] / 2),
                                            int(self.displayed_image.shape[1] / 2),
                                            int(self.displayed_image.shape[2] / 2)]
-            self.axial_viewer.update_slice_view(self.displayed_image[:, :, self.point_clicker_position[2]],
-                                                self.point_clicker_position[0], self.point_clicker_position[1])
-            self.coronal_viewer.update_slice_view(self.displayed_image[:, self.point_clicker_position[1], :],
-                                                  self.point_clicker_position[0], self.point_clicker_position[2])
-            self.sagittal_viewer.update_slice_view(self.displayed_image[self.point_clicker_position[0], :, :],
-                                                   self.point_clicker_position[1], self.point_clicker_position[2])
+            self.update_viewers_image()
 
     def on_volume_layer_toggled(self, volume_uid, state):
         """
@@ -197,13 +183,25 @@ class CentralDisplayAreaWidget(QWidget):
             self.point_clicker_position = [int(self.displayed_image.shape[0] / 2),
                                            int(self.displayed_image.shape[1] / 2),
                                            int(self.displayed_image.shape[2] / 2)]
+            self.update_viewers_image()
 
-            self.axial_viewer.update_slice_view(self.displayed_image[:, :, self.point_clicker_position[2]],
-                                                self.point_clicker_position[0], self.point_clicker_position[1])
-            self.coronal_viewer.update_slice_view(self.displayed_image[:, self.point_clicker_position[1], :],
-                                                  self.point_clicker_position[0], self.point_clicker_position[2])
-            self.sagittal_viewer.update_slice_view(self.displayed_image[self.point_clicker_position[0], :, :],
-                                                   self.point_clicker_position[1], self.point_clicker_position[2])
+    def on_volume_contrast_changed(self, volume_uid):
+        # @TODO. Should group the viewer calls into another function somewhere, since all three above methods use it.
+        self.displayed_image = self.current_patient_parameters.mri_volumes[volume_uid].get_display_volume()
+        self.displayed_image_uid = volume_uid
+        self.update_viewers_image()
+
+    def update_viewers_image(self):
+        """
+        Further send the current display image, at the selected point clicker position, to each of the 2D viewers
+        that are enabled in this widget (i.e., axial, coronal, and sagittal currently)
+        """
+        self.axial_viewer.update_slice_view(self.displayed_image[:, :, self.point_clicker_position[2]],
+                                            self.point_clicker_position[0], self.point_clicker_position[1])
+        self.coronal_viewer.update_slice_view(self.displayed_image[:, self.point_clicker_position[1], :],
+                                              self.point_clicker_position[0], self.point_clicker_position[2])
+        self.sagittal_viewer.update_slice_view(self.displayed_image[self.point_clicker_position[0], :, :],
+                                               self.point_clicker_position[1], self.point_clicker_position[2])
 
     def on_annotation_layer_toggled(self, volume_uid, state):
         if state:
