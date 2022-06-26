@@ -1,0 +1,44 @@
+name: Build Ubuntu
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    name: Build packages
+    runs-on: ubuntu-18.04
+    
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Build software
+      run: |
+        pip install tensorflow==1.13.1
+        pip install antspyx
+        pyinstaller --noconfirm --clean main.spec
+
+    - name: Make installer
+      run: |
+        mkdir -p Raidionics_ubuntu/usr/local/bin
+        cp -r dist/Raidionics Raidionics_ubuntu/usr/local/bin
+        dpkg-deb --build --root-owner-group Raidionics_ubuntu
+        cp -r Raidionics_ubuntu.deb dist/Raidionics-1.0.0-ubuntu.deb
+
+    - name: Upload package
+      uses: actions/upload-artifact@v2
+      with:
+        name: Package
+        path: ${{github.workspace}}/dist/Raidionics-*
+        if-no-files-found: error

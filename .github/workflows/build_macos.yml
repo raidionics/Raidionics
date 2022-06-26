@@ -1,0 +1,43 @@
+name: Build macOS
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    name: Build packages
+    runs-on: macos-10.15
+    
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+      name: Build software
+      run: |
+        pip install tensorflow==1.13.1
+        pip install https://github.com/ANTsX/ANTsPy/releases/download/v0.1.8/antspyx-0.1.8-cp37-cp37m-macosx_10_14_x86_64.whl
+        pyinstaller --noconfirm --clean main_bundle.spec
+
+    - name: Make installer
+      run: |
+        git clone https://github.com/andreped/quickpkg.git
+        quickpkg/quickpkg dist/Raidionics.app --output Raidionics-1.0.0-macOS.pkg
+        cp -r Raidionics-1.0.0-macOS.pkg dist/Raidionics-1.0.0-macOS.pkg
+
+    - name: Upload package
+      uses: actions/upload-artifact@v2
+      with:
+        name: Package
+        path: ${{github.workspace}}/dist/Raidionics-*
+        if-no-files-found: error
