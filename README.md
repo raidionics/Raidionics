@@ -1,7 +1,6 @@
 # Raidionics
 [![license](https://img.shields.io/github/license/DAVFoundation/captain-n3m0.svg?style=flat-square)](https://github.com/DAVFoundation/captain-n3m0/blob/master/LICENSE)
 [![GitHub Downloads](https://img.shields.io/github/downloads/dbouget/Raidionics/total?label=GitHub%20downloads&logo=github)](https://github.com/dbouget/Raidionics/releases)
-
 ![CI](https://github.com/dbouget/Raidionics/workflows/Build%20Windows/badge.svg?branch=master&event=push)
 ![CI](https://github.com/dbouget/Raidionics/workflows/Build%20Ubuntu/badge.svg?branch=master&event=push)
 ![CI](https://github.com/dbouget/Raidionics/workflows/Build%20macOS/badge.svg?branch=master&event=push)
