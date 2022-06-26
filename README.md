@@ -1,7 +1,10 @@
 # Raidionics
 [![license](https://img.shields.io/github/license/DAVFoundation/captain-n3m0.svg?style=flat-square)](https://github.com/DAVFoundation/captain-n3m0/blob/master/LICENSE)
 [![GitHub Downloads](https://img.shields.io/github/downloads/SINTEFMedtek/GSI-RADS/total?label=GitHub%20downloads&logo=github)](https://github.com/SINTEFMedtek/GSI-RADS/releases)
-[![Build Actions Status](https://github.com/dbouget/neuro_rads_prototype/workflows/Build/badge.svg)](https://github.com/dbouget/neuro_rads_prototype/actions)
+
+![CI](https://github.com/dbouget/Raidionics/workflows/Build%20Windows/badge.svg?branch=master&event=push)
+![CI](https://github.com/dbouget/Raidionics/workflows/Build%20Ubuntu/badge.svg?branch=master&event=push)
+![CI](https://github.com/dbouget/Raidionics/workflows/Build%20macOS/badge.svg?branch=master&event=push)
 
 ## 1. Description
 Software to automatically segment brain tumors from pre-operative MRI scans, compute their characteristics (e.g., volume, location), and generate a standardized report.
