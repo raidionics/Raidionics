@@ -12,7 +12,7 @@ The software was introduced in the article "Brain tumor preoperative surgery ima
 segmentation and standardized reporting", which has been accepted for publication in [Frontiers in Neurology](https://www.frontiersin.org/journals/neurology).
 
 ## 2. Softwares and usage
-An installer is provided for the three main Operating Systems: Windows (>= v10, 64-bit), macOS (>= Catalina), and Ubuntu Linux (>= 18.04). Software has been tested and found working on the newest Windows 11 and macOS Monterey operating systems.The software can be downloaded from [here](https://github.com/dbouget/Raidionics/releases) (see **Assets**). 
+An installer is provided for the three main Operating Systems: Windows (>= v10, 64-bit), macOS (>= Catalina), and Ubuntu Linux (>= 18.04). Software has been tested and found working on the newest Windows 11 and macOS Monterey operating systems. The software can be downloaded from [here](https://github.com/dbouget/Raidionics/releases) (see **Assets**). 
 
 ### 2.1 Download and installation
 These steps are only needed to do once:
@@ -51,11 +51,11 @@ The following features are automatically computed and reported to the user:
 
 ### 3.1 Installation
 Use the requirements.txt file to create a virtual environment with the required libraries.
-> virtualenv -p python3 venv  
-> cd venv  
-> source bin/activate  
-> pip install -r ../requirements.txt  
-> deactivate  
+```
+virtualenv -p python3 venv  
+source venv/bin/activate  
+pip install -r ../requirements.txt  
+```
 
 ### 3.2 Usage
 The command line input parameters are:
@@ -68,9 +68,10 @@ The command line input parameters are:
 * -m [--model_segmentation]: Name of the trained model to use (from the list of automatically downloadable models).
 
 To run segmentation directly from command line, without the use of the GUI, run the following:
-> source venv/bin/activate  
-> python main.py -g 0 -i /path/to/volume/T1.nii.gz -o /path/to/output/ -d 0 -t segmentation -m MRI_Meningioma 
-> deactivate
+```
+source venv/bin/activate  
+python main.py -g 0 -i /path/to/volume/T1.nii.gz -o /path/to/output/ -d 0 -t segmentation -m MRI_Meningioma
+```
 
 ### How to cite
 Please, consider citing our paper, if you find the work useful:
