@@ -12,6 +12,9 @@ from utils.utilities import get_type_from_string, input_file_type_conversion
 
 @unique
 class AnnotationClassType(Enum):
+    """
+    Specification regarding the content of the annotation, limited to [Brain, Tumor, Other] for now.
+    """
     _init_ = 'value string'
 
     Brain = 0, 'Brain'
@@ -24,6 +27,10 @@ class AnnotationClassType(Enum):
 
 @unique
 class AnnotationGenerationType(Enum):
+    """
+    Simple specification regarding the generation of the annotation, whether by a human annotater or through the
+    automatic segmentation algorithm
+    """
     _init_ = 'value string'
 
     Automatic = 0, 'Automatic'
@@ -42,7 +49,7 @@ class AnnotationVolume:
     # cut-off threshold for refinement?
 
     _unique_id = ""  # Internal unique identifier for the annotation volume
-    _raw_input_filepath = ""
+    _raw_input_filepath = ""  # Folder location containing
     _output_patient_folder = ""
     _annotation_class = AnnotationClassType.Tumor
     _parent_mri_uid = ""  # Internal unique identifier for the MRI volume to which this annotation is linked

@@ -126,10 +126,18 @@ class MRIVolume:
         return self._contrast_window[1]
 
     def set_contrast_window_minimum(self, value: int) -> None:
+        """
+        Sets the lower boundary for the contrast window and then triggers a recompute of the displayed volume
+        according to the new contrast range.
+        """
         self._contrast_window[0] = value
         self.__apply_contrast_scaling_to_display_volume()
 
     def set_contrast_window_maximum(self, value: int) -> None:
+        """
+        Sets the upper boundary for the contrast window and then triggers a recompute of the displayed volume
+        according to the new contrast range.
+        """
         self._contrast_window[1] = value
         self.__apply_contrast_scaling_to_display_volume()
 
@@ -198,15 +206,15 @@ class MRIVolume:
         """
         Generate a display-compatible volume from the raw MRI volume the first time it is loaded in the software.
         """
-        # @TODO. Should add the contrast window or other contrast parameters, to make this method generic enough
-        # to be used when the user modifies the contrast parameters.
         image_nib = nib.load(self._usable_input_filepath)
 
         # Resampling to standard output for viewing purposes.
         resampled_input_ni = resample_to_output(image_nib, order=1)
         self._resampled_input_volume = resampled_input_ni.get_data()[:]
-        # self._intensity_histogram = np.histogram(self._resampled_input_volume, bins=20)
-        self._intensity_histogram = np.histogram(self._resampled_input_volume[self._resampled_input_volume != 0], bins=30)
+
+        # Generate the raw intensity histogram for contrast adjustment
+        self._intensity_histogram = np.histogram(self._resampled_input_volume[self._resampled_input_volume != 0],
+                                                 bins=30)
 
         # The first time, the intensity boundaries must be retrieved
         self._contrast_window[0] = int(np.min(self._resampled_input_volume))
