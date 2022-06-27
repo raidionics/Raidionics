@@ -86,7 +86,7 @@ class SoftwareConfigResources:
 
             self.patients_parameters[patient_uid] = PatientParameters(id=patient_uid)
             random_name = names.get_full_name()
-            self.patients_parameters[patient_uid].set_visible_name(random_name)
+            self.patients_parameters[patient_uid].set_visible_name(random_name, manual_change=False)
             self.set_active_patient(patient_uid)
         except Exception:
             error_message = "Error while trying to create a new empty patient: \n"
@@ -114,19 +114,35 @@ class SoftwareConfigResources:
         self.patients_parameters[patient_id] = patient_instance
         return patient_id, error_message
 
-    def update_active_patient_name(self, new_name):
+    def update_active_patient_name(self, new_name: str) -> None:
         self.patients_parameters[self.active_patient_name].update_visible_name(new_name)
 
-    def set_active_patient(self, patient_uid):
-        # @TODO. Should do the memory release for the previously active patient and then reload in memory the relevant
-        # stuff for the display of this patient!
-
-        # At the very first call, there is no previously active patient.
-        logging.debug("Active patient uid changed from {} to {}.".format(self.active_patient_name, patient_uid))
-        if self.active_patient_name:
-            self.patients_parameters[self.active_patient_name].release_from_memory()
-        self.active_patient_name = patient_uid
-        self.patients_parameters[self.active_patient_name].load_in_memory()
+    def set_active_patient(self, patient_uid: str) -> Any:
+        """
+        Updates the active patient upon user request, which triggers a full reloading of the patient_uid parameters
+        and removes from memory all memory-heavy imformation linked to the previous active patient.
+        ...
+        Parameters
+        ----------
+        patient_uid : str
+            Unique id of the newly selected active patient (i.e., patient displayed and loaded in memory)
+        Returns
+        ----------
+        error_message Any (str or None)
+            None if no error was collected, otherwise a string with a human-readable description of the error.
+        """
+        error_message = None
+        try:
+            logging.debug("Active patient uid changed from {} to {}.".format(self.active_patient_name, patient_uid))
+            # NB: At the very first call, there is no previously active patient, hence the need for an if statement
+            if self.active_patient_name:
+                self.patients_parameters[self.active_patient_name].release_from_memory()
+            self.active_patient_name = patient_uid
+            self.patients_parameters[self.active_patient_name].load_in_memory()
+        except Exception:
+            error_message = "Setting {} as active patient failed, with {}.\n".format(os.path.basename(patient_uid),
+                                                                                     str(traceback.format_exc()))
+        return error_message
 
     def get_active_patient(self):
         return self.patients_parameters[self.active_patient_name]

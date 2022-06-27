@@ -1,5 +1,7 @@
 import os
 import configparser
+import datetime
+import dateutil
 import shutil
 import traceback
 from os.path import expanduser
@@ -20,6 +22,8 @@ from utils.utilities import input_file_category_disambiguation
 
 
 class PatientParameters:
+    _creation_timestamp = None  # Timestamp for recording when the patient was created
+    _last_editing_timestamp = None  # Timestamp for recording when the patient was last modified
     _unsaved_changes = False  # Documenting any change, for suggesting saving when swapping between patients
 
     def __init__(self, id: str = "-1"):
@@ -48,6 +52,7 @@ class PatientParameters:
         self.atlas_volumes = {}
         self.standardized_report_filename = None
         self.standardized_report = None
+        self._creation_timestamp = datetime.datetime.now(tz=dateutil.tz.gettz(name='Europe/Oslo'))
 
     def __init_json_config(self):
         """
@@ -96,8 +101,14 @@ class PatientParameters:
 
         return status
 
-    def set_visible_name(self, new_name):
+    def set_visible_name(self, new_name: str, manual_change: bool = True) -> None:
+        """
+        Edit to the display name/ID for the current patient, which does not alter its unique_uid.
+        The use of an additional boolean parameter is needed to prevent updating the unsaved_changes state when
+        a random new name is given upon patient creation. Only a user-triggered edition to the visible name should
+        warrant the unsaved_changes status to become True.
         # @TOOD. Why is there 2 functions with different names but doing the same thing?
+        """
         self.patient_visible_name = new_name.strip()
         new_output_folder = os.path.join(self.output_dir, "patients", self.patient_visible_name.lower().replace(" ", '_'))
         if os.path.exists(new_output_folder):
@@ -113,6 +124,8 @@ class PatientParameters:
             for i, disp in enumerate(list(self.annotation_volumes.keys())):
                 self.annotation_volumes[disp].set_output_patient_folder(self.output_folder)
             logging.info("Renamed current output folder to: {}".format(self.output_folder))
+        if manual_change:
+            self._unsaved_changes = True
 
     def update_visible_name(self, new_name):
         self.patient_visible_name = new_name.strip()
@@ -129,8 +142,13 @@ class PatientParameters:
             for i, disp in enumerate(list(self.annotation_volumes.keys())):
                 self.annotation_volumes[disp].set_output_patient_folder(self.output_folder)
             logging.info("Renamed current output folder to: {}".format(self.output_folder))
+        self._unsaved_changes = True
 
-    def import_patient(self, filename):
+    def import_patient(self, filename: str) -> Any:
+        """
+        Method for reloading/importing a previously investigated patient, for which a Raidionics scene has been
+        created and can be read from a .raidionics file.
+        """
         error_message = None
         try:
             self.patient_parameters_project_filename = filename
@@ -140,6 +158,12 @@ class PatientParameters:
 
             self.patient_id = self.patient_parameters_project_json["Parameters"]["Default"]["Patient_uid"]
             self.patient_visible_name = self.patient_parameters_project_json["Parameters"]["Default"]["Patient_visible_name"]
+            if 'creation_timestamp' in self.patient_parameters_project_json["Parameters"]["Default"].keys():
+                self._creation_timestamp = datetime.datetime.strptime(self.patient_parameters_project_json["Parameters"]["Default"]['creation_timestamp'],
+                                                                      "%d/%m/%Y, %H:%M:%S")
+            if 'last_editing_timestamp' in self.patient_parameters_project_json["Parameters"]["Default"].keys():
+                self._last_editing_timestamp = datetime.datetime.strptime(self.patient_parameters_project_json["Parameters"]["Default"]['last_editing_timestamp'],
+                                                                          "%d/%m/%Y, %H:%M:%S")
             for volume_id in list(self.patient_parameters_project_json['Volumes'].keys()):
                 try:
                     mri_volume = MRIVolume(uid=volume_id,
@@ -189,7 +213,7 @@ class PatientParameters:
 
     def import_data(self, filename: str, type: str = "MRI") -> Union[str, Any]:
         """
-        Saving the raw file, and preprocessing it to have fixed orientations and uint8 values.
+
         """
         data_uid = None
         error_message = None
@@ -285,14 +309,17 @@ class PatientParameters:
         logging.info("New atlas file imported: {}".format(data_uid))
         return data_uid, error_message
 
-    def save_patient(self):
+    def save_patient(self) -> None:
         """
         Exporting the scene for the current patient into the specified output_folder
         """
         logging.info("Saving patient results in: {}".format(self.output_folder))
+        self._last_editing_timestamp = datetime.datetime.now(tz=dateutil.tz.gettz(name='Europe/Oslo'))
         self.patient_parameters_project_filename = os.path.join(self.output_folder, self.patient_visible_name.strip().lower().replace(" ", "_") + '_scene.raidionics')
         self.patient_parameters_project_json['Parameters']['Default']['Patient_uid'] = self.patient_id
         self.patient_parameters_project_json['Parameters']['Default']['Patient_visible_name'] = self.patient_visible_name
+        self.patient_parameters_project_json['Parameters']['Default']['creation_timestamp'] = self._creation_timestamp.strftime("%d/%m/%Y, %H:%M:%S")
+        self.patient_parameters_project_json['Parameters']['Default']['last_editing_timestamp'] = self._last_editing_timestamp.strftime("%d/%m/%Y, %H:%M:%S")
 
         display_folder = os.path.join(self.output_folder, 'display')
         os.makedirs(display_folder, exist_ok=True)

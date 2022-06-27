@@ -1,3 +1,6 @@
+import datetime
+
+import dateutil.tz
 from aenum import Enum, unique
 import logging
 import os
@@ -12,12 +15,15 @@ from utils.utilities import get_type_from_string, input_file_type_conversion
 
 @unique
 class MRISequenceType(Enum):
+    """
+
+    """
     _init_ = 'value string'
 
-    T1w = 0, 'T1-w'
-    T1c = 1, 'T1-CE'
-    T2 = 2, 'T2'
-    FLAIR = 3, 'FLAIR'
+    T1w = 0, 'T1-w'  # T1-weighted sequence
+    T1c = 1, 'T1-CE'  # Gd-enhanced T1-weighted sequence
+    T2 = 2, 'T2'  # t2-tse sequence
+    FLAIR = 3, 'FLAIR'  # FLAIR or t2-tirm sequences
 
     def __str__(self):
         return self.string
@@ -60,13 +66,14 @@ class MRIVolume:
         if self._resampled_input_volume_filepath and os.path.exists(self._resampled_input_volume_filepath):
             self._resampled_input_volume = nib.load(self._resampled_input_volume_filepath).get_data()[:]
         else:
-            # @TODO. Should not occur, but then should regardless call the regular data load from scratch?
-            pass
+            # Should not occur unless the patient was not saved after being loaded.
+            # @behaviour. it is wanted?
+            self.__generate_display_volume()
 
         if self._display_volume_filepath and os.path.exists(self._display_volume_filepath):
             self._display_volume = nib.load(self._display_volume_filepath).get_data()[:]
         else:
-            pass
+            self.__generate_display_volume()
 
     def release_from_memory(self) -> None:
         self._resampled_input_volume = None
@@ -182,7 +189,15 @@ class MRIVolume:
             self._usable_input_filepath = parameters['usable_input_filepath']
         else:
             self._usable_input_filepath = os.path.join(self._output_patient_folder, parameters['usable_input_filepath'])
+
+        # The resampled volume can only be inside the output patient folder as it is internally computed and cannot be
+        # manually imported into the software.
         self._resampled_input_volume_filepath = os.path.join(self._output_patient_folder, parameters['resample_input_filepath'])
+        if os.path.exists(self._resampled_input_volume_filepath):
+            self._resampled_input_volume = nib.load(self._resampled_input_volume_filepath)
+        else:
+            # Patient wasn't saved after loading, hence the volume was not stored on disk and must be recomputed
+            self.__generate_display_volume()
         self._display_volume_filepath = os.path.join(self._output_patient_folder, parameters['display_volume_filepath'])
         self._display_volume = nib.load(self._display_volume_filepath).get_data()[:]
         self._display_name = parameters['display_name']

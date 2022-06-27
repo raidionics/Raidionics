@@ -3,9 +3,10 @@ import logging
 from typing import Union
 import pandas as pd
 import numpy as np
+import nibabel as nib
 
 
-class AtlasVolume():
+class AtlasVolume:
     """
     Class defining how an atlas volume should be handled. Each label has a specific meaning as listed in the
     description file. Could save an atlas with all labels, and specific binary files with only one label in each.
@@ -35,6 +36,15 @@ class AtlasVolume():
             return
 
         self._class_description = pd.read_csv(self.class_description_filename)
+
+    # def load_in_memory(self) -> None:
+    #     if self._display_volume_filepath and os.path.exists(self._display_volume_filepath):
+    #         self._display_volume = nib.load(self._display_volume_filepath).get_data()[:]
+    #     else:
+    #         pass
+    #
+    # def release_from_memory(self) -> None:
+    #     self._display_volume = None
 
     def get_display_name(self) -> str:
         return self._display_name

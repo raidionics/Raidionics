@@ -15,7 +15,7 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
     resizeRequested = Signal()
 
     def __init__(self, uid, parent=None):
-        super(SinglePatientResultsWidget, self).__init__(uid, parent)
+        super(SinglePatientResultsWidget, self).__init__(uid, parent, header_style='left')
         self.title = uid
         self.parent = parent
         self.__set_interface()
@@ -24,6 +24,13 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.__set_stylesheets()
 
     def __set_interface(self):
+        # @TODO. Have to reposition the icon better.
+        self.set_header_icons(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                           '../../Images/single_patient_icon.png'),
+                              QSize(30, 30),
+                              os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                           '../../Images/single_patient_icon.png'),
+                              QSize(30, 30), side='left')
         self.__set_system_part()
         self.__set_overall_part()
         self.__set_multifocality_part()

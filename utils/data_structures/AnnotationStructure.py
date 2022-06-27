@@ -49,22 +49,26 @@ class AnnotationVolume:
     # cut-off threshold for refinement?
 
     _unique_id = ""  # Internal unique identifier for the annotation volume
-    _raw_input_filepath = ""  # Folder location containing
-    _output_patient_folder = ""
-    _annotation_class = AnnotationClassType.Tumor
+    _raw_input_filepath = ""  # Folder location containing the raw annotation file
+    _usable_input_filepath = ""  # Usable volume filepath, e.g., after conversion from nrrd to nifti (or other)
+    _output_patient_folder = ""  # Destination folder containing the patient's results
+    _annotation_class = AnnotationClassType.Tumor  # Type of annotation
+    _resampled_input_volume = None  # np.ndarray with the resampled raw values, expressed in default space
+    _resampled_input_volume_filepath = None  # Filepath for storing the aforementioned volume
     _parent_mri_uid = ""  # Internal unique identifier for the MRI volume to which this annotation is linked
-    _generation_type = AnnotationGenerationType.Automatic
+    _generation_type = AnnotationGenerationType.Automatic  # Generation method for the annotation
     _display_name = ""
-    _display_volume = None
-    _display_opacity = 50
-    _display_color = [255, 255, 255, 255]  # List with format: r, g, b, a
+    _display_volume = None  # Displayable version of the annotation volume (e.g., resampled isotropically)
+    _display_volume_filepath = None
+    _display_opacity = 50  # Percentage indicating the opacity for blending the annotation with the rest
+    _display_color = [255, 255, 255, 255]  # Visible color for the annotation, with format: [r, g, b, a]
+    _default_affine = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]  # Affine matrix for dumping resampled files
     _unsaved_changes = False  # Documenting any change, for suggesting saving when swapping between patients
 
     def __init__(self, uid: str, input_filename: str, output_patient_folder: str, reload_params: {} = None) -> None:
         self._unique_id = uid
         self._raw_input_filepath = input_filename
         self._output_patient_folder = output_patient_folder
-        self.display_volume_filepath = None
         self._display_name = uid
 
         if reload_params:
@@ -152,9 +156,14 @@ class AnnotationVolume:
 
     def save(self) -> dict:
         # Disk operations
-        self._display_volume_filepath = os.path.join(self._output_patient_folder, 'display', self._unique_id + '_display.nii.gz')
-        nib.save(nib.Nifti1Image(self._display_volume, affine=[[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]),
-                 self._display_volume_filepath)
+        self._display_volume_filepath = os.path.join(self._output_patient_folder, 'display',
+                                                     self._unique_id + '_display.nii.gz')
+        nib.save(nib.Nifti1Image(self._display_volume, affine=self._default_affine), self._display_volume_filepath)
+
+        self._resampled_input_volume_filepath = os.path.join(self._output_patient_folder, 'display',
+                                                             self._unique_id + '_resampled.nii.gz')
+        nib.save(nib.Nifti1Image(self._resampled_input_volume, affine=self._default_affine),
+                 self._resampled_input_volume_filepath)
 
         # Parameters-filling operations
         volume_params = {}
@@ -165,11 +174,15 @@ class AnnotationVolume:
             volume_params['raw_input_filepath'] = self._raw_input_filepath
 
         if self._output_patient_folder in self._usable_input_filepath:
-            volume_params['usable_input_filepath'] = os.path.relpath(self._usable_input_filepath, self._output_patient_folder)
+            volume_params['usable_input_filepath'] = os.path.relpath(self._usable_input_filepath,
+                                                                     self._output_patient_folder)
         else:
             volume_params['usable_input_filepath'] = self._usable_input_filepath
 
-        volume_params['display_volume_filepath'] = os.path.relpath(self._display_volume_filepath, self._output_patient_folder)
+        volume_params['resample_input_filepath'] = os.path.relpath(self._resampled_input_volume_filepath,
+                                                                   self._output_patient_folder)
+        volume_params['display_volume_filepath'] = os.path.relpath(self._display_volume_filepath,
+                                                                   self._output_patient_folder)
         volume_params['annotation_class'] = str(self._annotation_class)
         volume_params['generation_type'] = str(self._generation_type)
         volume_params['parent_mri_uid'] = self._parent_mri_uid
@@ -185,12 +198,35 @@ class AnnotationVolume:
         self.__generate_display_volume()
 
     def __reload_from_disk(self, parameters: dict) -> None:
+        """
+        Fill all variables in their states when the patient was last saved. In addition, tries to accommodate for
+        potentially missing variables without crashing.
+        @TODO. Might need a prompt if the loading of some elements failed to warn the user.
+        """
+        self._raw_input_filepath = parameters['raw_input_filepath']
+
+        # To check whether the usable filepath has been provided by the user (hence lies somewhere on the machine)
+        # or was generated by the software and lies within the patient folder.
         if os.path.exists(parameters['usable_input_filepath']):
             self._usable_input_filepath = parameters['usable_input_filepath']
         else:
             self._usable_input_filepath = os.path.join(self._output_patient_folder, parameters['usable_input_filepath'])
+
+        # The resampled volume can only be inside the output patient folder as it is internally computed and cannot be
+        # manually imported into the software.
+        self._resampled_input_volume_filepath = os.path.join(self._output_patient_folder,
+                                                             parameters['resample_input_filepath'])
+        if os.path.exists(self._resampled_input_volume_filepath):
+            self._resampled_input_volume = nib.load(self._resampled_input_volume_filepath)
+        else:
+            # Patient wasn't saved after loading, hence the volume was not stored on disk and must be recomputed
+            self.__generate_display_volume()
+
         self._display_volume_filepath = os.path.join(self._output_patient_folder, parameters['display_volume_filepath'])
-        self._display_volume = nib.load(self._display_volume_filepath).get_data()[:]
+        if os.path.exists(self._display_volume_filepath):
+            self._display_volume = nib.load(self._display_volume_filepath).get_data()[:]
+        else:
+            self.__generate_display_volume()
         self.set_annotation_class_type(anno_type=parameters['annotation_class'])
         self.set_generation_type(generation_type=parameters['generation_type'])
         self._parent_mri_uid = parameters['parent_mri_uid']
@@ -199,9 +235,9 @@ class AnnotationVolume:
         self._display_opacity = parameters['display_opacity']
 
     def __generate_display_volume(self):
+        # @TODO. Check if more than one label?
         image_nib = nib.load(self._usable_input_filepath)
         resampled_input_ni = resample_to_output(image_nib, order=0)
-        image_res = resampled_input_ni.get_data()[:].astype('uint8')
-        # @TODO. Check if more than one label?
+        self._resampled_input_volume = resampled_input_ni.get_data()[:].astype('uint8')
 
-        self._display_volume = deepcopy(image_res)
+        self._display_volume = deepcopy(self._resampled_input_volume)
