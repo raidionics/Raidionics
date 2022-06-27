@@ -1,7 +1,9 @@
 # Raidionics
-[![license](https://img.shields.io/github/license/DAVFoundation/captain-n3m0.svg?style=flat-square)](https://github.com/DAVFoundation/captain-n3m0/blob/master/LICENSE)
-[![GitHub Downloads](https://img.shields.io/github/downloads/SINTEFMedtek/GSI-RADS/total?label=GitHub%20downloads&logo=github)](https://github.com/SINTEFMedtek/GSI-RADS/releases)
-[![Build Actions Status](https://github.com/dbouget/neuro_rads_prototype/workflows/Build/badge.svg)](https://github.com/dbouget/neuro_rads_prototype/actions)
+[![License](https://img.shields.io/badge/License-BSD%202--Clause-orange.svg)](https://opensource.org/licenses/BSD-2-Clause)
+[![GitHub Downloads](https://img.shields.io/github/downloads/dbouget/Raidionics/total?label=GitHub%20downloads&logo=github)](https://github.com/dbouget/Raidionics/releases)
+![CI](https://github.com/dbouget/Raidionics/workflows/Build%20Windows/badge.svg?branch=design_update&event=push)
+![CI](https://github.com/dbouget/Raidionics/workflows/Build%20Ubuntu/badge.svg?branch=design_update&event=push)
+![CI](https://github.com/dbouget/Raidionics/workflows/Build%20macOS/badge.svg?branch=design_update&event=push)
 
 ## 1. Description
 Software to automatically segment brain tumors from pre-operative MRI scans, compute their characteristics (e.g., volume, location), and generate a standardized report.
@@ -10,7 +12,7 @@ The software was introduced in the article "Brain tumor preoperative surgery ima
 segmentation and standardized reporting", which has been submitted to [Frontiers in Neurology](https://www.frontiersin.org/journals/neurology).
 
 ## 2. Softwares and usage
-An installer is provided for the three main Operating Systems: Windows (~v10, 64-bit), macOS (>= Catalina), and Ubuntu Linux (>= 18.04).
+An installer is provided for the three main Operating Systems: Windows (~v10, 64-bit), macOS (>= Catalina), and Ubuntu Linux (>= 18.04). 
 The software can be downloaded from [here](https://github.com/dbouget/Raidionics/releases) (see **Assets**). 
 
 ### 2.1 Download and installation
@@ -50,11 +52,12 @@ The following features are automatically computed and reported to the user:
 
 ### 3.1 Installation
 Use the requirements.txt file to create a virtual environment with the required libraries.
-> virtualenv -p python3 venv  
-> cd venv  
-> source bin/activate  
-> pip install -r ../requirements.txt  
-> deactivate  
+```
+virtualenv -p python3 venv  
+source venv/bin/activate  
+pip install -r requirements.txt  
+deactivate  
+```
 
 ### 3.2 Usage
 The command line input parameters are:
@@ -67,9 +70,11 @@ The command line input parameters are:
 * -m [--model_segmentation]: Name of the trained model to use (from the list of automatically downloadable models).
 
 To run segmentation directly from command line, without the use of the GUI, run the following:
-> source venv/bin/activate  
-> python main.py -g 0 -i /path/to/volume/T1.nii.gz -o /path/to/output/ -d 0 -t segmentation -m MRI_Meningioma 
-> deactivate
+```
+source venv/bin/activate  
+python main.py -g 0 -i /path/to/volume/T1.nii.gz -o /path/to/output/ -d 0 -t segmentation -m MRI_Meningioma 
+deactivate
+```
 
 ### How to cite
 Please, consider citing our paper, if you find the work useful:

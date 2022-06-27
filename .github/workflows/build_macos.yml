@@ -1,10 +1,10 @@
-name: Build
+name: Build macOS
 
 on:
   push:
-    branches: [ master, design_update, submodule_libs ]
+    branches: [ design_update, submodule_libs ]
   pull_request:
-    branches: [ master, design_update ]
+    branches: [ design_update ]
 
 jobs:
   build:
@@ -13,18 +13,6 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-18.04
-            TARGET: ubuntu
-            CMD_BUILD: "pip install pyinstaller &&
-                       mkdir tmp_dependencies &&
-                       pyinstaller --noconfirm --clean main.spec &&
-                       mkdir -p Raidionics_ubuntu/usr/local/bin &&
-                       cp -r dist/Raidionics Raidionics_ubuntu/usr/local/bin &&
-                       dpkg-deb --build --root-owner-group Raidionics_ubuntu &&
-                       cp -r Raidionics_ubuntu.deb dist/Raidionics-1.0.0-ubuntu.deb"
-            OUT_FILE_NAME: Raidionics-1.0.0-ubuntu.deb
-            ASSET_MIME: application/vnd.debian.binary-package
-
           - os: macos-10.15
             TARGET: macos
             CMD_BUILD: "pip install pyinstaller &&
@@ -35,12 +23,6 @@ jobs:
                        cp -r Raidionics-1.0.0-macOS.pkg dist/Raidionics-1.0.0-macOS.pkg"
             OUT_FILE_NAME: Raidionics-1.0.0-macOS.pkg
             ASSET_MIME: application/x-newton-compatible-pkg
-
-          - os: windows-2019
-            TARGET: windows
-            CMD_BUILD: "ls"
-            OUT_FILE_NAME: Raidionics-1.0.0-win.exe
-            ASSET_MIME: application/vnd.microsoft.portable-executable
     steps:
     - uses: actions/checkout@v1
     - name: Set up Python 3.7
@@ -59,15 +41,6 @@ jobs:
         pip install -r requirements.txt
         pip install -e git+https://github.com/dbouget/raidionics_rads_lib.git@master#egg=raidionicsrads
         pip install -e git+https://github.com/dbouget/raidionics_seg_lib.git@master#egg=raidionicsseg
-
-    - if: matrix.os == 'windows-2019'
-      name: Build application
-      run: |              
-        pip install pyinstaller
-        mkdir tmp_dependencies
-        pyinstaller --noconfirm --clean main.spec
-        makensis.exe Raidionics.nsi
-        cp -r Raidionics-1.0.0-win.exe dist/Raidionics-1.0.0-win.exe
 
     - name: Build with pyinstaller for ${{matrix.TARGET}}
       run: ${{matrix.CMD_BUILD}}
