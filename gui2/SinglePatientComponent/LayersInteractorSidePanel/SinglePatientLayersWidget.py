@@ -2,6 +2,8 @@ from PySide2.QtWidgets import QWidget, QVBoxLayout, QScrollArea
 from PySide2.QtCore import Qt, QSize, Signal
 from PySide2.QtGui import QColor
 
+import logging
+
 from gui2.SinglePatientComponent.LayersInteractorSidePanel.MRIVolumesInteractor.MRIVolumesLayerInteractor import MRIVolumesLayerInteractor
 from gui2.SinglePatientComponent.LayersInteractorSidePanel.AnnotationLayersInteractor.AnnotationsLayersInteractor import AnnotationsLayersInteractor
 from gui2.SinglePatientComponent.LayersInteractorSidePanel.AtlasLayersInteractor.AtlasesLayersInteractor import AtlasesLayersInteractor
@@ -29,10 +31,12 @@ class SinglePatientLayersWidget(QWidget):
     def __init__(self, parent=None):
         super(SinglePatientLayersWidget, self).__init__()
         self.parent = parent
-        self.setFixedWidth((315 / SoftwareConfigResources.getInstance().get_optimal_dimensions().width()) * self.parent.baseSize().width())
+        # self.setFixedWidth((315 / SoftwareConfigResources.getInstance().get_optimal_dimensions().width()) * self.parent.baseSize().width())
+        # self.setBaseSize(QSize(self.width(), 500))  # Defining a base size is necessary as inner widgets depend on it.
         self.__set_interface()
         self.__set_connections()
         self.__set_stylesheets()
+        logging.debug("SinglePatientLayersWidget size set to {}.\n".format(self.size()))
 
     def __set_interface(self):
         self.layout = QVBoxLayout(self)

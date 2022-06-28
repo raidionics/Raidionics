@@ -14,6 +14,7 @@ from utils.runtime_config_parser import RuntimeResources
 from utils.software_config import SoftwareConfigResources
 from gui2.WelcomeWidget import WelcomeWidget
 from gui2.SinglePatientComponent.SinglePatientWidget import SinglePatientWidget
+from gui2.StudyBatchComponent.StudyBatchWidget import StudyBatchWidget
 
 
 class WorkerThread(QThread):
@@ -79,9 +80,9 @@ class RaidionicsMainWindow(QMainWindow):
         self.file_menu.addAction(self.quit_action)
 
         self.mode_menu = self.menu_bar.addMenu('Mode')
-        self.single_use_action = QAction('Single-use', self)
+        self.single_use_action = QAction('Single patient', self)
         self.mode_menu.addAction(self.single_use_action)
-        self.batch_mode_action = QAction('Batch-mode', self)
+        self.batch_mode_action = QAction('Batch study', self)
         self.mode_menu.addAction(self.batch_mode_action)
 
         self.settings_menu = self.menu_bar.addMenu('Settings')
@@ -105,7 +106,10 @@ class RaidionicsMainWindow(QMainWindow):
         self.help_action.setShortcut("Ctrl+J")
         self.help_menu.addAction(self.help_action)
 
-    def __set_centralwidget_interface(self):
+    def __set_centralwidget_interface(self) -> None:
+        """
+        The stacking order of the different widgets in the central area.
+        """
         self.central_stackedwidget_dict = {}
         self.central_stackedwidget = QStackedWidget(self)
         self.main_selection_layout = QVBoxLayout()
@@ -116,6 +120,11 @@ class RaidionicsMainWindow(QMainWindow):
         self.single_patient_widget = SinglePatientWidget(self)
         self.central_stackedwidget.insertWidget(1, self.single_patient_widget)
         self.central_stackedwidget_dict[self.single_patient_widget.get_widget_name()] = 1
+
+        self.batch_study_widget = StudyBatchWidget(self)
+        self.central_stackedwidget.insertWidget(2, self.batch_study_widget)
+        self.central_stackedwidget_dict[self.batch_study_widget.get_widget_name()] = 2
+
         self.central_stackedwidget.setMinimumSize(self.size())
 
     def __set_layouts(self):
@@ -148,7 +157,15 @@ class RaidionicsMainWindow(QMainWindow):
         self.welcome_widget.left_panel_single_patient_pushbutton.clicked.connect(self.__on_single_patient_clicked)
         self.new_patient_clicked.connect(self.single_patient_widget.on_single_patient_clicked)
 
+        self.welcome_widget.left_panel_multiple_patients_pushbutton.clicked.connect(self.__on_study_batch_clicked)
+
+        self.batch_study_widget.mri_volume_imported.connect(self.single_patient_widget.on_mri_volume_imported)
+        self.batch_study_widget.annotation_volume_imported.connect(self.single_patient_widget.on_annotation_volume_imported)
+        self.batch_study_widget.patient_imported.connect(self.single_patient_widget.on_patient_imported)
+
     def __set_menubar_connections(self):
+        self.single_use_action.triggered.connect(self.__on_single_patient_clicked)
+        self.batch_mode_action.triggered.connect(self.__on_study_batch_clicked)
         self.quit_action.triggered.connect(sys.exit)
 
     def __get_screen_dimensions(self):
@@ -189,6 +206,22 @@ class RaidionicsMainWindow(QMainWindow):
         Set the stacked widget to display the SinglePatientWidget interface.
         """
         name = self.single_patient_widget.get_widget_name()
+        index = -1
+        if name in self.central_stackedwidget_dict.keys():
+            index = self.central_stackedwidget_dict[name]
+
+        if index != -1:
+            self.central_stackedwidget.setCurrentIndex(index)
+        else:
+            # Should not happen, but what if?
+            pass
+        self.adjustSize()
+
+    def __on_study_batch_clicked(self):
+        """
+        Displays the main StudyBatchWidget after manual selection in the WelcomeWidget
+        """
+        name = self.batch_study_widget.get_widget_name()
         index = -1
         if name in self.central_stackedwidget_dict.keys():
             index = self.central_stackedwidget_dict[name]

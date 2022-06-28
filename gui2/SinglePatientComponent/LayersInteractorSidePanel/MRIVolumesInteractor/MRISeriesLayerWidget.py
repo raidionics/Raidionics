@@ -3,7 +3,7 @@ from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QLineEdit, QComboBox
 from PySide2.QtCore import Qt, QSize, Signal
 from PySide2.QtGui import QPixmap, QIcon
 import os
-
+import logging
 from gui2.UtilsWidgets.CustomQGroupBox.QCollapsibleGroupBox import QCollapsibleGroupBox
 from gui2.UtilsWidgets.CustomQDialog.ContrastAdjustmentDialog import ContrastAdjustmentDialog
 
@@ -70,6 +70,8 @@ class MRISeriesLayerWidget(QWidget):
         self.contrast_adjuster_pushbutton.setFixedHeight(20)
         self.contrast_adjuster_pushbutton.setIconSize(QSize(20, 20))
         self.display_toggle_radiobutton.setFixedSize(QSize(20, 20))
+
+        logging.debug("MRISeriesLayerWidget size set to {}.\n".format(self.size()))
 
     def __set_connections(self):
         self.display_name_lineedit.textEdited.connect(self.on_name_change)

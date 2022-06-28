@@ -180,3 +180,12 @@ class SinglePatientWidget(QWidget):
 
     def on_process_finished(self):
         self.right_panel_stackedwidget.setCurrentIndex(0)
+
+    def on_patient_imported(self, uid: str) -> None:
+        self.results_panel.add_new_patient(uid)
+
+    def on_mri_volume_imported(self, uid: str) -> None:
+        self.layers_panel.on_mri_volume_import(uid)
+
+    def on_annotation_volume_imported(self, uid: str) -> None:
+        self.layers_panel.on_annotation_volume_import(uid)

@@ -9,18 +9,18 @@ import os
 from utils.software_config import SoftwareConfigResources
 
 
-class ImportDataQDialog(QDialog):
+class ImportFoldersQDialog(QDialog):
     # The str is the unique id for the mri volume, belonging to the active patient
     mri_volume_imported = Signal(str)
     # The str is the unique id for the annotation volume, belonging to the active patient
     annotation_volume_imported = Signal(str)
-    # The str is the unique id for the added patient, the active patient remains the same
+    # The str is the unique id for the included patient, the active patient remains the same
     patient_imported = Signal(str)
 
     def __init__(self, filter=None, parent=None):
         # @TODO. The filter should be used to specify if looking for image files or a raidionics file.
         super().__init__(parent)
-        self.setWindowTitle("Import patient data")
+        self.setWindowTitle("Import patient folder(s)")
         self.current_folder = "~"  # Keep in memory the last open directory, to easily open multiple files in a row
         self.__set_interface()
         self.__set_layout_dimensions()
@@ -32,10 +32,8 @@ class ImportDataQDialog(QDialog):
 
         # Top-panel
         self.import_select_button_layout = QHBoxLayout()
-        self.import_select_files_pushbutton = QPushButton("File(s) selection")
         self.import_select_directory_pushbutton = QPushButton("Directory selection")
-        # self.import_select_button_layout.addWidget(self.import_select_directory_pushbutton)
-        self.import_select_button_layout.addWidget(self.import_select_files_pushbutton)
+        self.import_select_button_layout.addWidget(self.import_select_directory_pushbutton)
         self.import_select_button_layout.addStretch(1)
         self.base_layout.addLayout(self.import_select_button_layout)
 
@@ -68,10 +66,10 @@ class ImportDataQDialog(QDialog):
 
     def __set_layout_dimensions(self):
         self.setMinimumSize(600, 400)
-        self.import_select_files_pushbutton.setFixedSize(QSize(135, 25))
+        self.import_select_directory_pushbutton.setFixedSize(QSize(135, 25))
 
     def __set_connections(self):
-        self.import_select_files_pushbutton.clicked.connect(self.__on_import_files_clicked)
+        self.import_select_directory_pushbutton.clicked.connect(self.__on_import_directory_clicked)
         self.exit_accept_pushbutton.clicked.connect(self.__on_exit_accept_clicked)
         self.exit_cancel_pushbutton.clicked.connect(self.__on_exit_cancel_clicked)
 
@@ -86,7 +84,7 @@ class ImportDataQDialog(QDialog):
         QLabel{
         background-color: """ + software_ss["Color2"] + """;
         }""")
-        self.import_select_files_pushbutton.setStyleSheet("""
+        self.import_select_directory_pushbutton.setStyleSheet("""
         QPushButton{
         color: """ + software_ss["Color2"] + """;
         background-color: """ + software_ss["Color1"] + """;
@@ -116,42 +114,36 @@ class ImportDataQDialog(QDialog):
             except Exception as e:
                 pass
 
-    def __on_import_files_clicked(self):
+    def __on_import_directory_clicked(self):
         input_image_filedialog = QFileDialog(self)
         input_image_filedialog.setWindowFlags(Qt.WindowStaysOnTopHint)
-        # @TODO. Should query the allowed file extensions from SoftwareResources
-        # @FIXME. The QFileDialog ignores the director parameter
         if "PYCHARM_HOSTED" in os.environ:
-            input_filepaths, filters = input_image_filedialog.getOpenFileNames(self, caption='Select input file(s)',
-                                                                               directory=self.tr(self.current_folder),
-                                                                               filter="Files (*.nii *.nii.gz *.nrrd *.mha *.mhd *.raidionics)",
-                                                                               options=QFileDialog.DontUseNativeDialog)
+            input_directory = input_image_filedialog.getExistingDirectory(self, caption='Select input directory',
+                                                                          directory=self.tr(self.current_folder),
+                                                                          options=QFileDialog.DontUseNativeDialog |
+                                                                                  QFileDialog.ShowDirsOnly |
+                                                                                  QFileDialog.DontResolveSymlinks)
         else:
-            input_filepaths, filters = input_image_filedialog.getOpenFileNames(self, caption='Select input file(s)',
-                                                                               directory=self.tr(self.current_folder),
-                                                                               filter="Files (*.nii *.nii.gz *.nrrd *.mha *.mhd *.raidionics)")  # , options=QFileDialog.DontUseNativeDialog
-        if len(input_filepaths) != 0 and input_filepaths[0] != "":
-            self.current_folder = os.path.dirname(input_filepaths[0])
-        self.setup_interface_from_files(input_filepaths)
+            input_directory = input_image_filedialog.getExistingDirectory(self, caption='Select input directory',
+                                                                          directory=self.tr(self.current_folder),
+                                                                          options=QFileDialog.ShowDirsOnly |
+                                                                                  QFileDialog.DontResolveSymlinks)
+        found_files = []
+        if input_directory == "":
+            return
+
+        if len(input_directory) != 0 and input_directory[0] != "":
+            self.current_folder = os.path.dirname(input_directory[0])
+
+        wid = ImportFolderLineWidget(self)
+        self.import_scrollarea_layout.insertWidget(self.import_scrollarea_layout.count() - 1, wid)
+        wid.filepath_lineedit.setText(input_directory)
 
     def __on_exit_accept_clicked(self):
         """
-        Iterating over the list of selected files and internally updating variables
+        Iterating over the list of selected folders and internally creating patient objects.
         """
         widgets = (self.import_scrollarea_layout.itemAt(i) for i in range(self.import_scrollarea_layout.count() - 1))
-        # @TODO. Should not iterate blindly, should check if there are volumes to load for the current active patient
-        # and then iterate over the .raidionics files to load other patients?
-
-        # @Behaviour. Do we force the user to create a patient, or allow on-the-fly creation when loading data?
-        if len(SoftwareConfigResources.getInstance().patients_parameters) == 0:
-            uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_patient()
-            if error_msg:
-                diag = QMessageBox()
-                diag.setText("Unable to create empty patient.\nError message: {}.\n".format(error_msg))
-                diag.exec_()
-
-            if (error_msg and 'Import patient failed' not in error_msg) or not error_msg:
-                self.patient_imported.emit(uid)
 
         self.load_progressbar.reset()
         self.load_progressbar.setMinimum(0)
@@ -160,31 +152,33 @@ class ImportDataQDialog(QDialog):
         self.load_progressbar.setValue(0)
 
         for i, w in enumerate(widgets):
-            input_filepath = w.wid.filepath_lineedit.text()
-            input_type = w.wid.file_type_selection_combobox.currentText()
-            if input_type != "Patient":
-                uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_data(input_filepath,
-                                                                                                        type=input_type)
-                if error_msg:
-                    diag = QMessageBox()
-                    diag.setText("Unable to load: {}.\nError message: {}.\n".format(os.path.basename(input_filepath),
-                                                                                    error_msg))
-                    diag.exec_()
-                else:
-                    if uid in list(SoftwareConfigResources.getInstance().get_active_patient().mri_volumes.keys()):
-                        self.mri_volume_imported.emit(uid)
-                    elif uid in list(SoftwareConfigResources.getInstance().get_active_patient().annotation_volumes.keys()):
-                        self.annotation_volume_imported.emit(uid)
-            else:
-                uid, error_msg = SoftwareConfigResources.getInstance().load_patient(input_filepath)
-                if error_msg:
-                    diag = QMessageBox()
-                    diag.setText("Unable to load: {}.\nError message: {}.\n".format(os.path.basename(input_filepath),
-                                                                                    error_msg))
-                    diag.exec_()
+            pat_uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_patient()
+            if error_msg:
+                diag = QMessageBox()
+                diag.setText("Unable to create empty patient.\nError message: {}.\n".format(error_msg))
+                diag.exec_()
 
-                if (error_msg and 'Import patient failed' not in error_msg) or not error_msg:
-                    self.patient_imported.emit(uid)
+            input_filepath = w.wid.filepath_lineedit.text()
+            SoftwareConfigResources.getInstance().get_active_patient().update_visible_name(os.path.basename(input_filepath))
+
+            for _, _, files in os.walk(input_filepath):
+                for f in files:
+                    uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_data(
+                        os.path.join(input_filepath, f))
+                    if error_msg:
+                        diag = QMessageBox()
+                        diag.setText(
+                            "Unable to load: {}.\nError message: {}.\n".format(os.path.basename(input_filepath),
+                                                                               error_msg))
+                        diag.exec_()
+                    else:
+                        if uid in list(SoftwareConfigResources.getInstance().get_active_patient().mri_volumes.keys()):
+                            self.mri_volume_imported.emit(uid)
+                        elif uid in list(
+                                SoftwareConfigResources.getInstance().get_active_patient().annotation_volumes.keys()):
+                            self.annotation_volume_imported.emit(uid)
+                break
+            self.patient_imported.emit(pat_uid)
             self.load_progressbar.setValue(i + 1)
         self.load_progressbar.setVisible(False)
         self.accept()
@@ -192,22 +186,8 @@ class ImportDataQDialog(QDialog):
     def __on_exit_cancel_clicked(self):
         self.reject()
 
-    def setup_interface_from_files(self, files_list):
-        for fp in files_list:
-            if fp != '':
-                wid = ImportDataLineWidget(self)
-                self.import_scrollarea_layout.insertWidget(self.import_scrollarea_layout.count() - 1, wid)
-                wid.filepath_lineedit.setText(fp)
 
-                ## Deprecated, not using the combobox anymore.
-                # extension = '.'.join(os.path.basename(fp).split('.')[1:])
-                # if extension == 'raidionics':
-                #     wid.file_type_selection_combobox.setCurrentIndex(2)
-                # else:
-                #     wid.file_type_selection_combobox.setCurrentIndex(0)  # Assuming loading an MRI volume by default
-
-
-class ImportDataLineWidget(QWidget):
+class ImportFolderLineWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
 
@@ -226,16 +206,12 @@ class ImportDataLineWidget(QWidget):
         self.filepath_browse_edit_pushbutton = QPushButton()
         self.filepath_browse_edit_pushbutton.setIcon(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                                         '../../Images/folder_icon.png')))
-        self.file_type_selection_combobox = QComboBox()
-        self.file_type_selection_combobox.addItems(["MRI", "Annotation", "Patient"])
-
         self.remove_entry_pushbutton = QPushButton()
         self.remove_entry_pushbutton.setIcon(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                                 '../../Images/trash-bin_icon.png')))
 
         self.layout.addWidget(self.filepath_lineedit)
         self.layout.addWidget(self.filepath_browse_edit_pushbutton)
-        # self.layout.addWidget(self.file_type_selection_combobox)
         self.layout.addWidget(self.remove_entry_pushbutton)
 
     def __set_layout_dimensions(self):
@@ -245,7 +221,6 @@ class ImportDataLineWidget(QWidget):
 
     def __set_connections(self):
         self.filepath_browse_edit_pushbutton.clicked.connect(self.__on_browse_edit_clicked)
-        self.file_type_selection_combobox.currentIndexChanged.connect(self.__on_file_type_changed)
         self.remove_entry_pushbutton.clicked.connect(self.deleteLater)
 
     def __set_stylesheets(self):
@@ -255,8 +230,9 @@ class ImportDataLineWidget(QWidget):
         dialog = QFileDialog(self)
         input_filepath = dialog.getOpenFileName(self, caption='Modify input filepath',
                                                 directory=os.path.dirname(self.filepath_lineedit.text()),
-                                                filter="Files (*.nii *.nii.gz *.nrrd *.mha *.mhd *.raidionics)",
-                                                options=QFileDialog.DontUseNativeDialog)[0]
+                                                options=QFileDialog.DontUseNativeDialog |
+                                                        QFileDialog.ShowDirsOnly |
+                                                        QFileDialog.DontResolveSymlinks)
         if input_filepath != "":
             self.filepath_lineedit.setText(input_filepath)
 

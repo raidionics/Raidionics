@@ -10,6 +10,7 @@ from PySide2.QtCore import QSize
 import logging
 
 from utils.patient_parameters import PatientParameters
+from utils.data_structures.StudyParametersStructure import StudyParameters
 from diagnosis.src.Utils.configuration_parser import ResourcesConfiguration
 
 
@@ -47,6 +48,7 @@ class SoftwareConfigResources:
         # self.optimal_dimensions = QSize(1920, 1080)  # Full high definition screen
         self.accepted_image_format = ['nii', 'nii.gz', 'mhd', 'mha', 'nrrd']  # @TODO. Should I have an exhaustive list?
         self.accepted_scene_file_format = ['raidionics']
+        self.accepted_study_file_format = ['sraidionics']
         self.diagnostics_runner = None
 
         self.__set_default_values()
@@ -59,6 +61,8 @@ class SoftwareConfigResources:
     def __set_default_values(self):
         self.patients_parameters = {}  # Storing open patients with a key (name) and a class instance
         self.active_patient_name = None  # ID of the patient currently displayed in the single mode?
+        self.study_parameters = {}  # Storing open studies with a key and a class instance
+        self.active_study_name = None  # ID of the study currently opened in the batch study mode
 
     def __set_default_stylesheet_components(self):
         self.stylesheet_components = {}
@@ -144,8 +148,64 @@ class SoftwareConfigResources:
                                                                                      str(traceback.format_exc()))
         return error_message
 
-    def get_active_patient(self):
+    def get_active_patient(self) -> str:
         return self.patients_parameters[self.active_patient_name]
+
+    def add_new_empty_study(self) -> Union[str, Any]:
+        """
+
+        """
+        non_available_uid = True
+        study_uid = None
+        error_message = None
+        logging.debug("New study creation requested.")
+        try:
+            while non_available_uid:
+                study_uid = str(np.random.randint(0, 100000))
+                if study_uid not in list(self.study_parameters.keys()):
+                    non_available_uid = False
+
+            self.study_parameters[study_uid] = StudyParameters(uid=study_uid)
+            # random_name = names.get_full_name()
+            # self.study_parameters[study_uid].set_visible_name(random_name, manual_change=False)
+            self.set_active_study(study_uid)
+        except Exception:
+            error_message = "Error while trying to create a new empty study: \n"
+            error_message = error_message + traceback.format_exc()
+        return study_uid, error_message
+
+    def update_active_study_name(self, new_name: str) -> None:
+        self.study_parameters[self.active_study_name].update_visible_name(new_name)
+
+    def set_active_study(self, study_uid: str) -> Any:
+        """
+        Updates the active study upon user request, which triggers a full reloading of the patient_uid parameters
+        and removes from memory all memory-heavy imformation linked to the previous active patient.
+        ...
+        Parameters
+        ----------
+        study_uid : str
+            Unique id of the newly selected active study (i.e., study displayed and loaded in memory)
+        Returns
+        ----------
+        error_message Any (str or None)
+            None if no error was collected, otherwise a string with a human-readable description of the error.
+        """
+        error_message = None
+        try:
+            logging.debug("Active study uid changed from {} to {}.".format(self.active_study_name, study_uid))
+            # NB: At the very first call, there is no previously active patient, hence the need for an if statement
+            if self.active_study_name:
+                self.study_parameters[self.active_study_name].release_from_memory()
+            self.active_study_name = study_uid
+            self.study_parameters[self.active_study_name].load_in_memory()
+        except Exception:
+            error_message = "Setting {} as active study failed, with {}.\n".format(os.path.basename(study_uid),
+                                                                                   str(traceback.format_exc()))
+        return error_message
+
+    def get_active_study(self) -> str:
+        return self.study_parameters[self.active_study_name]
 
     def get_optimal_dimensions(self):
         return self.optimal_dimensions
