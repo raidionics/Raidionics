@@ -13,7 +13,7 @@ from nibabel.processing import resample_to_output
 import numpy as np
 import json
 import logging
-from typing import Union, Any
+from typing import Union, Any, Tuple
 from utils.patient_dicom import DICOMSeries
 from utils.data_structures.MRIVolumeStructure import MRIVolume
 from utils.data_structures.AnnotationStructure import AnnotationVolume
@@ -22,8 +22,14 @@ from utils.utilities import input_file_category_disambiguation
 
 
 class PatientParameters:
+    _unique_id = ""  # Internal unique identifier for the patient
     _creation_timestamp = None  # Timestamp for recording when the patient was created
     _last_editing_timestamp = None  # Timestamp for recording when the patient was last modified
+    _display_name = ""  # Human-readable name for the study
+    _patient_parameters_dict = {}  # Dictionary container for saving/loading all patient-related parameters
+    _patient_parameters_dict_filename = ""  # Filepath for storing the aforementioned dictionary (*.raidionics)
+    _standardized_report = {}  # Dictionary container for storing of the RADS results
+    _standardized_report_filename = ""  # Filepath for storing the aforementioned object (*.json)
     _unsaved_changes = False  # Documenting any change, for suggesting saving when swapping between patients
 
     def __init__(self, id: str = "-1"):
@@ -31,27 +37,26 @@ class PatientParameters:
         Default id value set to -1, the only time a default value is needed is when a patient will be loaded from
         a .raidionics file on disk whereby the correct id will be recovered from the json file.
         """
-        self.patient_id = id.replace(" ", '_').strip()
-        self.patient_visible_name = self.patient_id
+        self._unique_id = id
+        self._display_name = self._unique_id
 
-        # Initially, everything is dumped in the software temp place, until a destination is chosen by the user.
-        # Should we have a patient-named folder, so that the user only needs to choose the global destination directory
+        # Temporary global placeholder, until a destination folder is chosen by the user.
         self.output_dir = os.path.join(expanduser("~"), '.raidionics')
         os.makedirs(self.output_dir, exist_ok=True)
 
-        # By default, the temp_patient folder is created
-        # self.output_folder = os.path.join(self.output_dir, self.patient_visible_name.lower().replace(" ", '_'))
+        # Temporary placeholder for the current patient files, until a destination folder is chosen by the user.
         self.output_folder = os.path.join(self.output_dir, "patients", "temp_patient")
         if os.path.exists(self.output_folder):
             shutil.rmtree(self.output_folder)
         os.makedirs(self.output_folder)
         logging.info("Default output directory set to: {}".format(self.output_folder))
+
         self.__init_json_config()
         self.mri_volumes = {}
         self.annotation_volumes = {}
         self.atlas_volumes = {}
-        self.standardized_report_filename = None
-        self.standardized_report = None
+        self._standardized_report_filename = None
+        self._standardized_report = None
         self._creation_timestamp = datetime.datetime.now(tz=dateutil.tz.gettz(name='Europe/Oslo'))
 
     def __init_json_config(self):
@@ -59,22 +64,25 @@ class PatientParameters:
         Defines the structure of the save configuration parameters for the patient, stored as json information inside
         a custom file with the specific raidionics extension.
         """
-        self.patient_parameters_project_filename = os.path.join(self.output_folder, self.patient_visible_name.strip().lower().replace(" ", "_") + '_scene.raidionics')
-        self.patient_parameters_project_json = {}
-        self.patient_parameters_project_json['Parameters'] = {}
-        self.patient_parameters_project_json['Parameters']['Default'] = {}
-        self.patient_parameters_project_json['Parameters']['Default']['Patient_uid'] = self.patient_id
-        self.patient_parameters_project_json['Parameters']['Default']['Patient_visible_name'] = self.patient_visible_name
-        self.patient_parameters_project_json['Volumes'] = {}
-        self.patient_parameters_project_json['Annotations'] = {}
-        self.patient_parameters_project_json['Atlases'] = {}
+        self._patient_parameters_dict_filename = os.path.join(self.output_folder,
+                                                              self._display_name.strip().lower().replace(" ", "_") + '_scene.raidionics')
+        self._patient_parameters_dict['Parameters'] = {}
+        self._patient_parameters_dict['Parameters']['Default'] = {}
+        self._patient_parameters_dict['Parameters']['Default']['unique_id'] = self._unique_id
+        self._patient_parameters_dict['Parameters']['Default']['display_name'] = self._display_name
+        self._patient_parameters_dict['Volumes'] = {}
+        self._patient_parameters_dict['Annotations'] = {}
+        self._patient_parameters_dict['Atlases'] = {}
+
+    def get_unique_id(self) -> str:
+        return self._unique_id
 
     def release_from_memory(self) -> None:
         """
         Releasing all data objects from memory when not viewing the results for the current patient.
         Otherwise, for computer with limited RAM and many opened patients, it might freeze the computer
         """
-        logging.debug("Unloading patient {} from memory.".format(self.patient_id))
+        logging.debug("Unloading patient {} from memory.".format(self._unique_id))
         for im in self.mri_volumes:
             self.mri_volumes[im].release_from_memory()
         for an in self.annotation_volumes:
@@ -88,7 +96,7 @@ class PatientParameters:
         @TODO. Have to check the speed, but it might be too slow if many volumes/annotations/etc..., might be better
         to load in memory only if the objects is actually being toggled for viewing.
         """
-        logging.debug("Loading patient {} from memory.".format(self.patient_id))
+        logging.debug("Loading patient {} from memory.".format(self._unique_id))
         for im in self.mri_volumes:
             self.mri_volumes[im].load_in_memory()
         for an in self.annotation_volumes:
@@ -103,23 +111,38 @@ class PatientParameters:
 
         return status
 
-    def get_visible_name(self) -> str:
-        return self.patient_visible_name
+    def get_display_name(self) -> str:
+        return self._display_name
 
-    def set_visible_name(self, new_name: str, manual_change: bool = True) -> None:
+    def set_display_name(self, new_name: str, manual_change: bool = True) -> Tuple[int, str]:
         """
-        Edit to the display name/ID for the current patient, which does not alter its unique_uid.
+        Edit to the display name for the current patient, which does not alter its unique_uid.
         The use of an additional boolean parameter is needed to prevent updating the unsaved_changes state when
         a random new name is given upon patient creation. Only a user-triggered edition to the visible name should
         warrant the unsaved_changes status to become True.
-        # @TOOD. Why is there 2 functions with different names but doing the same thing?
+
+        Parameters
+        ----------
+        new_name : str
+            Name to be given to the current patient.
+        manual_change : bool
+            Indication whether the modification has been triggered by the user (True) or the system (False)
+
+        Returns
+        -------
+        Tuple[int, str]
+            The first element is the code indicating success (0) or failure (1) of the operation. The second element
+            is a human-readable string describing the problem encountered, if any, otherwise is empty.
         """
-        self.patient_visible_name = new_name.strip()
-        new_output_folder = os.path.join(self.output_dir, "patients", self.patient_visible_name.lower().replace(" ", '_'))
+        # Removing spaces to prevent potential issues in folder name/access when performing disk IO operations
+        new_output_folder = os.path.join(self.output_dir, "patients", new_name.strip().lower().replace(" ", '_'))
         if os.path.exists(new_output_folder):
-            # @TODO. What to do if a folder with the same name already exists? Should prompt the user to choose another name?
-            pass
+            msg = """A patient with requested name already exists in the destination folder.\n
+            Requested name: [{}].\n
+            Destination folder: [{}].""".format(new_name, os.path.dirname(self.output_folder))
+            return 1, msg
         else:
+            self._display_name = new_name.strip()
             shutil.move(src=self.output_folder, dst=new_output_folder, copy_function=shutil.copytree)
             self.output_folder = new_output_folder
 
@@ -129,25 +152,25 @@ class PatientParameters:
             for i, disp in enumerate(list(self.annotation_volumes.keys())):
                 self.annotation_volumes[disp].set_output_patient_folder(self.output_folder)
             logging.info("Renamed current output folder to: {}".format(self.output_folder))
-        if manual_change:
-            self._unsaved_changes = True
+            if manual_change:
+                self._unsaved_changes = True
+            return 0, ""
 
-    def update_visible_name(self, new_name):
-        self.patient_visible_name = new_name.strip()
-        new_output_folder = os.path.join(self.output_dir, "patients", self.patient_visible_name.lower().replace(" ", '_'))
-        if os.path.exists(new_output_folder):
-            # @TODO. What to do if a folder with the same name already exists? Should prompt the user to choose another name?
-            pass
-        else:
-            shutil.move(src=self.output_folder, dst=new_output_folder, copy_function=shutil.copytree)
-            self.output_folder = new_output_folder
-            for i, disp in enumerate(list(self.mri_volumes.keys())):
-                self.mri_volumes[disp].set_output_patient_folder(self.output_folder)
+    def get_standardized_report_filename(self) -> str:
+        return self._standardized_report_filename
 
-            for i, disp in enumerate(list(self.annotation_volumes.keys())):
-                self.annotation_volumes[disp].set_output_patient_folder(self.output_folder)
-            logging.info("Renamed current output folder to: {}".format(self.output_folder))
-        self._unsaved_changes = True
+    def get_standardized_report(self) -> dict:
+        return self._standardized_report
+
+    def import_standardized_report(self, filename: str) -> Any:
+        error_message = None
+        try:
+            self._standardized_report_filename = filename
+            with open(self._standardized_report_filename, 'r') as infile:
+                self._standardized_report = json.load(infile)
+        except Exception:
+            error_message = "Failed to load standardized report from {}".format(filename)
+        return error_message
 
     def import_patient(self, filename: str) -> Any:
         """
@@ -156,25 +179,25 @@ class PatientParameters:
         """
         error_message = None
         try:
-            self.patient_parameters_project_filename = filename
-            self.output_folder = os.path.dirname(self.patient_parameters_project_filename)
-            with open(self.patient_parameters_project_filename, 'r') as infile:
-                self.patient_parameters_project_json = json.load(infile)
+            self._patient_parameters_dict_filename = filename
+            self.output_folder = os.path.dirname(self._patient_parameters_dict_filename)
+            with open(self._patient_parameters_dict_filename, 'r') as infile:
+                self._patient_parameters_dict = json.load(infile)
 
-            self.patient_id = self.patient_parameters_project_json["Parameters"]["Default"]["Patient_uid"]
-            self.patient_visible_name = self.patient_parameters_project_json["Parameters"]["Default"]["Patient_visible_name"]
-            if 'creation_timestamp' in self.patient_parameters_project_json["Parameters"]["Default"].keys():
-                self._creation_timestamp = datetime.datetime.strptime(self.patient_parameters_project_json["Parameters"]["Default"]['creation_timestamp'],
+            self._unique_id = self._patient_parameters_dict["Parameters"]["Default"]["unique_id"]
+            self._display_name = self._patient_parameters_dict["Parameters"]["Default"]["display_name"]
+            if 'creation_timestamp' in self._patient_parameters_dict["Parameters"]["Default"].keys():
+                self._creation_timestamp = datetime.datetime.strptime(self._patient_parameters_dict["Parameters"]["Default"]['creation_timestamp'],
                                                                       "%d/%m/%Y, %H:%M:%S")
-            if 'last_editing_timestamp' in self.patient_parameters_project_json["Parameters"]["Default"].keys():
-                self._last_editing_timestamp = datetime.datetime.strptime(self.patient_parameters_project_json["Parameters"]["Default"]['last_editing_timestamp'],
+            if 'last_editing_timestamp' in self._patient_parameters_dict["Parameters"]["Default"].keys():
+                self._last_editing_timestamp = datetime.datetime.strptime(self._patient_parameters_dict["Parameters"]["Default"]['last_editing_timestamp'],
                                                                           "%d/%m/%Y, %H:%M:%S")
-            for volume_id in list(self.patient_parameters_project_json['Volumes'].keys()):
+            for volume_id in list(self._patient_parameters_dict['Volumes'].keys()):
                 try:
                     mri_volume = MRIVolume(uid=volume_id,
-                                           input_filename=self.patient_parameters_project_json['Volumes'][volume_id]['raw_input_filepath'],
+                                           input_filename=self._patient_parameters_dict['Volumes'][volume_id]['raw_input_filepath'],
                                            output_patient_folder=self.output_folder,
-                                           reload_params=self.patient_parameters_project_json['Volumes'][volume_id])
+                                           reload_params=self._patient_parameters_dict['Volumes'][volume_id])
                     self.mri_volumes[volume_id] = mri_volume
                 except Exception:
                     logging.error(str(traceback.format_exc()))
@@ -183,12 +206,12 @@ class PatientParameters:
                     else:
                         error_message = "Import MRI failed, for volume {}.\n".format(volume_id) + str(traceback.format_exc())
 
-            for volume_id in list(self.patient_parameters_project_json['Annotations'].keys()):
+            for volume_id in list(self._patient_parameters_dict['Annotations'].keys()):
                 try:
                     annotation_volume = AnnotationVolume(uid=volume_id,
-                                                         input_filename=self.patient_parameters_project_json['Volumes'][volume_id]['raw_input_filepath'],
+                                                         input_filename=self._patient_parameters_dict['Volumes'][volume_id]['raw_input_filepath'],
                                                          output_patient_folder=self.output_folder,
-                                                         reload_params=self.patient_parameters_project_json['Volumes'][volume_id])
+                                                         reload_params=self._patient_parameters_dict['Volumes'][volume_id])
                     self.annotation_volumes[volume_id] = annotation_volume
                 except Exception:
                     logging.error(str(traceback.format_exc()))
@@ -197,14 +220,14 @@ class PatientParameters:
                     else:
                         error_message = "Import annotation failed, for volume {}.\n".format(volume_id) + str(traceback.format_exc())
 
-            for volume_id in list(self.patient_parameters_project_json['Atlases'].keys()):
+            for volume_id in list(self._patient_parameters_dict['Atlases'].keys()):
                 try:
                     atlas_volume = AtlasVolume(uid=volume_id,
-                                               filename=os.path.join(self.output_folder, self.patient_parameters_project_json['Atlases'][volume_id]['raw_volume_filepath']),
-                                               description_filename=os.path.join(self.output_folder, self.patient_parameters_project_json['Atlases'][volume_id]['description_filepath']))
-                    atlas_volume.display_volume_filepath = os.path.join(self.output_folder, self.patient_parameters_project_json['Atlases'][volume_id]['display_volume_filepath'])
+                                               filename=os.path.join(self.output_folder, self._patient_parameters_dict['Atlases'][volume_id]['raw_volume_filepath']),
+                                               description_filename=os.path.join(self.output_folder, self._patient_parameters_dict['Atlases'][volume_id]['description_filepath']))
+                    atlas_volume.display_volume_filepath = os.path.join(self.output_folder, self._patient_parameters_dict['Atlases'][volume_id]['display_volume_filepath'])
                     atlas_volume.set_display_volume(display_volume=nib.load(os.path.join(self.output_folder, atlas_volume.display_volume_filepath)).get_data()[:])
-                    atlas_volume.display_name = self.patient_parameters_project_json['Atlases'][volume_id]['display_name']
+                    atlas_volume.display_name = self._patient_parameters_dict['Atlases'][volume_id]['display_name']
                     self.atlas_volumes[volume_id] = atlas_volume
                 except Exception:
                     logging.error(str(traceback.format_exc()))
@@ -272,16 +295,6 @@ class PatientParameters:
         uid, error_msg = self.import_data(ori_filename, type="MRI")
         return uid, error_msg
 
-    def import_standardized_report(self, filename: str) -> Any:
-        error_message = None
-        try:
-            self.standardized_report_filename = filename
-            with open(self.standardized_report_filename, 'r') as infile:
-                self.standardized_report = json.load(infile)
-        except Exception:
-            error_message = "Failed to load standardized report from {}".format(filename)
-        return error_message
-
     def import_atlas_structures(self, filename: str, description: str = None,
                                 reference: str = 'Patient') -> Union[str, Any]:
         data_uid = None
@@ -320,47 +333,33 @@ class PatientParameters:
         """
         logging.info("Saving patient results in: {}".format(self.output_folder))
         self._last_editing_timestamp = datetime.datetime.now(tz=dateutil.tz.gettz(name='Europe/Oslo'))
-        self.patient_parameters_project_filename = os.path.join(self.output_folder, self.patient_visible_name.strip().lower().replace(" ", "_") + '_scene.raidionics')
-        self.patient_parameters_project_json['Parameters']['Default']['Patient_uid'] = self.patient_id
-        self.patient_parameters_project_json['Parameters']['Default']['Patient_visible_name'] = self.patient_visible_name
-        self.patient_parameters_project_json['Parameters']['Default']['creation_timestamp'] = self._creation_timestamp.strftime("%d/%m/%Y, %H:%M:%S")
-        self.patient_parameters_project_json['Parameters']['Default']['last_editing_timestamp'] = self._last_editing_timestamp.strftime("%d/%m/%Y, %H:%M:%S")
+        self._patient_parameters_dict_filename = os.path.join(self.output_folder, self._display_name.strip().lower().replace(" ", "_") + '_scene.raidionics')
+        self._patient_parameters_dict['Parameters']['Default']['unique_id'] = self._unique_id
+        self._patient_parameters_dict['Parameters']['Default']['display_name'] = self._display_name
+        self._patient_parameters_dict['Parameters']['Default']['creation_timestamp'] = self._creation_timestamp.strftime("%d/%m/%Y, %H:%M:%S")
+        self._patient_parameters_dict['Parameters']['Default']['last_editing_timestamp'] = self._last_editing_timestamp.strftime("%d/%m/%Y, %H:%M:%S")
 
         display_folder = os.path.join(self.output_folder, 'display')
         os.makedirs(display_folder, exist_ok=True)
 
         for i, disp in enumerate(list(self.mri_volumes.keys())):
-            self.patient_parameters_project_json['Volumes'][disp] = self.mri_volumes[disp].save()
+            self._patient_parameters_dict['Volumes'][disp] = self.mri_volumes[disp].save()
 
         for i, disp in enumerate(list(self.annotation_volumes.keys())):
-            self.patient_parameters_project_json['Annotations'][disp] = self.annotation_volumes[disp].save()
+            self._patient_parameters_dict['Annotations'][disp] = self.annotation_volumes[disp].save()
 
         for i, atlas in enumerate(list(self.atlas_volumes.keys())):
             volume_dump_filename = os.path.join(display_folder, atlas + '_display.nii.gz')
-            self.patient_parameters_project_json['Atlases'][atlas] = {}
-            self.patient_parameters_project_json['Atlases'][atlas]['display_name'] = self.atlas_volumes[atlas].display_name
-            self.patient_parameters_project_json['Atlases'][atlas]['raw_volume_filepath'] = os.path.relpath(self.atlas_volumes[atlas].raw_filepath, self.output_folder)
-            self.patient_parameters_project_json['Atlases'][atlas]['display_volume_filepath'] = os.path.relpath(volume_dump_filename, self.output_folder)
+            self._patient_parameters_dict['Atlases'][atlas] = {}
+            self._patient_parameters_dict['Atlases'][atlas]['display_name'] = self.atlas_volumes[atlas].display_name
+            self._patient_parameters_dict['Atlases'][atlas]['raw_volume_filepath'] = os.path.relpath(self.atlas_volumes[atlas].raw_filepath, self.output_folder)
+            self._patient_parameters_dict['Atlases'][atlas]['display_volume_filepath'] = os.path.relpath(volume_dump_filename, self.output_folder)
             nib.save(nib.Nifti1Image(self.atlas_volumes[atlas].display_volume,
                                      affine=[[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]),
                      volume_dump_filename)
-            self.patient_parameters_project_json['Atlases'][atlas]['description_filepath'] = os.path.relpath(self.atlas_volumes[atlas].class_description_filename, self.output_folder)
+            self._patient_parameters_dict['Atlases'][atlas]['description_filepath'] = os.path.relpath(self.atlas_volumes[atlas].class_description_filename, self.output_folder)
 
         # Saving the json file last, as it must be populated from the previous dumps beforehand
-        with open(self.patient_parameters_project_filename, 'w') as outfile:
-            json.dump(self.patient_parameters_project_json, outfile, indent=4, sort_keys=True)
+        with open(self._patient_parameters_dict_filename, 'w') as outfile:
+            json.dump(self._patient_parameters_dict, outfile, indent=4, sort_keys=True)
         self._unsaved_changes = False
-
-
-class ProjectParameters:
-    """
-    Class defining a project, meant to hold a collection of patients inside the same folder.
-    """
-    def __init__(self, project_uid):
-        """
-
-        """
-        self.uid = project_uid
-        self.display_name = None
-        self.output_directory = None
-        self.patients = []  # List of PatientParameters belonging to the project

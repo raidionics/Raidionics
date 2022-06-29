@@ -72,12 +72,11 @@ class AnnotationSingleLayerWidget(QWidget):
         self.annotation_type_layout.addWidget(self.annotation_type_label)
         self.annotation_type_layout.addWidget(self.annotation_type_combobox)
 
-        self.__set_interface_advanced_options()
-
         self.layout.addLayout(self.name_layout)
         self.layout.addLayout(self.parent_layout)
         self.layout.addLayout(self.annotation_type_layout)
-        self.layout.addWidget(self.advanced_options_collapsible)
+        self.__set_interface_advanced_options()
+        # self.layout.addWidget(self.advanced_options_collapsible)
 
     def __set_interface_advanced_options(self):
         self.advanced_options_collapsible = QCollapsibleGroupBox(uid=self.uid + '_advanced', parent=self)
@@ -93,7 +92,8 @@ class AnnotationSingleLayerWidget(QWidget):
         self.opacity_layout.addWidget(self.opacity_label)
         self.opacity_layout.addWidget(self.opacity_slider)
         self.opacity_layout.addStretch(1)
-        self.advanced_options_collapsible.content_label_layout.addLayout(self.opacity_layout)
+        # self.advanced_options_collapsible.content_label_layout.addLayout(self.opacity_layout)
+        self.layout.addLayout(self.opacity_layout)
 
         self.color_label = QLabel("Color ")
         self.color_dialogpushbutton = QPushButton()
@@ -106,7 +106,17 @@ class AnnotationSingleLayerWidget(QWidget):
         self.color_layout.addWidget(self.color_label)
         self.color_layout.addWidget(self.color_dialogpushbutton)
         self.color_layout.addStretch(1)
-        self.advanced_options_collapsible.content_label_layout.addLayout(self.color_layout)
+        # self.advanced_options_collapsible.content_label_layout.addLayout(self.color_layout)
+        self.layout.addLayout(self.color_layout)
+
+        self.generation_type_label = QLabel("Generated ")
+        self.generation_type_combobox = QComboBox()
+        self.generation_type_combobox.addItems(["manually", "automatically"])
+        self.generation_type_layout = QHBoxLayout()
+        self.generation_type_layout.addWidget(self.generation_type_label)
+        self.generation_type_layout.addWidget(self.generation_type_combobox)
+        # self.advanced_options_collapsible.content_label_layout.addLayout(self.generation_type_layout)
+        self.layout.addLayout(self.generation_type_layout)
 
     def __set_layout_dimensions(self):
         self.icon_label.setFixedSize(QSize(15, 20))
@@ -120,16 +130,19 @@ class AnnotationSingleLayerWidget(QWidget):
 
         ############## ADVANCED OPTIONS ################
         self.opacity_label.setFixedHeight(20)
-        self.opacity_slider.setFixedHeight(10)
+        self.opacity_slider.setFixedHeight(15)
         self.color_label.setFixedHeight(20)
-        self.color_dialogpushbutton.setFixedHeight(10)
-        self.advanced_options_collapsible.content_label.setFixedHeight(50) #.adjustSize()
+        self.color_dialogpushbutton.setFixedHeight(15)
+        self.generation_type_label.setFixedHeight(20)
+        self.generation_type_combobox.setFixedHeight(20)
+        self.advanced_options_collapsible.content_label.setFixedHeight(70)
+        # self.advanced_options_collapsible.adjustSize()
 
     def __set_connections(self):
         self.customContextMenuRequested.connect(self.on_right_clicked)
         self.display_name_lineedit.textEdited.connect(self.on_name_changed)
         self.display_toggle_pushbutton.toggled.connect(self.on_visibility_toggled)
-        # self.sequence_type_combobox.currentTextChanged.connect(self.on_sequence_type_changed)
+        self.annotation_type_combobox.currentTextChanged.connect(self.__on_annotation_type_changed)
         self.advanced_options_collapsible.header_pushbutton.clicked.connect(self.on_advanced_options_clicked)
         self.opacity_slider.valueChanged.connect(self.__on_opacity_changed)
         self.color_dialogpushbutton.clicked.connect(self.__on_color_selector_clicked)
@@ -150,6 +163,9 @@ class AnnotationSingleLayerWidget(QWidget):
     def __init_from_parameters(self):
         params = SoftwareConfigResources.getInstance().get_active_patient().annotation_volumes[self.uid]
         self.display_name_lineedit.setText(params.get_display_name())
+        self.annotation_type_combobox.setCurrentText(params.get_annotation_class_str())
+        self.parent_image_combobox.addItems(list(SoftwareConfigResources.getInstance().get_active_patient().mri_volumes.keys()))
+        # @TODO. Should set the combobox index to the current image id, if multiple.
         self.opacity_slider.blockSignals(True)
         self.opacity_slider.setSliderPosition(params.get_display_opacity())
         self.opacity_slider.blockSignals(False)
@@ -217,3 +233,7 @@ class AnnotationSingleLayerWidget(QWidget):
             custom_color_str = "background-color:rgb({}, {}, {})".format(color.red(), color.green(), color.blue())
             custom_ss = "QPushButton{" + custom_color_str + ";}"
             self.color_dialogpushbutton.setStyleSheet(self.color_dialogpushbutton_base_ss + custom_ss)
+
+    def __on_annotation_type_changed(self):
+        params = SoftwareConfigResources.getInstance().get_active_patient().annotation_volumes[self.uid]
+        params.set_annotation_class_type(self.annotation_type_combobox.currentText())

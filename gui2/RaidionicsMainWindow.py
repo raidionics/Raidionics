@@ -15,6 +15,7 @@ from utils.software_config import SoftwareConfigResources
 from gui2.WelcomeWidget import WelcomeWidget
 from gui2.SinglePatientComponent.SinglePatientWidget import SinglePatientWidget
 from gui2.StudyBatchComponent.StudyBatchWidget import StudyBatchWidget
+from gui2.UtilsWidgets.CustomQDialog.SavePatientChangesDialog import SavePatientChangesDialog
 
 
 class WorkerThread(QThread):
@@ -49,7 +50,11 @@ class RaidionicsMainWindow(QMainWindow):
         self.setWindowState(Qt.WindowState.WindowActive)  # Bring window to foreground? To check!
 
     def closeEvent(self, event):
-        pass
+        if SoftwareConfigResources.getInstance().get_active_patient().has_unsaved_changes():
+            dialog = SavePatientChangesDialog()
+            code = dialog.exec_()
+            if code == 0:  # Operation cancelled
+                event.ignore()
 
     def resizeEvent(self, event):
         new_size = event.size()

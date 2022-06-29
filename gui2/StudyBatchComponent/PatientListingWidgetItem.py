@@ -30,7 +30,7 @@ class PatientListingWidgetItem(QWidget):
         self.layout.setSpacing(0)
         self.layout.setContentsMargins(0, 0, 0, 0)
 
-        self.patient_uid_label = QLabel(SoftwareConfigResources.getInstance().patients_parameters[self.patient_uid].get_visible_name())
+        self.patient_uid_label = QLabel(SoftwareConfigResources.getInstance().patients_parameters[self.patient_uid].get_display_name())
         self.patient_investigation_pushbutton = QPushButton("Check")
         self.layout.addWidget(self.patient_uid_label)
         self.layout.addWidget(self.patient_investigation_pushbutton)

@@ -9,9 +9,8 @@ import names
 from PySide2.QtCore import QSize
 import logging
 
-from utils.patient_parameters import PatientParameters
+from utils.data_structures.PatientParametersStructure import PatientParameters
 from utils.data_structures.StudyParametersStructure import StudyParameters
-from diagnosis.src.Utils.configuration_parser import ResourcesConfiguration
 
 
 class SoftwareConfigResources:
@@ -90,7 +89,7 @@ class SoftwareConfigResources:
 
             self.patients_parameters[patient_uid] = PatientParameters(id=patient_uid)
             random_name = names.get_full_name()
-            self.patients_parameters[patient_uid].set_visible_name(random_name, manual_change=False)
+            self.patients_parameters[patient_uid].set_display_name(random_name, manual_change=False)
             self.set_active_patient(patient_uid)
         except Exception:
             error_message = "Error while trying to create a new empty patient: \n"
@@ -114,7 +113,7 @@ class SoftwareConfigResources:
         """
         patient_instance = PatientParameters()
         error_message = patient_instance.import_patient(filename)
-        patient_id = patient_instance.patient_id
+        patient_id = patient_instance.get_unique_id()
         self.patients_parameters[patient_id] = patient_instance
         return patient_id, error_message
 

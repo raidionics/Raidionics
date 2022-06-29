@@ -1,6 +1,6 @@
 import logging
 import os
-from PySide2.QtWidgets import QLabel, QHBoxLayout, QVBoxLayout, QLineEdit, QListWidget, QListWidgetItem
+from PySide2.QtWidgets import QLabel, QHBoxLayout, QVBoxLayout, QLineEdit, QListWidget, QListWidgetItem, QErrorMessage
 from PySide2.QtCore import Qt, QSize, Signal
 
 from gui2.UtilsWidgets.CustomQGroupBox.QCollapsibleGroupBox import QCollapsibleGroupBox
@@ -465,11 +465,16 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.resizeRequested.emit()
 
     def __on_patient_name_modified(self):
-        # @TODO. Have to check that the name does not already exist, otherwise it will conflict in the dict.
-        # SoftwareConfigResources.getInstance().update_active_patient_name(self.patient_name_lineedit.text())
-        SoftwareConfigResources.getInstance().get_active_patient().update_visible_name(self.patient_name_lineedit.text())
-        self.header_pushbutton.setText(self.patient_name_lineedit.text())
-        self.patient_name_edited.emit(self.uid, self.patient_name_lineedit.text())
+        new_name = self.patient_name_lineedit.text()
+        code, msg = SoftwareConfigResources.getInstance().get_active_patient().set_display_name(new_name)
+        if code == 0:  # Name edition was successful
+            self.header_pushbutton.setText(new_name)
+            self.patient_name_edited.emit(self.uid, new_name)
+        else:  # Requested name already exists, operation cancelled and user warned.
+            self.patient_name_lineedit.setText(SoftwareConfigResources.getInstance().get_active_patient().get_display_name())
+            diag = QErrorMessage(self)
+            diag.setWindowTitle("Operation not permitted")
+            diag.showMessage(msg)
 
     def manual_header_pushbutton_clicked(self, state):
         # @TODO. Has to be a better way to trigger the state change in QCollapsibleGroupBox directly from
@@ -487,14 +492,14 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
 
     def populate_from_patient(self, patient_uid):
         patient_parameters = SoftwareConfigResources.getInstance().patients_parameters[patient_uid]
-        self.patient_name_lineedit.setText(patient_parameters.patient_visible_name)
+        self.patient_name_lineedit.setText(patient_parameters.get_display_name())
         self.output_dir_lineedit.setText(os.path.dirname(patient_parameters.output_folder))
-        self.title = patient_parameters.patient_visible_name
+        self.title = patient_parameters.get_display_name()
         self.header_pushbutton.setText(self.title)
 
     def on_standardized_report_imported(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
-        report_json = SoftwareConfigResources.getInstance().patients_parameters[self.uid].standardized_report
+        report_json = SoftwareConfigResources.getInstance().patients_parameters[self.uid].get_standardized_report()
 
         self.original_space_volume_label.setText(str(report_json['Main']['Total']['Volume original (ml)']) + ' ml')
         self.mni_space_volume_label.setText(str(report_json['Main']['Total']['Volume in MNI (ml)']) + ' ml')

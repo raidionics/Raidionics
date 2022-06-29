@@ -66,7 +66,7 @@ class AtlasSingleLayerCollapsibleGroupBox(QCollapsibleGroupBox):
         Populate the different widgets with internal parameters specific to the current annotation volume
         """
         atlas_volume_parameters = SoftwareConfigResources.getInstance().get_active_patient().atlas_volumes[self.uid]
-        self.title = atlas_volume_parameters.display_name
+        self.title = atlas_volume_parameters.get_display_name()
         self.header_pushbutton.blockSignals(True)
         self.header_pushbutton.setText(self.title)
         self.header_pushbutton.blockSignals(False)

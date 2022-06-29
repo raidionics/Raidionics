@@ -75,7 +75,7 @@ def run_segmentation(model_name, patient_parameters, queue):
             patient_parameters.annotation_volumes[data_uid].set_generation_type("Automatic")
             results['Annotation'].append(data_uid)
     except Exception:
-        logging.error('Segmentation for patient {}, using {} failed with: \n{}'.format(patient_parameters.patient_id,
+        logging.error('Segmentation for patient {}, using {} failed with: \n{}'.format(patient_parameters.get_unique_id(),
                                                                                        model_name, traceback.format_exc()))
         if os.path.exists(seg_config_filename):
             os.remove(seg_config_filename)

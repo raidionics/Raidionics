@@ -27,7 +27,7 @@ class SavePatientChangesDialog(QDialog):
         self.exit_dontsave_pushbutton.addButton("Don\'t save", QDialogButtonBox.AcceptRole)
         self.bottom_actions_layout.addWidget(self.exit_dontsave_pushbutton)
         self.exit_cancel_pushbutton = QDialogButtonBox()
-        self.exit_cancel_pushbutton.addButton("Cancel", QDialogButtonBox.ResetRole)
+        self.exit_cancel_pushbutton.addButton("Cancel", QDialogButtonBox.RejectRole)
         self.bottom_actions_layout.addWidget(self.exit_cancel_pushbutton)
         self.base_layout.addLayout(self.bottom_actions_layout)
         self.setLayout(self.base_layout)

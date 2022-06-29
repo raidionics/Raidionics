@@ -55,7 +55,6 @@ class StudyParameters:
         os.makedirs(self.output_dir, exist_ok=True)
 
         # By default, the temp_patient folder is created
-        # self.output_folder = os.path.join(self.output_dir, self.patient_visible_name.lower().replace(" ", '_'))
         self._output_study_folder = os.path.join(self.output_dir, "studies", "temp_study")
         if os.path.exists(self._output_study_folder):
             shutil.rmtree(self._output_study_folder)
