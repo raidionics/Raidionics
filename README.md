@@ -1,4 +1,4 @@
-# Raidionics
+# Raidionics 
 [![License](https://img.shields.io/badge/License-BSD%202--Clause-orange.svg)](https://opensource.org/licenses/BSD-2-Clause)
 [![GitHub Downloads](https://img.shields.io/github/downloads/dbouget/Raidionics/total?label=GitHub%20downloads&logo=github)](https://github.com/dbouget/Raidionics/releases)
 ![CI](https://github.com/dbouget/Raidionics/workflows/Build%20Windows/badge.svg?branch=design_update&event=push)
