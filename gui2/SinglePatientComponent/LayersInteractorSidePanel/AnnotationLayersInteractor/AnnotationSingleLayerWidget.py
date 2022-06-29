@@ -66,7 +66,7 @@ class AnnotationSingleLayerWidget(QWidget):
         self.parent_layout.addWidget(self.parent_image_combobox)
 
         self.annotation_type_layout = QHBoxLayout()
-        self.annotation_type_label = QLabel("Annotation of ")
+        self.annotation_type_label = QLabel("Annotation of")
         self.annotation_type_combobox = QComboBox()
         self.annotation_type_combobox.addItems(["Brain", "Tumor"])
         self.annotation_type_layout.addWidget(self.annotation_type_label)
