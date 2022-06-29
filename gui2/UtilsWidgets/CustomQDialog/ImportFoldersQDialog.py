@@ -10,6 +10,9 @@ from utils.software_config import SoftwareConfigResources
 
 
 class ImportFoldersQDialog(QDialog):
+    """
+    Loading class dedicated to the batch/study mode, with specific extra operations tailored for it.
+    """
     # The str is the unique id for the mri volume, belonging to the active patient
     mri_volume_imported = Signal(str)
     # The str is the unique id for the annotation volume, belonging to the active patient
@@ -179,6 +182,8 @@ class ImportFoldersQDialog(QDialog):
                             self.annotation_volume_imported.emit(uid)
                 break
             self.patient_imported.emit(pat_uid)
+            SoftwareConfigResources.getInstance().get_active_patient().save_patient()
+            msg = SoftwareConfigResources.getInstance().get_active_study().include_study_patient(pat_uid)
             self.load_progressbar.setValue(i + 1)
         self.load_progressbar.setVisible(False)
         self.accept()

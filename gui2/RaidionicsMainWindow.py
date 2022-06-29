@@ -159,9 +159,14 @@ class RaidionicsMainWindow(QMainWindow):
 
         self.welcome_widget.left_panel_multiple_patients_pushbutton.clicked.connect(self.__on_study_batch_clicked)
 
+        # Connections from single mode to study mode.
+        self.single_patient_widget.patient_name_edited.connect(self.batch_study_widget.patient_name_edited)
+
+        # Connections from study mode to single mode.
         self.batch_study_widget.mri_volume_imported.connect(self.single_patient_widget.on_mri_volume_imported)
         self.batch_study_widget.annotation_volume_imported.connect(self.single_patient_widget.on_annotation_volume_imported)
         self.batch_study_widget.patient_imported.connect(self.single_patient_widget.on_patient_imported)
+        self.batch_study_widget.patient_selected.connect(self.__on_patient_selected)
 
     def __set_menubar_connections(self):
         self.single_use_action.triggered.connect(self.__on_single_patient_clicked)
@@ -232,6 +237,10 @@ class RaidionicsMainWindow(QMainWindow):
             # Should not happen, but what if?
             pass
         self.adjustSize()
+
+    def __on_patient_selected(self, patient_uid):
+        self.__on_single_patient_clicked()
+        self.single_patient_widget.on_patient_selected(patient_uid)
 
     def readme_action_triggered(self):
         popup = QMessageBox()

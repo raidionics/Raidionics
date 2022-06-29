@@ -18,6 +18,7 @@ class StudiesSidePanelWidget(QWidget):
     mri_volume_imported = Signal(str)
     annotation_volume_imported = Signal(str)
     patient_imported = Signal(str)
+    batch_segmentation_requested = Signal(str, str)
 
     def __init__(self, parent=None):
         super(StudiesSidePanelWidget, self).__init__()
@@ -72,6 +73,10 @@ class StudiesSidePanelWidget(QWidget):
         self.bottom_add_study_pushbutton.clicked.connect(self.on_import_options_clicked)
         self.add_empty_study_action.triggered.connect(self.on_add_new_empty_study)
         self.add_existing_study_action.triggered.connect(self.on_add_existing_study_requested)
+        self.__set_cross_connections()
+
+    def __set_cross_connections(self):
+        pass
 
     def __set_stylesheets(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
@@ -183,6 +188,7 @@ class StudiesSidePanelWidget(QWidget):
         pat_widget.mri_volume_imported.connect(self.mri_volume_imported)
         pat_widget.annotation_volume_imported.connect(self.annotation_volume_imported)
         pat_widget.patient_imported.connect(self.patient_imported)
+        pat_widget.batch_segmentation_requested.connect(self.batch_segmentation_requested)
         self.adjustSize()
 
     def __on_study_selection(self, state, widget_id):

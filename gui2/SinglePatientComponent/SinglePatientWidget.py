@@ -19,6 +19,7 @@ class SinglePatientWidget(QWidget):
     """
 
     """
+    patient_name_edited = Signal(str, str)
     import_data_triggered = Signal()
     import_patient_triggered = Signal()
 
@@ -122,6 +123,9 @@ class SinglePatientWidget(QWidget):
         self.results_panel.patient_selected.connect(self.center_panel.on_patient_selected)
         self.results_panel.patient_selected.connect(self.layers_panel.on_patient_selected)
 
+        # Connections between the patient results panel (left-hand) and the study/batch mode
+        self.results_panel.patient_name_edited.connect(self.patient_name_edited)
+
         # Connections related to data display (from right-hand panel to update the central viewer)
         self.layers_panel.volume_view_toggled.connect(self.center_panel.on_volume_layer_toggled)
         self.layers_panel.volume_contrast_changed.connect(self.center_panel.on_volume_contrast_changed)
@@ -172,7 +176,11 @@ class SinglePatientWidget(QWidget):
     def __on_save_clicked(self):
         SoftwareConfigResources.getInstance().patients_parameters[SoftwareConfigResources.getInstance().active_patient_name].save_patient()
 
+    def on_patient_selected(self, patient_name):
+        self.results_panel.on_external_patient_selection(patient_name)
+
     def on_single_patient_clicked(self, patient_name):
+        # @TODO. Renaming to do, confusing name since it adds a new patient...
         self.results_panel.add_new_patient(patient_name)
 
     def on_process_started(self):

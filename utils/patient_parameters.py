@@ -85,6 +85,8 @@ class PatientParameters:
         When a patient has been manually selected to be visible, all data objects are loaded from disk and restored
         in memory. Necessary for performing on-the-fly operations such as contrast adjustment for which a grip on the
         raw MRI volumes is mandatory.
+        @TODO. Have to check the speed, but it might be too slow if many volumes/annotations/etc..., might be better
+        to load in memory only if the objects is actually being toggled for viewing.
         """
         logging.debug("Loading patient {} from memory.".format(self.patient_id))
         for im in self.mri_volumes:
@@ -100,6 +102,9 @@ class PatientParameters:
             status = status | self.annotation_volumes[an].has_unsaved_changes()
 
         return status
+
+    def get_visible_name(self) -> str:
+        return self.patient_visible_name
 
     def set_visible_name(self, new_name: str, manual_change: bool = True) -> None:
         """

@@ -4,11 +4,13 @@ from PySide2.QtGui import QIcon, QPixmap
 from PySide2.QtCore import Qt, QSize, Signal
 import logging
 import os
+import threading
 from utils.software_config import SoftwareConfigResources
 from gui2.StudyBatchComponent.StudiesSidePanel.StudiesSidePanelWidget import StudiesSidePanelWidget
 from gui2.StudyBatchComponent.StudyPatientListingWidget import StudyPatientListingWidget
 from gui2.UtilsWidgets.CustomQDialog.ImportFoldersQDialog import ImportFoldersQDialog
 from gui2.UtilsWidgets.CustomQDialog.ImportDICOMDataQDialog import ImportDICOMDataQDialog
+from utils.backend_logic import segmentation_main_wrapper
 
 
 class StudyBatchWidget(QWidget):
@@ -16,6 +18,8 @@ class StudyBatchWidget(QWidget):
     Main entry point for batch mode processing, for patients assembled within a study.
     """
     patient_imported = Signal(str)
+    patient_selected = Signal(str)
+    patient_name_edited = Signal(str, str)
     mri_volume_imported = Signal(str)
     annotation_volume_imported = Signal(str)
 
@@ -104,6 +108,11 @@ class StudyBatchWidget(QWidget):
         self.studies_panel.annotation_volume_imported.connect(self.annotation_volume_imported)
         self.studies_panel.patient_imported.connect(self.patient_imported)
         self.studies_panel.patient_imported.connect(self.patient_listing_panel.on_patient_imported)
+        self.studies_panel.batch_segmentation_requested.connect(self.on_batch_segmentation_wrapper)
+
+        self.patient_listing_panel.patient_selected.connect(self.patient_selected)
+
+        self.patient_name_edited.connect(self.patient_listing_panel.on_patient_name_edited)
 
     def get_widget_name(self):
         return self.widget_name
@@ -131,7 +140,32 @@ class StudyBatchWidget(QWidget):
         pass
 
     def on_process_started(self):
+        # Not sure what is generic enough to be here, has to depend on whether segm or RADS, single patient update...
         pass
 
     def on_process_finished(self):
         pass
+
+    def on_batch_segmentation_wrapper(self, study_uid, model_name):
+        run_segmentation_thread = threading.Thread(target=self.on_batch_segmentation, args=(study_uid, model_name,))
+        run_segmentation_thread.daemon = True  # using daemon thread the thread is killed gracefully if program is abruptly closed
+        run_segmentation_thread.start()
+
+    def on_batch_segmentation(self, study_uid, model_name):
+        self.on_process_started()
+        study = SoftwareConfigResources.getInstance().study_parameters[study_uid]
+        patients_uid = study.get_included_patients_uids()
+        for u in patients_uid:
+            # @TODO. Have to change the global behaviour about the active patient, otherwise needs to manually set it
+            # to the currently iterated patient. Should be an active display patient, and an active process patient to
+            # avoid side effects, the same patient potentially being both at the same time.
+            # And also should disable the run segmentation/reporting buttons from the single mode view.
+            SoftwareConfigResources.getInstance().set_active_patient(u)
+            code, results = segmentation_main_wrapper(model_name=model_name,
+                                                      patient_parameters=SoftwareConfigResources.getInstance().patients_parameters[u])
+            if 'Annotation' in list(results.keys()):
+                for a in results['Annotation']:
+                    self.annotation_volume_imported.emit(a)
+
+            # Automatically saving the patient (with the latest results) for an easier loading afterwards.
+            SoftwareConfigResources.getInstance().patients_parameters[u].save_patient()

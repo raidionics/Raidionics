@@ -12,6 +12,7 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
     """
 
     """
+    patient_name_edited = Signal(str, str)  # Patient uid, and new visible name
     resizeRequested = Signal()
 
     def __init__(self, uid, parent=None):
@@ -468,6 +469,7 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         # SoftwareConfigResources.getInstance().update_active_patient_name(self.patient_name_lineedit.text())
         SoftwareConfigResources.getInstance().get_active_patient().update_visible_name(self.patient_name_lineedit.text())
         self.header_pushbutton.setText(self.patient_name_lineedit.text())
+        self.patient_name_edited.emit(self.uid, self.patient_name_lineedit.text())
 
     def manual_header_pushbutton_clicked(self, state):
         # @TODO. Has to be a better way to trigger the state change in QCollapsibleGroupBox directly from

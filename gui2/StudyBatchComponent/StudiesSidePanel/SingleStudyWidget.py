@@ -5,6 +5,7 @@ from PySide2.QtCore import Qt, QSize, Signal
 
 from gui2.UtilsWidgets.CustomQGroupBox.QCollapsibleGroupBox import QCollapsibleGroupBox
 from gui2.UtilsWidgets.CustomQDialog.ImportFoldersQDialog import ImportFoldersQDialog
+from gui2.UtilsWidgets.CustomQDialog.TumorTypeSelectionQDialog import TumorTypeSelectionQDialog
 from utils.software_config import SoftwareConfigResources
 
 
@@ -15,6 +16,7 @@ class SingleStudyWidget(QCollapsibleGroupBox):
     mri_volume_imported = Signal(str)
     annotation_volume_imported = Signal(str)
     patient_imported = Signal(str)
+    batch_segmentation_requested = Signal(str, str)  # Unique id of the current study instance, and model name
     resizeRequested = Signal()
 
     def __init__(self, uid, parent=None):
@@ -38,6 +40,7 @@ class SingleStudyWidget(QCollapsibleGroupBox):
                               QSize(30, 30), side='left')
         self.__set_system_part()
         self.__set_patient_inclusion_part()
+        self.__set_batch_processing_part()
         self.content_label_layout.addStretch(1)
 
     def __set_system_part(self):
@@ -71,6 +74,12 @@ class SingleStudyWidget(QCollapsibleGroupBox):
         self.patient_inclusion_layout.addStretch(1)
         self.content_label_layout.addLayout(self.patient_inclusion_layout)
 
+    def __set_batch_processing_part(self):
+        self.batch_processing_layout = QHBoxLayout()
+        self.batch_processing_segmentation_button = QPushButton("Segmentation")
+        self.batch_processing_layout.addWidget(self.batch_processing_segmentation_button)
+        self.content_label_layout.addLayout(self.batch_processing_layout)
+
     def __set_layout_dimensions(self):
         self.patient_name_label.setFixedHeight(20)
         self.study_name_lineedit.setFixedHeight(20)
@@ -80,6 +89,8 @@ class SingleStudyWidget(QCollapsibleGroupBox):
         self.include_single_patient_folder_pushbutton.setFixedHeight(20)
         self.include_multiple_patients_folder_pushbutton.setFixedHeight(20)
 
+        self.batch_processing_segmentation_button.setFixedHeight(20)
+
     def __set_connections(self):
         self.study_name_lineedit.returnPressed.connect(self.__on_patient_name_modified)
         self.include_single_patient_folder_pushbutton.clicked.connect(self.__on_include_single_patient_folder_clicked)
@@ -88,6 +99,8 @@ class SingleStudyWidget(QCollapsibleGroupBox):
         self.import_data_dialog.mri_volume_imported.connect(self.mri_volume_imported)
         self.import_data_dialog.annotation_volume_imported.connect(self.annotation_volume_imported)
         self.import_data_dialog.patient_imported.connect(self.patient_imported)
+
+        self.batch_processing_segmentation_button.clicked.connect(self.__on_run_segmentation)
 
     def __set_stylesheets(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
@@ -174,3 +187,16 @@ class SingleStudyWidget(QCollapsibleGroupBox):
 
     def __on_include_multiple_patients_folder_clicked(self):
         pass
+
+    def __on_run_segmentation(self):
+        diag = TumorTypeSelectionQDialog(self)
+        code = diag.exec_()
+        self.model_name = "MRI_Meningioma"
+        if diag.tumor_type == 'High-Grade Glioma':
+            self.model_name = "MRI_HGGlioma_P2"
+        elif diag.tumor_type == 'Low-Grade Glioma':
+            self.model_name = "MRI_LGGlioma"
+        elif diag.tumor_type == 'Metastasis':
+            self.model_name = "MRI_Metastasis"
+
+        self.batch_segmentation_requested.emit(self.uid, self.model_name)

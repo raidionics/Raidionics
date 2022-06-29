@@ -108,6 +108,16 @@ class StudyParameters:
     def get_output_study_folder(self) -> str:
         return self._output_study_folder
 
+    def get_included_patients_uids(self) -> list:
+        return self._included_patients_uids
+
+    def include_study_patient(self, uid: str) -> int:
+        if uid not in self._included_patients_uids:
+            self._included_patients_uids.append(uid)
+            return 0
+        else:
+            return 1
+
     def save(self) -> dict:
         # Iterating over each patient to save its content.
 

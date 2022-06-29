@@ -1,5 +1,5 @@
 import datetime
-
+import traceback
 import dateutil.tz
 from aenum import Enum, unique
 import logging
@@ -159,24 +159,30 @@ class MRIVolume:
         return self._intensity_histogram
 
     def save(self) -> dict:
-        # Disk operations
-        self._display_volume_filepath = os.path.join(self._output_patient_folder, 'display', self._unique_id + '_display.nii.gz')
-        nib.save(nib.Nifti1Image(self._display_volume, affine=self._default_affine), self._display_volume_filepath)
+        """
 
-        self._resampled_input_volume_filepath = os.path.join(self._output_patient_folder, 'display', self._unique_id + '_resampled.nii.gz')
-        nib.save(nib.Nifti1Image(self._resampled_input_volume, affine=self._default_affine), self._resampled_input_volume_filepath)
+        """
+        try:
+            # Disk operations
+            self._display_volume_filepath = os.path.join(self._output_patient_folder, 'display', self._unique_id + '_display.nii.gz')
+            nib.save(nib.Nifti1Image(self._display_volume, affine=self._default_affine), self._display_volume_filepath)
 
-        # Parameters-filling operations
-        volume_params = {}
-        volume_params['display_name'] = self._display_name
-        volume_params['raw_input_filepath'] = self._raw_input_filepath
-        volume_params['resample_input_filepath'] = os.path.relpath(self._resampled_input_volume_filepath, self._output_patient_folder)
-        volume_params['usable_input_filepath'] = self._usable_input_filepath
-        volume_params['display_volume_filepath'] = os.path.relpath(self._display_volume_filepath, self._output_patient_folder)
-        volume_params['sequence_type'] = str(self._sequence_type)
-        volume_params['contrast_window'] = str(self._contrast_window[0]) + ',' + str(self._contrast_window[1])
-        self._unsaved_changes = False
-        return volume_params
+            self._resampled_input_volume_filepath = os.path.join(self._output_patient_folder, 'display', self._unique_id + '_resampled.nii.gz')
+            nib.save(nib.Nifti1Image(self._resampled_input_volume, affine=self._default_affine), self._resampled_input_volume_filepath)
+
+            # Parameters-filling operations
+            volume_params = {}
+            volume_params['display_name'] = self._display_name
+            volume_params['raw_input_filepath'] = self._raw_input_filepath
+            volume_params['resample_input_filepath'] = os.path.relpath(self._resampled_input_volume_filepath, self._output_patient_folder)
+            volume_params['usable_input_filepath'] = self._usable_input_filepath
+            volume_params['display_volume_filepath'] = os.path.relpath(self._display_volume_filepath, self._output_patient_folder)
+            volume_params['sequence_type'] = str(self._sequence_type)
+            volume_params['contrast_window'] = str(self._contrast_window[0]) + ',' + str(self._contrast_window[1])
+            self._unsaved_changes = False
+            return volume_params
+        except Exception:
+            logging.error("MRIVolumeStructure saving failed with:\n {}".format(traceback.format_exc()))
 
     def __init_from_scratch(self) -> None:
         self._usable_input_filepath = input_file_type_conversion(input_filename=self._raw_input_filepath,

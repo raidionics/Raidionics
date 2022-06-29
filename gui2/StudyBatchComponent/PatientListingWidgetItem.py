@@ -12,6 +12,8 @@ class PatientListingWidgetItem(QWidget):
 
     """
 
+    patient_selected = Signal(str)
+
     def __init__(self, patient_uid: str, parent=None):
         super(PatientListingWidgetItem, self).__init__()
         self.parent = parent
@@ -28,7 +30,7 @@ class PatientListingWidgetItem(QWidget):
         self.layout.setSpacing(0)
         self.layout.setContentsMargins(0, 0, 0, 0)
 
-        self.patient_uid_label = QLabel(self.patient_uid)
+        self.patient_uid_label = QLabel(SoftwareConfigResources.getInstance().patients_parameters[self.patient_uid].get_visible_name())
         self.patient_investigation_pushbutton = QPushButton("Check")
         self.layout.addWidget(self.patient_uid_label)
         self.layout.addWidget(self.patient_investigation_pushbutton)
@@ -38,7 +40,7 @@ class PatientListingWidgetItem(QWidget):
         self.patient_investigation_pushbutton.setFixedHeight(30)
 
     def __set_connections(self):
-        pass
+        self.patient_investigation_pushbutton.clicked.connect(self.__on_patient_investigation_clicked)
 
     def __set_stylesheets(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
@@ -47,3 +49,6 @@ class PatientListingWidgetItem(QWidget):
         QScrollArea{
         background-color: """ + software_ss["Color2"] + """;
         }""")
+
+    def __on_patient_investigation_clicked(self):
+        self.patient_selected.emit(self.patient_uid)

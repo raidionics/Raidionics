@@ -15,6 +15,7 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
     and maybe the SinglePatientResultsWidget if the scroll area is filled.
     """
     patient_selected = Signal(str)  # Unique internal id of the selected patient
+    patient_name_edited = Signal(str, str)
     import_patient_from_dicom_requested = Signal()
     import_patient_from_data_requested = Signal()
     import_patient_from_custom_requested = Signal()
@@ -200,7 +201,13 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
 
         pat_widget.clicked_signal.connect(self.__on_patient_selection)
         pat_widget.resizeRequested.connect(self.adjustSize)
+        pat_widget.patient_name_edited.connect(self.patient_name_edited)
         self.adjustSize()
+
+    def on_external_patient_selection(self, patient_id):
+        self.__on_patient_selection(True, patient_id)
+        self.patient_results_widgets[patient_id].manual_header_pushbutton_clicked(True)
+        self.adjustSize()  # To trigger a proper redrawing after the previous call
 
     def __on_patient_selection(self, state, widget_id):
         if SoftwareConfigResources.getInstance().get_active_patient().has_unsaved_changes():
