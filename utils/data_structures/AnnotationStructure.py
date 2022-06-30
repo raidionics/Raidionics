@@ -68,16 +68,21 @@ class AnnotationVolume:
     _default_affine = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]  # Affine matrix for dumping resampled files
     _unsaved_changes = False  # Documenting any change, for suggesting saving when swapping between patients
 
-    def __init__(self, uid: str, input_filename: str, output_patient_folder: str, reload_params: {} = None) -> None:
+    def __init__(self, uid: str, input_filename: str, output_patient_folder: str,
+                 parent_mri_uid: str, reload_params: {} = None) -> None:
         self._unique_id = uid
         self._raw_input_filepath = input_filename
         self._output_patient_folder = output_patient_folder
         self._display_name = uid
+        self._parent_mri_uid = parent_mri_uid
 
         if reload_params:
             self.__reload_from_disk(reload_params)
         else:
             self.__init_from_scratch()
+
+    def get_unique_id(self) -> str:
+        return self._unique_id
 
     def load_in_memory(self) -> None:
         if self._display_volume_filepath and os.path.exists(self._display_volume_filepath):

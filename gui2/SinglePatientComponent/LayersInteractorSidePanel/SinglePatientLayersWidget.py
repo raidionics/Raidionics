@@ -86,6 +86,7 @@ class SinglePatientLayersWidget(QWidget):
         self.volumes_collapsiblegroupbox.volume_view_toggled.connect(self.volume_view_toggled)
         self.volumes_collapsiblegroupbox.volume_view_toggled.connect(self.annotations_collapsiblegroupbox.on_volume_view_toggled)
         self.volumes_collapsiblegroupbox.contrast_changed.connect(self.volume_contrast_changed)
+        self.volumes_collapsiblegroupbox.volume_display_name_changed.connect(self.annotations_collapsiblegroupbox.on_mri_volume_display_name_changed)
         self.annotations_collapsiblegroupbox.annotation_view_toggled.connect(self.annotation_view_toggled)
         self.annotations_collapsiblegroupbox.annotation_opacity_changed.connect(self.annotation_opacity_changed)
         self.annotations_collapsiblegroupbox.annotation_color_changed.connect(self.annotation_color_changed)

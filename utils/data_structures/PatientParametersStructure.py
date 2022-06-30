@@ -13,7 +13,7 @@ from nibabel.processing import resample_to_output
 import numpy as np
 import json
 import logging
-from typing import Union, Any, Tuple
+from typing import Union, Any, Tuple, List
 from utils.patient_dicom import DICOMSeries
 from utils.data_structures.MRIVolumeStructure import MRIVolume
 from utils.data_structures.AnnotationStructure import AnnotationVolume
@@ -255,7 +255,10 @@ class PatientParameters:
 
     def import_data(self, filename: str, type: str = "MRI") -> Union[str, Any]:
         """
+        Defining how stand-alone MRI volumes or annotation volumes are loaded into the system for the current patient.
 
+        Importing an annotation volume is not allowed unless there is at least an MRI volume to link it to.
+        An annotation volume MUST be attached to an MRI volume.
         """
         data_uid = None
         error_message = None
@@ -274,16 +277,21 @@ class PatientParameters:
                 self.mri_volumes[data_uid] = MRIVolume(uid=data_uid, input_filename=filename,
                                                        output_patient_folder=self.output_folder)
             else:
-                # Generating a unique id for the annotation volume
-                base_data_uid = os.path.basename(filename).strip().split('.')[0]
-                non_available_uid = True
-                while non_available_uid:
-                    data_uid = str(np.random.randint(0, 1000)) + '_' + base_data_uid
-                    if data_uid not in list(self.annotation_volumes.keys()):
-                        non_available_uid = False
+                if len(self.mri_volumes) != 0:
+                    default_parent_mri_uid = list(self.mri_volumes.keys())[0]
+                    # Generating a unique id for the annotation volume
+                    base_data_uid = os.path.basename(filename).strip().split('.')[0]
+                    non_available_uid = True
+                    while non_available_uid:
+                        data_uid = str(np.random.randint(0, 1000)) + '_' + base_data_uid
+                        if data_uid not in list(self.annotation_volumes.keys()):
+                            non_available_uid = False
 
-                self.annotation_volumes[data_uid] = AnnotationVolume(uid=data_uid, input_filename=filename,
-                                                                     output_patient_folder=self.output_folder)
+                    self.annotation_volumes[data_uid] = AnnotationVolume(uid=data_uid, input_filename=filename,
+                                                                         output_patient_folder=self.output_folder,
+                                                                         parent_mri_uid=default_parent_mri_uid)
+                else:
+                    error_message = "No MRI volume has been imported yet. Mandatory for importing an annotation."
         except Exception as e:
             error_message = e
             logging.error(str(traceback.format_exc()))
@@ -377,3 +385,24 @@ class PatientParameters:
         with open(self._patient_parameters_dict_filename, 'w') as outfile:
             json.dump(self._patient_parameters_dict, outfile, indent=4, sort_keys=True)
         self._unsaved_changes = False
+
+    def get_all_mri_volumes_display_names(self) -> List[str]:
+        res = []
+        for im in self.mri_volumes:
+            res.append(self.mri_volumes[im].get_display_name())
+        return res
+
+    def get_mri_by_display_name(self, display_name: str) -> str:
+        res = "-1"
+        for im in self.mri_volumes:
+            if self.mri_volumes[im].get_display_name() == display_name:
+                return im
+        return res
+
+    def get_all_annotations_for_mri(self, mri_volume_uid: str) -> List[str]:
+        res = []
+
+        for an in self.annotation_volumes:
+            if self.annotation_volumes[an].get_parent_mri_uid() == mri_volume_uid:
+                res.append(self.annotation_volumes[an].get_unique_id())
+        return res

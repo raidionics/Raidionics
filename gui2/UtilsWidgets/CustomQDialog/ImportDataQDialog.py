@@ -139,8 +139,6 @@ class ImportDataQDialog(QDialog):
         Iterating over the list of selected files and internally updating variables
         """
         widgets = (self.import_scrollarea_layout.itemAt(i) for i in range(self.import_scrollarea_layout.count() - 1))
-        # @TODO. Should not iterate blindly, should check if there are volumes to load for the current active patient
-        # and then iterate over the .raidionics files to load other patients?
 
         # @Behaviour. Do we force the user to create a patient, or allow on-the-fly creation when loading data?
         if len(SoftwareConfigResources.getInstance().patients_parameters) == 0:
@@ -160,6 +158,8 @@ class ImportDataQDialog(QDialog):
         self.load_progressbar.setValue(0)
 
         for i, w in enumerate(widgets):
+            # @TODO. Should not iterate blindly, should check between MRI volumes and annotation volumes, imperative to
+            # import first at least an MRI volume to correctly attach all annotations to it by default.
             input_filepath = w.wid.filepath_lineedit.text()
             input_type = w.wid.file_type_selection_combobox.currentText()
             if input_type != "Patient":

@@ -4,7 +4,6 @@ import os
 import logging
 
 from gui2.UtilsWidgets.CustomQGroupBox.QCollapsibleGroupBox import QCollapsibleGroupBox
-from gui2.SinglePatientComponent.LayersInteractorSidePanel.MRIVolumesInteractor.MRISingleVolumeCollapsibleGroupBox import MRISingleVolumeCollapsibleGroupBox
 from gui2.SinglePatientComponent.LayersInteractorSidePanel.MRIVolumesInteractor.MRISeriesLayerWidget import MRISeriesLayerWidget
 
 from utils.software_config import SoftwareConfigResources
@@ -15,6 +14,7 @@ class MRIVolumesLayerInteractor(QCollapsibleGroupBox):
 
     """
     volume_view_toggled = Signal(str, bool)
+    volume_display_name_changed = Signal(str, str)
     contrast_changed = Signal(str)  # Unique id of the volume for which contrast has been altered
 
     def __init__(self, parent=None):
@@ -139,6 +139,7 @@ class MRIVolumesLayerInteractor(QCollapsibleGroupBox):
         self.content_label_layout.insertWidget(self.content_label_layout.count() - 1, volume_widget)
         volume_widget.visibility_toggled.connect(self.on_visibility_clicked)
         volume_widget.contrast_changed.connect(self.contrast_changed)
+        volume_widget.display_name_changed.connect(self.volume_display_name_changed)
         # Triggers a repaint with adjusted size for the layout
         self.adjustSize()
 
@@ -153,5 +154,6 @@ class MRIVolumesLayerInteractor(QCollapsibleGroupBox):
                     self.volumes_widget[w].display_toggle_radiobutton.setChecked(False)
                     self.volumes_widget[w].display_toggle_radiobutton.blockSignals(False)
                     self.volumes_widget[w].setStyleSheet("""MRISeriesLayerWidget{background-color: rgba(248, 248, 248, 1);}""")
+                    self.volumes_widget[w].contrast_adjuster_pushbutton.setEnabled(False)
         else:  # Trying to undisplay an image, not possible.
             self.volumes_widget[uid].display_toggle_radiobutton.setChecked(True)

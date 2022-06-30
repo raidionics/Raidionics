@@ -17,6 +17,7 @@ class AnnotationSingleLayerWidget(QWidget):
     display_name_changed = Signal(str, str)
     opacity_value_changed = Signal(str, int)
     color_value_changed = Signal(str, QColor)
+    parent_mri_changed = Signal(str, str)  # Annotation volume unique id, previous parent MRI volume unique id (to trigger a redraw)
     resizeRequested = Signal()
 
     def __init__(self, uid, parent=None):
@@ -143,6 +144,7 @@ class AnnotationSingleLayerWidget(QWidget):
         self.customContextMenuRequested.connect(self.on_right_clicked)
         self.display_name_lineedit.textEdited.connect(self.on_name_changed)
         self.display_toggle_pushbutton.toggled.connect(self.on_visibility_toggled)
+        self.parent_image_combobox.currentIndexChanged.connect(self.__on_parent_mri_changed)
         self.annotation_type_combobox.currentTextChanged.connect(self.__on_annotation_type_changed)
         self.advanced_options_collapsible.header_pushbutton.clicked.connect(self.on_advanced_options_clicked)
         self.opacity_slider.valueChanged.connect(self.__on_opacity_changed)
@@ -165,8 +167,15 @@ class AnnotationSingleLayerWidget(QWidget):
         params = SoftwareConfigResources.getInstance().get_active_patient().annotation_volumes[self.uid]
         self.display_name_lineedit.setText(params.get_display_name())
         self.annotation_type_combobox.setCurrentText(params.get_annotation_class_str())
-        self.parent_image_combobox.addItems(list(SoftwareConfigResources.getInstance().get_active_patient().mri_volumes.keys()))
-        # @TODO. Should set the combobox index to the current image id, if multiple.
+
+        # Adding the display names of all loaded MRI volumes, and setting the index to the correct MRI parent.
+        self.parent_image_combobox.blockSignals(True)
+        self.parent_image_combobox.addItems(list(SoftwareConfigResources.getInstance().get_active_patient().get_all_mri_volumes_display_names()))
+        parent_mri_display_name = SoftwareConfigResources.getInstance().get_active_patient().mri_volumes[params.get_parent_mri_uid()].get_display_name()
+        self.parent_image_combobox.setCurrentText(parent_mri_display_name)
+        self.parent_image_combobox.blockSignals(False)
+
+        # Setting up the advanced display values (i.e., opacity and color)
         self.opacity_slider.blockSignals(True)
         self.opacity_slider.setSliderPosition(params.get_display_opacity())
         self.opacity_slider.blockSignals(False)
@@ -238,3 +247,12 @@ class AnnotationSingleLayerWidget(QWidget):
     def __on_annotation_type_changed(self):
         params = SoftwareConfigResources.getInstance().get_active_patient().annotation_volumes[self.uid]
         params.set_annotation_class_type(self.annotation_type_combobox.currentText())
+
+    def __on_parent_mri_changed(self, index: int) -> None:
+        params = SoftwareConfigResources.getInstance().get_active_patient().annotation_volumes[self.uid]
+        old_mri_parent = params.get_parent_mri_uid()
+        mri_display_name = self.parent_image_combobox.currentText()
+        mri_uid = SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_display_name(mri_display_name)
+        if mri_uid != "-1":
+            params.set_parent_mri_uid(mri_uid)
+            self.parent_mri_changed.emit(self.uid, old_mri_parent)
