@@ -5,7 +5,6 @@ import os
 import logging
 
 from gui2.UtilsWidgets.CustomQGroupBox.QCollapsibleGroupBox import QCollapsibleGroupBox
-from gui2.SinglePatientComponent.LayersInteractorSidePanel.AnnotationLayersInteractor.AnnotationSingleLayerCollapsibleGroupBox import AnnotationSingleLayerCollapsibleGroupBox
 from gui2.SinglePatientComponent.LayersInteractorSidePanel.AnnotationLayersInteractor.AnnotationSingleLayerWidget import AnnotationSingleLayerWidget
 
 from utils.software_config import SoftwareConfigResources
@@ -130,7 +129,6 @@ class AnnotationsLayersInteractor(QCollapsibleGroupBox):
         self.adjustSize()  # To force a repaint of the layout with the new elements
 
     def on_import_volume(self, volume_id):
-        # volume_widget = AnnotationSingleLayerCollapsibleGroupBox(annotation_uid=volume_id, parent=self)
         volume_widget = AnnotationSingleLayerWidget(uid=volume_id, parent=self)
         self.volumes_widget[volume_id] = volume_widget
         self.content_label_layout.insertWidget(self.content_label_layout.count() - 1, volume_widget)

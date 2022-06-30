@@ -1,6 +1,7 @@
 import logging
 import os
-from PySide2.QtWidgets import QLabel, QHBoxLayout, QVBoxLayout, QLineEdit, QListWidget, QListWidgetItem, QErrorMessage
+from PySide2.QtWidgets import QLabel, QHBoxLayout, QVBoxLayout, QLineEdit, QListWidget, QListWidgetItem, QErrorMessage,\
+    QPushButton, QFileDialog
 from PySide2.QtCore import Qt, QSize, Signal
 
 from gui2.UtilsWidgets.CustomQGroupBox.QCollapsibleGroupBox import QCollapsibleGroupBox
@@ -55,10 +56,13 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.output_dir_label = QLabel("Location ")
         self.output_dir_lineedit = QLineEdit()
         self.output_dir_lineedit.setAlignment(Qt.AlignRight)
+        self.output_dir_lineedit.setReadOnly(True)
+        self.output_dir_modification_button = QPushButton('...')
         self.output_dir_layout = QHBoxLayout()
         self.output_dir_layout.setContentsMargins(20, 0, 20, 0)
         self.output_dir_layout.addWidget(self.output_dir_label)
         self.output_dir_layout.addWidget(self.output_dir_lineedit)
+        self.output_dir_layout.addWidget(self.output_dir_modification_button)
         #self.default_collapsiblegroupbox.content_label_layout.addLayout(self.output_dir_layout)
         self.content_label_layout.addLayout(self.output_dir_layout)
 
@@ -213,6 +217,7 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.patient_name_lineedit.setFixedHeight(20)
         self.output_dir_label.setFixedHeight(20)
         self.output_dir_lineedit.setFixedHeight(20)
+        self.output_dir_modification_button.setFixedSize(QSize(20, 20))
         # self.default_collapsiblegroupbox.content_label.setFixedHeight(40)
 
         self.tumor_found_header_label.setFixedHeight(20)
@@ -247,6 +252,7 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
 
     def __set_connections(self):
         self.patient_name_lineedit.returnPressed.connect(self.__on_patient_name_modified)
+        self.output_dir_modification_button.clicked.connect(self.__on_output_directory_modification_clicked)
         # self.header_pushbutton.clicked.connect(self.__on_header_pushbutton_clicked)
         self.default_collapsiblegroupbox.header_pushbutton.clicked.connect(self.adjustSize)
         self.overall_collapsiblegroupbox.header_pushbutton.clicked.connect(self.adjustSize)
@@ -307,6 +313,35 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.output_dir_lineedit.setStyleSheet("""
         QLineEdit{
         color: rgba(0, 0, 0, 1);
+        font:semibold;
+        font-size:14px;
+        }""")
+        #################################### TUMOR/MULTIFOCALITY GROUPBOX #########################################
+        self.multifocality_pieces_header_label.setStyleSheet("""
+        QLabel{
+        color: """ + software_ss["Color7"] + """;
+        text-align:left;
+        font:semibold;
+        font-size:14px;
+        }""")
+        self.multifocality_pieces_label.setStyleSheet("""
+        QLabel{
+        color: """ + software_ss["Color7"] + """;
+        text-align:right;
+        font:semibold;
+        font-size:14px;
+        }""")
+        self.multifocality_distance_header_label.setStyleSheet("""
+        QLabel{
+        color: """ + software_ss["Color7"] + """;
+        text-align:left;
+        font:semibold;
+        font-size:14px;
+        }""")
+        self.multifocality_distance_label.setStyleSheet("""
+        QLabel{
+        color: """ + software_ss["Color7"] + """;
+        text-align:right;
         font:semibold;
         font-size:14px;
         }""")
@@ -475,6 +510,27 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
             diag = QErrorMessage(self)
             diag.setWindowTitle("Operation not permitted")
             diag.showMessage(msg)
+
+    def __on_output_directory_modification_clicked(self):
+        input_image_filedialog = QFileDialog(self)
+        input_image_filedialog.setWindowFlags(Qt.WindowStaysOnTopHint)
+        if "PYCHARM_HOSTED" in os.environ:
+            input_directory = input_image_filedialog.getExistingDirectory(self, caption='Select destination directory',
+                                                                          directory=self.tr(self.output_dir_lineedit.text()),
+                                                                          options=QFileDialog.DontUseNativeDialog |
+                                                                                  QFileDialog.ShowDirsOnly |
+                                                                                  QFileDialog.DontResolveSymlinks)
+        else:
+            input_directory = input_image_filedialog.getExistingDirectory(self, caption='Select destination directory',
+                                                                          directory=self.tr(self.output_dir_lineedit.text()),
+                                                                          options=QFileDialog.ShowDirsOnly |
+                                                                                  QFileDialog.DontResolveSymlinks)
+        if len(input_directory) == 0 or input_directory == "":
+            return
+
+        if len(input_directory) != 0 and input_directory != "":
+            self.output_dir_lineedit.setText(input_directory)
+            SoftwareConfigResources.getInstance().get_active_patient().set_output_directory(input_directory)
 
     def manual_header_pushbutton_clicked(self, state):
         # @TODO. Has to be a better way to trigger the state change in QCollapsibleGroupBox directly from

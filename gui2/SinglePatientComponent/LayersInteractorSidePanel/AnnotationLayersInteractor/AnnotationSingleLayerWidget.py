@@ -81,6 +81,16 @@ class AnnotationSingleLayerWidget(QWidget):
     def __set_interface_advanced_options(self):
         self.advanced_options_collapsible = QCollapsibleGroupBox(uid=self.uid + '_advanced', parent=self)
         self.advanced_options_collapsible.header_pushbutton.setText("Advanced options")
+
+        self.generation_type_label = QLabel("Generated ")
+        self.generation_type_combobox = QComboBox()
+        self.generation_type_combobox.addItems(["manually", "automatically"])
+        self.generation_type_layout = QHBoxLayout()
+        self.generation_type_layout.addWidget(self.generation_type_label)
+        self.generation_type_layout.addWidget(self.generation_type_combobox)
+        # self.advanced_options_collapsible.content_label_layout.addLayout(self.generation_type_layout)
+        self.layout.addLayout(self.generation_type_layout)
+
         self.opacity_label = QLabel("Opacity ")
         self.opacity_slider = QSlider(Qt.Orientation.Horizontal)
         self.opacity_slider.setMinimum(0)
@@ -108,15 +118,6 @@ class AnnotationSingleLayerWidget(QWidget):
         self.color_layout.addStretch(1)
         # self.advanced_options_collapsible.content_label_layout.addLayout(self.color_layout)
         self.layout.addLayout(self.color_layout)
-
-        self.generation_type_label = QLabel("Generated ")
-        self.generation_type_combobox = QComboBox()
-        self.generation_type_combobox.addItems(["manually", "automatically"])
-        self.generation_type_layout = QHBoxLayout()
-        self.generation_type_layout.addWidget(self.generation_type_label)
-        self.generation_type_layout.addWidget(self.generation_type_combobox)
-        # self.advanced_options_collapsible.content_label_layout.addLayout(self.generation_type_layout)
-        self.layout.addLayout(self.generation_type_layout)
 
     def __set_layout_dimensions(self):
         self.icon_label.setFixedSize(QSize(15, 20))

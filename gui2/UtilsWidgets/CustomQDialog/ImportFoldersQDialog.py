@@ -162,7 +162,7 @@ class ImportFoldersQDialog(QDialog):
                 diag.exec_()
 
             input_filepath = w.wid.filepath_lineedit.text()
-            SoftwareConfigResources.getInstance().get_active_patient().update_visible_name(os.path.basename(input_filepath))
+            SoftwareConfigResources.getInstance().get_active_patient().set_display_name(os.path.basename(input_filepath))
 
             for _, _, files in os.walk(input_filepath):
                 for f in files:

@@ -77,6 +77,20 @@ class PatientParameters:
     def get_unique_id(self) -> str:
         return self._unique_id
 
+    def get_output_directory(self) -> str:
+        return self.output_dir
+
+    def set_output_directory(self, directory: str) -> None:
+        new_output_folder = os.path.join(directory, self._display_name.strip().lower().replace(" ", '_'))
+        shutil.move(src=self.output_folder, dst=new_output_folder, copy_function=shutil.copytree)
+        self.output_dir = directory
+        self.output_folder = new_output_folder
+        for im in self.mri_volumes:
+            self.mri_volumes[im].set_output_patient_folder(self.output_folder)
+        for an in self.annotation_volumes:
+            self.annotation_volumes[an].set_output_patient_folder(self.output_folder)
+        logging.info("Renamed current output directory to: {}".format(directory))
+
     def release_from_memory(self) -> None:
         """
         Releasing all data objects from memory when not viewing the results for the current patient.

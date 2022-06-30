@@ -2,9 +2,9 @@ name: Build macOS
 
 on:
   push:
-    branches: '*'
+    branches: [ design_update, submodule_libs ]
   pull_request:
-    branches: '*'
+    branches: [ design_update ]
 
 jobs:
   build:
