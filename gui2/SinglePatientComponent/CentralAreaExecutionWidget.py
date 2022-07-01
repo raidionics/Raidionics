@@ -362,6 +362,8 @@ class CentralAreaExecutionWidget(QLabel):
         if os.path.exists(tumor_seg_file):  # Should always exist?
             data_uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_data(tumor_seg_file,
                                                                                                          type='Annotation')
+            current_patient_parameters.annotation_volumes[data_uid].set_annotation_class_type("Tumor")
+            current_patient_parameters.annotation_volumes[data_uid].set_generation_type("Automatic")
             self.annotation_volume_imported.emit(data_uid)
 
         brain_seg_file = os.path.join(current_patient_parameters.output_folder, 'reporting', 'patient',
@@ -369,6 +371,8 @@ class CentralAreaExecutionWidget(QLabel):
         if os.path.exists(brain_seg_file):
             data_uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_data(brain_seg_file,
                                                                                                          type='Annotation')
+            current_patient_parameters.annotation_volumes[data_uid].set_annotation_class_type("Brain")
+            current_patient_parameters.annotation_volumes[data_uid].set_generation_type("Automatic")
             self.annotation_volume_imported.emit(data_uid)
 
         # Collecting the standardized report

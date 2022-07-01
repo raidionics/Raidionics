@@ -552,10 +552,14 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.output_dir_lineedit.setText(os.path.dirname(patient_parameters.output_folder))
         self.title = patient_parameters.get_display_name()
         self.header_pushbutton.setText(self.title)
+        self.on_standardized_report_imported()
 
     def on_standardized_report_imported(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
         report_json = SoftwareConfigResources.getInstance().patients_parameters[self.uid].get_standardized_report()
+        if not report_json:
+            # No report has been generated for the patient, skipping the rest.
+            return
 
         self.original_space_volume_label.setText(str(report_json['Main']['Total']['Volume original (ml)']) + ' ml')
         self.mni_space_volume_label.setText(str(report_json['Main']['Total']['Volume in MNI (ml)']) + ' ml')

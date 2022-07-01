@@ -230,7 +230,7 @@ class CentralDisplayAreaWidget(QWidget):
         joint_uid = atlas_uid + '_' + structure_uid
         if state:
             self.current_patient_parameters = SoftwareConfigResources.getInstance().patients_parameters[SoftwareConfigResources.getInstance().active_patient_name]
-            self.overlaid_volumes[joint_uid] = self.current_patient_parameters.atlas_volumes[atlas_uid].one_hot_display_volume[..., int(structure_uid)]
+            self.overlaid_volumes[joint_uid] = self.current_patient_parameters.atlas_volumes[atlas_uid].get_one_hot_display_volume()[..., int(structure_uid)]
             self.axial_viewer.update_atlas_view(atlas_uid, structure_uid, self.overlaid_volumes[joint_uid][:, :, self.point_clicker_position[2]])
             self.coronal_viewer.update_atlas_view(atlas_uid, structure_uid, self.overlaid_volumes[joint_uid][:, self.point_clicker_position[1], :])
             self.sagittal_viewer.update_atlas_view(atlas_uid, structure_uid, self.overlaid_volumes[joint_uid][self.point_clicker_position[0], :, :])

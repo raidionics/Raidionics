@@ -9,7 +9,6 @@ import nibabel as nib
 import SimpleITK as sitk
 from copy import deepcopy
 
-from nibabel.processing import resample_to_output
 import numpy as np
 import json
 import logging
@@ -89,18 +88,22 @@ class PatientParameters:
             self.mri_volumes[im].set_output_patient_folder(self.output_folder)
         for an in self.annotation_volumes:
             self.annotation_volumes[an].set_output_patient_folder(self.output_folder)
+        for at in self.atlas_volumes:
+            self.atlas_volumes[at].set_output_patient_folder(self.output_folder)
         logging.info("Renamed current output directory to: {}".format(directory))
 
     def release_from_memory(self) -> None:
         """
         Releasing all data objects from memory when not viewing the results for the current patient.
-        Otherwise, for computer with limited RAM and many opened patients, it might freeze the computer
+        Otherwise, for computer with limited RAM and many opened patients, freezes/crashes might occur.
         """
         logging.debug("Unloading patient {} from memory.".format(self._unique_id))
         for im in self.mri_volumes:
             self.mri_volumes[im].release_from_memory()
         for an in self.annotation_volumes:
             self.annotation_volumes[an].release_from_memory()
+        for at in self.atlas_volumes:
+            self.atlas_volumes[at].release_from_memory()
 
     def load_in_memory(self) -> None:
         """
@@ -115,6 +118,21 @@ class PatientParameters:
             self.mri_volumes[im].load_in_memory()
         for an in self.annotation_volumes:
             self.annotation_volumes[an].load_in_memory()
+        for at in self.atlas_volumes:
+            self.atlas_volumes[at].load_in_memory()
+
+    def set_unsaved_changes_state(self, state: bool) -> None:
+        """
+        Should only be used internally by the system when reloading a patient scene from file (*.raidionics), since the
+        modifications are simply related to reading from disk and not real modifications.
+        """
+        self._unsaved_changes = state
+        for im in self.mri_volumes:
+            self.mri_volumes[im].set_unsaved_changes_state(state)
+        for an in self.annotation_volumes:
+            self.annotation_volumes[an].set_unsaved_changes_state(state)
+        for at in self.atlas_volumes:
+            self.atlas_volumes[at].set_unsaved_changes_state(state)
 
     def has_unsaved_changes(self) -> bool:
         status = self._unsaved_changes
@@ -122,6 +140,8 @@ class PatientParameters:
             status = status | self.mri_volumes[im].has_unsaved_changes()
         for an in self.annotation_volumes:
             status = status | self.annotation_volumes[an].has_unsaved_changes()
+        for at in self.atlas_volumes:
+            status = status | self.atlas_volumes[at].has_unsaved_changes()
 
         return status
 
@@ -223,9 +243,10 @@ class PatientParameters:
             for volume_id in list(self._patient_parameters_dict['Annotations'].keys()):
                 try:
                     annotation_volume = AnnotationVolume(uid=volume_id,
-                                                         input_filename=self._patient_parameters_dict['Volumes'][volume_id]['raw_input_filepath'],
+                                                         input_filename=self._patient_parameters_dict['Annotations'][volume_id]['raw_input_filepath'],
                                                          output_patient_folder=self.output_folder,
-                                                         reload_params=self._patient_parameters_dict['Volumes'][volume_id])
+                                                         parent_mri_uid=self._patient_parameters_dict['Annotations'][volume_id]['parent_mri_uid'],
+                                                         reload_params=self._patient_parameters_dict['Annotations'][volume_id])
                     self.annotation_volumes[volume_id] = annotation_volume
                 except Exception:
                     logging.error(str(traceback.format_exc()))
@@ -237,11 +258,10 @@ class PatientParameters:
             for volume_id in list(self._patient_parameters_dict['Atlases'].keys()):
                 try:
                     atlas_volume = AtlasVolume(uid=volume_id,
-                                               filename=os.path.join(self.output_folder, self._patient_parameters_dict['Atlases'][volume_id]['raw_volume_filepath']),
-                                               description_filename=os.path.join(self.output_folder, self._patient_parameters_dict['Atlases'][volume_id]['description_filepath']))
-                    atlas_volume.display_volume_filepath = os.path.join(self.output_folder, self._patient_parameters_dict['Atlases'][volume_id]['display_volume_filepath'])
-                    atlas_volume.set_display_volume(display_volume=nib.load(os.path.join(self.output_folder, atlas_volume.display_volume_filepath)).get_data()[:])
-                    atlas_volume.display_name = self._patient_parameters_dict['Atlases'][volume_id]['display_name']
+                                               input_filename=self._patient_parameters_dict['Atlases'][volume_id]['raw_input_filepath'],
+                                               output_patient_folder=self.output_folder,
+                                               description_filename=os.path.join(self.output_folder, self._patient_parameters_dict['Atlases'][volume_id]['description_filepath']),
+                                               reload_params=self._patient_parameters_dict['Atlases'][volume_id])
                     self.atlas_volumes[volume_id] = atlas_volume
                 except Exception:
                     logging.error(str(traceback.format_exc()))
@@ -249,6 +269,11 @@ class PatientParameters:
                         error_message = error_message + "\nImport atlas failed, for volume {}.\n".format(volume_id) + str(traceback.format_exc())
                     else:
                         error_message = "Import atlas failed, for volume {}.\n".format(volume_id) + str(traceback.format_exc())
+
+            self._standardized_report_filename = os.path.join(self.output_folder, self._patient_parameters_dict["Parameters"]["Reporting"]["report_filename"])
+            with open(self._standardized_report_filename, 'r') as infile:
+                self._standardized_report = json.load(infile)
+
         except Exception:
             error_message = "Import patient failed, from {}.\n".format(os.path.basename(filename)) + str(traceback.format_exc())
         return error_message
@@ -324,9 +349,9 @@ class PatientParameters:
 
         try:
             if reference == 'Patient':
-                image_nib = nib.load(filename)
-                resampled_input_ni = resample_to_output(image_nib, order=0)
-                image_res = resampled_input_ni.get_data()[:].astype('uint8')
+                # image_nib = nib.load(filename)
+                # resampled_input_ni = resample_to_output(image_nib, order=0)
+                # image_res = resampled_input_ni.get_data()[:].astype('uint8')
 
                 # Generating a unique id for the atlas volume
                 base_data_uid = os.path.basename(filename).strip().split('.')[0]
@@ -338,9 +363,10 @@ class PatientParameters:
 
                 description_filename = os.path.join(self.output_folder, 'reporting', 'atlas_descriptions',
                                                     base_data_uid.split('_')[0] + '_description.csv')
-                self.atlas_volumes[data_uid] = AtlasVolume(uid=data_uid, filename=filename,
+                self.atlas_volumes[data_uid] = AtlasVolume(uid=data_uid, input_filename=filename,
+                                                           output_patient_folder=self.output_folder,
                                                            description_filename=description_filename)
-                self.atlas_volumes[data_uid].set_display_volume(deepcopy(image_res))
+                # self.atlas_volumes[data_uid].set_display_volume(deepcopy(image_res))
             else:  # Reference is MNI space then
                 pass
         except Exception as e:
@@ -360,6 +386,7 @@ class PatientParameters:
         self._patient_parameters_dict['Parameters']['Default']['display_name'] = self._display_name
         self._patient_parameters_dict['Parameters']['Default']['creation_timestamp'] = self._creation_timestamp.strftime("%d/%m/%Y, %H:%M:%S")
         self._patient_parameters_dict['Parameters']['Default']['last_editing_timestamp'] = self._last_editing_timestamp.strftime("%d/%m/%Y, %H:%M:%S")
+        self._patient_parameters_dict['Parameters']['Reporting']['report_filename'] = os.path.relpath(self._standardized_report_filename, self.output_folder)
 
         display_folder = os.path.join(self.output_folder, 'display')
         os.makedirs(display_folder, exist_ok=True)
@@ -370,16 +397,8 @@ class PatientParameters:
         for i, disp in enumerate(list(self.annotation_volumes.keys())):
             self._patient_parameters_dict['Annotations'][disp] = self.annotation_volumes[disp].save()
 
-        for i, atlas in enumerate(list(self.atlas_volumes.keys())):
-            volume_dump_filename = os.path.join(display_folder, atlas + '_display.nii.gz')
-            self._patient_parameters_dict['Atlases'][atlas] = {}
-            self._patient_parameters_dict['Atlases'][atlas]['display_name'] = self.atlas_volumes[atlas].display_name
-            self._patient_parameters_dict['Atlases'][atlas]['raw_volume_filepath'] = os.path.relpath(self.atlas_volumes[atlas].raw_filepath, self.output_folder)
-            self._patient_parameters_dict['Atlases'][atlas]['display_volume_filepath'] = os.path.relpath(volume_dump_filename, self.output_folder)
-            nib.save(nib.Nifti1Image(self.atlas_volumes[atlas].display_volume,
-                                     affine=[[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]),
-                     volume_dump_filename)
-            self._patient_parameters_dict['Atlases'][atlas]['description_filepath'] = os.path.relpath(self.atlas_volumes[atlas].class_description_filename, self.output_folder)
+        for i, disp in enumerate(list(self.atlas_volumes.keys())):
+            self._patient_parameters_dict['Atlases'][disp] = self.atlas_volumes[disp].save()
 
         # Saving the json file last, as it must be populated from the previous dumps beforehand
         with open(self._patient_parameters_dict_filename, 'w') as outfile:

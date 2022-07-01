@@ -65,8 +65,12 @@ class SoftwareConfigResources:
 
     def __set_default_stylesheet_components(self):
         self.stylesheet_components = {}
-        self.stylesheet_components["Color1"] = "rgba(0, 0, 0, 1)"
-        self.stylesheet_components["Color2"] = "rgba(255, 255, 255, 1)"
+        self.stylesheet_components["Color1"] = "rgba(0, 0, 0, 1)"  # Black
+        self.stylesheet_components["Color2"] = "rgba(255, 255, 255, 1)"  # White
+        self.stylesheet_components["Color3"] = "rgba(239, 255, 245, 1)"  # Light green
+        self.stylesheet_components["Color4"] = "rgba(209, 241, 222, 1)"  # Darker light green (when pressed)
+        self.stylesheet_components["Color5"] = "rgba(248, 248, 248, 1)"  # Almost white (standard background)
+        self.stylesheet_components["Color6"] = "rgba(214, 214, 214, 1)"  # Darker almost white (when pressed)
         self.stylesheet_components["Color7"] = "rgba(67, 88, 90, 1)"
 
     def __parse_config(self):
@@ -98,7 +102,8 @@ class SoftwareConfigResources:
 
     def load_patient(self, filename: str) -> Union[str, Any]:
         """
-        Loads all patient-related files from parsing the scene file (*.raidionics).
+        Loads all patient-related files from parsing the scene file (*.raidionics). The current active patient is
+        filled with the information, as an empty patient was created when the call for importing was made.
         ...
         Parameters
         ----------
@@ -113,8 +118,12 @@ class SoftwareConfigResources:
         """
         patient_instance = PatientParameters()
         error_message = patient_instance.import_patient(filename)
+        # To prevent the save changes dialog to pop-up straight up after loading a patient scene file.
+        patient_instance.set_unsaved_changes_state(False)
         patient_id = patient_instance.get_unique_id()
         self.patients_parameters[patient_id] = patient_instance
+        # Doing the following rather than set_active_patient(), to avoid the overhead of doing memory release/load.
+        self.active_patient_name = patient_id
         return patient_id, error_message
 
     def update_active_patient_name(self, new_name: str) -> None:
@@ -136,15 +145,16 @@ class SoftwareConfigResources:
         """
         error_message = None
         try:
-            logging.debug("Active patient uid changed from {} to {}.".format(self.active_patient_name, patient_uid))
             # NB: At the very first call, there is no previously active patient, hence the need for an if statement
             if self.active_patient_name:
                 self.patients_parameters[self.active_patient_name].release_from_memory()
             self.active_patient_name = patient_uid
             self.patients_parameters[self.active_patient_name].load_in_memory()
         except Exception:
-            error_message = "Setting {} as active patient failed, with {}.\n".format(os.path.basename(patient_uid),
-                                                                                     str(traceback.format_exc()))
+            logging.error("Setting {} as active patient failed, with {}.\n".format(os.path.basename(patient_uid),
+                                                                                     str(traceback.format_exc())))
+
+        logging.debug("Active patient uid changed from {} to {}.".format(self.active_patient_name, patient_uid))
         return error_message
 
     def get_active_patient(self) -> str:

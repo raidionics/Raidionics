@@ -69,6 +69,7 @@ class AnnotationSingleLayerWidget(QWidget):
         self.annotation_type_layout = QHBoxLayout()
         self.annotation_type_label = QLabel("Annotation of")
         self.annotation_type_combobox = QComboBox()
+        # @TODO. Should be parsed from the EnumType in the AnnotationStructure class
         self.annotation_type_combobox.addItems(["Brain", "Tumor"])
         self.annotation_type_layout.addWidget(self.annotation_type_label)
         self.annotation_type_layout.addWidget(self.annotation_type_combobox)
@@ -83,9 +84,10 @@ class AnnotationSingleLayerWidget(QWidget):
         self.advanced_options_collapsible = QCollapsibleGroupBox(uid=self.uid + '_advanced', parent=self)
         self.advanced_options_collapsible.header_pushbutton.setText("Advanced options")
 
-        self.generation_type_label = QLabel("Generated ")
+        self.generation_type_label = QLabel("Generation ")
         self.generation_type_combobox = QComboBox()
-        self.generation_type_combobox.addItems(["manually", "automatically"])
+        # @TODO. Should be parsed from the EnumType in the AnnotationStructure class
+        self.generation_type_combobox.addItems(["Manual", "Automatic"])
         self.generation_type_layout = QHBoxLayout()
         self.generation_type_layout.addWidget(self.generation_type_label)
         self.generation_type_layout.addWidget(self.generation_type_combobox)
@@ -166,7 +168,6 @@ class AnnotationSingleLayerWidget(QWidget):
     def __init_from_parameters(self):
         params = SoftwareConfigResources.getInstance().get_active_patient().annotation_volumes[self.uid]
         self.display_name_lineedit.setText(params.get_display_name())
-        self.annotation_type_combobox.setCurrentText(params.get_annotation_class_str())
 
         # Adding the display names of all loaded MRI volumes, and setting the index to the correct MRI parent.
         self.parent_image_combobox.blockSignals(True)
@@ -174,6 +175,14 @@ class AnnotationSingleLayerWidget(QWidget):
         parent_mri_display_name = SoftwareConfigResources.getInstance().get_active_patient().mri_volumes[params.get_parent_mri_uid()].get_display_name()
         self.parent_image_combobox.setCurrentText(parent_mri_display_name)
         self.parent_image_combobox.blockSignals(False)
+
+        self.annotation_type_combobox.blockSignals(True)
+        self.annotation_type_combobox.setCurrentText(params.get_annotation_class_str())
+        self.annotation_type_combobox.blockSignals(False)
+
+        self.generation_type_combobox.blockSignals(True)
+        self.generation_type_combobox.setCurrentText(params.get_generation_type_str())
+        self.generation_type_combobox.blockSignals(False)
 
         # Setting up the advanced display values (i.e., opacity and color)
         self.opacity_slider.blockSignals(True)

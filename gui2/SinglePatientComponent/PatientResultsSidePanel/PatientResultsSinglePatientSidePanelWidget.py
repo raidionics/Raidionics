@@ -258,5 +258,5 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         self.import_patient_from_dicom_requested.emit()
 
     def on_import_patient_from_custom_requested(self):
-        self.on_add_new_empty_patient()
+        # self.on_add_new_empty_patient()
         self.import_patient_from_custom_requested.emit()

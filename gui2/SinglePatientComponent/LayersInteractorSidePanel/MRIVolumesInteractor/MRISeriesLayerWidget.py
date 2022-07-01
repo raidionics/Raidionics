@@ -1,5 +1,5 @@
 from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QLineEdit, QComboBox, QGridLayout, QPushButton,\
-    QRadioButton, QMenu, QAction, QVBoxLayout
+    QRadioButton, QMenu, QAction, QVBoxLayout, QMessageBox
 from PySide2.QtCore import Qt, QSize, Signal, QPoint
 from PySide2.QtGui import QPixmap, QIcon
 import os
@@ -26,7 +26,7 @@ class MRISeriesLayerWidget(QWidget):
         self.__set_interface()
         self.__set_layout_dimensions()
         self.__set_connections()
-        self.__set_stylesheets()
+        self.set_stylesheets(selected=False)
         self.__init_from_parameters()
 
     def __set_interface(self):
@@ -34,7 +34,14 @@ class MRISeriesLayerWidget(QWidget):
         self.layout = QHBoxLayout(self)
 
         # @TODO. Have to make a custom radio button to match the desired design.
-        self.display_toggle_radiobutton = QRadioButton()
+        # self.display_toggle_radiobutton = QRadioButton()
+        self.display_toggle_radiobutton = QPushButton()
+        self.display_toggle_radiobutton.setCheckable(True)
+        self.display_toggle_toggled_icon = QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                                       '../../../Images/radio_round_toggle_on_icon.png'))
+        self.display_toggle_untoggled_icon = QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                                       '../../../Images/radio_round_toggle_off_icon.png'))
+        self.display_toggle_radiobutton.setIcon(self.display_toggle_untoggled_icon)
         self.radio_button_layout = QVBoxLayout()
         self.radio_button_layout.addStretch(1)
         self.radio_button_layout.addWidget(self.display_toggle_radiobutton)
@@ -53,7 +60,8 @@ class MRISeriesLayerWidget(QWidget):
         # create context menu
         self.options_menu = QMenu(self)
         self.options_menu.addAction(QAction('DICOM Metadata', self))
-        self.options_menu.addAction(QAction('Delete', self))
+        self.delete_layer_action = QAction('Delete', self)
+        self.options_menu.addAction(self.delete_layer_action)
         self.options_menu.addSeparator()
         self.name_options_layout.addWidget(self.display_name_lineedit)
         self.name_options_layout.addWidget(self.options_pushbutton)
@@ -65,10 +73,10 @@ class MRISeriesLayerWidget(QWidget):
         self.sequence_type_combobox.addItems([str(e) for e in MRISequenceType])
         self.sequence_type_layout.addWidget(self.sequence_type_label)
         self.sequence_type_layout.addWidget(self.sequence_type_combobox)
+        self.sequence_type_layout.addStretch(1)
         self.manual_grid_layout.addLayout(self.sequence_type_layout)
 
         self.contrast_adjuster_layout = QHBoxLayout()
-        self.contrast_adjuster_layout.addStretch(1)
         self.contrast_adjuster_pushbutton = QPushButton("Contrast")
         self.contrast_adjuster_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../Images/contrast_icon.png'))))
         self.contrast_adjuster_pushbutton.setEnabled(False)
@@ -77,47 +85,19 @@ class MRISeriesLayerWidget(QWidget):
         self.contrast_adjuster_layout.addStretch(1)
         self.manual_grid_layout.addLayout(self.contrast_adjuster_layout)
         self.layout.addLayout(self.manual_grid_layout)
-        # self.layout = QGridLayout(self)
-        # self.icon_label = QLabel()
-        # self.icon_label.setScaledContents(True)  # Will force the pixmap inside to rescale to the label size
-        # pix = QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../Images/file_icon.png'))
-        # self.icon_label.setPixmap(pix)
-        # self.display_name_lineedit = QLineEdit()
-        # self.options_pushbutton = QPushButton("...")
-        # self.options_pushbutton.setContextMenuPolicy(Qt.CustomContextMenu)
-        # # create context menu
-        # self.options_menu = QMenu(self)
-        # self.options_menu.addAction(QAction('DICOM Metadata', self))
-        # self.options_menu.addAction(QAction('Delete', self))
-        # self.options_menu.addSeparator()
-        #
-        # self.sequence_type_label = QLabel("Sequence type")
-        # self.sequence_type_combobox = QComboBox()
-        # self.sequence_type_combobox.addItems([str(e) for e in MRISequenceType])
-        # self.display_toggle_radiobutton = QRadioButton()
-        # self.contrast_adjuster_pushbutton = QPushButton("Contrast")
-        # self.contrast_adjuster_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../Images/contrast_icon.png'))))
-        # self.contrast_adjuster = ContrastAdjustmentDialog(volume_uid=self.uid) #, parent=
-        # # self.contrast_adjuster = ContrastAdjustmentDialog(volume_uid=self.uid, parent=self)
-        #
-        # self.layout.addWidget(self.icon_label, 0, 0)
-        # self.layout.addWidget(self.display_name_lineedit, 0, 1, columnSpan=2)
-        # self.layout.addWidget(self.options_pushbutton, 0, 3)
-        # self.layout.addWidget(self.sequence_type_label, 1, 1)
-        # self.layout.addWidget(self.sequence_type_combobox, 1, 2)
-        # self.layout.addWidget(self.display_toggle_radiobutton, 1, 3)
-        # self.layout.addWidget(self.contrast_adjuster_pushbutton, 2, 1)
 
     def __set_layout_dimensions(self):
         self.icon_label.setFixedSize(QSize(15, 20))
         self.display_name_lineedit.setFixedHeight(20)
+        # self.display_name_lineedit.setFixedWidth(150)
         self.options_pushbutton.setFixedSize(QSize(15, 20))
         self.sequence_type_label.setFixedHeight(20)
-        self.sequence_type_combobox.setFixedHeight(20)
+        self.sequence_type_combobox.setFixedSize(QSize(70, 20))
         self.contrast_adjuster_pushbutton.setFixedHeight(20)
-        self.contrast_adjuster_pushbutton.setFixedWidth(100)
-        self.contrast_adjuster_pushbutton.setIconSize(QSize(18, 18))
-        self.display_toggle_radiobutton.setFixedSize(QSize(20, 20))
+        self.contrast_adjuster_pushbutton.setFixedWidth(90)
+        self.contrast_adjuster_pushbutton.setIconSize(QSize(15, 15))
+        self.display_toggle_radiobutton.setFixedSize(QSize(30, 30))
+        self.display_toggle_radiobutton.setIconSize(QSize(25, 25))
 
         logging.debug("MRISeriesLayerWidget size set to {}.\n".format(self.size()))
 
@@ -129,48 +109,103 @@ class MRISeriesLayerWidget(QWidget):
         self.contrast_adjuster_pushbutton.clicked.connect(self.on_contrast_adjustment_clicked)
         self.contrast_adjuster.contrast_intensity_changed.connect(self.on_contrast_changed)
 
-    def __set_stylesheets(self):
+        # self.delete_layer_action.triggered.connect(self.__on_delete_layer)
+
+    def set_stylesheets(self, selected: bool):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
-        self.display_name_lineedit.setStyleSheet("""
-        QLineEdit{
-        color: """ + software_ss["Color7"] + """;
-        font: 14px;
+        font_color = software_ss["Color7"]
+        background_color = software_ss["Color5"]
+        pressed_background_color = software_ss["Color6"]
+        if selected:
+            background_color = software_ss["Color3"]
+            pressed_background_color = software_ss["Color4"]
+
+        self.setStyleSheet("""
+        MRISeriesLayerWidget{
+        background-color: """ + background_color + """;
         }""")
 
-        ## Below does not have the expected behaviour
+        self.display_name_lineedit.setStyleSheet("""
+        QLineEdit{
+        color: """ + font_color + """;
+        font: 14px;
+        background-color: """ + background_color + """;
+        border-style: none;
+        }
+        QLineEdit::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        }""")
+
+        self.display_toggle_radiobutton.setStyleSheet("""
+        QPushButton{
+        background-color: """ + background_color + """;
+        border-style: none;
+        }""")
+
+        # # Below does not have the expected behaviour
         # self.display_toggle_radiobutton.setStyleSheet("""
-        # QRadioButton::indicator:checked{
+        # QRadioButton::indicator::checked{
         # background-color: rgba(60, 255, 137, 1);
         # }""")
 
         self.options_pushbutton.setStyleSheet("""
         QPushButton{
-        background-color: rgba(239, 255, 245, 1);
-        color: """ + software_ss["Color7"] + """;
+        background-color: """ + background_color + """;
+        color: """ + font_color + """;
         font: 12px;
+        border-style: none;
+        }
+        QPushButton::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
         }
         QPushButton:pressed{
         border-style:inset;
+        background-color: """ + pressed_background_color + """;
         }""")
 
         self.sequence_type_label.setStyleSheet("""
         QLabel{
-        color: """ + software_ss["Color7"] + """;
+        color: """ + font_color + """;
+        background-color: """ + background_color + """;
         font: 12px;
         }""")
 
         self.sequence_type_combobox.setStyleSheet("""
         QComboBox{
-        color: """ + software_ss["Color7"] + """;
+        color: """ + font_color + """;
+        background-color: """ + background_color + """;
         font: bold;
         font-size: 12px;
-        }""")
+        border-style:none;
+        }
+        QComboBox::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        }
+        """)
 
         self.contrast_adjuster_pushbutton.setStyleSheet("""
         QPushButton{
         border-color: rgba(214, 214, 214, 1);
         color: """ + software_ss["Color7"] + """;
         font-size: 12px;
+        border-style: none;
+        }
+        QPushButton::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        }
+        QPushButton::pressed{
+        border-style: inset;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        background-color: """ + pressed_background_color + """;
         }""")
 
     def __init_from_parameters(self):
@@ -179,12 +214,42 @@ class MRISeriesLayerWidget(QWidget):
         sequence_index = self.sequence_type_combobox.findText(mri_volume_parameters.get_sequence_type_str())
         self.sequence_type_combobox.setCurrentIndex(sequence_index)
 
+    def __on_delete_layer(self):
+        """
+        The deletion of an MRI volume layer should lead to a deletion of all linked objects within the patient
+        parameters, and then of the corresponding GUI elements.
+        # @TODO. To finish properly
+        """
+        diag = QMessageBox()
+        diag.setText("MRI volume layer deletion warning.")
+        diag.setInformativeText("Deleting an MRI volume will also remove all other files linked to it (e.g., annotations).")
+        diag.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+        diag.setDefaultButton(QMessageBox.Ok)
+        code = diag.exec_()
+        if code == 0:  # Deletion accepted
+            pass
+
+    def update_interface_from_external_toggle(self, state):
+        """
+        Mandatory since the inner state can be altered from the parent, so that only one MRI volume widget can be
+        toggled at any time
+        """
+        if state:
+            self.display_toggle_radiobutton.setIcon(self.display_toggle_toggled_icon)
+        else:
+            self.display_toggle_radiobutton.setIcon(self.display_toggle_untoggled_icon)
+        self.contrast_adjuster_pushbutton.setEnabled(state)
+
     def on_visibility_toggled(self, state):
-        self.setStyleSheet("""MRISeriesLayerWidget{background-color: rgba(239, 255, 245, 1);}""")
-        self.sequence_type_label.setStyleSheet("""
-        QLabel{
-        background-color: rgba(239, 255, 245, 1);
-        }""")
+        """
+        Needs to be public to be called by the parent.
+        """
+        self.set_stylesheets(selected=state)
+        if state:
+            self.display_toggle_radiobutton.setIcon(self.display_toggle_toggled_icon)
+        else:
+            self.display_toggle_radiobutton.setIcon(self.display_toggle_untoggled_icon)
+
         self.visibility_toggled.emit(self.uid, state)
 
         # Preventing the possibility to adjust contrast for a non-displayed volume.

@@ -82,6 +82,9 @@ class MRIVolume:
     def get_unique_id(self) -> str:
         return self._unique_id
 
+    def set_unsaved_changes_state(self, state: bool) -> None:
+        self._unsaved_changes = state
+
     def has_unsaved_changes(self) -> bool:
         return self._unsaved_changes
 
@@ -164,19 +167,25 @@ class MRIVolume:
         """
         try:
             # Disk operations
-            self._display_volume_filepath = os.path.join(self._output_patient_folder, 'display', self._unique_id + '_display.nii.gz')
-            nib.save(nib.Nifti1Image(self._display_volume, affine=self._default_affine), self._display_volume_filepath)
+            self._display_volume_filepath = os.path.join(self._output_patient_folder, 'display',
+                                                         self._unique_id + '_display.nii.gz')
+            nib.save(nib.Nifti1Image(self._display_volume, affine=self._default_affine),
+                     self._display_volume_filepath)
 
-            self._resampled_input_volume_filepath = os.path.join(self._output_patient_folder, 'display', self._unique_id + '_resampled.nii.gz')
-            nib.save(nib.Nifti1Image(self._resampled_input_volume, affine=self._default_affine), self._resampled_input_volume_filepath)
+            self._resampled_input_volume_filepath = os.path.join(self._output_patient_folder, 'display',
+                                                                 self._unique_id + '_resampled.nii.gz')
+            nib.save(nib.Nifti1Image(self._resampled_input_volume, affine=self._default_affine),
+                     self._resampled_input_volume_filepath)
 
             # Parameters-filling operations
             volume_params = {}
             volume_params['display_name'] = self._display_name
             volume_params['raw_input_filepath'] = self._raw_input_filepath
-            volume_params['resample_input_filepath'] = os.path.relpath(self._resampled_input_volume_filepath, self._output_patient_folder)
+            volume_params['resample_input_filepath'] = os.path.relpath(self._resampled_input_volume_filepath,
+                                                                       self._output_patient_folder)
             volume_params['usable_input_filepath'] = self._usable_input_filepath
-            volume_params['display_volume_filepath'] = os.path.relpath(self._display_volume_filepath, self._output_patient_folder)
+            volume_params['display_volume_filepath'] = os.path.relpath(self._display_volume_filepath,
+                                                                       self._output_patient_folder)
             volume_params['sequence_type'] = str(self._sequence_type)
             volume_params['contrast_window'] = str(self._contrast_window[0]) + ',' + str(self._contrast_window[1])
             self._unsaved_changes = False
@@ -198,7 +207,8 @@ class MRIVolume:
 
         # The resampled volume can only be inside the output patient folder as it is internally computed and cannot be
         # manually imported into the software.
-        self._resampled_input_volume_filepath = os.path.join(self._output_patient_folder, parameters['resample_input_filepath'])
+        self._resampled_input_volume_filepath = os.path.join(self._output_patient_folder,
+                                                             parameters['resample_input_filepath'])
         if os.path.exists(self._resampled_input_volume_filepath):
             self._resampled_input_volume = nib.load(self._resampled_input_volume_filepath)
         else:

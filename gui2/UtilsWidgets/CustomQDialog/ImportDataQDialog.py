@@ -27,6 +27,8 @@ class ImportDataQDialog(QDialog):
         self.__set_connections()
         self.__set_stylesheets()
 
+        self.filter = "*"
+
     def __set_interface(self):
         self.base_layout = QVBoxLayout(self)
 
@@ -116,6 +118,12 @@ class ImportDataQDialog(QDialog):
             except Exception as e:
                 pass
 
+    def set_parsing_filter(self, filter: str) -> None:
+        if filter == 'data':
+            self.filter = "Files (*." + " *.".join(SoftwareConfigResources.getInstance().accepted_image_format) + ")"
+        elif filter == 'patient':
+            self.filter = "Files (*." + " *.".join(SoftwareConfigResources.getInstance().accepted_scene_file_format) + ")"
+
     def __on_import_files_clicked(self):
         input_image_filedialog = QFileDialog(self)
         input_image_filedialog.setWindowFlags(Qt.WindowStaysOnTopHint)
@@ -124,12 +132,13 @@ class ImportDataQDialog(QDialog):
         if "PYCHARM_HOSTED" in os.environ:
             input_filepaths, filters = input_image_filedialog.getOpenFileNames(self, caption='Select input file(s)',
                                                                                directory=self.tr(self.current_folder),
-                                                                               filter="Files (*.nii *.nii.gz *.nrrd *.mha *.mhd *.raidionics)",
+                                                                               filter=self.filter,
                                                                                options=QFileDialog.DontUseNativeDialog)
         else:
             input_filepaths, filters = input_image_filedialog.getOpenFileNames(self, caption='Select input file(s)',
                                                                                directory=self.tr(self.current_folder),
-                                                                               filter="Files (*.nii *.nii.gz *.nrrd *.mha *.mhd *.raidionics)")  # , options=QFileDialog.DontUseNativeDialog
+                                                                               filter=self.filter,
+                                                                               )  # , options=QFileDialog.DontUseNativeDialog
         if len(input_filepaths) != 0 and input_filepaths[0] != "":
             self.current_folder = os.path.dirname(input_filepaths[0])
         self.setup_interface_from_files(input_filepaths)
@@ -140,16 +149,17 @@ class ImportDataQDialog(QDialog):
         """
         widgets = (self.import_scrollarea_layout.itemAt(i) for i in range(self.import_scrollarea_layout.count() - 1))
 
-        # @Behaviour. Do we force the user to create a patient, or allow on-the-fly creation when loading data?
-        if len(SoftwareConfigResources.getInstance().patients_parameters) == 0:
-            uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_patient()
-            if error_msg:
-                diag = QMessageBox()
-                diag.setText("Unable to create empty patient.\nError message: {}.\n".format(error_msg))
-                diag.exec_()
-
-            if (error_msg and 'Import patient failed' not in error_msg) or not error_msg:
-                self.patient_imported.emit(uid)
+        # # Should not be needed anymore as a new empty patient creation is performed upon clicking on import patient.
+        # # @Behaviour. Do we force the user to create a patient, or allow on-the-fly creation when loading data?
+        # if len(SoftwareConfigResources.getInstance().patients_parameters) == 0:
+        #     uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_patient()
+        #     if error_msg:
+        #         diag = QMessageBox()
+        #         diag.setText("Unable to create empty patient.\nError message: {}.\n".format(error_msg))
+        #         diag.exec_()
+        #
+        #     if (error_msg and 'Import patient failed' not in error_msg) or not error_msg:
+        #         self.patient_imported.emit(uid)
 
         self.load_progressbar.reset()
         self.load_progressbar.setMinimum(0)
@@ -161,10 +171,10 @@ class ImportDataQDialog(QDialog):
             # @TODO. Should not iterate blindly, should check between MRI volumes and annotation volumes, imperative to
             # import first at least an MRI volume to correctly attach all annotations to it by default.
             input_filepath = w.wid.filepath_lineedit.text()
-            input_type = w.wid.file_type_selection_combobox.currentText()
-            if input_type != "Patient":
-                uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_data(input_filepath,
-                                                                                                        type=input_type)
+            ext = input_filepath.split('.')[-1]
+            # input_type = w.wid.file_type_selection_combobox.currentText()
+            if ext != "raidionics":
+                uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_data(input_filepath)
                 if error_msg:
                     diag = QMessageBox()
                     diag.setText("Unable to load: {}.\nError message: {}.\n".format(os.path.basename(input_filepath),

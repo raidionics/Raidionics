@@ -153,7 +153,7 @@ class MRIVolumesLayerInteractor(QCollapsibleGroupBox):
                     self.volumes_widget[w].display_toggle_radiobutton.blockSignals(True)
                     self.volumes_widget[w].display_toggle_radiobutton.setChecked(False)
                     self.volumes_widget[w].display_toggle_radiobutton.blockSignals(False)
-                    self.volumes_widget[w].setStyleSheet("""MRISeriesLayerWidget{background-color: rgba(248, 248, 248, 1);}""")
-                    self.volumes_widget[w].contrast_adjuster_pushbutton.setEnabled(False)
+                    self.volumes_widget[w].set_stylesheets(selected=False)
+                    self.volumes_widget[w].update_interface_from_external_toggle(False)
         else:  # Trying to undisplay an image, not possible.
             self.volumes_widget[uid].display_toggle_radiobutton.setChecked(True)

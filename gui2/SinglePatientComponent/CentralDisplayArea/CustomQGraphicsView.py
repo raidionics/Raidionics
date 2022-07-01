@@ -205,8 +205,8 @@ class CustomQGraphicsView(QGraphicsView):
             self.overlaid_items[joint_uid] = QGraphicsPixmapItem()
             self.scene.addItem(self.overlaid_items[joint_uid])
         if not joint_uid in self.overlaid_items_display_parameters.keys():
-            color = SoftwareConfigResources.getInstance().get_active_patient().atlas_volumes[atlas_uid].class_display_color[int(structure_uid)]
-            opacity = SoftwareConfigResources.getInstance().get_active_patient().atlas_volumes[atlas_uid].class_display_opacity[int(structure_uid)]
+            color = SoftwareConfigResources.getInstance().get_active_patient().atlas_volumes[atlas_uid].get_all_class_display_color()[int(structure_uid)]
+            opacity = SoftwareConfigResources.getInstance().get_active_patient().atlas_volumes[atlas_uid].get_all_class_opacity()[int(structure_uid)]
             self.overlaid_items_display_parameters[joint_uid] = {"color": QColor.fromRgb(color[0], color[1],
                                                                                          color[2], color[3]),
                                                                  "opacity": opacity / 100.}

@@ -93,6 +93,9 @@ class AnnotationVolume:
     def release_from_memory(self) -> None:
         self._display_volume = None
 
+    def set_unsaved_changes_state(self, state: bool) -> None:
+        self._unsaved_changes = state
+
     def has_unsaved_changes(self) -> bool:
         return self._unsaved_changes
 
