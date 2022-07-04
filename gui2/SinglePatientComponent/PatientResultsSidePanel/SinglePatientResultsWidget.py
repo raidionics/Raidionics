@@ -23,15 +23,14 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.__set_interface()
         self.__set_layout_dimensions()
         self.__set_connections()
-        self.__set_stylesheets()
+        self.set_stylesheets(selected=False)
 
     def __set_interface(self):
-        # @TODO. Have to reposition the icon better.
         self.set_header_icons(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                           '../../Images/single_patient_icon.png'),
+                                           '../../Images/patient-icon.png'),
                               QSize(30, 30),
                               os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                           '../../Images/single_patient_icon.png'),
+                                           '../../Images/patient-icon.png'),
                               QSize(30, 30), side='left')
         self.__set_system_part()
         self.__set_overall_part()
@@ -55,7 +54,7 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
 
         self.output_dir_label = QLabel("Location ")
         self.output_dir_lineedit = QLineEdit()
-        self.output_dir_lineedit.setAlignment(Qt.AlignRight)
+        self.output_dir_lineedit.setAlignment(Qt.AlignLeft)
         self.output_dir_lineedit.setReadOnly(True)
         self.output_dir_modification_button = QPushButton('...')
         self.output_dir_layout = QHBoxLayout()
@@ -197,7 +196,8 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
                                                                        '../../Images/collapsed_icon.png'),
                                                           QSize(30, 30))
         self.corticalstructures_collapsiblegroupbox.setBaseSize(QSize(self.parent.baseSize().width(), 150))
-        self.corticalstructures_collapsiblegroupbox.content_label_layout.setContentsMargins(20, 0, 20, 0)
+        # self.corticalstructures_collapsiblegroupbox.content_label.setBaseSize(QSize(self.parent.baseSize().width() - 50, 150))
+        self.corticalstructures_collapsiblegroupbox.content_label_layout.setContentsMargins(20, 0, 50, 0)
         self.content_label_layout.addWidget(self.corticalstructures_collapsiblegroupbox)
 
     def __set_subcortical_structures_part(self):
@@ -262,17 +262,39 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.corticalstructures_collapsiblegroupbox.header_pushbutton.clicked.connect(self.adjustSize)
         self.subcorticalstructures_collapsiblegroupbox.header_pushbutton.clicked.connect(self.adjustSize)
 
-    def __set_stylesheets(self):
+    def set_stylesheets(self, selected: bool) -> None:
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
+        font_color = software_ss["Color7"]
+        font_style = 'normal'
+        background_color = software_ss["Color5"]
+        pressed_background_color = software_ss["Color6"]
+        if selected:
+            background_color = software_ss["Color3"]
+            pressed_background_color = software_ss["Color4"]
+            font_style = 'bold'
+
         self.content_label.setStyleSheet("""
         QLabel{
         background-color: """ + software_ss["Color2"] + """;
         }""")
 
+        # @TODO. Something weird with the color when checked.
         self.header_pushbutton.setStyleSheet("""
         QPushButton{
-        background-color:rgba(254, 254, 254, 1);
-        font:bold;
+        background-color: """ + background_color + """;
+        font:""" + font_style + """;
+        font-size: 16px;
+        color: """ + software_ss["Color1"] + """;
+        text-align: left;
+        padding-left:40px;
+        }
+        QPushButton:checked{
+        background-color: """ + background_color + """;
+        font:""" + font_style + """;
+        font-size: 16px;
+        color: """ + software_ss["Color1"] + """;
+        text-align: left;
+        padding-left:40px;
         }""")
 
         self.default_collapsiblegroupbox.content_label.setStyleSheet("""
@@ -292,7 +314,7 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
 
         self.patient_name_label.setStyleSheet("""
         QLabel{
-        color: """ + software_ss["Color7"] + """;
+        color: """ + font_color + """;
         text-align:left;
         font:semibold;
         font-size:14px;
@@ -302,10 +324,11 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         color: rgba(0, 0, 0, 1);
         font:bold;
         font-size:14px;
+        text-align: left;
         }""")
         self.output_dir_label.setStyleSheet("""
         QLabel{
-        color: """ + software_ss["Color7"] + """;
+        color: """ + font_color + """;
         text-align:left;
         font:semibold;
         font-size:14px;
@@ -319,28 +342,28 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         #################################### TUMOR/MULTIFOCALITY GROUPBOX #########################################
         self.multifocality_pieces_header_label.setStyleSheet("""
         QLabel{
-        color: """ + software_ss["Color7"] + """;
+        color: """ + font_color + """;
         text-align:left;
         font:semibold;
         font-size:14px;
         }""")
         self.multifocality_pieces_label.setStyleSheet("""
         QLabel{
-        color: """ + software_ss["Color7"] + """;
+        color: """ + font_color + """;
         text-align:right;
         font:semibold;
         font-size:14px;
         }""")
         self.multifocality_distance_header_label.setStyleSheet("""
         QLabel{
-        color: """ + software_ss["Color7"] + """;
+        color: """ + font_color + """;
         text-align:left;
         font:semibold;
         font-size:14px;
         }""")
         self.multifocality_distance_label.setStyleSheet("""
         QLabel{
-        color: """ + software_ss["Color7"] + """;
+        color: """ + font_color + """;
         text-align:right;
         font:semibold;
         font-size:14px;
@@ -349,7 +372,7 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.volumes_collapsiblegroupbox.header_pushbutton.setStyleSheet("""
         QPushButton{
         background-color:rgb(248, 248, 248);
-        color: """ + software_ss["Color7"] + """;
+        color: """ + font_color + """;
         text-align:left;
         font:bold;
         font-size:14px;
@@ -359,28 +382,28 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.volumes_collapsiblegroupbox.content_label.setStyleSheet("QLabel{background-color:rgb(254,254,254);}")
         self.mni_space_volume_header_label.setStyleSheet("""
         QLabel{
-        color: """ + software_ss["Color7"] + """;
+        color: """ + font_color + """;
         text-align:left;
         font:semibold;
         font-size:14px;
         }""")
         self.mni_space_volume_label.setStyleSheet("""
         QLabel{
-        color: """ + software_ss["Color7"] + """;
+        color: """ + font_color + """;
         text-align:right;
         font:semibold;
         font-size:14px;
         }""")
         self.original_space_volume_header_label.setStyleSheet("""
         QLabel{
-        color: """ + software_ss["Color7"] + """;
+        color: """ + font_color + """;
         text-align:left;
         font:semibold;
         font-size:14px;
         }""")
         self.original_space_volume_label.setStyleSheet("""
         QLabel{
-        color: """ + software_ss["Color7"] + """;
+        color: """ + font_color + """;
         text-align:right;
         font:semibold;
         font-size:14px;
@@ -390,7 +413,7 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.laterality_collapsiblegroupbox.header_pushbutton.setStyleSheet("""
         QPushButton{
         background-color:rgb(248, 248, 248);
-        color: """ + software_ss["Color7"] + """;
+        color: """ + font_color + """;
         text-align:left;
         font:bold;
         font-size:14px;
@@ -400,42 +423,42 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.laterality_collapsiblegroupbox.content_label.setStyleSheet("QLabel{background-color:rgb(254,254,254);}")
         self.laterality_left_header_label.setStyleSheet("""
         QLabel{
-        color: """ + software_ss["Color7"] + """;
+        color: """ + font_color + """;
         text-align:left;
         font:semibold;
         font-size:14px;
         }""")
         self.laterality_left_label.setStyleSheet("""
         QLabel{
-        color: """ + software_ss["Color7"] + """;
+        color: """ + font_color + """;
         text-align:right;
         font:semibold;
         font-size:14px;
         }""")
         self.laterality_right_header_label.setStyleSheet("""
         QLabel{
-        color: """ + software_ss["Color7"] + """;
+        color: """ + font_color + """;
         text-align:left;
         font:semibold;
         font-size:14px;
         }""")
         self.laterality_right_label.setStyleSheet("""
         QLabel{
-        color: """ + software_ss["Color7"] + """;
+        color: """ + font_color + """;
         text-align:right;
         font:semibold;
         font-size:14px;
         }""")
         self.laterality_midline_header_label.setStyleSheet("""
         QLabel{
-        color: """ + software_ss["Color7"] + """;
+        color: """ + font_color + """;
         text-align:left;
         font:semibold;
         font-size:14px;
         }""")
         self.laterality_midline_label.setStyleSheet("""
         QLabel{
-        color: """ + software_ss["Color7"] + """;
+        color: """ + font_color + """;
         text-align:right;
         font:semibold;
         font-size:14px;
@@ -444,7 +467,7 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         ######################################### MULTIFOCALITY GROUPBOX ##############################################
         self.multifocality_collapsiblegroupbox.header_pushbutton.setStyleSheet("""
         QPushButton{background-color:rgb(248, 248, 248);
-        color: """ + software_ss["Color7"] + """;
+        color: """ + font_color + """;
         text-align:left;
         font:bold;
         font-size:14px;
@@ -456,7 +479,7 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         ######################################### CORTICAL STRUCTURES GROUPBOX #########################################
         self.corticalstructures_collapsiblegroupbox.header_pushbutton.setStyleSheet("""
         QPushButton{background-color:rgb(248, 248, 248);
-        color: """ + software_ss["Color7"] + """;
+        color: """ + font_color + """;
         text-align:left;
         font:bold;
         font-size:14px;
@@ -468,7 +491,7 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         ###################################### SUBCORTICAL STRUCTURES GROUPBOX #########################################
         self.subcorticalstructures_collapsiblegroupbox.header_pushbutton.setStyleSheet("""
         QPushButton{background-color:rgb(248, 248, 248);
-        color: """ + software_ss["Color7"] + """;
+        color: """ + font_color + """;
         text-align:left;
         font:bold;
         font-size:14px;
@@ -530,6 +553,8 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
 
         if len(input_directory) != 0 and input_directory != "":
             self.output_dir_lineedit.setText(input_directory)
+            self.output_dir_lineedit.setCursorPosition(0)
+            self.output_dir_lineedit.home(True)
             SoftwareConfigResources.getInstance().get_active_patient().set_output_directory(input_directory)
 
     def manual_header_pushbutton_clicked(self, state):
@@ -550,6 +575,9 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         patient_parameters = SoftwareConfigResources.getInstance().patients_parameters[patient_uid]
         self.patient_name_lineedit.setText(patient_parameters.get_display_name())
         self.output_dir_lineedit.setText(os.path.dirname(patient_parameters.output_folder))
+        # The following is necessary for aligning the text to the left, using Qt.AlignLeft or stylesheets does not work.
+        self.output_dir_lineedit.setCursorPosition(0)
+        self.output_dir_lineedit.home(True)
         self.title = patient_parameters.get_display_name()
         self.header_pushbutton.setText(self.title)
         self.on_standardized_report_imported()
@@ -606,13 +634,17 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
                 if val >= 1.0:
                     lay = QHBoxLayout()
                     struct_display_name = struct.replace('_', ' ').replace('-', ' ')
-                    label_header = QLabel("{} ".format(struct_display_name))
+                    label_header = QLineEdit("{} ".format(struct_display_name))
+                    label_header.setReadOnly(True)
                     label = QLabel("{:.2f} %".format(val))
                     label_header.setFixedHeight(20)
+                    label_header.setFixedWidth(180)
                     label.setFixedHeight(20)
+                    label.setFixedWidth(60)
                     lay.addWidget(label_header)
-                    lay.addStretch(1)
+                    # lay.addStretch(1)
                     lay.addWidget(label)
+                    lay.addStretch(1)
                     label_header.setStyleSheet("""
                     QLabel{
                     color: """ + software_ss["Color7"] + """;
@@ -664,8 +696,9 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
                     label_header.setFixedHeight(20)
                     label.setFixedHeight(20)
                     lay.addWidget(label_header)
-                    lay.addStretch(1)
+                    # lay.addStretch(1)
                     lay.addWidget(label)
+                    lay.addStretch(1)
                     label_header.setStyleSheet("""
                     QLabel{
                     color: """ + software_ss["Color7"] + """;

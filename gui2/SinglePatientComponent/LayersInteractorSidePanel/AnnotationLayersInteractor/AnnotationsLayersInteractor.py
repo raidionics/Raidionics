@@ -33,6 +33,8 @@ class AnnotationsLayersInteractor(QCollapsibleGroupBox):
         self.__set_stylesheets()
 
     def __set_interface(self):
+        # @TODO. How to deal properly with margins when the scrollable sidebars appear/disappear?
+        #self.content_label_layout.setContentsMargins(0, 0, 20, 0)
         self.content_label_layout.addStretch(1)
 
     def __set_layout_dimensions(self):

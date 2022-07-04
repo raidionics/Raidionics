@@ -137,6 +137,8 @@ class SinglePatientWidget(QWidget):
         self.layers_panel.annotation_color_changed.connect(self.center_panel.on_annotation_color_changed)
         # self.layers_panel.atlas_view_toggled.connect(self.center_panel.on_atlas_layer_toggled)
         self.layers_panel.atlas_structure_view_toggled.connect(self.center_panel.atlas_structure_view_toggled)
+        self.layers_panel.atlas_structure_color_changed.connect(self.center_panel.atlas_structure_color_changed)
+        self.layers_panel.atlas_structure_opacity_changed.connect(self.center_panel.atlas_structure_opacity_changed)
 
         self.center_panel.process_started.connect(self.on_process_started)
         self.center_panel.process_finished.connect(self.on_process_finished)

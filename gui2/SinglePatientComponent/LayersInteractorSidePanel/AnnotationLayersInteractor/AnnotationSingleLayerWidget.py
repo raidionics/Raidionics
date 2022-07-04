@@ -39,60 +39,56 @@ class AnnotationSingleLayerWidget(QWidget):
         self.options_menu.addAction(QAction('Remove', self))
         self.options_menu.addSeparator()
 
-        # self.content_label = QLabel(self)
-        self.layout = QVBoxLayout(self)
-        # self.content_label.setLayout(self.layout)
-        self.name_layout = QHBoxLayout()
-        self.icon_label = QLabel()
-        self.icon_label.setScaledContents(True)  # Will force the pixmap inside to rescale to the label size
-        pix = QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../Images/file_icon.png'))
-        self.icon_label.setPixmap(pix)
-        self.display_name_lineedit = QLineEdit()
-        self.display_name_lineedit.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)
-        self.display_toggle_pushbutton = QPushButton()
-        self.display_toggle_pushbutton.setCheckable(True)
+        self.layout = QHBoxLayout(self)
+        self.display_toggle_layout = QVBoxLayout()
+        self.display_toggle_layout.addStretch(1)
+        self.display_toggle_button = QPushButton()
+        self.display_toggle_button.setCheckable(True)
         self.closed_eye_icon = QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                            '../../../Images/closed_eye_icon.png')))
         self.open_eye_icon = QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                            '../../../Images/opened_eye_icon.png')))
-        self.display_toggle_pushbutton.setIcon(self.closed_eye_icon)
-        self.name_layout.addWidget(self.icon_label)
+        self.display_toggle_button.setIcon(self.closed_eye_icon)
+        self.display_toggle_layout.addWidget(self.display_toggle_button)
+        self.display_toggle_layout.addStretch(1)
+        self.layout.addLayout(self.display_toggle_layout)
+
+        self.manual_grid_layout = QVBoxLayout()
+        self.name_layout = QHBoxLayout()
+        self.display_name_lineedit = QLineEdit()
+        self.display_name_lineedit.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)
         self.name_layout.addWidget(self.display_name_lineedit)
-        self.name_layout.addWidget(self.display_toggle_pushbutton)
+        self.manual_grid_layout.addLayout(self.name_layout)
 
         self.parent_layout = QHBoxLayout()
         self.parent_image_label = QLabel("Parent MRI")
         self.parent_image_combobox = QComboBox()
         self.parent_layout.addWidget(self.parent_image_label)
         self.parent_layout.addWidget(self.parent_image_combobox)
+        self.manual_grid_layout.addLayout(self.parent_layout)
 
         self.annotation_type_layout = QHBoxLayout()
-        self.annotation_type_label = QLabel("Annotation of")
+        self.annotation_type_label = QLabel("Class")
         self.annotation_type_combobox = QComboBox()
         # @TODO. Should be parsed from the EnumType in the AnnotationStructure class
         self.annotation_type_combobox.addItems(["Brain", "Tumor"])
         self.annotation_type_layout.addWidget(self.annotation_type_label)
         self.annotation_type_layout.addWidget(self.annotation_type_combobox)
-
-        self.layout.addLayout(self.name_layout)
-        self.layout.addLayout(self.parent_layout)
-        self.layout.addLayout(self.annotation_type_layout)
-        self.__set_interface_advanced_options()
-        # self.layout.addWidget(self.advanced_options_collapsible)
-
-    def __set_interface_advanced_options(self):
-        self.advanced_options_collapsible = QCollapsibleGroupBox(uid=self.uid + '_advanced', parent=self)
-        self.advanced_options_collapsible.header_pushbutton.setText("Advanced options")
-
+        self.annotation_type_layout.addStretch(1)
         self.generation_type_label = QLabel("Generation ")
         self.generation_type_combobox = QComboBox()
         # @TODO. Should be parsed from the EnumType in the AnnotationStructure class
         self.generation_type_combobox.addItems(["Manual", "Automatic"])
-        self.generation_type_layout = QHBoxLayout()
-        self.generation_type_layout.addWidget(self.generation_type_label)
-        self.generation_type_layout.addWidget(self.generation_type_combobox)
-        # self.advanced_options_collapsible.content_label_layout.addLayout(self.generation_type_layout)
-        self.layout.addLayout(self.generation_type_layout)
+        self.annotation_type_layout.addWidget(self.generation_type_label)
+        self.annotation_type_layout.addWidget(self.generation_type_combobox)
+        self.manual_grid_layout.addLayout(self.annotation_type_layout)
+
+        self.__set_interface_advanced_options()
+        self.layout.addLayout(self.manual_grid_layout)
+
+    def __set_interface_advanced_options(self):
+        self.advanced_options_collapsible = QCollapsibleGroupBox(uid=self.uid + '_advanced', parent=self)
+        self.advanced_options_collapsible.header_pushbutton.setText("Advanced options")
 
         self.opacity_label = QLabel("Opacity ")
         self.opacity_slider = QSlider(Qt.Orientation.Horizontal)
@@ -105,8 +101,6 @@ class AnnotationSingleLayerWidget(QWidget):
         self.opacity_layout.addWidget(self.opacity_label)
         self.opacity_layout.addWidget(self.opacity_slider)
         self.opacity_layout.addStretch(1)
-        # self.advanced_options_collapsible.content_label_layout.addLayout(self.opacity_layout)
-        self.layout.addLayout(self.opacity_layout)
 
         self.color_label = QLabel("Color ")
         self.color_dialogpushbutton = QPushButton()
@@ -115,37 +109,42 @@ class AnnotationSingleLayerWidget(QWidget):
         # NB: Below is mandatory on Linux to avoid => "GtkDialog mapped without a transient parent. This is discouraged."
         # What is the behaviour on Mac/Windows?
         self.color_dialog.setOption(QColorDialog.DontUseNativeDialog)
-        self.color_layout = QHBoxLayout()
-        self.color_layout.addWidget(self.color_label)
-        self.color_layout.addWidget(self.color_dialogpushbutton)
-        self.color_layout.addStretch(1)
-        # self.advanced_options_collapsible.content_label_layout.addLayout(self.color_layout)
-        self.layout.addLayout(self.color_layout)
+        self.opacity_layout.addWidget(self.color_label)
+        self.opacity_layout.addWidget(self.color_dialogpushbutton)
+        self.manual_grid_layout.addLayout(self.opacity_layout)
+        # self.color_layout = QHBoxLayout()
+        # self.color_layout.addWidget(self.color_label)
+        # self.color_layout.addWidget(self.color_dialogpushbutton)
+        # self.color_layout.addStretch(1)
+        #
+        # self.manual_grid_layout.addLayout(self.color_layout)
 
     def __set_layout_dimensions(self):
-        self.icon_label.setFixedSize(QSize(15, 20))
+        self.display_toggle_button.setFixedSize(QSize(30, 30))
+        self.display_toggle_button.setIconSize(QSize(25, 25))
         self.display_name_lineedit.setFixedHeight(20)
         self.parent_image_label.setFixedHeight(20)
         self.parent_image_combobox.setFixedHeight(20)
         self.annotation_type_label.setFixedHeight(20)
         self.annotation_type_combobox.setFixedHeight(20)
-        self.display_toggle_pushbutton.setFixedSize(QSize(20, 20))
-        self.display_toggle_pushbutton.setIconSize(QSize(20, 20))
+        self.annotation_type_combobox.setFixedWidth(60)
+        self.generation_type_label.setFixedHeight(20)
+        self.generation_type_combobox.setFixedHeight(20)
+        self.generation_type_combobox.setFixedWidth(85)
 
         ############## ADVANCED OPTIONS ################
         self.opacity_label.setFixedHeight(20)
-        self.opacity_slider.setFixedHeight(15)
+        self.opacity_slider.setFixedHeight(20)
+        self.opacity_slider.setFixedWidth(120)
         self.color_label.setFixedHeight(20)
         self.color_dialogpushbutton.setFixedHeight(15)
-        self.generation_type_label.setFixedHeight(20)
-        self.generation_type_combobox.setFixedHeight(20)
         self.advanced_options_collapsible.content_label.setFixedHeight(70)
         # self.advanced_options_collapsible.adjustSize()
 
     def __set_connections(self):
         self.customContextMenuRequested.connect(self.on_right_clicked)
         self.display_name_lineedit.textEdited.connect(self.on_name_changed)
-        self.display_toggle_pushbutton.toggled.connect(self.on_visibility_toggled)
+        self.display_toggle_button.toggled.connect(self.on_visibility_toggled)
         self.parent_image_combobox.currentIndexChanged.connect(self.__on_parent_mri_changed)
         self.annotation_type_combobox.currentTextChanged.connect(self.__on_annotation_type_changed)
         self.advanced_options_collapsible.header_pushbutton.clicked.connect(self.on_advanced_options_clicked)
@@ -153,17 +152,159 @@ class AnnotationSingleLayerWidget(QWidget):
         self.color_dialogpushbutton.clicked.connect(self.__on_color_selector_clicked)
 
     def __set_stylesheets(self):
-        self.setStyleSheet("""AnnotationSingleLayerWidget{background-color: rgba(248, 248, 248, 1);}""")
-        self.color_dialogpushbutton_base_ss = """ QPushButton{border-color:rgb(0, 0, 0); border-width:2px;} """
-        self.display_name_lineedit.setStyleSheet("""
-        QLineEdit{
-        color: rgba(67, 88, 90, 1);
-        font: 14px;
+        software_ss = SoftwareConfigResources.getInstance().stylesheet_components
+        font_color = software_ss["Color7"]
+        background_color = software_ss["Color5"]
+        pressed_background_color = software_ss["Color6"]
+
+        self.setStyleSheet("""
+        AnnotationSingleLayerWidget{
+        background-color: """ + background_color + """;
         }""")
 
-        self.advanced_options_collapsible.content_label.setStyleSheet("""
-        QLabel{background-color: rgba(235, 235, 235, 1);
+        self.display_name_lineedit.setStyleSheet("""
+        QLineEdit{
+        color: """ + font_color + """;
+        font: 14px;
+        background-color: """ + background_color + """;
+        border-style: none;
+        }
+        QLineEdit::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
         }""")
+
+        self.display_toggle_button.setStyleSheet("""
+        QPushButton{
+        background-color: """ + background_color + """;
+        border-style: none;
+        }
+        QPushButton:pressed{
+        background-color: """ + pressed_background_color + """;
+        border-style:inset;
+        }""")
+
+        self.parent_image_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        background-color: """ + background_color + """;
+        border-style: none;
+        }""")
+
+        self.parent_image_combobox.setStyleSheet("""
+        QComboBox{
+        color: """ + font_color + """;
+        background-color: """ + background_color + """;
+        font: bold;
+        font-size: 10px;
+        border-style:none;
+        }
+        QComboBox::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        }
+        QComboBox::drop-down {
+        subcontrol-origin: padding;
+        subcontrol-position: top right;
+        width: 15px;
+        border-left-width: 1px;
+        border-left-color: darkgray;
+        border-left-style: none;
+        border-top-right-radius: 3px; /* same radius as the QComboBox */
+        border-bottom-right-radius: 3px;
+        }
+        QComboBox::down-arrow{
+        image: url(""" + os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../Images/combobox-arrow-icon-10x7.png') + """)
+        }
+        """)
+
+        self.annotation_type_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        background-color: """ + background_color + """;
+        border-style: none;
+        }""")
+
+        self.annotation_type_combobox.setStyleSheet("""
+        QComboBox{
+        color: """ + font_color + """;
+        background-color: """ + background_color + """;
+        font: bold;
+        font-size: 10px;
+        border-style:none;
+        }
+        QComboBox::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        }
+        QComboBox::drop-down {
+        subcontrol-origin: padding;
+        subcontrol-position: top right;
+        width: 15px;
+        border-left-width: 1px;
+        border-left-color: darkgray;
+        border-left-style: none;
+        border-top-right-radius: 3px; /* same radius as the QComboBox */
+        border-bottom-right-radius: 3px;
+        }
+        QComboBox::down-arrow{
+        image: url(""" + os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../Images/combobox-arrow-icon-10x7.png') + """)
+        }
+        """)
+
+        self.generation_type_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        background-color: """ + background_color + """;
+        border-style: none;
+        }""")
+
+        self.generation_type_combobox.setStyleSheet("""
+        QComboBox{
+        color: """ + font_color + """;
+        background-color: """ + background_color + """;
+        font: bold;
+        font-size: 10px;
+        border-style:none;
+        }
+        QComboBox::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        }
+        QComboBox::drop-down {
+        subcontrol-origin: padding;
+        subcontrol-position: top right;
+        width: 15px;
+        border-left-width: 1px;
+        border-left-color: darkgray;
+        border-left-style: none;
+        border-top-right-radius: 3px; /* same radius as the QComboBox */
+        border-bottom-right-radius: 3px;
+        }
+        QComboBox::down-arrow{
+        image: url(""" + os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../Images/combobox-arrow-icon-10x7.png') + """)
+        }
+        """)
+
+        self.opacity_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        background-color: """ + background_color + """;
+        border-style: none;
+        }""")
+
+        self.color_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        background-color: """ + background_color + """;
+        border-style: none;
+        }""")
+
+        self.color_dialogpushbutton_base_ss = """ QPushButton{border-color:rgb(0, 0, 0); border-width:2px;} """
 
     def __init_from_parameters(self):
         params = SoftwareConfigResources.getInstance().get_active_patient().annotation_volumes[self.uid]
@@ -228,11 +369,11 @@ class AnnotationSingleLayerWidget(QWidget):
 
     def on_visibility_toggled(self, state):
         if state:
-            self.display_toggle_pushbutton.setIcon(self.open_eye_icon)
+            self.display_toggle_button.setIcon(self.open_eye_icon)
             self.opacity_slider.setEnabled(True)
             self.color_dialogpushbutton.setEnabled(True)
         else:
-            self.display_toggle_pushbutton.setIcon(self.closed_eye_icon)
+            self.display_toggle_button.setIcon(self.closed_eye_icon)
             self.opacity_slider.setEnabled(False)
             self.color_dialogpushbutton.setEnabled(False)
 

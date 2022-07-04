@@ -205,12 +205,14 @@ class MRIVolume:
         else:
             self._usable_input_filepath = os.path.join(self._output_patient_folder, parameters['usable_input_filepath'])
 
+        self._contrast_window = [int(x) for x in parameters['contrast_window'].split(',')]
+
         # The resampled volume can only be inside the output patient folder as it is internally computed and cannot be
         # manually imported into the software.
         self._resampled_input_volume_filepath = os.path.join(self._output_patient_folder,
                                                              parameters['resample_input_filepath'])
         if os.path.exists(self._resampled_input_volume_filepath):
-            self._resampled_input_volume = nib.load(self._resampled_input_volume_filepath)
+            self._resampled_input_volume = nib.load(self._resampled_input_volume_filepath).get_data()[:]
         else:
             # Patient wasn't saved after loading, hence the volume was not stored on disk and must be recomputed
             self.__generate_display_volume()
@@ -218,7 +220,7 @@ class MRIVolume:
         self._display_volume = nib.load(self._display_volume_filepath).get_data()[:]
         self._display_name = parameters['display_name']
         self.set_sequence_type(type=parameters['sequence_type'])
-        self._contrast_window = [int(x) for x in parameters['contrast_window'].split(',')]
+        self.__generate_intensity_histogram()
 
     def __parse_sequence_type(self):
         base_name = self._unique_id.lower()
@@ -233,6 +235,11 @@ class MRIVolume:
         else:
             self._sequence_type = MRISequenceType.T1w
 
+    def __generate_intensity_histogram(self):
+        # Generate the raw intensity histogram for contrast adjustment
+        self._intensity_histogram = np.histogram(self._resampled_input_volume[self._resampled_input_volume != 0],
+                                                 bins=30)
+
     def __generate_display_volume(self) -> None:
         """
         Generate a display-compatible volume from the raw MRI volume the first time it is loaded in the software.
@@ -243,9 +250,7 @@ class MRIVolume:
         resampled_input_ni = resample_to_output(image_nib, order=1)
         self._resampled_input_volume = resampled_input_ni.get_data()[:]
 
-        # Generate the raw intensity histogram for contrast adjustment
-        self._intensity_histogram = np.histogram(self._resampled_input_volume[self._resampled_input_volume != 0],
-                                                 bins=30)
+        self.__generate_intensity_histogram()
 
         # The first time, the intensity boundaries must be retrieved
         self._contrast_window[0] = int(np.min(self._resampled_input_volume))

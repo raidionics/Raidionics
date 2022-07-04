@@ -194,19 +194,19 @@ class CustomQGraphicsView(QGraphicsView):
         self.display_annotations[annotation_uid] = image_2d
         self.__repaint_overlay(annotation_uid)
 
-    def update_atlas_view(self, atlas_uid, structure_uid, slice):
+    def update_atlas_view(self, atlas_uid, structure_index, slice):
         """
 
         """
-        joint_uid = atlas_uid + '_' + structure_uid
+        joint_uid = atlas_uid + '_' + str(structure_index)
         if not joint_uid in self.overlaid_items.keys():
             self.original_annotations[joint_uid] = None
             self.display_annotations[joint_uid] = None
             self.overlaid_items[joint_uid] = QGraphicsPixmapItem()
             self.scene.addItem(self.overlaid_items[joint_uid])
         if not joint_uid in self.overlaid_items_display_parameters.keys():
-            color = SoftwareConfigResources.getInstance().get_active_patient().atlas_volumes[atlas_uid].get_all_class_display_color()[int(structure_uid)]
-            opacity = SoftwareConfigResources.getInstance().get_active_patient().atlas_volumes[atlas_uid].get_all_class_opacity()[int(structure_uid)]
+            color = SoftwareConfigResources.getInstance().get_active_patient().atlas_volumes[atlas_uid].get_all_class_display_color()[structure_index]
+            opacity = SoftwareConfigResources.getInstance().get_active_patient().atlas_volumes[atlas_uid].get_all_class_opacity()[structure_index]
             self.overlaid_items_display_parameters[joint_uid] = {"color": QColor.fromRgb(color[0], color[1],
                                                                                          color[2], color[3]),
                                                                  "opacity": opacity / 100.}
@@ -232,8 +232,8 @@ class CustomQGraphicsView(QGraphicsView):
         # set to default values? Not much memory use for this.
         # self.overlaid_items_display_parameters.pop(annotation_uid)
 
-    def remove_atlas_view(self, atlas_uid, structure_uid):
-        joint_uid = atlas_uid + '_' + structure_uid
+    def remove_atlas_view(self, atlas_uid, structure_index):
+        joint_uid = atlas_uid + '_' + str(structure_index)
         graphics_item = self.overlaid_items[joint_uid]
         self.scene.removeItem(graphics_item)
         self.overlaid_items.pop(joint_uid)

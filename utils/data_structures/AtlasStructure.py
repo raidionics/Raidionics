@@ -95,16 +95,37 @@ class AtlasVolume:
     def get_one_hot_display_volume(self):
         return self._one_hot_display_volume
 
+    def get_structure_index_by_name(self, name: str) -> int:
+        label = int(self._class_description.loc[self._class_description['text'] == name]['label'].index.values[0])
+        return self._visible_class_labels.index(label) + 1
+
     def get_all_class_display_color(self):
         return self._class_display_color
 
-    def get_class_display_color(self, index: int):
+    def get_class_display_color_by_index(self, index: int):
+        return self._class_display_color[index]
+
+    def get_class_display_color_by_label(self, label: int):
+        index = self._visible_class_labels.index(label) + 1
+        return self._class_display_color[index]
+
+    def get_class_display_color_by_name(self, name: str):
+        index = self.get_structure_index_by_name(name)
         return self._class_display_color[index]
 
     def get_all_class_opacity(self):
         return self._class_display_opacity
 
-    def get_class_opacity(self, index: int):
+    def get_class_opacity_by_index(self, index: int):
+        return self._class_display_opacity[index]
+
+    def get_class_opacity_by_label(self, label: int):
+        index = self._visible_class_labels.index(label) + 1
+        return self._class_display_opacity[index]
+
+    def get_class_opacity_by_name(self, name: str):
+        label = int(self._class_description.loc[self._class_description['text'] == name]['label'].index.values[0])
+        index = self._visible_class_labels.index(label) + 1
         return self._class_display_opacity[index]
 
     def set_output_patient_folder(self, output_folder: str) -> None:

@@ -220,7 +220,9 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         for i, wid in enumerate(list(self.patient_results_widgets.keys())):
             if wid != widget_id:
                 self.patient_results_widgets[wid].manual_header_pushbutton_clicked(False)
+                self.patient_results_widgets[wid].set_stylesheets(selected=False)
         self.patient_results_widgets[widget_id].header_pushbutton.setEnabled(False)
+        self.patient_results_widgets[widget_id].set_stylesheets(selected=True)
         SoftwareConfigResources.getInstance().set_active_patient(widget_id)
         # When a patient is selected in the left panel, a visual update of the central/right panel is triggered
         self.patient_selected.emit(widget_id)

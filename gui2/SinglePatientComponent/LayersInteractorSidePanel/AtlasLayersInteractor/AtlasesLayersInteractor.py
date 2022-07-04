@@ -15,9 +15,9 @@ class AtlasesLayersInteractor(QCollapsibleGroupBox):
     """
 
     """
-    atlas_structure_view_toggled = Signal(str, str, bool)
-    atlas_opacity_changed = Signal(str, str, int)
-    atlas_color_changed = Signal(str, str, QColor)
+    atlas_structure_view_toggled = Signal(str, int, bool)
+    atlas_opacity_changed = Signal(str, int, int)
+    atlas_color_changed = Signal(str, int, QColor)
 
     def __init__(self, parent=None):
         super(AtlasesLayersInteractor, self).__init__("Structures", self, header_style='left')
@@ -30,11 +30,15 @@ class AtlasesLayersInteractor(QCollapsibleGroupBox):
         self.parent = parent
         self.volumes_widget = {}
         self.__set_interface()
+        self.__set_connections()
         self.__set_layout_dimensions()
         self.__set_stylesheets()
 
     def __set_interface(self):
         self.content_label_layout.addStretch(1)
+
+    def __set_connections(self):
+        pass
 
     def __set_layout_dimensions(self):
         self.header_pushbutton.setFixedHeight(45)
@@ -118,12 +122,15 @@ class AtlasesLayersInteractor(QCollapsibleGroupBox):
         # On-the-fly signals/slots connection for the newly created QWidget
         # volume_widget.header_pushbutton.clicked.connect(self.adjustSize)
         # volume_widget.right_clicked.connect(self.on_visibility_clicked)
-        # volume_widget.structure_view_toggled.connect(self.on_atlas_structure_view_toggled)
+        volume_widget.structure_view_toggled.connect(self.on_atlas_structure_view_toggled)
+        volume_widget.structure_color_value_changed.connect(self.atlas_color_changed)
+        volume_widget.structure_opacity_value_changed.connect(self.atlas_opacity_changed)
+        volume_widget.resizeRequested.connect(self.adjustSize)
         # Triggers a repaint with adjusted size for the layout
         self.adjustSize()
 
     def on_visibility_clicked(self, uid, state):
         self.atlas_view_toggled.emit(uid, state)
 
-    def on_atlas_structure_view_toggled(self, atlas_uid, structure_uid, state):
-        self.atlas_structure_view_toggled.emit(atlas_uid, structure_uid, state)
+    def on_atlas_structure_view_toggled(self, atlas_uid, structure_index, state):
+        self.atlas_structure_view_toggled.emit(atlas_uid, structure_index, state)
