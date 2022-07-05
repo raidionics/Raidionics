@@ -69,6 +69,7 @@ class PatientParameters:
         self._patient_parameters_dict['Parameters']['Default'] = {}
         self._patient_parameters_dict['Parameters']['Default']['unique_id'] = self._unique_id
         self._patient_parameters_dict['Parameters']['Default']['display_name'] = self._display_name
+        self._patient_parameters_dict['Parameters']['Reporting'] = {}
         self._patient_parameters_dict['Volumes'] = {}
         self._patient_parameters_dict['Annotations'] = {}
         self._patient_parameters_dict['Atlases'] = {}
@@ -378,6 +379,9 @@ class PatientParameters:
     def save_patient(self) -> None:
         """
         Exporting the scene for the current patient into the specified output_folder
+        @TODO. We need the patient in memory when it is saved, to dump the display_volume and so on...
+        Do we force a memory load/offload during saving time? But then how do we know if the patient is the active
+        patient, whereby it is already in memory and should not be released.
         """
         logging.info("Saving patient results in: {}".format(self.output_folder))
         self._last_editing_timestamp = datetime.datetime.now(tz=dateutil.tz.gettz(name='Europe/Oslo'))
@@ -386,7 +390,8 @@ class PatientParameters:
         self._patient_parameters_dict['Parameters']['Default']['display_name'] = self._display_name
         self._patient_parameters_dict['Parameters']['Default']['creation_timestamp'] = self._creation_timestamp.strftime("%d/%m/%Y, %H:%M:%S")
         self._patient_parameters_dict['Parameters']['Default']['last_editing_timestamp'] = self._last_editing_timestamp.strftime("%d/%m/%Y, %H:%M:%S")
-        self._patient_parameters_dict['Parameters']['Reporting']['report_filename'] = os.path.relpath(self._standardized_report_filename, self.output_folder)
+        if self._standardized_report_filename and os.path.exists(self._standardized_report_filename):
+            self._patient_parameters_dict['Parameters']['Reporting']['report_filename'] = os.path.relpath(self._standardized_report_filename, self.output_folder)
 
         display_folder = os.path.join(self.output_folder, 'display')
         os.makedirs(display_folder, exist_ok=True)

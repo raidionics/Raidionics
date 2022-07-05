@@ -17,6 +17,7 @@ class SingleStudyWidget(QCollapsibleGroupBox):
     annotation_volume_imported = Signal(str)
     patient_imported = Signal(str)
     batch_segmentation_requested = Signal(str, str)  # Unique id of the current study instance, and model name
+    batch_rads_requested = Signal(str, str)  # Unique id of the current study instance, and model name
     resizeRequested = Signal()
 
     def __init__(self, uid, parent=None):
@@ -77,7 +78,9 @@ class SingleStudyWidget(QCollapsibleGroupBox):
     def __set_batch_processing_part(self):
         self.batch_processing_layout = QHBoxLayout()
         self.batch_processing_segmentation_button = QPushButton("Segmentation")
+        self.batch_processing_rads_button = QPushButton("Reporting")
         self.batch_processing_layout.addWidget(self.batch_processing_segmentation_button)
+        self.batch_processing_layout.addWidget(self.batch_processing_rads_button)
         self.content_label_layout.addLayout(self.batch_processing_layout)
 
     def __set_layout_dimensions(self):
@@ -101,6 +104,7 @@ class SingleStudyWidget(QCollapsibleGroupBox):
         self.import_data_dialog.patient_imported.connect(self.patient_imported)
 
         self.batch_processing_segmentation_button.clicked.connect(self.__on_run_segmentation)
+        self.batch_processing_rads_button.clicked.connect(self.__on_run_rads)
 
     def __set_stylesheets(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
@@ -200,3 +204,16 @@ class SingleStudyWidget(QCollapsibleGroupBox):
             self.model_name = "MRI_Metastasis"
 
         self.batch_segmentation_requested.emit(self.uid, self.model_name)
+
+    def __on_run_rads(self):
+        diag = TumorTypeSelectionQDialog(self)
+        code = diag.exec_()
+        self.model_name = "MRI_Meningioma"
+        if diag.tumor_type == 'High-Grade Glioma':
+            self.model_name = "MRI_HGGlioma_P2"
+        elif diag.tumor_type == 'Low-Grade Glioma':
+            self.model_name = "MRI_LGGlioma"
+        elif diag.tumor_type == 'Metastasis':
+            self.model_name = "MRI_Metastasis"
+
+        self.batch_rads_requested.emit(self.uid, self.model_name)

@@ -170,6 +170,8 @@ class RaidionicsMainWindow(QMainWindow):
         # Connections from study mode to single mode.
         self.batch_study_widget.mri_volume_imported.connect(self.single_patient_widget.on_mri_volume_imported)
         self.batch_study_widget.annotation_volume_imported.connect(self.single_patient_widget.on_annotation_volume_imported)
+        self.batch_study_widget.atlas_volume_imported.connect(self.single_patient_widget.on_atlas_volume_imported)
+        self.batch_study_widget.standard_report_imported.connect(self.single_patient_widget.on_standard_report_imported)
         self.batch_study_widget.patient_imported.connect(self.single_patient_widget.on_patient_imported)
         self.batch_study_widget.patient_selected.connect(self.__on_patient_selected)
 

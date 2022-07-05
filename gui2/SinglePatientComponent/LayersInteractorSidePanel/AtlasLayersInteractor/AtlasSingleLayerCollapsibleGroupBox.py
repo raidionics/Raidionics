@@ -30,7 +30,7 @@ class AtlasSingleLayerCollapsibleGroupBox(QCollapsibleGroupBox):
         self.__init_from_parameters()
 
     def __set_interface(self):
-        self.content_label_layout.setContentsMargins(0, 0, 0, 0)
+        self.content_label_layout.setContentsMargins(0, 0, 20, 0)
         self.content_label_layout.setSpacing(0)
         self.content_label_layout.addStretch(1)
 
@@ -43,7 +43,20 @@ class AtlasSingleLayerCollapsibleGroupBox(QCollapsibleGroupBox):
         pass
 
     def __set_stylesheets(self):
-        pass
+        software_ss = SoftwareConfigResources.getInstance().stylesheet_components
+        font_color = software_ss["Color7"]
+        background_color = software_ss["Color5"]
+        pressed_background_color = software_ss["Color6"]
+
+        self.setStyleSheet("""
+        AtlasSingleLayerCollapsibleGroupBox{
+        background-color: """ + background_color + """;        
+        }""")
+
+        self.content_label.setStyleSheet("""
+        QLabel{
+        background-color: """ + background_color + """;
+        }""")
 
     # def adjustSize(self):
     #     items = (self.layout.itemAt(i) for i in range(self.layout.count()))
@@ -159,6 +172,7 @@ class SingleLineAtlasStructureWidget(QWidget):
         self.structure_name_lineedit.home(True)
 
         self.color_dialog = QColorDialog(parent=self.parent)
+        self.color_dialog.setOption(QColorDialog.DontUseNativeDialog)
         self.color_dialog_pushbutton = QPushButton()
         self.opacity_spinbox = QSpinBox()
         self.opacity_spinbox.setMinimum(0)
@@ -191,6 +205,19 @@ class SingleLineAtlasStructureWidget(QWidget):
         self.opacity_spinbox.valueChanged.connect(self.__on_opacity_changed)
 
     def __set_stylesheets(self):
+        software_ss = SoftwareConfigResources.getInstance().stylesheet_components
+        font_color = software_ss["Color7"]
+        background_color = software_ss["Color5"]
+        pressed_background_color = software_ss["Color6"]
+
+        self.structure_name_lineedit.setStyleSheet("""
+        QLineEdit{
+        color: """ + font_color + """;
+        font: 13px;
+        background-color: """ + background_color + """;
+        border-style: none;
+        }""")
+
         self.color_dialog_pushbutton_base_ss = """ QPushButton{border-color:rgb(0, 0, 0); border-width:2px;} """
 
     def __init_from_parameters(self):

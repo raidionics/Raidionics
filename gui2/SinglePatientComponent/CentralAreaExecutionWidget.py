@@ -19,7 +19,8 @@ from segmentation.src.Utils.configuration_parser import generate_runtime_config
 
 class CentralAreaExecutionWidget(QLabel):
     """
-
+    @TODO: the backend execution calls should not happen here, but be deported inside the utils/backend_logic.py
+    In here, only the signals to trigger a visual update with the results should be emitted.
     """
     annotation_volume_imported = Signal(str)
     atlas_volume_imported = Signal(str)
@@ -382,7 +383,7 @@ class CentralAreaExecutionWidget(QLabel):
             error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_standardized_report(report_filename)
         self.standardized_report_imported.emit()
 
-        # Collecting the atlas structures
+        # Collecting the atlas cortical structures
         cortical_folder = os.path.join(current_patient_parameters.output_folder, 'reporting', 'patient',
                                        'Cortical-structures')
         cortical_masks = []
@@ -393,6 +394,22 @@ class CentralAreaExecutionWidget(QLabel):
 
         for m in cortical_masks:
             data_uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_atlas_structures(os.path.join(cortical_folder, m), reference='Patient')
+            self.atlas_volume_imported.emit(data_uid)
+
+        # Collecting the atlas subcortical structures
+        subcortical_folder = os.path.join(current_patient_parameters.output_folder, 'reporting', 'patient',
+                                          'Subcortical-structures')
+
+        subcortical_masks = ['BCB_mask.nii.gz']  # @TODO. Hardcoded for now, have to improve the RADS backend here.
+        # subcortical_masks = []
+        # for _, _, files in os.walk(subcortical_folder):
+        #     for f in files:
+        #         if '_mask' in f:
+        #             subcortical_masks.append(f)
+        #     break
+
+        for m in subcortical_masks:
+            data_uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_atlas_structures(os.path.join(subcortical_folder, m), reference='Patient')
             self.atlas_volume_imported.emit(data_uid)
 
     def on_process_message(self, mess):

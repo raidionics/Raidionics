@@ -89,29 +89,28 @@ def run_segmentation(model_name, patient_parameters, queue):
     # return 0, results
 
 
-def reporting_main_wrapper(self):
-    self.run_reporting_thread = threading.Thread(target=self.run_reporting)
-    self.run_reporting_thread.daemon = True  # using daemon thread the thread is killed gracefully if program is abruptly closed
-    self.run_reporting_thread.start()
+def reporting_main_wrapper(model_name, patient_parameters):
+    q = queue.Queue()  # Using the queue to collect the results from the segmentation method, back to the GUI.
+    run_segmentation_thread = threading.Thread(target=run_reporting, args=(model_name, patient_parameters, q,))
+    run_segmentation_thread.daemon = True  # using daemon thread the thread is killed gracefully if program is abruptly closed
+    run_segmentation_thread.start()
+    return q.get()
 
 
-def run_reporting(self):
+def run_reporting(model_name, patient_parameters, queue):
     """
     Results of the standardized reporting will be stored inside a /reporting subfolder within the patient
     output folder.
     """
     logging.info("Starting RADS process.")
 
-    # Freezing buttons
-    self.run_segmentation_pushbutton.setEnabled(False)
-    self.run_reporting_pushbutton.setEnabled(False)
     rads_config_filename = ''
+    results = {}  # Holder for all objects computed during the process, which have been added to the patient object
     try:
-        download_model(model_name=self.model_name)
-        current_patient_parameters = SoftwareConfigResources.getInstance().patients_parameters[
-            SoftwareConfigResources.getInstance().active_patient_name]
-        reporting_folder = os.path.join(current_patient_parameters.output_folder, 'reporting')
+        download_model(model_name=model_name)
+        reporting_folder = os.path.join(patient_parameters.output_folder, 'reporting')
         os.makedirs(reporting_folder, exist_ok=True)
+        selected_mri_uid = list(patient_parameters.mri_volumes.keys())[0]  # @FIXME. Hack for now to see if batch process works.
         rads_config = configparser.ConfigParser()
         rads_config.add_section('Default')
         rads_config.set('Default', 'task', 'neuro_diagnosis')
@@ -119,10 +118,10 @@ def run_reporting(self):
         rads_config.add_section('System')
         rads_config.set('System', 'gpu_id', "-1")
         rads_config.set('System', 'input_filename',
-                        current_patient_parameters.mri_volumes[self.selected_mri_uid].get_usable_input_filepath())
+                        patient_parameters.mri_volumes[selected_mri_uid].get_usable_input_filepath())
         rads_config.set('System', 'output_folder', reporting_folder)
         rads_config.set('System', 'model_folder',
-                        os.path.join(SoftwareConfigResources.getInstance().models_path, self.model_name))
+                        os.path.join(SoftwareConfigResources.getInstance().models_path, model_name))
         rads_config.add_section('Runtime')
         rads_config.set('Runtime', 'reconstruction_method', 'thresholding')
         rads_config.set('Runtime', 'reconstruction_order', 'resample_first')
@@ -130,12 +129,12 @@ def run_reporting(self):
         rads_config.set('Neuro', 'cortical_features', 'MNI, Schaefer7, Schaefer17, Harvard-Oxford')
         rads_config.set('Neuro', 'subcortical_features', 'BCB')
         #@TODO. Include filenames for brain and tumor segmentation if existing.
-        rads_config_filename = os.path.join(current_patient_parameters.output_folder, 'rads_config.ini')
+        rads_config_filename = os.path.join(patient_parameters.output_folder, 'rads_config.ini')
         with open(rads_config_filename, 'w') as outfile:
             rads_config.write(outfile)
 
         from raidionicsrads.compute import run_rads
-        # run_rads(rads_config_filename)
+        run_rads(rads_config_filename)
         # logging.debug("Spawning multiprocess...")
         # mp.set_start_method('spawn', force=True)
         # with mp.Pool(processes=1, maxtasksperchild=1) as p:  # , initializer=initializer)
@@ -143,16 +142,68 @@ def run_reporting(self):
         #     logging.debug("Collecting results from multiprocess...")
         #     ret = result.get()[0]
 
-        self.__collect_reporting_outputs(current_patient_parameters)
+        # Collecting the automatic tumor and brain segmentations
+        seg_file = os.path.join(patient_parameters.output_folder, 'reporting', 'labels_Tumor.nii.gz')
+        shutil.move(seg_file, os.path.join(patient_parameters.output_folder, 'patient_tumor.nii.gz'))
+        data_uid, error_msg = patient_parameters.import_data(os.path.join(patient_parameters.output_folder,
+                                                                          'patient_tumor.nii.gz'), type='Annotation')
+        patient_parameters.annotation_volumes[data_uid].set_annotation_class_type("Tumor")
+        patient_parameters.annotation_volumes[data_uid].set_generation_type("Automatic")
+        results['Annotation'] = [data_uid]
+        # Check if a brain mask has been created, and include it if so.
+        seg_file = os.path.join(patient_parameters.output_folder, 'reporting', 'labels_Brain.nii.gz')
+        if os.path.exists(seg_file):
+            shutil.move(seg_file, os.path.join(patient_parameters.output_folder, 'patient_brain.nii.gz'))
+            data_uid, error_msg = patient_parameters.import_data(os.path.join(patient_parameters.output_folder,
+                                                                              'patient_brain.nii.gz'), type='Annotation')
+            patient_parameters.annotation_volumes[data_uid].set_annotation_class_type("Brain")
+            patient_parameters.annotation_volumes[data_uid].set_generation_type("Automatic")
+            results['Annotation'].append(data_uid)
+
+        # Collecting the standardized report
+        report_filename = os.path.join(patient_parameters.output_folder, 'reporting',
+                                       'neuro_standardized_report.json')
+        if os.path.exists(report_filename):  # Should always exist
+            error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_standardized_report(report_filename)
+        results['Report'] = [report_filename]
+
+        results['Atlas'] = []
+        # Collecting the atlas cortical structures
+        cortical_folder = os.path.join(patient_parameters.output_folder, 'reporting', 'patient', 'Cortical-structures')
+        cortical_masks = []
+        for _, _, files in os.walk(cortical_folder):
+            for f in files:
+                cortical_masks.append(f)
+            break
+
+        for m in cortical_masks:
+            data_uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_atlas_structures(
+                os.path.join(cortical_folder, m), reference='Patient')
+            results['Atlas'].append(data_uid)
+
+        # Collecting the atlas subcortical structures
+        subcortical_folder = os.path.join(patient_parameters.output_folder, 'reporting', 'patient',
+                                          'Subcortical-structures')
+
+        subcortical_masks = ['BCB_mask.nii.gz']  # @TODO. Hardcoded for now, have to improve the RADS backend here.
+        # subcortical_masks = []
+        # for _, _, files in os.walk(subcortical_folder):
+        #     for f in files:
+        #         if '_mask' in f:
+        #             subcortical_masks.append(f)
+        #     break
+
+        for m in subcortical_masks:
+            data_uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_atlas_structures(
+                os.path.join(subcortical_folder, m), reference='Patient')
+            results['Atlas'].append(data_uid)
+
     except Exception:
-        print('{}'.format(traceback.format_exc()))
-        self.run_segmentation_pushbutton.setEnabled(True)
-        self.run_reporting_pushbutton.setEnabled(True)
-        self.process_finished.emit()
-        return
+        logging.error('RADS for patient {}, using {} failed with: \n{}'.format(patient_parameters.get_unique_id(),
+                                                                               model_name, traceback.format_exc()))
+        queue.put((1, results))
 
     if os.path.exists(rads_config_filename):
         os.remove(rads_config_filename)
-    self.run_segmentation_pushbutton.setEnabled(True)
-    self.run_reporting_pushbutton.setEnabled(True)
-    self.process_finished.emit()
+
+    queue.put((0, results))

@@ -19,6 +19,7 @@ class StudiesSidePanelWidget(QWidget):
     annotation_volume_imported = Signal(str)
     patient_imported = Signal(str)
     batch_segmentation_requested = Signal(str, str)
+    batch_rads_requested = Signal(str, str)
 
     def __init__(self, parent=None):
         super(StudiesSidePanelWidget, self).__init__()
@@ -189,6 +190,7 @@ class StudiesSidePanelWidget(QWidget):
         pat_widget.annotation_volume_imported.connect(self.annotation_volume_imported)
         pat_widget.patient_imported.connect(self.patient_imported)
         pat_widget.batch_segmentation_requested.connect(self.batch_segmentation_requested)
+        pat_widget.batch_rads_requested.connect(self.batch_rads_requested)
         self.adjustSize()
 
     def __on_study_selection(self, state, widget_id):

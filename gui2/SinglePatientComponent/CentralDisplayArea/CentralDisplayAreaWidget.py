@@ -1,5 +1,6 @@
 from PySide2.QtWidgets import QWidget, QLabel, QGridLayout, QPushButton
 from PySide2.QtCore import QSize, Signal
+from PySide2.QtDataVisualization import QtDataVisualization
 import numpy as np
 import logging
 

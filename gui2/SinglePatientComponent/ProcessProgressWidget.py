@@ -52,6 +52,8 @@ class ProcessProgressWidget(QWidget):
         self.process_monitoring_thread.stop()
 
     def on_process_message(self, message):
+        # @TODO. Have to update both backends to provide an identifier together with the LOG message,
+        # to track down the steps accordingly.
         if ':LOG:' in message:
             if not self.processing_steps:
                 self.processing_steps = int(message.strip().split('/')[1].replace(')', ''))

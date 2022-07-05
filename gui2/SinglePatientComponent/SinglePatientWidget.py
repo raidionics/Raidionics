@@ -210,3 +210,9 @@ class SinglePatientWidget(QWidget):
 
     def on_annotation_volume_imported(self, uid: str) -> None:
         self.layers_panel.on_annotation_volume_import(uid)
+
+    def on_atlas_volume_imported(self, uid: str) -> None:
+        self.layers_panel.on_atlas_volume_import(uid)
+
+    def on_standard_report_imported(self) -> None:
+        pass
