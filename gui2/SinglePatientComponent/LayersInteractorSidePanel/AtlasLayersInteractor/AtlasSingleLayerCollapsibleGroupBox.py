@@ -155,6 +155,8 @@ class SingleLineAtlasStructureWidget(QWidget):
         self.structure_name_lineedit.setAlignment(Qt.AlignLeft)
         self.structure_name_lineedit.setText(self.structure_name)
         self.structure_name_lineedit.setReadOnly(True)
+        self.structure_name_lineedit.setCursorPosition(0)
+        self.structure_name_lineedit.home(True)
 
         self.color_dialog = QColorDialog(parent=self.parent)
         self.color_dialog_pushbutton = QPushButton()

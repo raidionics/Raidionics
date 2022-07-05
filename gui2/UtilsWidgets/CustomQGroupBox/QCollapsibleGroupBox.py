@@ -7,7 +7,7 @@ from gui2.UtilsWidgets.QCustomIconsPushButton import QCustomIconsPushButton
 
 class QCollapsibleGroupBox(QWidget):
     """
-
+    @TODO. Poorly designed. Has to be redone to work properly in general.
     """
 
     clicked_signal = Signal(bool, str)
