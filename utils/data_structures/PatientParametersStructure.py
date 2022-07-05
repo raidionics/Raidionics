@@ -396,6 +396,10 @@ class PatientParameters:
         display_folder = os.path.join(self.output_folder, 'display')
         os.makedirs(display_folder, exist_ok=True)
 
+        self._patient_parameters_dict['Volumes'] = {}
+        self._patient_parameters_dict['Annotations'] = {}
+        self._patient_parameters_dict['Atlases'] = {}
+
         for i, disp in enumerate(list(self.mri_volumes.keys())):
             self._patient_parameters_dict['Volumes'][disp] = self.mri_volumes[disp].save()
 

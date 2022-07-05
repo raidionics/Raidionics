@@ -26,7 +26,7 @@ def run_segmentation(model_name, patient_parameters, queue):
     # @TODO. Have to include the brain segmentation filename to the config file, if it exists.
     # @TODO2. How to disambiguate for all patient data which input MRI is the correct one for the model? Has
     # to be supported in the rads or seg lib.
-    logging.info("Starting segmentation process.")
+    logging.info("Starting segmentation process for patient {}.".format(patient_parameters.get_unique_id()))
     seg_config_filename = ""
     # model_name = args[0]
     # patient_parameters = args[1]

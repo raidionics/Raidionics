@@ -7,6 +7,7 @@ from PySide2.QtGui import QIcon, QMouseEvent
 import os
 
 from utils.software_config import SoftwareConfigResources
+from utils.utilities import input_file_category_disambiguation
 
 
 class ImportFoldersQDialog(QDialog):
@@ -162,27 +163,43 @@ class ImportFoldersQDialog(QDialog):
                 diag.exec_()
 
             input_filepath = w.wid.filepath_lineedit.text()
-            SoftwareConfigResources.getInstance().get_active_patient().set_display_name(os.path.basename(input_filepath))
+            SoftwareConfigResources.getInstance().get_patient(pat_uid).set_display_name(os.path.basename(input_filepath))
 
+            files_in_path = []
             for _, _, files in os.walk(input_filepath):
                 for f in files:
-                    uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_data(
-                        os.path.join(input_filepath, f))
-                    if error_msg:
-                        diag = QMessageBox()
-                        diag.setText(
-                            "Unable to load: {}.\nError message: {}.\n".format(os.path.basename(input_filepath),
-                                                                               error_msg))
-                        diag.exec_()
-                    else:
-                        if uid in list(SoftwareConfigResources.getInstance().get_active_patient().mri_volumes.keys()):
-                            self.mri_volume_imported.emit(uid)
-                        elif uid in list(
-                                SoftwareConfigResources.getInstance().get_active_patient().annotation_volumes.keys()):
-                            self.annotation_volume_imported.emit(uid)
+                    files_in_path.append(f)
                 break
+
+            mris_in_path = []
+            annotations_in_path = []
+            for f in files_in_path:
+                ft = input_file_category_disambiguation(input_filename=os.path.join(input_filepath, f))
+                if ft == "MRI":
+                    mris_in_path.append(f)
+                else:
+                    annotations_in_path.append(f)
+
+            # @TODO. Might try to infer from the filenames if some annotations are belonging to some MRIs.
+            # for now just processing MRIs first and annotations after.
+            files_list = mris_in_path + annotations_in_path
+            for f in files_list:
+                uid, error_msg = SoftwareConfigResources.getInstance().get_patient(pat_uid).import_data(
+                    os.path.join(input_filepath, f))
+                if error_msg:
+                    diag = QMessageBox()
+                    diag.setText(
+                        "Unable to load: {}.\nError message: {}.\n".format(os.path.basename(input_filepath),
+                                                                           error_msg))
+                    diag.exec_()
+                else:
+                    if uid in list(SoftwareConfigResources.getInstance().get_patient(pat_uid).mri_volumes.keys()):
+                        self.mri_volume_imported.emit(uid)
+                    elif uid in list(
+                            SoftwareConfigResources.getInstance().get_patient(pat_uid).annotation_volumes.keys()):
+                        self.annotation_volume_imported.emit(uid)
             self.patient_imported.emit(pat_uid)
-            SoftwareConfigResources.getInstance().get_active_patient().save_patient()
+            SoftwareConfigResources.getInstance().get_patient(pat_uid).save_patient()
             msg = SoftwareConfigResources.getInstance().get_active_study().include_study_patient(pat_uid)
             self.load_progressbar.setValue(i + 1)
         self.load_progressbar.setVisible(False)

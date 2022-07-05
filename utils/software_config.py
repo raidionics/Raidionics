@@ -37,6 +37,9 @@ class SoftwareConfigResources:
 
     def __setup(self):
         # @TODO. The default storing place should be /home/user/raidionics, having a dot might be annoying for some.
+        default_location = os.path.join(expanduser('~'), '.raidionics')
+        if not os.path.exists(default_location):
+            os.makedirs(default_location)
         self.session_log_filename = os.path.join(expanduser('~'), '.raidionics', 'session_log.log')
         self.models_path = os.path.join(expanduser('~'), '.raidionics', 'resources', 'models')
         self.config_filename = os.path.join(expanduser("~"), '.raidionics', 'raidionics_config.ini')
@@ -76,7 +79,7 @@ class SoftwareConfigResources:
     def __parse_config(self):
         pass
 
-    def add_new_empty_patient(self) -> Union[str, Any]:
+    def add_new_empty_patient(self, active: bool = True) -> Union[str, Any]:
         """
         At startup a new empty patient is created by default. Otherwise, a new empty patient is created everytime
         the user presses the corresponding button in the left-hand side panel.
@@ -94,7 +97,8 @@ class SoftwareConfigResources:
             self.patients_parameters[patient_uid] = PatientParameters(id=patient_uid)
             random_name = names.get_full_name()
             self.patients_parameters[patient_uid].set_display_name(random_name, manual_change=False)
-            self.set_active_patient(patient_uid)
+            if active:
+                self.set_active_patient(patient_uid)
         except Exception:
             error_message = "Error while trying to create a new empty patient: \n"
             error_message = error_message + traceback.format_exc()
@@ -159,6 +163,9 @@ class SoftwareConfigResources:
 
     def get_active_patient(self) -> str:
         return self.patients_parameters[self.active_patient_name]
+
+    def get_patient(self, uid: str):
+        return self.patients_parameters[uid]
 
     def add_new_empty_study(self) -> Union[str, Any]:
         """

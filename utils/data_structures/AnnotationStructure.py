@@ -171,14 +171,16 @@ class AnnotationVolume:
         """
         try:
             # Disk operations
-            self._display_volume_filepath = os.path.join(self._output_patient_folder, 'display',
-                                                         self._unique_id + '_display.nii.gz')
-            nib.save(nib.Nifti1Image(self._display_volume, affine=self._default_affine), self._display_volume_filepath)
+            if not self._display_volume is None:
+                self._display_volume_filepath = os.path.join(self._output_patient_folder, 'display',
+                                                             self._unique_id + '_display.nii.gz')
+                nib.save(nib.Nifti1Image(self._display_volume, affine=self._default_affine), self._display_volume_filepath)
 
-            self._resampled_input_volume_filepath = os.path.join(self._output_patient_folder, 'display',
-                                                                 self._unique_id + '_resampled.nii.gz')
-            nib.save(nib.Nifti1Image(self._resampled_input_volume, affine=self._default_affine),
-                     self._resampled_input_volume_filepath)
+            if not self._resampled_input_volume is None:
+                self._resampled_input_volume_filepath = os.path.join(self._output_patient_folder, 'display',
+                                                                     self._unique_id + '_resampled.nii.gz')
+                nib.save(nib.Nifti1Image(self._resampled_input_volume, affine=self._default_affine),
+                         self._resampled_input_volume_filepath)
 
             # Parameters-filling operations
             volume_params = {}

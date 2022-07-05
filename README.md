@@ -101,9 +101,6 @@ git submodule update --init --recursive
 
 For updating Raidionics after backend update, might have to git checkout master in head submodule before pulling...
 ```
-cd raidionics_rads_lib
-git pull --recurse-submodules
-pip install raidionics_seg_lib
-cd ..
-pip install raidionics_rads_lib
+pip install -e git+https://github.com/dbouget/raidionics_rads_lib.git@master#egg=raidionicsrads
+pip install -e git+https://github.com/dbouget/raidionics_seg_lib.git@master#egg=raidionicsseg
 ```
