@@ -414,18 +414,18 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.4"
-     inkscape:cx="541.42103"
-     inkscape:cy="989.90213"
+     inkscape:zoom="1.979899"
+     inkscape:cx="642.47101"
+     inkscape:cy="395.76884"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      inkscape:document-rotation="0"
      showgrid="false"
-     inkscape:window-width="1439"
-     inkscape:window-height="921"
-     inkscape:window-x="2239"
-     inkscape:window-y="82"
-     inkscape:window-maximized="0"
+     inkscape:window-width="1920"
+     inkscape:window-height="1172"
+     inkscape:window-x="3840"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
      inkscape:pagecheckerboard="true" />
   <metadata
      id="metadata3718">
@@ -815,7 +815,7 @@
          style="font-size:3.175px;fill:#43585a;fill-opacity:1;stroke-width:0.264583">Let us show you around</tspan></text>
     <path
        style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 139.28831,95.767536 H 100.13744 V 85.042424 h 38.86718 l 5.78835,5.58634 z"
+       d="M 195.15087,123.91442 H 156 v -10.72511 h 38.86718 l 5.78835,5.58634 z"
        id="path4584-5"
        sodipodi:nodetypes="cccccc"
        inkscape:export-filename="/home/dbouget/Documents/Code/Public/neuro_rads/gui2/Images/research_community_icon.png"
@@ -824,20 +824,20 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:3.175px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
-       x="101.68839"
-       y="91.477684"
+       x="160.72592"
+       y="119.62457"
        id="text4588-5"
        inkscape:export-filename="/home/dbouget/Documents/Code/Public/neuro_rads/gui2/Images/research_community_icon.png"
        inkscape:export-xdpi="150"
        inkscape:export-ydpi="150"><tspan
          sodipodi:role="line"
          id="tspan4586-5"
-         x="101.68839"
-         y="91.477684"
+         x="160.72592"
+         y="119.62457"
          style="font-size:3.175px;fill:#43585a;fill-opacity:1;stroke-width:0.264583">Research community</tspan></text>
     <path
        style="fill:#d1d1d1;fill-opacity:0.5;stroke:#000000;stroke-width:0;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 139.2883,111.83351 H 100.13744 V 101.1084 h 38.86718 l 5.78835,5.58634 z"
+       d="M 195.15086,139.9804 H 156 v -10.72511 h 38.86718 l 5.78835,5.58634 z"
        id="path4584-7-6"
        sodipodi:nodetypes="cccccc"
        inkscape:export-filename="/home/dbouget/Documents/Code/Public/neuro_rads/gui2/Images/research_community_icon_pressed.png"
@@ -846,16 +846,16 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:3.175px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
-       x="101.68839"
-       y="107.54366"
+       x="160.72592"
+       y="135.69052"
        id="text4588-2-0"
        inkscape:export-filename="/home/dbouget/Documents/Code/Public/neuro_rads/gui2/Images/research_community_icon_pressed.png"
        inkscape:export-xdpi="300"
        inkscape:export-ydpi="300"><tspan
          sodipodi:role="line"
          id="tspan4586-3-6"
-         x="101.68839"
-         y="107.54366"
+         x="160.72592"
+         y="135.69052"
          style="font-size:3.175px;fill:#43585a;fill-opacity:1;stroke-width:0.264583">Research community</tspan></text>
     <rect
        style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:#00ffff;fill-opacity:1;fill-rule:evenodd;stroke-width:0.17455;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;stop-color:#000000;stop-opacity:1"
@@ -1465,26 +1465,30 @@
        inkscape:export-filename="/home/dbouget/Documents/Code/SINTEF/Raidionics/gui2/Images/download_icon_black.png"
        inkscape:export-xdpi="300"
        inkscape:export-ydpi="300" />
-    <rect
-       style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:#b3b3b3;fill-opacity:1;fill-rule:evenodd;stroke-width:0.171103;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;stop-color:#000000;stop-opacity:1"
-       id="rect1433"
-       width="15"
-       height="10"
-       x="161.92819"
-       y="114.49301"
-       inkscape:export-filename="/home/dbouget/Documents/Code/SINTEF/Raidionics/gui2/Images/folder_icon.png"
-       inkscape:export-xdpi="300"
-       inkscape:export-ydpi="300" />
-    <rect
-       style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:#808080;fill-opacity:1;fill-rule:evenodd;stroke-width:0.169704;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;stop-color:#000000;stop-opacity:1"
-       id="rect1435"
-       width="4"
-       height="1"
-       x="161.92819"
-       y="113.49301"
-       inkscape:export-filename="/home/dbouget/Documents/Code/SINTEF/Raidionics/gui2/Images/folder_icon.png"
-       inkscape:export-xdpi="300"
-       inkscape:export-ydpi="300" />
+    <g
+       id="g1555"
+       transform="translate(-23.763758,13.644277)">
+      <rect
+         style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:#b3b3b3;fill-opacity:1;fill-rule:evenodd;stroke-width:0.171103;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;stop-color:#000000;stop-opacity:1"
+         id="rect1433"
+         width="15"
+         height="10"
+         x="161.92819"
+         y="114.49301"
+         inkscape:export-filename="/home/dbouget/Documents/Code/SINTEF/Raidionics/gui2/Images/folder_icon.png"
+         inkscape:export-xdpi="300"
+         inkscape:export-ydpi="300" />
+      <rect
+         style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:#808080;fill-opacity:1;fill-rule:evenodd;stroke-width:0.169704;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;stop-color:#000000;stop-opacity:1"
+         id="rect1435"
+         width="4"
+         height="1"
+         x="161.92819"
+         y="113.49301"
+         inkscape:export-filename="/home/dbouget/Documents/Code/SINTEF/Raidionics/gui2/Images/folder_icon.png"
+         inkscape:export-xdpi="300"
+         inkscape:export-ydpi="300" />
+    </g>
     <image
        width="20.10969"
        height="21.130882"
@@ -2188,5 +2192,93 @@ AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADgWf4fh+IDKoRwTLAAAAAASUVORK5CYII=
          fill="#000000"
          id="path1524" />
     </g>
+    <path
+       style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 195.76411,62.725113 H 156.61324 V 52.000001 h 38.86718 l 5.78835,5.58634 z"
+       id="path4584-5-9"
+       sodipodi:nodetypes="cccccc"
+       inkscape:export-filename="/home/dbouget/Documents/Code/Public/neuro_rads/gui2/Images/research_community_icon.png"
+       inkscape:export-xdpi="150"
+       inkscape:export-ydpi="150" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:3.175px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="161.33916"
+       y="58.435261"
+       id="text4588-5-1"
+       inkscape:export-filename="/home/dbouget/Documents/Code/Public/neuro_rads/gui2/Images/research_community_icon.png"
+       inkscape:export-xdpi="150"
+       inkscape:export-ydpi="150"><tspan
+         id="tspan4586-5-2"
+         x="161.33916"
+         y="58.435261"
+         style="font-size:3.175px;fill:#43585a;fill-opacity:1;stroke-width:0.264583"
+         sodipodi:role="line">Published articles</tspan></text>
+    <path
+       style="fill:#d1d1d1;fill-opacity:0.5;stroke:#000000;stroke-width:0;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 195.7641,78.791086 h -39.15086 v -10.72511 h 38.86718 l 5.78835,5.58634 z"
+       id="path4584-7-6-7"
+       sodipodi:nodetypes="cccccc"
+       inkscape:export-filename="/home/dbouget/Documents/Code/Public/neuro_rads/gui2/Images/research_community_icon_pressed.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:3.175px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="161.33916"
+       y="74.501236"
+       id="text4588-2-0-0"
+       inkscape:export-filename="/home/dbouget/Documents/Code/Public/neuro_rads/gui2/Images/research_community_icon_pressed.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300"><tspan
+         sodipodi:role="line"
+         id="tspan4586-3-6-9"
+         x="161.33916"
+         y="74.501236"
+         style="font-size:3.175px;fill:#43585a;fill-opacity:1;stroke-width:0.264583">Published articles</tspan></text>
+    <path
+       style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 195.15087,95.535828 H 156 V 84.810716 h 38.86718 l 5.78835,5.58634 z"
+       id="path4584-5-9-3"
+       sodipodi:nodetypes="cccccc"
+       inkscape:export-filename="/home/dbouget/Documents/Code/Public/neuro_rads/gui2/Images/research_community_icon.png"
+       inkscape:export-xdpi="150"
+       inkscape:export-ydpi="150" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:3.175px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="160.72592"
+       y="91.245972"
+       id="text4588-5-1-6"
+       inkscape:export-filename="/home/dbouget/Documents/Code/Public/neuro_rads/gui2/Images/research_community_icon.png"
+       inkscape:export-xdpi="150"
+       inkscape:export-ydpi="150"><tspan
+         id="tspan4586-5-2-0"
+         x="160.72592"
+         y="91.245972"
+         style="font-size:3.175px;fill:#43585a;fill-opacity:1;stroke-width:0.264583"
+         sodipodi:role="line">Issues/suggestions</tspan></text>
+    <path
+       style="fill:#d1d1d1;fill-opacity:0.5;stroke:#000000;stroke-width:0;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 195.15086,111.6018 H 156 v -10.72511 h 38.86718 l 5.78835,5.58634 z"
+       id="path4584-7-6-7-6"
+       sodipodi:nodetypes="cccccc"
+       inkscape:export-filename="/home/dbouget/Documents/Code/Public/neuro_rads/gui2/Images/research_community_icon_pressed.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:3.175px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="160.72592"
+       y="107.31195"
+       id="text4588-2-0-0-2"
+       inkscape:export-filename="/home/dbouget/Documents/Code/Public/neuro_rads/gui2/Images/research_community_icon_pressed.png"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300"><tspan
+         sodipodi:role="line"
+         id="tspan4586-3-6-9-6"
+         x="160.72592"
+         y="107.31195"
+         style="font-size:3.175px;fill:#43585a;fill-opacity:1;stroke-width:0.264583">Issues/suggestions</tspan></text>
   </g>
 </svg>

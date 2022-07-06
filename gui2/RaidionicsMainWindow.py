@@ -99,18 +99,18 @@ class RaidionicsMainWindow(QMainWindow):
         self.settings_update_models_menu.addAction(self.settings_update_models_menu_active_action)
 
         self.help_menu = self.menu_bar.addMenu('Help')
-        self.readme_action = QAction(
-            QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../images/readme-icon.jpeg')), 'Tutorial',
+        self.community_action = QAction(
+            QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../images/readme-icon.jpeg')), 'Community',
             self)
-        self.readme_action.setShortcut("Ctrl+R")
-        self.help_menu.addAction(self.readme_action)
+        # self.community_action.setShortcut("Ctrl+R")
+        self.help_menu.addAction(self.community_action)
         self.about_action = QAction(
             QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../images/about-icon.png')), 'About', self)
-        self.about_action.setShortcut("Ctrl+A")
+        # self.about_action.setShortcut("Ctrl+A")
         self.help_menu.addAction(self.about_action)
         self.help_action = QAction(QIcon.fromTheme("help-faq"), "Help",
                                    self)  # Default icons can be found here: https://specifications.freedesktop.org/icon-naming-spec/icon-naming-spec-latest.html#guidelines
-        self.help_action.setShortcut("Ctrl+J")
+        # self.help_action.setShortcut("Ctrl+J")
         self.help_menu.addAction(self.help_action)
 
     def __set_centralwidget_interface(self) -> None:
@@ -157,14 +157,17 @@ class RaidionicsMainWindow(QMainWindow):
         self.__cross_widgets_connections()
 
     def __set_inner_widget_connections(self):
-        # self.central_stackedwidget.currentChanged().connect(self.__on_central_stacked_widget_index_changed)
-        pass
+        self.about_action.triggered.connect(self.__on_about_action_triggered)
+        self.help_action.triggered.connect(self.__on_help_action_triggered)
 
     def __cross_widgets_connections(self):
         self.welcome_widget.left_panel_single_patient_pushbutton.clicked.connect(self.__on_single_patient_clicked)
         self.new_patient_clicked.connect(self.single_patient_widget.on_single_patient_clicked)
 
         self.welcome_widget.left_panel_multiple_patients_pushbutton.clicked.connect(self.__on_study_batch_clicked)
+        self.welcome_widget.community_clicked.connect(self.__on_community_action_triggered)
+        self.welcome_widget.about_clicked.connect(self.__on_about_action_triggered)
+        self.welcome_widget.help_clicked.connect(self.__on_help_action_triggered)
 
         # Connections from single mode to study mode.
         self.single_patient_widget.patient_name_edited.connect(self.batch_study_widget.patient_name_edited)
@@ -251,41 +254,51 @@ class RaidionicsMainWindow(QMainWindow):
         self.__on_single_patient_clicked()
         self.single_patient_widget.on_patient_selected(patient_uid)
 
-    def readme_action_triggered(self):
+    def __on_community_action_triggered(self):
         popup = QMessageBox()
-        popup.setWindowTitle('Tutorial')
-        popup.setText(
-            "HOW TO USE THE SOFTWARE: \n"
-            "  1) Click 'Input MRI...' to select from your file explorer the MRI scan to process (unique file).\n"
-            "  1*) Alternatively, Click File > Import DICOM... if you wish to process an MRI scan as a DICOM sequence.\n"
-            "  2) Click 'Output destination' to choose a directory where to save the results \n"
-            "  3) (OPTIONAL) Click 'Input segmentation' to choose a tumor segmentation mask file, if nothing is provided the internal model with generate the segmentation automatically \n"
-            "  4) Click 'Run diagnosis' to perform the analysis. The human-readable version will be displayed in the interface.\n"
-            " \n"
-            "NOTE: \n"
-            "The output folder is populated automatically with the following: \n"
-            "  * The diagnosis results in human-readable text (report.txt) and Excel-ready format (report.csv).\n"
-            "  * The automatic segmentation masks of the brain and the tumor in the original patient space (input_brain_mask.nii.gz and input_tumor_mask.nii.gz).\n"
-            "  * The input volume and tumor segmentation mask in MNI space in the sub-directory named \'registration\'.\n")
+        popup.setWindowTitle('Research community')
+        popup.setText('The data used for training the various segmentation models was gathered from: \n'
+            '* Ole Solheim, Lisa M. Sagberg, Even H. Fyllingen, Sayed Hoseiney; Department of Neurosurgery, St. Olavs hospital, Trondheim University Hospital, Trondheim, Norway\n'
+            '* Asgeir Store Jakola; Department of Neurosurgery, Sahlgrenska University Hospital, Gothenburg, Sweden\n'
+            '* Kyrre Eeg Emblem; Department of Physics and Computational Radiology, Division of Radiology and Nuclear Medicine, Oslo University Hospital, Oslo, Norway\n'
+            '* Philip C. De Witt Hamer, Roelant S. Eijgelaar, Ivar Kommers, Frederik Barkhof, Domenique M.J. Müller; Department of Neurosurgery, Amsterdam University Medical Centers, Vrije Universiteit, Amsterdam, The Netherlands\n'
+            '* Hilko Ardon; Department of Neurosurgery, Twee Steden Hospital, Tilburg, The Netherlands\n'
+            '* Lorenzo Bello, Marco Conti Nibali, Marco Rossi, Tommaso Sciortino; Neurosurgical Oncology Unit, Department of Oncology and Hemato-Oncology, Humanitas Research Hospital, Università Degli Studi di Milano, Milano, Italy\n'
+            '* Mitchel S. Berger, Shawn Hervey-Jumper; Department of Neurological Surgery, University of California San Francisco, San Francisco, USA\n'
+            '* Julia Furtner; Department of Biomedical Imaging and Image-Guided Therapy, Medical University Vienna, Wien, Austria\n'
+            '* Albert J. S. Idema; Department of Neurosurgery, Northwest Clinics, Alkmaar, The Netherlands\n'
+            '* Barbara Kiesel, Georg Widhalm; Department of Neurosurgery, Medical University Vienna, Wien, Austria\n'
+            '* Alfred Kloet; Department of Neurosurgery, Haaglanden Medical Center, The Hague, The Netherlands\n'
+            '* Emmanuel Mandonnet; Department of Neurological Surgery, Hôpital Lariboisière, Paris, France\n'
+            '* Pierre A. Robe; Department of Neurology and Neurosurgery, University Medical Center Utrecht, Utrecht, The Netherlands\n'
+            '* Wimar van den Brink; Department of Neurosurgery, Isala, Zwolle, The Netherlands\n'
+            '* Michiel Wagemakers;  Department of Neurosurgery, University Medical Center Groningen, University of Groningen, Groningen, The Netherlands\n'
+            '* Marnix G. Witte; Department of Radiation Oncology, The Netherlands Cancer Institute, Amsterdam, The Netherlands\n'
+            '* Aeilko H. Zwinderman; Department of Clinical Epidemiology and Biostatistics, Amsterdam University Medical Centers, University of Amsterdam, Amsterdam, The Netherlands\n'
+            '\n\n')
         popup.exec_()
 
-    def about_action_triggered(self):
+    def __on_about_action_triggered(self):
         popup = QMessageBox()
         popup.setWindowTitle('About')
-        popup.setText('Software developed as part of a collaboration between: \n'
-                      '  * Departement of Health Research, SINTEF\n'
-                      '  * St. Olavs hospital, Trondheim University Hospital\n'
-                      '  * Amsterdam University Medical Center\n\n'
-                      'Contact: David Bouget, Andre Pedersen\n\n'
-                      'For questions about the software, please visit:\n'
-                      'https://github.com/SINTEFMedtek/GSI-RADS\n'
-                      'For questions about the methodological aspect, please refer to the original publication:\n'
-                      'https://www.mdpi.com/2072-6694/13/12/2854/review_report')
+        popup.setText('Raidionics is developed by the Medical Technology group, Health department, SINTEF Digital:\n'
+                        '* David Bouget, contact: david.bouget@sintef.no\n'
+                        '* Andre Pedersen (deployment and multi-platform support)\n'
+                        '* Demah Alsinan (design)\n'
+                        '* Valeria Gaitan (design)\n'
+                        '* Ingerid Reinertsen (project leader)\n\n'
+                      'For questions about the methodological aspect, please refer to the following published articles:\n'
+                      '* Preoperative brain tumor imaging: models and software for segmentation and standardized reporting (https://arxiv.org/pdf/2204.14199.pdf)\n'
+                      '* Glioblastoma Surgery Imaging–Reporting and Data System: Validation and Performance of the Automated Segmentation Task (https://www.mdpi.com/2072-6694/13/18/4674)\n'
+                      '* Glioblastoma Surgery Imaging—Reporting and Data System: Standardized Reporting of Tumor Volume, Location, and Resectability Based on Automated Segmentations (https://www.mdpi.com/2072-6694/13/12/2854)\n'
+                      '* Meningioma Segmentation in T1-Weighted MRI Leveraging Global Context and Attention Mechanisms (https://www.frontiersin.org/articles/10.3389/fradi.2021.711514/full)\n'
+                      )
+        popup.resize(popup.sizeHint())
         popup.exec_()
 
-    def help_action_triggered(self):
+    def __on_help_action_triggered(self):
         # opens browser with specified url, directs user to Issues section of GitHub repo
-        QDesktopServices.openUrl(QUrl("https://github.com/SINTEFMedtek/GSI-RADS/issues"))
+        QDesktopServices.openUrl(QUrl("https://github.com/dbouget/Raidionics/issues"))
 
     def settings_update_models_menu_active_action_triggered(self, status):
         RuntimeResources.getInstance().active_models_update_state = status
