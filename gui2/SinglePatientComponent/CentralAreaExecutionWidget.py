@@ -334,6 +334,7 @@ class CentralAreaExecutionWidget(QLabel):
                 rads_config.write(outfile)
 
             from raidionicsrads.compute import run_rads
+            # @TODO. Might have to try/catch around, to be able to display/log any error message.
             run_rads(rads_config_filename)
             # logging.debug("Spawning multiprocess...")
             # mp.set_start_method('spawn', force=True)

@@ -260,3 +260,67 @@ class ImportFolderLineWidget(QWidget):
 
     def __on_file_type_changed(self):
         pass
+
+
+def import_patients_from_tree(tree_path: str):
+    folders_in_path = []
+    for _, dirs, _ in os.walk(folders_in_path):
+        for d in dirs:
+            folders_in_path.append(d)
+        break
+
+    for patient in folders_in_path:
+        import_patient_from_folder(folder_path=os.path.join(tree_path, patient))
+
+
+def import_patient_from_folder(folder_path: str):
+    """
+    @TODO. To finish, by filling the imports dict, to know which signals to emit afterwards, import patient/MRI/annotation/etc...
+    """
+    files_in_path = []
+    raidionics_scene_file = None
+    for _, _, files in os.walk(folder_path):
+        for f in files:
+            files_in_path.append(f)
+            if f.split('.')[-1] == SoftwareConfigResources.getInstance().accepted_scene_file_format[0]:
+                raidionics_scene_file = f
+        break
+
+    imports = {}
+    if raidionics_scene_file:
+        pat_uid, error_msg = SoftwareConfigResources.getInstance().load_patient(os.path.join(folder_path, raidionics_scene_file))
+        if error_msg:
+            diag = QMessageBox()
+            diag.setText("Unable to open patient.\nError message: {}.\n".format(error_msg))
+            diag.exec_()
+            return
+    else:
+        pat_uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_patient()
+        if error_msg:
+            diag = QMessageBox()
+            diag.setText("Unable to create empty patient.\nError message: {}.\n".format(error_msg))
+            diag.exec_()
+            return
+        SoftwareConfigResources.getInstance().get_patient(pat_uid).set_display_name(os.path.basename(folder_path))
+        mris_in_path = []
+        annotations_in_path = []
+        for f in files_in_path:
+            ft = input_file_category_disambiguation(input_filename=os.path.join(folder_path, f))
+            if ft == "MRI":
+                mris_in_path.append(f)
+            else:
+                annotations_in_path.append(f)
+
+        # @TODO. Might try to infer from the filenames if some annotations are belonging to some MRIs.
+        # for now just processing MRIs first and annotations after.
+        files_list = mris_in_path + annotations_in_path
+        for f in files_list:
+            uid, error_msg = SoftwareConfigResources.getInstance().get_patient(pat_uid).import_data(
+                os.path.join(folder_path, f))
+            if error_msg:
+                diag = QMessageBox()
+                diag.setText(
+                    "Unable to load: {}.\nError message: {}.\n".format(os.path.basename(folder_path),
+                                                                       error_msg))
+                diag.exec_()
+    SoftwareConfigResources.getInstance().get_patient(pat_uid).save_patient()

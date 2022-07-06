@@ -2,6 +2,7 @@ from PySide2.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QDialog, QDialo
     QPushButton, QScrollArea, QFileDialog, QSplitter, QTableWidget, QTableWidgetItem,\
     QProgressBar, QMessageBox
 from PySide2.QtCore import Qt, Signal
+import os
 
 from utils.software_config import SoftwareConfigResources
 from utils.patient_dicom import PatientDICOM
@@ -11,6 +12,10 @@ from gui2.UtilsWidgets.CustomQDialog.DisplayDICOMMetadataDialog import DisplayMe
 
 
 class ImportDICOMDataQDialog(QDialog):
+    """
+    @TODO. Do we enable only loading one patient data at a time, or have mutliple DICOM folders opened at once,
+    and import potentially multiple patients at once?
+    """
     # The str is the unique id for the added patient, the active patient remains the same
     patient_imported = Signal(str)
     # The str is the unique id for the mri volume, belonging to the active patient
@@ -19,6 +24,7 @@ class ImportDICOMDataQDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Import DICOM")
+        self.current_folder = "~"  # Keep in memory the last open directory, to easily open multiple times in a row
         self.__set_interface()
         self.__set_connections()
         self.__set_stylesheets()
@@ -111,23 +117,72 @@ class ImportDICOMDataQDialog(QDialog):
         self.import_select_directory_pushbutton.clicked.connect(self.__on_import_directory_clicked)
         self.exit_accept_pushbutton.clicked.connect(self.__on_exit_accept_clicked)
         self.exit_cancel_pushbutton.clicked.connect(self.__on_exit_cancel_clicked)
+
+        self.content_patient_tablewidget.cellClicked.connect(self.__on_patient_selected)
         self.content_series_tablewidget.cellDoubleClicked.connect(self.__on_series_selected)
         self.content_series_tablewidget.display_metadata_triggered.connect(self.__on_display_metadata_triggered)
         self.selected_series_tablewidget.remove_entry_triggered.connect(self.__on_remove_selected_series_triggered)
 
     def __set_stylesheets(self):
-        # self.content_study_tablewidget.setStyleSheet("""QTableWidget{background-color:rgb(127,0,0);}""")
-        pass
+        software_ss = SoftwareConfigResources.getInstance().stylesheet_components
+        font_color = software_ss["Color7"]
+        background_color = software_ss["Color5"]
+
+        self.setStyleSheet("""
+        QDialog{
+        background-color: """ + background_color + """;
+        }""")
+
+        self.import_scrollarea_dummy_widget.setStyleSheet("""
+        QLabel{
+        background-color: """ + background_color + """;
+        }""")
+
+        self.import_select_directory_pushbutton.setStyleSheet("""
+        QPushButton{
+        color: """ + software_ss["Color2"] + """;
+        background-color: """ + software_ss["Color1"] + """;
+        font: 14px;
+        text-align: center;
+        }
+        QPushButton:pressed{
+        background-color: rgba(55, 55, 55, 1);
+        border-style:inset;
+        }
+        """)
+
+        # self.content_series_tablewidget.setStyleSheet("""
+        # QTableWidget{
+        # color: """ + font_color + """;
+        # background-color: """ + background_color + """;
+        # font-size: 10px;
+        # }
+        # """)
+        # @TODO. The following to check
+        # tableWidget->setStyleSheet("QTableView::item:selected { color:white; background:#000000; font-weight:900; }"
+        #                            "QTableCornerButton::section { background-color:#232326; }"
+        #                            "QHeaderView::section { color:white; background-color:#232326; }");
 
     def __on_import_directory_clicked(self):
         input_image_filedialog = QFileDialog(self)
         input_image_filedialog.setWindowFlags(Qt.WindowStaysOnTopHint)
-        input_directory = input_image_filedialog.getExistingDirectory(self, caption='Select input directory',
-                                                                      filter=QFileDialog.ShowDirsOnly | QFileDialog.DontResolveSymlinks)
+        if "PYCHARM_HOSTED" in os.environ:
+            input_directory = input_image_filedialog.getExistingDirectory(self, caption='Select input directory',
+                                                                          directory=self.tr(self.current_folder),
+                                                                          options=QFileDialog.DontUseNativeDialog |
+                                                                                  QFileDialog.ShowDirsOnly |
+                                                                                  QFileDialog.DontResolveSymlinks)
+        else:
+            input_directory = input_image_filedialog.getExistingDirectory(self, caption='Select input directory',
+                                                                          directory=self.tr(self.current_folder),
+                                                                          options=QFileDialog.ShowDirsOnly |
+                                                                                  QFileDialog.DontResolveSymlinks)
+        if input_directory == '':
+            return
+
+        self.current_folder = os.path.dirname(input_directory)
         self.dicom_holder = PatientDICOM(input_directory)
         self.__populate_dicom_browser()
-        # dicom_meta = parse_dicom_folder(input_directory)
-        # self.__populate_dicom_browser(dicom_meta)
 
     def __on_exit_accept_clicked(self):
         """
@@ -168,6 +223,10 @@ class ImportDICOMDataQDialog(QDialog):
     def __on_exit_cancel_clicked(self):
         self.reject()
 
+    def __on_patient_selected(self, row, column):
+        # patient_id_item = self.content_patient_tablewidget.item(row, 0)
+        pass
+
     def __on_series_selected(self, row, column):
         study_id_item = self.content_study_tablewidget.item(self.content_study_tablewidget.currentRow(), 1)
         series_id_item = self.content_series_tablewidget.item(self.content_series_tablewidget.currentRow(), 0)
@@ -192,7 +251,12 @@ class ImportDICOMDataQDialog(QDialog):
                 self.selected_series_tablewidget.resizeColumnToContents(c)
 
     def __populate_dicom_browser(self):
-        #@TODO. Do we clean all tables before filling them up, in case there's stuff from a previous run.
+        # Clearing all previous content at every DICOM folder import (for now).
+        self.content_patient_tablewidget.setRowCount(0)
+        self.content_study_tablewidget.setRowCount(0)
+        self.content_series_tablewidget.setRowCount(0)
+        self.selected_series_tablewidget.setRowCount(0)
+
         self.content_patient_tablewidget.insertRow(self.content_patient_tablewidget.rowCount())
         self.content_patient_tablewidget.setItem(self.content_patient_tablewidget.rowCount() - 1, 0,
                                                  QTableWidgetItem(self.dicom_holder.patient_id))

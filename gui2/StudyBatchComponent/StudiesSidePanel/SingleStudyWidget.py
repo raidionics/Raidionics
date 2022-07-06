@@ -1,10 +1,11 @@
 import logging
 import os
-from PySide2.QtWidgets import QLabel, QHBoxLayout, QVBoxLayout, QLineEdit, QPushButton, QProgressBar, QGroupBox
+from PySide2.QtWidgets import QLabel, QHBoxLayout, QVBoxLayout, QLineEdit, QPushButton, QProgressBar, QGroupBox, \
+    QFileDialog
 from PySide2.QtCore import Qt, QSize, Signal
 
 from gui2.UtilsWidgets.CustomQGroupBox.QCollapsibleGroupBox import QCollapsibleGroupBox
-from gui2.UtilsWidgets.CustomQDialog.ImportFoldersQDialog import ImportFoldersQDialog
+from gui2.UtilsWidgets.CustomQDialog.ImportFoldersQDialog import ImportFoldersQDialog, import_patients_from_tree
 from gui2.UtilsWidgets.CustomQDialog.TumorTypeSelectionQDialog import TumorTypeSelectionQDialog
 from utils.software_config import SoftwareConfigResources
 
@@ -70,8 +71,9 @@ class SingleStudyWidget(QCollapsibleGroupBox):
         self.patient_inclusion_layout.setSpacing(0)
         self.patient_inclusion_layout.setContentsMargins(20, 0, 20, 0)
         self.patient_inclusion_layout.addStretch(1)
-        self.include_single_patient_folder_pushbutton = QPushButton("Single folder")
-        self.include_multiple_patients_folder_pushbutton = QPushButton("Multiple folders")
+        self.include_single_patient_folder_pushbutton = QPushButton("Single folder(s)")
+        self.include_multiple_patients_folder_pushbutton = QPushButton("Folder tree")
+        self.include_multiple_patients_folder_pushbutton.setEnabled(False)
         self.patient_inclusion_layout.addWidget(self.include_single_patient_folder_pushbutton)
         self.patient_inclusion_layout.addWidget(self.include_multiple_patients_folder_pushbutton)
         self.patient_inclusion_layout.addStretch(1)
@@ -270,7 +272,21 @@ class SingleStudyWidget(QCollapsibleGroupBox):
         #     self.import_data_triggered.emit()
 
     def __on_include_multiple_patients_folder_clicked(self):
-        pass
+        input_folder_filedialog = QFileDialog(self)
+        input_folder_filedialog.setWindowFlags(Qt.WindowStaysOnTopHint)
+        if "PYCHARM_HOSTED" in os.environ:
+            input_directory = input_folder_filedialog.getExistingDirectory(self, caption='Select input directory',
+                                                                           options=QFileDialog.DontUseNativeDialog |
+                                                                                   QFileDialog.ShowDirsOnly |
+                                                                                   QFileDialog.DontResolveSymlinks)
+        else:
+            input_directory = input_folder_filedialog.getExistingDirectory(self, caption='Select input directory',
+                                                                           options=QFileDialog.ShowDirsOnly |
+                                                                                   QFileDialog.DontResolveSymlinks)
+        if input_directory == "":
+            return
+
+        # import_patients_from_tree(input_directory)
 
     def __on_run_segmentation(self):
         diag = TumorTypeSelectionQDialog(self)

@@ -7,6 +7,7 @@ from PySide2.QtGui import QIcon, QMouseEvent
 import os
 
 from utils.software_config import SoftwareConfigResources
+from utils.utilities import input_file_category_disambiguation
 
 
 class ImportDataQDialog(QDialog):
@@ -18,7 +19,10 @@ class ImportDataQDialog(QDialog):
     patient_imported = Signal(str)
 
     def __init__(self, filter=None, parent=None):
-        # @TODO. The filter should be used to specify if looking for image files or a raidionics file.
+        """
+        The filter option, through the set_parsing_filter method is used to specify if looking for image files or
+        a raidionics scene file.
+        """
         super().__init__(parent)
         self.setWindowTitle("Import patient data")
         self.current_folder = "~"  # Keep in memory the last open directory, to easily open multiple files in a row
@@ -149,52 +153,57 @@ class ImportDataQDialog(QDialog):
         """
         widgets = (self.import_scrollarea_layout.itemAt(i) for i in range(self.import_scrollarea_layout.count() - 1))
 
-        # # Should not be needed anymore as a new empty patient creation is performed upon clicking on import patient.
-        # # @Behaviour. Do we force the user to create a patient, or allow on-the-fly creation when loading data?
-        # if len(SoftwareConfigResources.getInstance().patients_parameters) == 0:
-        #     uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_patient()
-        #     if error_msg:
-        #         diag = QMessageBox()
-        #         diag.setText("Unable to create empty patient.\nError message: {}.\n".format(error_msg))
-        #         diag.exec_()
-        #
-        #     if (error_msg and 'Import patient failed' not in error_msg) or not error_msg:
-        #         self.patient_imported.emit(uid)
-
         self.load_progressbar.reset()
         self.load_progressbar.setMinimum(0)
         self.load_progressbar.setMaximum(self.import_scrollarea_layout.count() - 1)
         self.load_progressbar.setVisible(True)
         self.load_progressbar.setValue(0)
 
+        selected_files = []
         for i, w in enumerate(widgets):
-            # @TODO. Should not iterate blindly, should check between MRI volumes and annotation volumes, imperative to
-            # import first at least an MRI volume to correctly attach all annotations to it by default.
             input_filepath = w.wid.filepath_lineedit.text()
-            ext = input_filepath.split('.')[-1]
-            # input_type = w.wid.file_type_selection_combobox.currentText()
-            if ext != "raidionics":
-                uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_data(input_filepath)
-                if error_msg:
-                    diag = QMessageBox()
-                    diag.setText("Unable to load: {}.\nError message: {}.\n".format(os.path.basename(input_filepath),
-                                                                                    error_msg))
-                    diag.exec_()
-                else:
-                    if uid in list(SoftwareConfigResources.getInstance().get_active_patient().mri_volumes.keys()):
-                        self.mri_volume_imported.emit(uid)
-                    elif uid in list(SoftwareConfigResources.getInstance().get_active_patient().annotation_volumes.keys()):
-                        self.annotation_volume_imported.emit(uid)
-            else:
-                uid, error_msg = SoftwareConfigResources.getInstance().load_patient(input_filepath)
-                if error_msg:
-                    diag = QMessageBox()
-                    diag.setText("Unable to load: {}.\nError message: {}.\n".format(os.path.basename(input_filepath),
-                                                                                    error_msg))
-                    diag.exec_()
+            selected_files.append(input_filepath)
 
-                if (error_msg and 'Import patient failed' not in error_msg) or not error_msg:
-                    self.patient_imported.emit(uid)
+        mris_selected = []
+        annotations_selected = []
+        raidionics_selected = []
+        for f in selected_files:
+            ext = f.split('.')[-1]
+            if ext != SoftwareConfigResources.getInstance().accepted_scene_file_format[0]:
+                ft = input_file_category_disambiguation(input_filename=f)
+                if ft == "MRI":
+                    mris_selected.append(f)
+                else:
+                    annotations_selected.append(f)
+            else:
+                raidionics_selected.append(f)
+
+        for i, pf in enumerate(raidionics_selected):
+            uid, error_msg = SoftwareConfigResources.getInstance().load_patient(pf)
+            if error_msg:
+                diag = QMessageBox()
+                diag.setText("Unable to load: {}.\nError message: {}.\n".format(os.path.basename(pf),
+                                                                                error_msg))
+                diag.exec_()
+
+            if (error_msg and 'Import patient failed' not in error_msg) or not error_msg:
+                self.patient_imported.emit(uid)
+            self.load_progressbar.setValue(i + 1)
+
+        # @TODO. Might try something more advanced for pairing annotations with MRIs
+        regular_files = mris_selected + annotations_selected
+        for i, pf in enumerate(regular_files):
+            uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_data(pf)
+            if error_msg:
+                diag = QMessageBox()
+                diag.setText("Unable to load: {}.\nError message: {}.\n".format(os.path.basename(pf),
+                                                                                error_msg))
+                diag.exec_()
+            else:
+                if uid in list(SoftwareConfigResources.getInstance().get_active_patient().mri_volumes.keys()):
+                    self.mri_volume_imported.emit(uid)
+                elif uid in list(SoftwareConfigResources.getInstance().get_active_patient().annotation_volumes.keys()):
+                    self.annotation_volume_imported.emit(uid)
             self.load_progressbar.setValue(i + 1)
         self.load_progressbar.setVisible(False)
         self.accept()
@@ -208,13 +217,6 @@ class ImportDataQDialog(QDialog):
                 wid = ImportDataLineWidget(self)
                 self.import_scrollarea_layout.insertWidget(self.import_scrollarea_layout.count() - 1, wid)
                 wid.filepath_lineedit.setText(fp)
-
-                ## Deprecated, not using the combobox anymore.
-                # extension = '.'.join(os.path.basename(fp).split('.')[1:])
-                # if extension == 'raidionics':
-                #     wid.file_type_selection_combobox.setCurrentIndex(2)
-                # else:
-                #     wid.file_type_selection_combobox.setCurrentIndex(0)  # Assuming loading an MRI volume by default
 
 
 class ImportDataLineWidget(QWidget):
@@ -236,16 +238,12 @@ class ImportDataLineWidget(QWidget):
         self.filepath_browse_edit_pushbutton = QPushButton()
         self.filepath_browse_edit_pushbutton.setIcon(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                                         '../../Images/folder_icon.png')))
-        self.file_type_selection_combobox = QComboBox()
-        self.file_type_selection_combobox.addItems(["MRI", "Annotation", "Patient"])
-
         self.remove_entry_pushbutton = QPushButton()
         self.remove_entry_pushbutton.setIcon(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                                 '../../Images/trash-bin_icon.png')))
 
         self.layout.addWidget(self.filepath_lineedit)
         self.layout.addWidget(self.filepath_browse_edit_pushbutton)
-        # self.layout.addWidget(self.file_type_selection_combobox)
         self.layout.addWidget(self.remove_entry_pushbutton)
 
     def __set_layout_dimensions(self):
@@ -255,7 +253,6 @@ class ImportDataLineWidget(QWidget):
 
     def __set_connections(self):
         self.filepath_browse_edit_pushbutton.clicked.connect(self.__on_browse_edit_clicked)
-        self.file_type_selection_combobox.currentIndexChanged.connect(self.__on_file_type_changed)
         self.remove_entry_pushbutton.clicked.connect(self.deleteLater)
 
     def __set_stylesheets(self):
@@ -269,6 +266,3 @@ class ImportDataLineWidget(QWidget):
                                                 options=QFileDialog.DontUseNativeDialog)[0]
         if input_filepath != "":
             self.filepath_lineedit.setText(input_filepath)
-
-    def __on_file_type_changed(self):
-        pass

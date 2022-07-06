@@ -104,7 +104,7 @@ class SoftwareConfigResources:
             error_message = error_message + traceback.format_exc()
         return patient_uid, error_message
 
-    def load_patient(self, filename: str) -> Union[str, Any]:
+    def load_patient(self, filename: str, active: bool = True) -> Union[str, Any]:
         """
         Loads all patient-related files from parsing the scene file (*.raidionics). The current active patient is
         filled with the information, as an empty patient was created when the call for importing was made.
@@ -126,8 +126,9 @@ class SoftwareConfigResources:
         patient_instance.set_unsaved_changes_state(False)
         patient_id = patient_instance.get_unique_id()
         self.patients_parameters[patient_id] = patient_instance
-        # Doing the following rather than set_active_patient(), to avoid the overhead of doing memory release/load.
-        self.active_patient_name = patient_id
+        if active:
+            # Doing the following rather than set_active_patient(), to avoid the overhead of doing memory release/load.
+            self.active_patient_name = patient_id
         return patient_id, error_message
 
     def update_active_patient_name(self, new_name: str) -> None:

@@ -329,7 +329,8 @@ class PatientParameters:
 
     def import_dicom_data(self, dicom_series: DICOMSeries) -> Union[str, Any]:
         """
-
+        Half the content should be deported within the MRI structure, so that the DICOM metadata can be properly
+        saved.
         """
         ori_filename = os.path.join(self.output_folder, dicom_series.get_unique_readable_name() + '.nii.gz')
         filename_taken = os.path.exists(ori_filename)
