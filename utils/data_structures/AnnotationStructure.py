@@ -93,6 +93,12 @@ class AnnotationVolume:
     def release_from_memory(self) -> None:
         self._display_volume = None
 
+    def delete(self):
+        if self._display_volume_filepath and os.path.exists(self._display_volume_filepath):
+            os.remove(self._display_volume_filepath)
+        if self._resampled_input_volume_filepath and os.path.exists(self._resampled_input_volume_filepath):
+            os.remove(self._resampled_input_volume_filepath)
+
     def set_unsaved_changes_state(self, state: bool) -> None:
         self._unsaved_changes = state
 

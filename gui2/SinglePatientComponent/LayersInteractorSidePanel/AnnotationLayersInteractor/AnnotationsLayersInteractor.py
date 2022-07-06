@@ -146,6 +146,7 @@ class AnnotationsLayersInteractor(QCollapsibleGroupBox):
         volume_widget.opacity_value_changed.connect(self.on_opacity_changed)
         volume_widget.color_value_changed.connect(self.on_color_changed)
         volume_widget.parent_mri_changed.connect(self.on_parent_mri_change)
+        volume_widget.remove_annotation.connect(self.on_remove_annotation)
 
         # Triggers a repaint with adjusted size for the layout
         self.adjustSize()
@@ -192,3 +193,10 @@ class AnnotationsLayersInteractor(QCollapsibleGroupBox):
         # del self.volumes_widget[annotation_uid]
         self.repaint()
         logging.debug("Annotation {} changed parent MRI.\n".format(annotation_uid))
+
+    def on_remove_annotation(self, annotation_uid):
+        self.content_label_layout.removeWidget(self.volumes_widget[annotation_uid])
+        self.volumes_widget[annotation_uid].setParent(None)
+        del self.volumes_widget[annotation_uid]
+        self.adjustSize()
+        self.repaint()

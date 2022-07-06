@@ -19,6 +19,7 @@ class AnnotationSingleLayerWidget(QWidget):
     color_value_changed = Signal(str, QColor)
     parent_mri_changed = Signal(str, str)  # Annotation volume unique id, previous parent MRI volume unique id (to trigger a redraw)
     resizeRequested = Signal()
+    remove_annotation = Signal(str)  # Annotation volume unique id
 
     def __init__(self, uid, parent=None):
         super(AnnotationSingleLayerWidget, self).__init__(parent)
@@ -36,7 +37,8 @@ class AnnotationSingleLayerWidget(QWidget):
         # create context menu
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.options_menu = QMenu(self)
-        self.options_menu.addAction(QAction('Remove', self))
+        self.remove_contextual_action = QAction('Remove', self)
+        self.options_menu.addAction(self.remove_contextual_action)
         self.options_menu.addSeparator()
 
         self.layout = QHBoxLayout(self)
@@ -150,6 +152,8 @@ class AnnotationSingleLayerWidget(QWidget):
         self.advanced_options_collapsible.header_pushbutton.clicked.connect(self.on_advanced_options_clicked)
         self.opacity_slider.valueChanged.connect(self.__on_opacity_changed)
         self.color_dialogpushbutton.clicked.connect(self.__on_color_selector_clicked)
+
+        self.remove_contextual_action.triggered.connect(self.__on_remove_annotation)
 
     def __set_stylesheets(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
@@ -406,3 +410,9 @@ class AnnotationSingleLayerWidget(QWidget):
         if mri_uid != "-1":
             params.set_parent_mri_uid(mri_uid)
             self.parent_mri_changed.emit(self.uid, old_mri_parent)
+
+    def __on_remove_annotation(self):
+        # @TODO. Have to propagate to the central viewer, or should internally trigger a display toggle off and then
+        # delete
+        self.remove_annotation.emit(self.uid)
+        SoftwareConfigResources.getInstance().get_active_patient().remove_annotation(self.uid)

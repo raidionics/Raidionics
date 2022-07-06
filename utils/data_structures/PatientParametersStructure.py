@@ -438,3 +438,12 @@ class PatientParameters:
             if self.annotation_volumes[an].get_parent_mri_uid() == mri_volume_uid:
                 res.append(self.annotation_volumes[an].get_unique_id())
         return res
+
+    def remove_annotation(self, annotation_uid: str) -> None:
+        """
+        Delete the specified annotation from the patient parameters, and additionally deletes on disk (within the
+        patient folder) all elements linked to it (e.g., the corresponding display volume).
+        """
+        self.annotation_volumes[annotation_uid].delete()
+        del self.annotation_volumes[annotation_uid]
+        logging.debug("Remove annotation {} for patient {}".format(annotation_uid, self._unique_id))
