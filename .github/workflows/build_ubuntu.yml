@@ -2,7 +2,7 @@ name: Build Ubuntu
 
 on:
   push:
-    branches: [ design_update, submodule_libs ]
+    branches: [ design_update ]
   pull_request:
     branches: [ design_update ]
 
