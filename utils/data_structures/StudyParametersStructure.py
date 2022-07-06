@@ -110,6 +110,9 @@ class StudyParameters:
     def get_included_patients_uids(self) -> list:
         return self._included_patients_uids
 
+    def get_total_included_patients(self) -> int:
+        return len(self._included_patients_uids)
+
     def include_study_patient(self, uid: str) -> int:
         if uid not in self._included_patients_uids:
             self._included_patients_uids.append(uid)

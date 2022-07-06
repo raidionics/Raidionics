@@ -63,10 +63,14 @@ class StudyPatientListingWidget(QWidget):
 
     def __set_stylesheets(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
+        font_color = software_ss["Color7"]
+        font_style = 'normal'
+        background_color = software_ss["Color5"]
+        pressed_background_color = software_ss["Color6"]
 
-        self.patients_list_scrollarea.setStyleSheet("""
-        QScrollArea{
-        background-color: """ + software_ss["Color2"] + """;
+        self.setStyleSheet("""
+        StudyPatientListingWidget{
+        background-color: """ + background_color + """;
         }""")
 
     def adjustSize(self) -> None:

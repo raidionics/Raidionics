@@ -205,6 +205,7 @@ class StudiesSidePanelWidget(QWidget):
             if wid != widget_id:
                 self.single_study_widgets[wid].manual_header_pushbutton_clicked(False)
         self.single_study_widgets[widget_id].header_pushbutton.setEnabled(False)
+        self.single_study_widgets[widget_id].set_stylesheets(selected=True)
         SoftwareConfigResources.getInstance().set_active_study(widget_id)
         # When a study is selected in the left panel, a visual update of the central/right panel is triggered
         self.study_selected.emit(widget_id)
@@ -236,3 +237,9 @@ class StudiesSidePanelWidget(QWidget):
     def on_add_existing_study_requested(self):
         self.on_add_new_empty_study()
         self.import_study_from_file_requested.emit()
+
+    def on_processing_advanced(self):
+        self.single_study_widgets[SoftwareConfigResources.getInstance().active_study_name].on_processing_advanced()
+
+    def on_processing_finished(self):
+        self.single_study_widgets[SoftwareConfigResources.getInstance().active_study_name].on_processing_finished()

@@ -27,6 +27,8 @@ class StudyBatchWidget(QWidget):
     annotation_volume_imported = Signal(str)
     atlas_volume_imported = Signal(str)
     standard_report_imported = Signal()
+    processing_advanced = Signal()
+    processing_finished = Signal()
 
     def __init__(self, parent=None):
         super(StudyBatchWidget, self).__init__()
@@ -119,6 +121,8 @@ class StudyBatchWidget(QWidget):
         self.patient_listing_panel.patient_selected.connect(self.patient_selected)
 
         self.patient_name_edited.connect(self.patient_listing_panel.on_patient_name_edited)
+        self.processing_advanced.connect(self.studies_panel.on_processing_advanced)
+        self.processing_finished.connect(self.studies_panel.on_processing_finished)
 
     def get_widget_name(self):
         return self.widget_name
@@ -150,7 +154,7 @@ class StudyBatchWidget(QWidget):
         pass
 
     def on_process_finished(self):
-        pass
+        self.processing_finished.emit()
 
     def on_batch_segmentation_wrapper(self, study_uid, model_name):
         run_segmentation_thread = threading.Thread(target=self.on_batch_segmentation, args=(study_uid, model_name,))
@@ -177,6 +181,8 @@ class StudyBatchWidget(QWidget):
 
             # Automatically saving the patient (with the latest results) for an easier loading afterwards.
             SoftwareConfigResources.getInstance().patients_parameters[u].save_patient()
+            self.processing_advanced.emit()
+        self.on_process_finished()
 
     def on_batch_rads_wrapper(self, study_uid, model_name):
         run_rads_thread = threading.Thread(target=self.on_batch_rads, args=(study_uid, model_name,))
@@ -197,6 +203,9 @@ class StudyBatchWidget(QWidget):
             # SoftwareConfigResources.getInstance().set_active_patient(u)
             code, results = reporting_main_wrapper(model_name=model_name,
                                                    patient_parameters=SoftwareConfigResources.getInstance().patients_parameters[u])
+            # @TODO. Do we iterate through the computed/included results, and potential error codes to report to the user
+            # somehow at the end of the batch process?
+
             # if 'Annotation' in list(results.keys()):
             #     for a in results['Annotation']:
             #         self.annotation_volume_imported.emit(a)
@@ -209,3 +218,5 @@ class StudyBatchWidget(QWidget):
             #     self.standard_report_imported.emit()
             # Automatically saving the patient (with the latest results) for an easier loading afterwards.
             SoftwareConfigResources.getInstance().patients_parameters[u].save_patient()
+            self.processing_advanced.emit()
+        self.on_process_finished()

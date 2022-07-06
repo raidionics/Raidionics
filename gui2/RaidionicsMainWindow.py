@@ -50,6 +50,8 @@ class RaidionicsMainWindow(QMainWindow):
         self.setWindowState(Qt.WindowState.WindowActive)  # Bring window to foreground? To check!
 
     def closeEvent(self, event):
+        # @TODO. Need to check if there is actually a patient loaded, or have the get_active_patient return -1 or None
+        # so that it can be caught and exit gracefully.
         if SoftwareConfigResources.getInstance().get_active_patient().has_unsaved_changes():
             dialog = SavePatientChangesDialog()
             code = dialog.exec_()

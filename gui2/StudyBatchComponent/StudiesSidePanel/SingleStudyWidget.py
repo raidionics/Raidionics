@@ -1,6 +1,6 @@
 import logging
 import os
-from PySide2.QtWidgets import QLabel, QHBoxLayout, QVBoxLayout, QLineEdit, QPushButton
+from PySide2.QtWidgets import QLabel, QHBoxLayout, QVBoxLayout, QLineEdit, QPushButton, QProgressBar, QGroupBox
 from PySide2.QtCore import Qt, QSize, Signal
 
 from gui2.UtilsWidgets.CustomQGroupBox.QCollapsibleGroupBox import QCollapsibleGroupBox
@@ -29,28 +29,28 @@ class SingleStudyWidget(QCollapsibleGroupBox):
         self.__set_interface()
         self.__set_layout_dimensions()
         self.__set_connections()
-        self.__set_stylesheets()
+        self.set_stylesheets(selected=False)
 
     def __set_interface(self):
-        # @TODO. Have to reposition the icon better.
         self.set_header_icons(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                           '../../Images/single_patient_icon.png'),
+                                           '../../Images/study_icon.png'),
                               QSize(30, 30),
                               os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                           '../../Images/single_patient_icon.png'),
+                                           '../../Images/study_icon.png'),
                               QSize(30, 30), side='left')
         self.__set_system_part()
         self.__set_patient_inclusion_part()
         self.__set_batch_processing_part()
+        self.__set_progress_part()
         self.content_label_layout.addStretch(1)
 
     def __set_system_part(self):
-        self.patient_name_label = QLabel("Name (ID) ")
+        self.study_name_label = QLabel("Name (ID) ")
         self.study_name_lineedit = QLineEdit()
         self.study_name_lineedit.setAlignment(Qt.AlignRight)
         self.study_name_layout = QHBoxLayout()
         self.study_name_layout.setContentsMargins(20, 0, 20, 0)
-        self.study_name_layout.addWidget(self.patient_name_label)
+        self.study_name_layout.addWidget(self.study_name_label)
         self.study_name_layout.addWidget(self.study_name_lineedit)
         self.content_label_layout.addLayout(self.study_name_layout)
 
@@ -64,27 +64,48 @@ class SingleStudyWidget(QCollapsibleGroupBox):
         self.content_label_layout.addLayout(self.output_dir_layout)
 
     def __set_patient_inclusion_part(self):
+        self.patient_inclusion_groupbox = QGroupBox()
+        self.patient_inclusion_groupbox.setTitle("Data inclusion")
         self.patient_inclusion_layout = QHBoxLayout()
         self.patient_inclusion_layout.setSpacing(0)
-        self.patient_inclusion_layout.setContentsMargins(20, 20, 20, 0)
+        self.patient_inclusion_layout.setContentsMargins(20, 0, 20, 0)
         self.patient_inclusion_layout.addStretch(1)
         self.include_single_patient_folder_pushbutton = QPushButton("Single folder")
         self.include_multiple_patients_folder_pushbutton = QPushButton("Multiple folders")
         self.patient_inclusion_layout.addWidget(self.include_single_patient_folder_pushbutton)
         self.patient_inclusion_layout.addWidget(self.include_multiple_patients_folder_pushbutton)
         self.patient_inclusion_layout.addStretch(1)
-        self.content_label_layout.addLayout(self.patient_inclusion_layout)
+        self.patient_inclusion_groupbox.setLayout(self.patient_inclusion_layout)
+        self.content_label_layout.addWidget(self.patient_inclusion_groupbox)
 
     def __set_batch_processing_part(self):
+        self.batch_processing_groupbox = QGroupBox()
+        self.batch_processing_groupbox.setTitle("Processing")
         self.batch_processing_layout = QHBoxLayout()
         self.batch_processing_segmentation_button = QPushButton("Segmentation")
         self.batch_processing_rads_button = QPushButton("Reporting")
         self.batch_processing_layout.addWidget(self.batch_processing_segmentation_button)
         self.batch_processing_layout.addWidget(self.batch_processing_rads_button)
-        self.content_label_layout.addLayout(self.batch_processing_layout)
+        self.batch_processing_groupbox.setLayout(self.batch_processing_layout)
+        self.content_label_layout.addWidget(self.batch_processing_groupbox)
+
+    def __set_progress_part(self):
+        self.processing_layout = QVBoxLayout()
+        self.processing_layout_text_display_layout = QHBoxLayout()
+        self.processing_layout_text_display_header_label = QLabel("Processing patient ")
+        self.processing_layout_text_display_header_label.setVisible(False)
+        self.processing_layout_text_display_label = QLabel()
+        self.processing_layout_text_display_label.setVisible(False)
+        self.processing_layout_text_display_layout.addWidget(self.processing_layout_text_display_header_label)
+        self.processing_layout_text_display_layout.addWidget(self.processing_layout_text_display_label)
+        self.processing_layout.addLayout(self.processing_layout_text_display_layout)
+        self.processing_progressbar = QProgressBar()
+        self.processing_progressbar.setVisible(False)
+        self.processing_layout.addWidget(self.processing_progressbar)
+        self.content_label_layout.addLayout(self.processing_layout)
 
     def __set_layout_dimensions(self):
-        self.patient_name_label.setFixedHeight(20)
+        self.study_name_label.setFixedHeight(20)
         self.study_name_lineedit.setFixedHeight(20)
         self.output_dir_label.setFixedHeight(20)
         self.output_dir_lineedit.setFixedHeight(20)
@@ -93,6 +114,12 @@ class SingleStudyWidget(QCollapsibleGroupBox):
         self.include_multiple_patients_folder_pushbutton.setFixedHeight(20)
 
         self.batch_processing_segmentation_button.setFixedHeight(20)
+        self.batch_processing_rads_button.setFixedHeight(20)
+
+        self.processing_layout_text_display_header_label.setFixedHeight(20)
+        self.processing_layout_text_display_label.setFixedHeight(20)
+        self.processing_progressbar.setFixedHeight(20)
+        self.processing_progressbar.setMinimumWidth(100)
 
     def __set_connections(self):
         self.study_name_lineedit.returnPressed.connect(self.__on_patient_name_modified)
@@ -106,8 +133,17 @@ class SingleStudyWidget(QCollapsibleGroupBox):
         self.batch_processing_segmentation_button.clicked.connect(self.__on_run_segmentation)
         self.batch_processing_rads_button.clicked.connect(self.__on_run_rads)
 
-    def __set_stylesheets(self):
+    def set_stylesheets(self, selected: bool) -> None:
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
+        font_color = software_ss["Color7"]
+        font_style = 'normal'
+        background_color = software_ss["Color5"]
+        pressed_background_color = software_ss["Color6"]
+        if selected:
+            background_color = software_ss["Color3"]
+            pressed_background_color = software_ss["Color4"]
+            font_style = 'bold'
+
         self.content_label.setStyleSheet("""
         QLabel{
         background-color: """ + software_ss["Color2"] + """;
@@ -115,11 +151,23 @@ class SingleStudyWidget(QCollapsibleGroupBox):
 
         self.header_pushbutton.setStyleSheet("""
         QPushButton{
-        background-color:rgba(254, 254, 254, 1);
-        font:bold;
+        background-color: """ + background_color + """;
+        font:""" + font_style + """;
+        font-size: 16px;
+        color: """ + software_ss["Color1"] + """;
+        text-align: left;
+        padding-left:40px;
+        }
+        QPushButton:checked{
+        background-color: """ + background_color + """;
+        font:""" + font_style + """;
+        font-size: 16px;
+        color: """ + software_ss["Color1"] + """;
+        text-align: left;
+        padding-left:40px;
         }""")
 
-        self.patient_name_label.setStyleSheet("""
+        self.study_name_label.setStyleSheet("""
         QLabel{
         color: """ + software_ss["Color7"] + """;
         text-align:left;
@@ -144,6 +192,36 @@ class SingleStudyWidget(QCollapsibleGroupBox):
         color: rgba(0, 0, 0, 1);
         font:semibold;
         font-size:14px;
+        }""")
+
+        self.patient_inclusion_groupbox.setStyleSheet("""
+        QGroupBox{
+        color: """ + software_ss["Color7"] + """;
+        font:normal;
+        font-size:13px;
+        }""")
+
+        self.batch_processing_groupbox.setStyleSheet("""
+        QGroupBox{
+        color: """ + software_ss["Color7"] + """;
+        font:normal;
+        font-size:13px;
+        }""")
+
+        self.processing_layout_text_display_header_label.setStyleSheet("""
+        QLabel{
+        color: """ + software_ss["Color7"] + """;
+        text-align:left;
+        font:normal;
+        font-size:13px;
+        }""")
+
+        self.processing_layout_text_display_label.setStyleSheet("""
+        QLabel{
+        color: """ + software_ss["Color7"] + """;
+        text-align:left;
+        font:normal;
+        font-size:13px;
         }""")
 
     def adjustSize(self):
@@ -177,6 +255,8 @@ class SingleStudyWidget(QCollapsibleGroupBox):
         study_parameters = SoftwareConfigResources.getInstance().study_parameters[study_uid]
         self.study_name_lineedit.setText(study_parameters.get_display_name())
         self.output_dir_lineedit.setText(os.path.dirname(study_parameters.get_output_study_folder()))
+        self.output_dir_lineedit.setCursorPosition(0)
+        self.output_dir_lineedit.home(True)
         self.title = study_parameters.get_display_name()
         self.header_pushbutton.setText(self.title)
 
@@ -203,6 +283,7 @@ class SingleStudyWidget(QCollapsibleGroupBox):
         elif diag.tumor_type == 'Metastasis':
             self.model_name = "MRI_Metastasis"
 
+        self.on_processing_started()
         self.batch_segmentation_requested.emit(self.uid, self.model_name)
 
     def __on_run_rads(self):
@@ -216,4 +297,26 @@ class SingleStudyWidget(QCollapsibleGroupBox):
         elif diag.tumor_type == 'Metastasis':
             self.model_name = "MRI_Metastasis"
 
+        self.on_processing_started()
         self.batch_rads_requested.emit(self.uid, self.model_name)
+
+    def on_processing_started(self):
+        nb_patients = SoftwareConfigResources.getInstance().study_parameters[self.uid].get_total_included_patients()
+        self.processing_progressbar.reset()
+        self.processing_progressbar.setMinimum(0)
+        self.processing_progressbar.setMaximum(nb_patients)
+        self.processing_progressbar.setValue(0)
+        self.processing_progressbar.setVisible(True)
+        self.processing_layout_text_display_header_label.setVisible(True)
+        self.processing_layout_text_display_label.setVisible(True)
+        self.processing_layout_text_display_label.setText("1/{}".format(nb_patients))
+
+    def on_processing_advanced(self):
+        self.processing_progressbar.setValue(self.processing_progressbar.value() + 1)
+        self.processing_layout_text_display_label.setText("{}/{}".format(self.processing_progressbar.value() + 1,
+                                                                         SoftwareConfigResources.getInstance().study_parameters[self.uid].get_total_included_patients()))
+
+    def on_processing_finished(self):
+        self.processing_progressbar.setVisible(False)
+        self.processing_layout_text_display_header_label.setVisible(False)
+        self.processing_layout_text_display_label.setVisible(False)

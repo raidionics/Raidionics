@@ -31,23 +31,58 @@ class PatientListingWidgetItem(QWidget):
         self.layout.setContentsMargins(0, 0, 0, 0)
 
         self.patient_uid_label = QLabel(SoftwareConfigResources.getInstance().patients_parameters[self.patient_uid].get_display_name())
-        self.patient_investigation_pushbutton = QPushButton("Check")
+        self.patient_investigation_pushbutton = QPushButton()
+        self.patient_investigation_pushbutton.setIcon(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                                         '../Images/jumpto-icon.png')))
+        self.patient_investigation_pushbutton.setToolTip("Press to visualize inspect the patient.")
         self.layout.addWidget(self.patient_uid_label)
         self.layout.addWidget(self.patient_investigation_pushbutton)
 
     def __set_layout_dimensions(self):
         self.patient_uid_label.setFixedHeight(30)
-        self.patient_investigation_pushbutton.setFixedHeight(30)
+        self.patient_investigation_pushbutton.setIconSize(QSize(28, 28))
+        self.patient_investigation_pushbutton.setFixedSize(QSize(30, 30))
 
     def __set_connections(self):
         self.patient_investigation_pushbutton.clicked.connect(self.__on_patient_investigation_clicked)
 
     def __set_stylesheets(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
+        font_color = software_ss["Color7"]
+        font_style = 'normal'
+        background_color = software_ss["Color5"]
+        pressed_background_color = software_ss["Color6"]
 
         self.setStyleSheet("""
-        QScrollArea{
-        background-color: """ + software_ss["Color2"] + """;
+        PatientListingWidgetItem{
+        background-color: """ + background_color + """;
+        border-style: solid;
+        border-width: 1px;
+        }""")
+
+        self.patient_investigation_pushbutton.setStyleSheet("""
+        QPushButton{
+        background-color: """ + background_color + """;
+        color: """ + font_color + """;
+        font: 12px;
+        border-style: none;
+        }
+        QPushButton::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        }
+        QPushButton:pressed{
+        border-style:inset;
+        background-color: """ + pressed_background_color + """;
+        }""")
+
+        self.patient_uid_label.setStyleSheet("""
+        QLabel{
+        color: """ + software_ss["Color7"] + """;
+        text-align:left;
+        font:normal;
+        font-size:13px;
         }""")
 
     def __on_patient_investigation_clicked(self):

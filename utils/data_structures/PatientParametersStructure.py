@@ -271,9 +271,10 @@ class PatientParameters:
                     else:
                         error_message = "Import atlas failed, for volume {}.\n".format(volume_id) + str(traceback.format_exc())
 
-            self._standardized_report_filename = os.path.join(self.output_folder, self._patient_parameters_dict["Parameters"]["Reporting"]["report_filename"])
-            with open(self._standardized_report_filename, 'r') as infile:
-                self._standardized_report = json.load(infile)
+            if self._patient_parameters_dict["Parameters"]["Reporting"]["report_filename"] != "":
+                self._standardized_report_filename = os.path.join(self.output_folder, self._patient_parameters_dict["Parameters"]["Reporting"]["report_filename"])
+                with open(self._standardized_report_filename, 'r') as infile:
+                    self._standardized_report = json.load(infile)
 
         except Exception:
             error_message = "Import patient failed, from {}.\n".format(os.path.basename(filename)) + str(traceback.format_exc())
@@ -392,6 +393,8 @@ class PatientParameters:
         self._patient_parameters_dict['Parameters']['Default']['last_editing_timestamp'] = self._last_editing_timestamp.strftime("%d/%m/%Y, %H:%M:%S")
         if self._standardized_report_filename and os.path.exists(self._standardized_report_filename):
             self._patient_parameters_dict['Parameters']['Reporting']['report_filename'] = os.path.relpath(self._standardized_report_filename, self.output_folder)
+        else:
+            self._patient_parameters_dict['Parameters']['Reporting']['report_filename'] = ""
 
         display_folder = os.path.join(self.output_folder, 'display')
         os.makedirs(display_folder, exist_ok=True)
