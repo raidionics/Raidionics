@@ -14,7 +14,7 @@ import json
 import logging
 from typing import Union, Any, Tuple, List
 from utils.patient_dicom import DICOMSeries
-from utils.data_structures.MRIVolumeStructure import MRIVolume
+from utils.data_structures.MRIVolumeStructure import MRIVolume, MRISequenceType
 from utils.data_structures.AnnotationStructure import AnnotationVolume
 from utils.data_structures.AtlasStructure import AtlasVolume
 from utils.utilities import input_file_category_disambiguation
@@ -278,6 +278,7 @@ class PatientParameters:
 
         except Exception:
             error_message = "Import patient failed, from {}.\n".format(os.path.basename(filename)) + str(traceback.format_exc())
+            logging.error(error_message)
         return error_message
 
     def import_data(self, filename: str, type: str = "MRI") -> Union[str, Any]:
@@ -319,6 +320,7 @@ class PatientParameters:
                                                                          parent_mri_uid=default_parent_mri_uid)
                 else:
                     error_message = "No MRI volume has been imported yet. Mandatory for importing an annotation."
+                    logging.error(error_message)
         except Exception as e:
             error_message = e
             logging.error(str(traceback.format_exc()))
@@ -431,6 +433,26 @@ class PatientParameters:
         for im in self.mri_volumes:
             if self.mri_volumes[im].get_display_name() == display_name:
                 return im
+        return res
+
+    def get_all_mri_volumes_for_sequence_type(self, sequence_type: MRISequenceType) -> List[str]:
+        """
+        Convenience method for collecting all MRI volumes with a specific sequence type.
+
+        Parameters
+        ----------
+        sequence_type : MRISequenceType
+            MRISequenceType (EnumType) to query MRI volumes from.
+
+        Returns
+        -------
+        List[str]
+            A list of unique identifiers for each MRI volume object associated with the given sequence type.
+        """
+        res = []
+        for im in self.mri_volumes:
+            if self.mri_volumes[im].get_sequence_type_enum() == sequence_type:
+                res.append(im)
         return res
 
     def get_all_annotations_for_mri(self, mri_volume_uid: str) -> List[str]:

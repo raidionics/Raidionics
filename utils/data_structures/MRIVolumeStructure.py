@@ -285,6 +285,8 @@ class MRIVolume:
         """
         # Scaling data to uint8
         image_res = deepcopy(self._resampled_input_volume)
+        image_res[image_res < self._contrast_window[0]] = self._contrast_window[0]
+        image_res[image_res > self._contrast_window[1]] = self._contrast_window[1]
         if (self._contrast_window[1] - self._contrast_window[0]) != 0:
             tmp = (image_res - self._contrast_window[0]) / (self._contrast_window[1] - self._contrast_window[0])
             image_res = tmp * 255.

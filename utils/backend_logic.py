@@ -12,6 +12,7 @@ import multiprocessing as mp
 from utils.software_config import SoftwareConfigResources
 from utils.models_download import download_model
 from segmentation.src.Utils.configuration_parser import generate_runtime_config
+from utils.data_structures.MRIVolumeStructure import MRISequenceType
 
 
 def segmentation_main_wrapper(model_name, patient_parameters):
@@ -32,7 +33,14 @@ def run_segmentation(model_name, patient_parameters, queue):
     # patient_parameters = args[1]
     results = {}
     try:
-        selected_mri_uid = list(patient_parameters.mri_volumes.keys())[0]  # @FIXME. Hack for now to see if batch process works.
+        # @TODO. Hack for now to see if batch process works, has to be better handled
+        eligible_mris = patient_parameters.get_all_mri_volumes_for_sequence_type(MRISequenceType.T1c)
+        if 'LGGlioma' in model_name:
+            eligible_mris = patient_parameters.get_all_mri_volumes_for_sequence_type(MRISequenceType.FLAIR)
+        if len(eligible_mris) == 0:
+            eligible_mris = list(patient_parameters.mri_volumes.keys())
+
+        selected_mri_uid = eligible_mris[0]
         download_model(model_name=model_name)
         seg_config = configparser.ConfigParser()
         seg_config.add_section('System')

@@ -1,4 +1,5 @@
 import logging
+import traceback
 
 from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QGridLayout, QDialog, QDialogButtonBox,\
     QComboBox, QPushButton, QScrollArea, QLineEdit, QFileDialog, QMessageBox, QProgressBar
@@ -168,15 +169,24 @@ class ImportDataQDialog(QDialog):
         annotations_selected = []
         raidionics_selected = []
         for f in selected_files:
-            ext = f.split('.')[-1]
-            if ext != SoftwareConfigResources.getInstance().accepted_scene_file_format[0]:
-                ft = input_file_category_disambiguation(input_filename=f)
-                if ft == "MRI":
-                    mris_selected.append(f)
+            try:
+                ext = f.split('.')[-1]
+                if ext != SoftwareConfigResources.getInstance().accepted_scene_file_format[0]:
+                    ft = input_file_category_disambiguation(input_filename=f)
+                    if ft == "MRI":
+                        mris_selected.append(f)
+                    else:
+                        annotations_selected.append(f)
                 else:
-                    annotations_selected.append(f)
-            else:
-                raidionics_selected.append(f)
+                    raidionics_selected.append(f)
+            except Exception:
+                diag = QMessageBox()
+                error_msg = 'Unable to determine volume category for: {}.\n'.format(f) + \
+                            'Try converting the file to nifti before attempting loading it again.\n\n' + \
+                            'Error message: {}\n'.format(traceback.format_exc())
+                logging.error(error_msg)
+                diag.setText(error_msg)
+                diag.exec_()
 
         for i, pf in enumerate(raidionics_selected):
             uid, error_msg = SoftwareConfigResources.getInstance().load_patient(pf)

@@ -94,6 +94,9 @@ class CentralAreaExecutionWidget(QLabel):
     def on_run_segmentation(self):
         diag = TumorTypeSelectionQDialog(self)
         code = diag.exec_()
+        if code == 0:  # Operation cancelled
+            return
+
         self.model_name = "MRI_Meningioma"
         if diag.tumor_type == 'High-Grade Glioma':
             self.model_name = "MRI_HGGlioma_P2"
@@ -230,6 +233,9 @@ class CentralAreaExecutionWidget(QLabel):
     def on_run_reporting(self):
         diag = TumorTypeSelectionQDialog(self)
         code = diag.exec_()
+        if code == 0:  # Operation cancelled
+            return
+
         self.model_name = "MRI_Meningioma"
         if diag.tumor_type == 'High-Grade Glioma':
             self.model_name = "MRI_HGGlioma_P2"

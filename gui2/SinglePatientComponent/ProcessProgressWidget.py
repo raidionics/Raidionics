@@ -10,6 +10,8 @@ class ProcessProgressWidget(QWidget):
 
     """
 
+    cancel_process_triggered = Signal()  # @TODO. How to actually kill the thread, since started in a wrapper with no handle on it?
+
     def __init__(self, parent=None):
         super(ProcessProgressWidget, self).__init__()
         self.parent = parent
@@ -41,6 +43,7 @@ class ProcessProgressWidget(QWidget):
 
     def __set_connections(self):
         self.process_monitoring_thread.message.connect(self.on_process_message)
+        self.cancel_process_pushbutton.clicked.connect(self.cancel_process_triggered)
 
     def on_process_started(self):
         self.processing_steps = None
