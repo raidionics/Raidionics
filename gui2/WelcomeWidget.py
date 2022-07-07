@@ -141,7 +141,7 @@ class WelcomeWidget(QWidget):
         self.top_logo_panel_label.setFixedSize(QSize(200, 50))
 
         ################################## LEFT PANEL ######################################
-        self.left_panel_welcome_label.setFixedSize(QSize(280, 30))
+        self.left_panel_welcome_label.setFixedSize(QSize(300, 30))
         self.left_panel_startby_label.setFixedSize(QSize(220, 30))
         self.left_panel_single_patient_pushbutton.setFixedSize(QSize(260, 50))
         self.left_panel_single_patient_pushbutton.setIconSize(QSize(50, 25))

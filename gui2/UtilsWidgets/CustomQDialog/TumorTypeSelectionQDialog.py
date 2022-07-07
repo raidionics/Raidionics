@@ -7,6 +7,7 @@ class TumorTypeSelectionQDialog(QDialog):
         super(TumorTypeSelectionQDialog, self).__init__(parent)
         self.base_layout = QGridLayout()
         self.select_tumor_type_label = QLabel('Tumor type')
+        self.select_tumor_type_label.setStyleSheet("""QLabel{background-color: rgba(248, 248, 248, 1);}""")
         self.base_layout.addWidget(self.select_tumor_type_label, 0, 0)
         self.select_tumor_type_combobox = QComboBox()
         self.select_tumor_type_combobox.addItems(["High-Grade Glioma", "Low-Grade Glioma", "Meningioma", "Metastasis"])

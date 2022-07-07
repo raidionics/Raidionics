@@ -182,6 +182,9 @@ class ImportDICOMDataQDialog(QDialog):
 
         self.current_folder = os.path.dirname(input_directory)
         self.dicom_holder = PatientDICOM(input_directory)
+        error_msg = self.dicom_holder.parse_dicom_folder()
+        if error_msg is not None:
+            diag = QMessageBox.warning(self, "DICOM parsing warnings", error_msg)
         self.__populate_dicom_browser()
 
     def __on_exit_accept_clicked(self):
@@ -292,7 +295,7 @@ class ImportDICOMDataQDialog(QDialog):
     def __on_display_metadata_triggered(self, series_index: int) -> None:
         # print("Metadata for row {}".format(series_index))
         study_id_item = self.content_study_tablewidget.item(self.content_study_tablewidget.currentRow(), 1)
-        diag = DisplayMetadataDICOMDialog(self.dicom_holder.studies[study_id_item.text()].dicom_series[self.content_series_tablewidget.item(series_index, 0).text()])
+        diag = DisplayMetadataDICOMDialog(self.dicom_holder.studies[study_id_item.text()].dicom_series[self.content_series_tablewidget.item(series_index, 0).text()].dicom_tags)
         diag.exec_()
 
     def __on_remove_selected_series_triggered(self, series_index: int) -> None:

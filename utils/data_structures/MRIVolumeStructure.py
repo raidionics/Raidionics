@@ -9,6 +9,7 @@ from typing import Union, Any
 import nibabel as nib
 from nibabel.processing import resample_to_output
 import numpy as np
+import json
 
 from utils.utilities import get_type_from_string, input_file_type_conversion
 
@@ -41,6 +42,7 @@ class MRIVolume:
     _resampled_input_volume = None  # np.ndarray with the raw intensity values from the display volume
     _resampled_input_volume_filepath = None  # Filepath for storing the aforementioned volume
     _dicom_metadata = None  # If the MRI series originate from a DICOM folder, the metadata tags are stored here
+    _dicom_metadata_filepath = None  # Filepath for storing the aforementioned DICOM metadata, if needed
     _contrast_window = [None, None]  # Min and max intensity values for the display of the current MRI volume
     _intensity_histogram = None  #
     _display_name = ""
@@ -161,6 +163,12 @@ class MRIVolume:
     def get_intensity_histogram(self):
         return self._intensity_histogram
 
+    def set_dicom_metadata(self, metadata: dict) -> None:
+        self._dicom_metadata = metadata
+
+    def get_dicom_metadata(self) -> dict:
+        return self._dicom_metadata
+
     def save(self) -> dict:
         """
 
@@ -179,6 +187,13 @@ class MRIVolume:
                 nib.save(nib.Nifti1Image(self._resampled_input_volume, affine=self._default_affine),
                          self._resampled_input_volume_filepath)
 
+            if not self._dicom_metadata is None:
+                self._dicom_metadata_filepath = os.path.join(self._output_patient_folder, 'display',
+                                                             self._unique_id + '_dicom_metadata.json')
+
+                with open(self._dicom_metadata_filepath, 'w') as outfile:
+                    json.dump(self._dicom_metadata, outfile, indent=4)
+
             # Parameters-filling operations
             volume_params = {}
             volume_params['display_name'] = self._display_name
@@ -190,6 +205,8 @@ class MRIVolume:
                                                                        self._output_patient_folder)
             volume_params['sequence_type'] = str(self._sequence_type)
             volume_params['contrast_window'] = str(self._contrast_window[0]) + ',' + str(self._contrast_window[1])
+            volume_params['dicom_metadata_filepath'] = os.path.relpath(self._dicom_metadata_filepath,
+                                                                       self._output_patient_folder)
             self._unsaved_changes = False
             return volume_params
         except Exception:
@@ -218,6 +235,8 @@ class MRIVolume:
         else:
             # Patient wasn't saved after loading, hence the volume was not stored on disk and must be recomputed
             self.__generate_display_volume()
+
+        # @TODO. Must include a reloading of the DICOM metadata, if they exist.
         self._display_volume_filepath = os.path.join(self._output_patient_folder, parameters['display_volume_filepath'])
         self._display_volume = nib.load(self._display_volume_filepath).get_data()[:]
         self._display_name = parameters['display_name']

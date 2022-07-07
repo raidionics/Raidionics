@@ -343,6 +343,8 @@ class PatientParameters:
         sitk.WriteImage(dicom_series.volume, ori_filename)
         logging.info("Converted DICOM import to {}".format(ori_filename))
         uid, error_msg = self.import_data(ori_filename, type="MRI")
+        if error_msg is None:
+            self.mri_volumes[uid].set_dicom_metadata(dicom_series.dicom_tags)
         return uid, error_msg
 
     def import_atlas_structures(self, filename: str, description: str = None,
@@ -432,6 +434,19 @@ class PatientParameters:
         return res
 
     def get_all_annotations_for_mri(self, mri_volume_uid: str) -> List[str]:
+        """
+        Convenience method for collecting all annotation objects linked to a specific MRI volume.
+
+        Parameters
+        ----------
+        mri_volume_uid : str
+            Unique id for the queried MRI volume object.
+
+        Returns
+        -------
+        List[str]
+            A list of unique identifiers for each annotation object associated with the given MRI volume.
+        """
         res = []
 
         for an in self.annotation_volumes:
@@ -446,4 +461,4 @@ class PatientParameters:
         """
         self.annotation_volumes[annotation_uid].delete()
         del self.annotation_volumes[annotation_uid]
-        logging.debug("Remove annotation {} for patient {}".format(annotation_uid, self._unique_id))
+        logging.debug("Removed annotation {} for patient {}".format(annotation_uid, self._unique_id))

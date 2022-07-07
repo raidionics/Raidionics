@@ -147,6 +147,8 @@ class ImportFoldersQDialog(QDialog):
         """
         Iterating over the list of selected folders and internally creating patient objects.
         """
+        # @TODO. Should check if there is a .raidionics file in the folder, and check if it is already loaded
+        # in the software, and if not loads it.
         widgets = (self.import_scrollarea_layout.itemAt(i) for i in range(self.import_scrollarea_layout.count() - 1))
 
         self.load_progressbar.reset()

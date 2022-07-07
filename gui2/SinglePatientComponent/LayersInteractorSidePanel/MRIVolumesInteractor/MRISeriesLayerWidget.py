@@ -6,6 +6,7 @@ import os
 import logging
 from gui2.UtilsWidgets.CustomQGroupBox.QCollapsibleGroupBox import QCollapsibleGroupBox
 from gui2.UtilsWidgets.CustomQDialog.ContrastAdjustmentDialog import ContrastAdjustmentDialog
+from gui2.UtilsWidgets.CustomQDialog.DisplayDICOMMetadataDialog import DisplayMetadataDICOMDialog
 
 from utils.software_config import SoftwareConfigResources
 from utils.data_structures.MRIVolumeStructure import MRISequenceType
@@ -59,7 +60,8 @@ class MRISeriesLayerWidget(QWidget):
         self.options_pushbutton.setContextMenuPolicy(Qt.CustomContextMenu)
         # create context menu
         self.options_menu = QMenu(self)
-        self.options_menu.addAction(QAction('DICOM Metadata', self))
+        self.options_menu_dicom_metadata = QAction('DICOM Metadata', self)
+        self.options_menu.addAction(self.options_menu_dicom_metadata)
         self.delete_layer_action = QAction('Delete', self)
         self.options_menu.addAction(self.delete_layer_action)
         self.options_menu.addSeparator()
@@ -110,6 +112,7 @@ class MRISeriesLayerWidget(QWidget):
         self.contrast_adjuster.contrast_intensity_changed.connect(self.on_contrast_changed)
 
         # self.delete_layer_action.triggered.connect(self.__on_delete_layer)
+        self.options_menu_dicom_metadata.triggered.connect(self.__on_display_dicom_metadata)
 
     def set_stylesheets(self, selected: bool):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
@@ -241,6 +244,15 @@ class MRISeriesLayerWidget(QWidget):
         code = diag.exec_()
         if code == 0:  # Deletion accepted
             pass
+
+    def __on_display_dicom_metadata(self):
+        dicom_tags = SoftwareConfigResources.getInstance().get_active_patient().mri_volumes[self.uid].get_dicom_metadata()
+        if dicom_tags is None:
+            box = QMessageBox.warning(self, "DICOM metadata", "No metadata is available for the current MRI volume",
+                                      QMessageBox.Ok)
+        else:
+            diag = DisplayMetadataDICOMDialog(dicom_tags)
+            diag.exec_()
 
     def update_interface_from_external_toggle(self, state):
         """

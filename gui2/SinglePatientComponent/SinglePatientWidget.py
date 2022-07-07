@@ -68,16 +68,19 @@ class SinglePatientWidget(QWidget):
         self.top_logo_panel_label_import_file_pushbutton = QPushButton("Data")
         self.top_logo_panel_label_import_file_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/upload_icon.png'))))
         self.top_logo_panel_label_import_file_pushbutton.setToolTip("Import single file(s) for the current patient.")
+        # self.top_logo_panel_label_import_file_pushbutton.setEnabled(False)
         self.top_logo_panel_layout.addWidget(self.top_logo_panel_label_import_file_pushbutton)
 
         self.top_logo_panel_label_import_dicom_pushbutton = QPushButton("DICOM")
         self.top_logo_panel_label_import_dicom_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/upload_icon.png'))))
         self.top_logo_panel_label_import_dicom_pushbutton.setToolTip("Import DICOM elements for the current patient.")
+        # self.top_logo_panel_label_import_dicom_pushbutton.setEnabled(False)
         self.top_logo_panel_layout.addWidget(self.top_logo_panel_label_import_dicom_pushbutton)
 
         self.top_logo_panel_label_save_pushbutton = QPushButton("Save")
         self.top_logo_panel_label_save_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/download_icon_black.png'))))
         self.top_logo_panel_label_save_pushbutton.setToolTip("Save the latest modifications for the current patient.")
+        # self.top_logo_panel_label_save_pushbutton.setEnabled(False)
         self.top_logo_panel_layout.addWidget(self.top_logo_panel_label_save_pushbutton)
 
         self.top_logo_panel_layout.addStretch(1)

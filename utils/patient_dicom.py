@@ -1,5 +1,8 @@
 import datetime
+import logging
 import os
+import traceback
+
 import SimpleITK as sitk
 
 
@@ -8,17 +11,41 @@ class PatientDICOM:
         self.dicom_folder = dicom_folder
         self.patient_id = None
         self.studies = {}
-        self.parse_dicom_folder()
 
     def parse_dicom_folder(self):
         """
         Initial parsing of a DICOM folder to retrieve the metadata and readers, to let the user choose which to import.
         """
+        error_msg = None
         patient_base_dicom = os.path.join(self.dicom_folder, 'DICOM')
 
         if not os.path.exists(patient_base_dicom):
-            print('No existing DICOM folder in {}'.format(self.dicom_folder))
-            return
+            logging.warning('No existing DICOM folder in {}.\n Treating folder as a single volume.'.format(self.dicom_folder))
+            try:
+                reader = sitk.ImageSeriesReader()
+                serie_names = reader.GetGDCMSeriesIDs(self.dicom_folder)
+
+                for s, serie in enumerate(serie_names):
+                    dicom_names = reader.GetGDCMSeriesFileNames(self.dicom_folder, serie)
+                    reader.SetFileNames(dicom_names)
+                    reader.LoadPrivateTagsOn()
+                    reader.SetMetaDataDictionaryArrayUpdate(True)
+                    dicom_series = DICOMSeries(reader)
+                    study_id = dicom_series.get_metadata_value('0020|0010')
+                    if study_id not in list(self.studies.keys()):
+                        self.studies[study_id] = DICOMStudy(study_id)
+                    self.studies[study_id].insert_series(dicom_series)
+
+                    # Filling the patient info as the iteration over the series goes.
+                    if self.patient_id is None and dicom_series.get_patient_id() is not None:
+                        self.patient_id = dicom_series.get_patient_id()
+
+            except Exception as e:
+                error_msg = """Provided folder does not contain any DICOM folder tree, nor can it be parsed as a
+                single MRI volume.\n Loading aborted with error:\n {}.""".format(traceback.format_exc())
+                logging.error(error_msg)
+                return error_msg
+            return error_msg
 
         main_dicom_dir = []
         for _, dirs, _ in os.walk(patient_base_dicom):
@@ -27,79 +54,92 @@ class PatientDICOM:
             break
 
         if len(main_dicom_dir) == 0:
-            return
+            error_msg = """Provided folder does not contain any proper DICOM folder hierarchy.\n 
+            Loading aborted."""
+            logging.error(error_msg)
+            return error_msg
 
-        main_dicom_investigations = []
-        main_dicom_order = 0
-        for mdd in main_dicom_dir:
-            main_dicom_order = main_dicom_order + 1
-            patient_base_main_dicom = os.path.join(patient_base_dicom, mdd)
-            timestamp_dicom_sub_dirs = []
-            for _, dirs, _ in os.walk(patient_base_main_dicom):
-                for name in dirs:
-                    timestamp_dicom_sub_dirs.append(name)
-                break
-
-            dicom_investigations = {}
-            # Iterating over each timestamp
-            ts_order = 0
-            for subdir in timestamp_dicom_sub_dirs:
-                ts_order = ts_order + 1
-                timestamp = None
-                investigations_for_timestamp = []
-                timestamp_base_main_dicom = os.path.join(patient_base_main_dicom, subdir)
-                sub_dir = []
-                for _, dirs, _ in os.walk(timestamp_base_main_dicom):
+        try:
+            main_dicom_investigations = []
+            main_dicom_order = 0
+            for mdd in main_dicom_dir:
+                main_dicom_order = main_dicom_order + 1
+                patient_base_main_dicom = os.path.join(patient_base_dicom, mdd)
+                timestamp_dicom_sub_dirs = []
+                for _, dirs, _ in os.walk(patient_base_main_dicom):
                     for name in dirs:
-                        sub_dir.append(name)
+                        timestamp_dicom_sub_dirs.append(name)
                     break
 
-                timestamp_base_main_dicom = os.path.join(timestamp_base_main_dicom, sub_dir[0])
-                investigation_dirs = []
-                for _, dirs, _ in os.walk(timestamp_base_main_dicom):
-                    for name in dirs:
-                        investigation_dirs.append(name)
-                    break
+                dicom_investigations = {}
+                # Iterating over each timestamp
+                ts_order = 0
+                for subdir in timestamp_dicom_sub_dirs:
+                    ts_order = ts_order + 1
+                    timestamp = None
+                    investigations_for_timestamp = []
+                    timestamp_base_main_dicom = os.path.join(patient_base_main_dicom, subdir)
+                    sub_dir = []
+                    for _, dirs, _ in os.walk(timestamp_base_main_dicom):
+                        for name in dirs:
+                            sub_dir.append(name)
+                        break
 
-                # Collecting each investigation for the current <patient, timestamp>
-                for inv in investigation_dirs:
-                    try:
-                        current_dicom_investigation_path = os.path.join(timestamp_base_main_dicom, inv)
-                        reader = sitk.ImageSeriesReader()
-                        serie_names = reader.GetGDCMSeriesIDs(current_dicom_investigation_path)
+                    timestamp_base_main_dicom = os.path.join(timestamp_base_main_dicom, sub_dir[0])
+                    investigation_dirs = []
+                    for _, dirs, _ in os.walk(timestamp_base_main_dicom):
+                        for name in dirs:
+                            investigation_dirs.append(name)
+                        break
 
-                        # dicom_names = reader.GetGDCMSeriesFileNames(current_dicom_investigation_path, useSeriesDetails=True)
-                        # tmp_data = Path(current_dicom_investigation_path)
-                        # tmp_dicom_names = list(tmp_data.glob('*'))
-                        # dicom_names_set = [dicom_names]
-                        # if len(tmp_dicom_names) > len(dicom_names):
-                        #     dicom_names_set = [[str(x) for x in tmp_dicom_names[:len(dicom_names)]],
-                        #                        [str(x) for x in tmp_dicom_names[len(dicom_names):]]]
-                        #     print('Nested images into one DICOM sub-folder......')
+                    # Collecting each investigation for the current <patient, timestamp>
+                    for inv in investigation_dirs:
+                        try:
+                            current_dicom_investigation_path = os.path.join(timestamp_base_main_dicom, inv)
+                            reader = sitk.ImageSeriesReader()
+                            serie_names = reader.GetGDCMSeriesIDs(current_dicom_investigation_path)
 
-                        for s, serie in enumerate(serie_names):
-                            dicom_names = reader.GetGDCMSeriesFileNames(current_dicom_investigation_path, serie)
-                            reader.SetFileNames(dicom_names)
-                            reader.LoadPrivateTagsOn()
-                            reader.SetMetaDataDictionaryArrayUpdate(True)
-                            dicom_series = DICOMSeries(reader)
-                            study_id = dicom_series.get_metadata_value('0020|0010')
-                            if study_id not in list(self.studies.keys()):
-                                self.studies[study_id] = DICOMStudy(study_id)
-                            self.studies[study_id].insert_series(dicom_series)
+                            # dicom_names = reader.GetGDCMSeriesFileNames(current_dicom_investigation_path, useSeriesDetails=True)
+                            # tmp_data = Path(current_dicom_investigation_path)
+                            # tmp_dicom_names = list(tmp_data.glob('*'))
+                            # dicom_names_set = [dicom_names]
+                            # if len(tmp_dicom_names) > len(dicom_names):
+                            #     dicom_names_set = [[str(x) for x in tmp_dicom_names[:len(dicom_names)]],
+                            #                        [str(x) for x in tmp_dicom_names[len(dicom_names):]]]
+                            #     print('Nested images into one DICOM sub-folder......')
 
-                            # Filling the patient info as the iteration over the series goes.
-                            if self.patient_id is None and dicom_series.get_patient_id() is not None:
-                                self.patient_id = dicom_series.get_patient_id()
+                            for s, serie in enumerate(serie_names):
+                                dicom_names = reader.GetGDCMSeriesFileNames(current_dicom_investigation_path, serie)
+                                reader.SetFileNames(dicom_names)
+                                reader.LoadPrivateTagsOn()
+                                reader.SetMetaDataDictionaryArrayUpdate(True)
+                                dicom_series = DICOMSeries(reader)
+                                study_id = dicom_series.get_metadata_value('0020|0010')
+                                if study_id not in list(self.studies.keys()):
+                                    self.studies[study_id] = DICOMStudy(study_id)
+                                self.studies[study_id].insert_series(dicom_series)
 
-                    except Exception as e:
-                        # print('Patient {}, could not process DICOM'.format(uid))
-                        continue
+                                # Filling the patient info as the iteration over the series goes.
+                                if self.patient_id is None and dicom_series.get_patient_id() is not None:
+                                    self.patient_id = dicom_series.get_patient_id()
 
-            #     dicom_investigations[ts_order] = investigations_for_timestamp
-            # main_dicom_investigations.append(dicom_investigations)
-        # return main_dicom_investigations
-        return
+                        except Exception as e:
+                            # @TODO. Would have to couple the message to a code int, because an exception here is not
+                            # critical.
+                            # curr_msg = """DICOM Series reading error with:\n {}""".format(traceback.format_exc())
+                            # logging.warning(curr_msg)
+                            # if error_msg is None:
+                            #     error_msg = curr_msg
+                            # else:
+                            #     error_msg = error_msg + curr_msg
+                            continue
+        except Exception as e:
+            error_msg = """Provided DICOM could not be processed.\n 
+            Encountered issue: {}.""".format(traceback.format_exc())
+            logging.error(error_msg)
+            return error_msg
+
+        return error_msg
 
 
 class DICOMStudy():

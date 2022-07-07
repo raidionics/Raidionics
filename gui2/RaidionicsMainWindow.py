@@ -157,6 +157,7 @@ class RaidionicsMainWindow(QMainWindow):
         self.__cross_widgets_connections()
 
     def __set_inner_widget_connections(self):
+        self.community_action.triggered.connect(self.__on_community_action_triggered)
         self.about_action.triggered.connect(self.__on_about_action_triggered)
         self.help_action.triggered.connect(self.__on_help_action_triggered)
 
