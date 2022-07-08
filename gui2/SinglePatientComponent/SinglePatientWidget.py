@@ -68,19 +68,19 @@ class SinglePatientWidget(QWidget):
         self.top_logo_panel_label_import_file_pushbutton = QPushButton("Data")
         self.top_logo_panel_label_import_file_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/upload_icon.png'))))
         self.top_logo_panel_label_import_file_pushbutton.setToolTip("Import single file(s) for the current patient.")
-        # self.top_logo_panel_label_import_file_pushbutton.setEnabled(False)
+        self.top_logo_panel_label_import_file_pushbutton.setEnabled(False)
         self.top_logo_panel_layout.addWidget(self.top_logo_panel_label_import_file_pushbutton)
 
         self.top_logo_panel_label_import_dicom_pushbutton = QPushButton("DICOM")
         self.top_logo_panel_label_import_dicom_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/upload_icon.png'))))
         self.top_logo_panel_label_import_dicom_pushbutton.setToolTip("Import DICOM elements for the current patient.")
-        # self.top_logo_panel_label_import_dicom_pushbutton.setEnabled(False)
+        self.top_logo_panel_label_import_dicom_pushbutton.setEnabled(False)
         self.top_logo_panel_layout.addWidget(self.top_logo_panel_label_import_dicom_pushbutton)
 
         self.top_logo_panel_label_save_pushbutton = QPushButton("Save")
         self.top_logo_panel_label_save_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/download_icon_black.png'))))
         self.top_logo_panel_label_save_pushbutton.setToolTip("Save the latest modifications for the current patient.")
-        # self.top_logo_panel_label_save_pushbutton.setEnabled(False)
+        self.top_logo_panel_label_save_pushbutton.setEnabled(False)
         self.top_logo_panel_layout.addWidget(self.top_logo_panel_label_save_pushbutton)
 
         self.top_logo_panel_layout.addStretch(1)
@@ -110,6 +110,7 @@ class SinglePatientWidget(QWidget):
         self.top_logo_panel_label_import_file_pushbutton.clicked.connect(self.__on_import_file_clicked)
         self.top_logo_panel_label_import_dicom_pushbutton.clicked.connect(self.__on_import_dicom_clicked)
         self.top_logo_panel_label_save_pushbutton.clicked.connect(self.__on_save_clicked)
+        self.results_panel.patient_selected.connect(self.__on_patient_selected)
         self.__set_cross_connections()
 
     def __set_cross_connections(self):
@@ -192,7 +193,15 @@ class SinglePatientWidget(QWidget):
     def __on_save_clicked(self):
         SoftwareConfigResources.getInstance().patients_parameters[SoftwareConfigResources.getInstance().active_patient_name].save_patient()
 
+    def __on_patient_selected(self, patient_uid):
+        # @TODO. Quick dirty hack, should not have to set the flag everytime a patient is selected, but only once.
+        # To be fixed.
+        self.top_logo_panel_label_import_file_pushbutton.setEnabled(True)
+        self.top_logo_panel_label_import_dicom_pushbutton.setEnabled(True)
+        self.top_logo_panel_label_save_pushbutton.setEnabled(True)
+
     def on_patient_selected(self, patient_name):
+        # @TODO. Most likely deprecated and to be removed
         self.results_panel.on_external_patient_selection(patient_name)
 
     def on_single_patient_clicked(self, patient_name):

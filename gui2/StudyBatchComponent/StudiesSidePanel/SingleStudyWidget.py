@@ -286,7 +286,7 @@ class SingleStudyWidget(QCollapsibleGroupBox):
         if input_directory == "":
             return
 
-        # import_patients_from_tree(input_directory)
+        import_patients_from_tree(input_directory)
 
     def __on_run_segmentation(self):
         diag = TumorTypeSelectionQDialog(self)

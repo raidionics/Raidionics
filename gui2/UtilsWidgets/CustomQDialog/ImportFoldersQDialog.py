@@ -266,7 +266,7 @@ class ImportFolderLineWidget(QWidget):
 
 def import_patients_from_tree(tree_path: str):
     folders_in_path = []
-    for _, dirs, _ in os.walk(folders_in_path):
+    for _, dirs, _ in os.walk(tree_path):
         for d in dirs:
             folders_in_path.append(d)
         break
