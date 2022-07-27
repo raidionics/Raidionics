@@ -6,9 +6,9 @@
 ![CI](https://github.com/dbouget/Raidionics/workflows/Build%20macOS/badge.svg?branch=master&event=push)
 
 Software to automatically segment brain tumors from pre-operative MRI scans, compute their characteristics (e.g., volume, location), and generate a standardized report.
-The software was introduced in the article "Brain tumor preoperative surgery imaging: models and software solutions for
-segmentation and standardized reporting", which has been accepted in [Frontiers in Neurology](https://www.frontiersin.org/journals/neurology).  
-Version 1.0 corresponds to the software as it was when the article was submitted, while version 1.1 is an improvement providing a more user-friendly graphical user interface.
+The software was introduced in the article [_"Brain tumor preoperative surgery imaging: models and software solutions for
+segmentation and standardized reporting"_](https://www.frontiersin.org/articles/10.3389/fneur.2022.932219/full), which was published in Frontiers in Neurology. The article is open access.
+Version 1.0 corresponds to the software as it was when the article was submitted, whereas version 1.1 is an improvement providing a more user-friendly graphical user interface.
 
 * Please visit the [wiki](https://github.com/dbouget/Raidionics/wiki) to know more about usage, use-cases, and access tutorials.  
 * For any issue, please report them [here](https://github.com/dbouget/Raidionics/issues).
@@ -29,13 +29,13 @@ These steps are only needed to do once:
 ## How to cite
 If you are using Raidionics in your research, please use the following citation:
 ```
-@misc{https://doi.org/10.48550/arxiv.2204.14199,
-title = {Preoperative brain tumor imaging: models and software for segmentation and standardized reporting},
-author = {Bouget, D. and Pedersen, A. and Jakola, A. S. and Kavouridis, V. and Emblem, K. E. and Eijgelaar, R. S. and Kommers, I. and Ardon, H. and Barkhof, F. and Bello, L. and Berger, M. S. and Nibali, M. C. and Furtner, J. and Hervey-Jumper, S. and Idema, A. J. S. and Kiesel, B. and Kloet, A. and Mandonnet, E. and Müller, D. M. J. and Robe, P. A. and Rossi, M. and Sciortino, T. and Brink, W. Van den and Wagemakers, M. and Widhalm, G. and Witte, M. G. and Zwinderman, A. H. and Hamer, P. C. De Witt and Solheim, O. and Reinertsen, I.},
-doi = {10.48550/ARXIV.2204.14199},
-url = {https://arxiv.org/abs/2204.14199},
-keywords = {Image and Video Processing (eess.IV), Computer Vision and Pattern Recognition (cs.CV), Machine Learning (cs.LG), FOS: Electrical engineering, electronic engineering, information engineering, FOS: Electrical engineering, electronic engineering, information engineering, FOS: Computer and information sciences, FOS: Computer and information sciences, I.4.6; J.3},
-publisher = {arXiv},
-year = {2022},
-copyright = {Creative Commons Attribution 4.0 International}}
+@article{10.3389/fneur.2022.932219,
+title={Preoperative Brain Tumor Imaging: Models and Software for Segmentation and Standardized Reporting},
+author={Bouget, David and Pedersen, André and Jakola, Asgeir S. and Kavouridis, Vasileios and Emblem, Kyrre E. and Eijgelaar, Roelant S. and Kommers, Ivar and Ardon, Hilko and Barkhof, Frederik and Bello, Lorenzo and Berger, Mitchel S. and Conti Nibali, Marco and Furtner, Julia and Hervey-Jumper, Shawn and Idema, Albert J. S. and Kiesel, Barbara and Kloet, Alfred and Mandonnet, Emmanuel and Müller, Domenique M. J. and Robe, Pierre A. and Rossi, Marco and Sciortino, Tommaso and Van den Brink, Wimar A. and Wagemakers, Michiel and Widhalm, Georg and Witte, Marnix G. and Zwinderman, Aeilko H. and De Witt Hamer, Philip C. and Solheim, Ole and Reinertsen, Ingerid},
+journal={Frontiers in Neurology},
+volume={13},
+year={2022},
+url={https://www.frontiersin.org/articles/10.3389/fneur.2022.932219},
+doi={10.3389/fneur.2022.932219},
+issn={1664-2295}}
 ```
