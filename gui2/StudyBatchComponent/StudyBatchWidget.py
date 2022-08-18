@@ -74,11 +74,11 @@ class StudyBatchWidget(QWidget):
         self.top_logo_panel_layout.setSpacing(5)
         self.top_logo_panel_label_import_file_pushbutton = QPushButton("Data")
         self.top_logo_panel_label_import_file_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/upload_icon.png'))))
-        self.top_logo_panel_layout.addWidget(self.top_logo_panel_label_import_file_pushbutton)
+        # self.top_logo_panel_layout.addWidget(self.top_logo_panel_label_import_file_pushbutton)
 
         self.top_logo_panel_label_import_dicom_pushbutton = QPushButton("DICOM")
         self.top_logo_panel_label_import_dicom_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/upload_icon.png'))))
-        self.top_logo_panel_layout.addWidget(self.top_logo_panel_label_import_dicom_pushbutton)
+        # self.top_logo_panel_layout.addWidget(self.top_logo_panel_label_import_dicom_pushbutton)
 
         self.top_logo_panel_label_save_pushbutton = QPushButton("Save")
         self.top_logo_panel_label_save_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/download_icon_black.png'))))
@@ -105,8 +105,6 @@ class StudyBatchWidget(QWidget):
         self.setStyleSheet("QWidget{font:11px;}")
 
     def __set_connections(self):
-        self.top_logo_panel_label_import_file_pushbutton.clicked.connect(self.__on_import_folder_clicked)
-        self.top_logo_panel_label_import_dicom_pushbutton.clicked.connect(self.__on_import_dicom_clicked)
         self.top_logo_panel_label_save_pushbutton.clicked.connect(self.__on_save_clicked)
         self.__set_cross_connections()
 
@@ -121,33 +119,15 @@ class StudyBatchWidget(QWidget):
         self.patient_listing_panel.patient_selected.connect(self.patient_selected)
 
         self.patient_name_edited.connect(self.patient_listing_panel.on_patient_name_edited)
+
         self.processing_advanced.connect(self.studies_panel.on_processing_advanced)
         self.processing_finished.connect(self.studies_panel.on_processing_finished)
 
     def get_widget_name(self):
         return self.widget_name
 
-    def __on_import_folder_clicked(self) -> None:
-        """
-
-        """
-        self.import_folder_dialog.reset()
-        code = self.import_folder_dialog.exec_()
-        # if code == QDialog.Accepted:
-        #     pass
-
-    def __on_import_dicom_clicked(self) -> None:
-        """
-
-        """
-        # @Behaviour. Do we reset the loader in case of DICOMs, might be worth to keep stuff in memory?
-        # self.import_dicom_dialog.reset()
-        code = self.import_dicom_dialog.exec_()
-        # if code == QDialog.Accepted:
-        #     self.import_data_triggered.emit()
-
     def __on_save_clicked(self):
-        pass
+        SoftwareConfigResources.getInstance().get_active_study().save()
 
     def on_process_started(self):
         # Not sure what is generic enough to be here, has to depend on whether segm or RADS, single patient update...

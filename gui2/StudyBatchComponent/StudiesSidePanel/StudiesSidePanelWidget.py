@@ -189,7 +189,7 @@ class StudiesSidePanelWidget(QWidget):
         pat_widget.mri_volume_imported.connect(self.mri_volume_imported)
         pat_widget.annotation_volume_imported.connect(self.annotation_volume_imported)
         pat_widget.patient_imported.connect(self.patient_imported)
-        pat_widget.batch_segmentation_requested.connect(self.batch_segmentation_requested)
+        pat_widget.batch_segmentation_requested.connect(self.on_batch_segmentation_requested)
         pat_widget.batch_rads_requested.connect(self.batch_rads_requested)
         self.adjustSize()
 
@@ -238,8 +238,13 @@ class StudiesSidePanelWidget(QWidget):
         self.on_add_new_empty_study()
         self.import_study_from_file_requested.emit()
 
+    def on_batch_segmentation_requested(self, study_id, model_name):
+        self.bottom_add_study_pushbutton.setEnabled(False)
+        self.batch_segmentation_requested.emit(study_id, model_name)
+
     def on_processing_advanced(self):
         self.single_study_widgets[SoftwareConfigResources.getInstance().active_study_name].on_processing_advanced()
 
     def on_processing_finished(self):
         self.single_study_widgets[SoftwareConfigResources.getInstance().active_study_name].on_processing_finished()
+        self.bottom_add_study_pushbutton.setEnabled(True)

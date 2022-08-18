@@ -205,8 +205,9 @@ class MRIVolume:
                                                                        self._output_patient_folder)
             volume_params['sequence_type'] = str(self._sequence_type)
             volume_params['contrast_window'] = str(self._contrast_window[0]) + ',' + str(self._contrast_window[1])
-            volume_params['dicom_metadata_filepath'] = os.path.relpath(self._dicom_metadata_filepath,
-                                                                       self._output_patient_folder)
+            if self._dicom_metadata_filepath:
+                volume_params['dicom_metadata_filepath'] = os.path.relpath(self._dicom_metadata_filepath,
+                                                                           self._output_patient_folder)
             self._unsaved_changes = False
             return volume_params
         except Exception:

@@ -4,26 +4,9 @@ import os
 import shutil
 import datetime
 import dateutil
+import json
 from copy import deepcopy
-from typing import Union, Any
-
-from utils.utilities import get_type_from_string, input_file_type_conversion
-
-
-# @unique
-# class MRISequenceType(Enum):
-#     """
-#
-#     """
-#     _init_ = 'value string'
-#
-#     T1w = 0, 'T1-w'  # T1-weighted sequence
-#     T1c = 1, 'T1-CE'  # Gd-enhanced T1-weighted sequence
-#     T2 = 2, 'T2'  # t2-tse sequence
-#     FLAIR = 3, 'FLAIR'  # FLAIR or t2-tirm sequences
-#
-#     def __str__(self):
-#         return self.string
+from typing import Union, Any, Tuple
 
 
 class StudyParameters:
@@ -34,37 +17,27 @@ class StudyParameters:
     _creation_timestamp = None  # Timestamp for recording when the patient was created
     _last_editing_timestamp = None  # Timestamp for recording when the patient was last modified
     _study_parameters_filename = ""  # Filename containing the saved study information
-    _study_parameters_json = {}  # Dict holding the information to be saved as json in the aforementioned file
-    _input_study_data_folder = ""
-    _output_study_folder = ""
+    _study_parameters = {}  # Dict holding the information to be saved as json in the aforementioned file
+    _output_study_directory = ""  # Root directory (user-selected home location) for storing all patients info
+    _output_study_folder = ""  # Complete folder location where the study info are stored
     _included_patients_uids = []  # List of internal unique identifiers for all the patients included in the study
     _display_name = ""  # Human-readable name for the study
     _unsaved_changes = False  # Documenting any change, for suggesting saving when exiting the software
 
-    def __init__(self, uid: str, reload_params: dict = None) -> None:
+    def __init__(self, uid: str, dest_location: str = None, reload_params: dict = None) -> None:
         """
 
         """
         self._unique_id = uid.replace(" ", '_').strip()
-        self._display_name = self._unique_id
-        self._creation_timestamp = datetime.datetime.now(tz=dateutil.tz.gettz(name='Europe/Oslo'))
-
-        # Initially, everything is dumped in the software temp place, until a destination is chosen by the user.
-        # Should we have a patient-named folder, so that the user only needs to choose the global destination directory
-        self.output_dir = os.path.join(os.path.expanduser("~"), '.raidionics')
-        os.makedirs(self.output_dir, exist_ok=True)
-
-        # By default, the temp_patient folder is created
-        self._output_study_folder = os.path.join(self.output_dir, "studies", "temp_study")
-        if os.path.exists(self._output_study_folder):
-            shutil.rmtree(self._output_study_folder)
-        os.makedirs(self._output_study_folder)
-        logging.info("Default output study directory set to: {}".format(self._output_study_folder))
 
         if reload_params:
-            self.__reload_from_disk(reload_params)
+            self._study_parameters = reload_params
+            self.__reload_from_disk()
         else:
-            self.__init_from_scratch()
+            if not dest_location:
+                logging.warning("Home folder location for new study creation is None.")
+                dest_location = os.path.join(os.path.expanduser('~'), '.raidionics')
+            self.__init_from_scratch(dest_location)
 
     def __init_json_config(self):
         """
@@ -72,11 +45,11 @@ class StudyParameters:
         a custom file with the specific extension.
         """
         self._study_parameters_filename = os.path.join(self._output_study_folder, self._display_name.strip().lower().replace(" ", "_") + '_study.sraidionics')
-        self._study_parameters_json = {}
-        self._study_parameters_json['Parameters'] = {}
-        self._study_parameters_json['Parameters']['Default'] = {}
-        self._study_parameters_json['Parameters']['Default']['uid'] = self._unique_id
-        self._study_parameters_json['Parameters']['Default']['visible_name'] = self._display_name
+        self._study_parameters['Default'] = {}
+        self._study_parameters['Default']['unique_id'] = self._unique_id
+        self._study_parameters['Default']['display_name'] = self._display_name
+        self._study_parameters['Default']['creation_timestamp'] = self._creation_timestamp.strftime("%d/%m/%Y, %H:%M:%S")
+        self._study_parameters['Study'] = {}
 
     def load_in_memory(self) -> None:
         # @TODO. Does it mean including all patients of this study inside the list in SinglePatientSidePanel?
@@ -95,14 +68,51 @@ class StudyParameters:
     def get_display_name(self) -> str:
         return self._display_name
 
-    def set_display_name(self, text: str) -> None:
-        # @TODO. Do we have a check that the new is "valid", in the sense there is not already a folder with the same
-        # name in the output directory? If so, we should return a succeeded/failed boolean.
-        self._display_name = text
-        self._unsaved_changes = True
+    def set_display_name(self, new_name: str, manual_change: bool = True) -> Tuple[int, str]:
+        """
+        Edit to the display name for the current study, which does not alter its unique_uid.
+        The use of an additional boolean parameter is needed to prevent updating the unsaved_changes state when
+        a random new name is given upon creation. Only a user-triggered edition to the visible name should
+        warrant the unsaved_changes status to become True.
+
+        Parameters
+        ----------
+        new_name : str
+            Name to be given to the current study.
+        manual_change : bool
+            Indication whether the modification has been triggered by the user (True) or the system (False)
+
+        Returns
+        -------
+        Tuple[int, str]
+            The first element is the code indicating success (0) or failure (1) of the operation. The second element
+            is a human-readable string describing the problem encountered, if any, otherwise is empty.
+        """
+        # Removing spaces to prevent potential issues in folder name/access when performing disk IO operations
+        new_output_folder = os.path.join(self._output_study_directory, "studies", new_name.strip().lower().replace(" ", '_'))
+        if os.path.exists(new_output_folder):
+            msg = """A study with requested name already exists in the destination folder.\n
+            Requested name: [{}].\n
+            Destination folder: [{}].""".format(new_name, os.path.dirname(self._output_folder))
+            return 1, msg
+        else:
+            self._display_name = new_name.strip()
+            shutil.move(src=self._output_study_folder, dst=new_output_folder, copy_function=shutil.copytree)
+            self._output_study_folder = new_output_folder
+
+            logging.info("Renamed current study destination folder to: {}".format(self._output_study_folder))
+            if manual_change:
+                self._unsaved_changes = True
+            return 0, ""
 
     def set_output_study_folder(self, output_folder: str) -> None:
-        self._output_study_folder = output_folder
+        new_output_folder = os.path.join(output_folder, "studies", self._display_name.strip().lower().replace(" ", '_'))
+        if os.path.exists(new_output_folder):
+            # @TODO.
+            pass
+        shutil.move(src=self._output_study_folder, dst=new_output_folder, copy_function=shutil.copytree)
+        logging.info("Renamed current study output directory to: {}".format(new_output_folder))
+        self._output_study_folder = new_output_folder
 
     def get_output_study_folder(self) -> str:
         return self._output_study_folder
@@ -116,21 +126,47 @@ class StudyParameters:
     def include_study_patient(self, uid: str) -> int:
         if uid not in self._included_patients_uids:
             self._included_patients_uids.append(uid)
+            self._unsaved_changes = True
             return 0
         else:
             return 1
 
-    def save(self) -> dict:
-        # Iterating over each patient to save its content.
-
+    def save(self) -> None:
         # Saving the study-specific parameters.
-        study_params = {}
-        study_params['display_name'] = self._display_name
-        self._unsaved_changes = False
-        return study_params
+        self._last_editing_timestamp = datetime.datetime.now(tz=dateutil.tz.gettz(name='Europe/Oslo'))
+        self._study_parameters_filename = os.path.join(self._output_study_folder, self._display_name.strip().lower().replace(" ", "_") + '_study.sraidionics')
+        self._study_parameters['Default']['unique_id'] = self._unique_id
+        self._study_parameters['Default']['display_name'] = self._display_name
+        self._study_parameters['Default']['creation_timestamp'] = self._creation_timestamp.strftime("%d/%m/%Y, %H:%M:%S")
+        self._study_parameters['Default']['last_editing_timestamp'] = self._last_editing_timestamp.strftime("%d/%m/%Y, %H:%M:%S")
+        self._study_parameters['Study']['Patients'] = ','.join(self._included_patients_uids)
 
-    def __init_from_scratch(self) -> None:
+        # Saving the json file last, as it must be populated from the previous dumps beforehand
+        with open(self._study_parameters_filename, 'w') as outfile:
+            json.dump(self._study_parameters, outfile, indent=4, sort_keys=True)
+        logging.info("Saving study parameters in: {}".format(self._study_parameters_filename))
+        self._unsaved_changes = False
+
+    def __init_from_scratch(self, dest_location: str) -> None:
+        self._display_name = self._unique_id
+        self._creation_timestamp = datetime.datetime.now(tz=dateutil.tz.gettz(name='Europe/Oslo'))
+
+        self._output_study_directory = dest_location
+        self._output_study_folder = os.path.join(dest_location,
+                                                 "studies", self._display_name.strip().lower().replace(" ", '_'))
+        # @TODO. How to deal with existing folder locations, if any?
+        os.makedirs(self._output_study_folder, exist_ok=True)
+        logging.info("Output study directory set to: {}".format(self._output_study_folder))
         self.__init_json_config()
 
-    def __reload_from_disk(self, parameters: dict) -> None:
-        self._display_name = parameters['display_name']
+    def __reload_from_disk(self) -> None:
+        # @TODO. Have to include the dir/folder.
+        self._unique_id = self._study_parameters["Default"]["unique_id"]
+        self._display_name = self._study_parameters["Default"]["display_name"]
+        if 'creation_timestamp' in self._study_parameters["Default"].keys():
+            self._creation_timestamp = datetime.datetime.strptime(
+                self._study_parameters["Default"]['creation_timestamp'], "%d/%m/%Y, %H:%M:%S")
+        if 'last_editing_timestamp' in self._study_parameters["Default"].keys():
+            self._last_editing_timestamp = datetime.datetime.strptime(
+                self._study_parameters["Default"]['last_editing_timestamp'], "%d/%m/%Y, %H:%M:%S")
+        self._included_patients_uids = self._study_parameters['Study']['Patients'].split(',')

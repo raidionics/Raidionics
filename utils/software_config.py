@@ -8,6 +8,7 @@ from typing import Union, Any
 import names
 from PySide2.QtCore import QSize
 import logging
+import json
 
 from utils.data_structures.PatientParametersStructure import PatientParameters
 from utils.data_structures.StudyParametersStructure import StudyParameters
@@ -19,6 +20,11 @@ class SoftwareConfigResources:
     located.
     """
     __instance = None
+    _software_home_location = None  # Main dump location for the software elements (e.g., models, runtime log)
+    _user_home_location = None  # Main dump location for patients/studies on disk.
+    _user_preferences_filename = None  # json file containing the user preferences (for when reopening the software).
+    _active_model_update = False  # True for regularly checking if new models are available, False otherwise
+    _session_log_filename = None  # log filename containing the runtime logging for each software execution.
 
     @staticmethod
     def getInstance():
@@ -37,13 +43,13 @@ class SoftwareConfigResources:
 
     def __setup(self):
         # @TODO. The default storing place should be /home/user/raidionics, having a dot might be annoying for some.
-        default_location = os.path.join(expanduser('~'), '.raidionics')
-        if not os.path.exists(default_location):
-            os.makedirs(default_location)
-        self.session_log_filename = os.path.join(expanduser('~'), '.raidionics', 'session_log.log')
+        self._software_home_location = os.path.join(expanduser('~'), '.raidionics')
+        if not os.path.exists(self._software_home_location):
+            os.makedirs(self._software_home_location)
+        self._user_home_location = self._software_home_location
+        self._user_preferences_filename = os.path.join(expanduser('~'), '.raidionics', 'raidionics_preferences.json')
+        self._session_log_filename = os.path.join(expanduser('~'), '.raidionics', 'session_log.log')
         self.models_path = os.path.join(expanduser('~'), '.raidionics', 'resources', 'models')
-        self.config_filename = os.path.join(expanduser("~"), '.raidionics', 'raidionics_config.ini')
-        self.config = None
         self.optimal_dimensions = QSize(1440, 1024)  # Figma project dimensions
         if platform.system() == 'Windows':
             self.optimal_dimensions = QSize(1440, 974)  # Minor decrease because of the bottom menu bar...
@@ -55,16 +61,26 @@ class SoftwareConfigResources:
 
         self.__set_default_values()
         self.__set_default_stylesheet_components()
-        if os.path.exists(self.config_filename):
-            self.config = configparser.ConfigParser()
-            self.config.read(self.config_filename)
-            self.__parse_config()
+        if os.path.exists(self._user_preferences_filename):
+            self.__parse_user_preferences()
+        else:
+            self.__save_user_preferences_file()
 
     def __set_default_values(self):
         self.patients_parameters = {}  # Storing open patients with a key (name) and a class instance
         self.active_patient_name = None  # ID of the patient currently displayed in the single mode?
         self.study_parameters = {}  # Storing open studies with a key and a class instance
         self.active_study_name = None  # ID of the study currently opened in the batch study mode
+
+    def __save_user_preferences_file(self):
+        preferences = {}
+        preferences['System'] = {}
+        preferences['System']['user_home_location'] = self._user_home_location
+        preferences['Models'] = {}
+        preferences['Models']['active_update'] = self._active_model_update
+
+        with open(self._user_preferences_filename, 'w') as outfile:
+            json.dump(preferences, outfile, indent=4, sort_keys=True)
 
     def __set_default_stylesheet_components(self):
         self.stylesheet_components = {}
@@ -76,8 +92,45 @@ class SoftwareConfigResources:
         self.stylesheet_components["Color6"] = "rgba(214, 214, 214, 1)"  # Darker almost white (when pressed)
         self.stylesheet_components["Color7"] = "rgba(67, 88, 90, 1)"
 
-    def __parse_config(self):
-        pass
+    def __parse_user_preferences(self):
+        with open(self._user_preferences_filename, 'r') as infile:
+            preferences = json.load(infile)
+
+        self._user_home_location = preferences['System']['user_home_location']
+        if 'Models' in preferences.keys():
+            if 'active_update' in preferences['Models'].keys():
+                self._active_model_update = preferences['Models']['active_update']
+
+    def get_session_log_filename(self):
+        return self._session_log_filename
+
+    def get_user_home_location(self) -> str:
+        return self._user_home_location
+
+    def set_user_home_location(self, directory: str) -> None:
+        """
+        Update the default location where all created patients and studies will be stored on disk.
+        ...
+
+        Parameters
+        ----------
+        directory : str
+            The full filepath to the root place where to save data in the future
+        Returns
+        ----------
+
+        """
+        logging.info("User home location changed from {} to {}.\n".format(self._user_home_location, directory))
+        self._user_home_location = directory
+        self.__save_user_preferences_file()
+
+    def get_active_model_check_status(self) -> bool:
+        return self._active_model_update
+
+    def set_active_model_check_status(self, status):
+        logging.info("Active model checking set to {}.\n".format(status))
+        self._active_model_update = status
+        self.__save_user_preferences_file()
 
     def add_new_empty_patient(self, active: bool = True) -> Union[str, Any]:
         """
@@ -94,7 +147,8 @@ class SoftwareConfigResources:
                 if patient_uid not in list(self.patients_parameters.keys()):
                     non_available_uid = False
 
-            self.patients_parameters[patient_uid] = PatientParameters(id=patient_uid)
+            self.patients_parameters[patient_uid] = PatientParameters(id=patient_uid,
+                                                                      dest_location=self._user_home_location)
             random_name = names.get_full_name()
             self.patients_parameters[patient_uid].set_display_name(random_name, manual_change=False)
             if active:
@@ -125,6 +179,9 @@ class SoftwareConfigResources:
         # To prevent the save changes dialog to pop-up straight up after loading a patient scene file.
         patient_instance.set_unsaved_changes_state(False)
         patient_id = patient_instance.get_unique_id()
+        if patient_id in self.patients_parameters.keys():
+            # @TODO. The random unique key number is encountered twice, have to randomize it again.
+            error_message = error_message + '\nImport patient failed, unique id already exists.\n'
         self.patients_parameters[patient_id] = patient_instance
         if active:
             # Doing the following rather than set_active_patient(), to avoid the overhead of doing memory release/load.
@@ -182,7 +239,7 @@ class SoftwareConfigResources:
                 if study_uid not in list(self.study_parameters.keys()):
                     non_available_uid = False
 
-            self.study_parameters[study_uid] = StudyParameters(uid=study_uid)
+            self.study_parameters[study_uid] = StudyParameters(uid=study_uid, dest_location=self._user_home_location)
             # random_name = names.get_full_name()
             # self.study_parameters[study_uid].set_visible_name(random_name, manual_change=False)
             self.set_active_study(study_uid)

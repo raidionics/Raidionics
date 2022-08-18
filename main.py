@@ -55,7 +55,7 @@ def main(argv):
             task = arg
     try:
         from utils.software_config import SoftwareConfigResources
-        logging.basicConfig(filename=SoftwareConfigResources.getInstance().session_log_filename, filemode='w')  # stream=sys.stdout
+        logging.basicConfig(filename=SoftwareConfigResources.getInstance().get_session_log_filename(), filemode='w')  # stream=sys.stdout
         logging.getLogger().setLevel(logging.DEBUG)
         if gui_usage == 1:
             app = QApplication(sys.argv)

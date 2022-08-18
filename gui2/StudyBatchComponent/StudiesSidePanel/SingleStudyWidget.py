@@ -19,6 +19,8 @@ class SingleStudyWidget(QCollapsibleGroupBox):
     patient_imported = Signal(str)
     batch_segmentation_requested = Signal(str, str)  # Unique id of the current study instance, and model name
     batch_rads_requested = Signal(str, str)  # Unique id of the current study instance, and model name
+    patient_import_started = Signal(str)
+    patient_import_finished = Signal(str)
     resizeRequested = Signal()
 
     def __init__(self, uid, parent=None):
@@ -46,7 +48,7 @@ class SingleStudyWidget(QCollapsibleGroupBox):
         self.content_label_layout.addStretch(1)
 
     def __set_system_part(self):
-        self.study_name_label = QLabel("Name (ID) ")
+        self.study_name_label = QLabel("Name ")
         self.study_name_lineedit = QLineEdit()
         self.study_name_lineedit.setAlignment(Qt.AlignRight)
         self.study_name_layout = QHBoxLayout()
@@ -58,6 +60,8 @@ class SingleStudyWidget(QCollapsibleGroupBox):
         self.output_dir_label = QLabel("Location ")
         self.output_dir_lineedit = QLineEdit()
         self.output_dir_lineedit.setAlignment(Qt.AlignRight)
+        self.output_dir_lineedit.setReadOnly(True)
+        self.output_dir_lineedit.setToolTip("The location must be changed globally in the menu Settings >> Preferences.")
         self.output_dir_layout = QHBoxLayout()
         self.output_dir_layout.setContentsMargins(20, 0, 20, 0)
         self.output_dir_layout.addWidget(self.output_dir_label)
@@ -67,15 +71,35 @@ class SingleStudyWidget(QCollapsibleGroupBox):
     def __set_patient_inclusion_part(self):
         self.patient_inclusion_groupbox = QGroupBox()
         self.patient_inclusion_groupbox.setTitle("Data inclusion")
-        self.patient_inclusion_layout = QHBoxLayout()
+        self.patient_inclusion_layout = QVBoxLayout()
         self.patient_inclusion_layout.setSpacing(0)
         self.patient_inclusion_layout.setContentsMargins(20, 0, 20, 0)
         self.patient_inclusion_layout.addStretch(1)
-        self.include_single_patient_folder_pushbutton = QPushButton("Single folder(s)")
-        self.include_multiple_patients_folder_pushbutton = QPushButton("Folder tree")
-        self.include_multiple_patients_folder_pushbutton.setEnabled(False)
-        self.patient_inclusion_layout.addWidget(self.include_single_patient_folder_pushbutton)
-        self.patient_inclusion_layout.addWidget(self.include_multiple_patients_folder_pushbutton)
+        self.patient_folder_inclusion_layout = QHBoxLayout()
+        self.include_single_patient_folder_pushbutton = QPushButton("Single")
+        self.include_single_patient_folder_pushbutton.setToolTip("For inclusion a (few) patients, each with a specific folder")
+        self.include_multiple_patients_folder_pushbutton = QPushButton("Cohort")
+        self.include_multiple_patients_folder_pushbutton.setToolTip("For including a large number of patients, all contained within a same top-folder.")
+        self.patient_folder_inclusion_layout.addWidget(self.include_single_patient_folder_pushbutton)
+        self.patient_folder_inclusion_layout.addWidget(self.include_multiple_patients_folder_pushbutton)
+        self.patient_folder_inclusion_layout.addStretch(1)
+        self.patient_inclusion_layout.addLayout(self.patient_folder_inclusion_layout)
+        self.patient_folder_dicom_inclusion_layout = QHBoxLayout()
+        self.include_single_dicom_patient_folder_pushbutton = QPushButton("Single DICOM")
+        self.include_single_dicom_patient_folder_pushbutton.setToolTip("For inclusion a (few) patients, each from a raw DICOM folder")
+        # self.include_single_dicom_patient_folder_pushbutton.setEnabled(False)
+        self.include_multiple_dicom_patients_folder_pushbutton = QPushButton("Cohort DICOM")
+        self.include_multiple_dicom_patients_folder_pushbutton.setToolTip("For including a large number of patients,"
+                                                                          " all contained inside their respective DICOM"
+                                                                          " folder, within a same top-folder.")
+        # self.include_multiple_dicom_patients_folder_pushbutton.setEnabled(False)
+        self.patient_folder_dicom_inclusion_layout.addWidget(self.include_single_dicom_patient_folder_pushbutton)
+        self.patient_folder_dicom_inclusion_layout.addWidget(self.include_multiple_dicom_patients_folder_pushbutton)
+        self.patient_folder_dicom_inclusion_layout.addStretch(1)
+        self.patient_inclusion_layout.addLayout(self.patient_folder_dicom_inclusion_layout)
+        self.patient_inclusion_progressbar = QProgressBar()
+        self.patient_inclusion_progressbar.setVisible(False)
+        self.patient_inclusion_layout.addWidget(self.patient_inclusion_progressbar)
         self.patient_inclusion_layout.addStretch(1)
         self.patient_inclusion_groupbox.setLayout(self.patient_inclusion_layout)
         self.content_label_layout.addWidget(self.patient_inclusion_groupbox)
@@ -84,6 +108,7 @@ class SingleStudyWidget(QCollapsibleGroupBox):
         self.batch_processing_groupbox = QGroupBox()
         self.batch_processing_groupbox.setTitle("Processing")
         self.batch_processing_layout = QHBoxLayout()
+        # @TODO. Push buttons should be disabled as long as the study does not contain any patient
         self.batch_processing_segmentation_button = QPushButton("Segmentation")
         self.batch_processing_rads_button = QPushButton("Reporting")
         self.batch_processing_layout.addWidget(self.batch_processing_segmentation_button)
@@ -127,6 +152,8 @@ class SingleStudyWidget(QCollapsibleGroupBox):
         self.study_name_lineedit.returnPressed.connect(self.__on_patient_name_modified)
         self.include_single_patient_folder_pushbutton.clicked.connect(self.__on_include_single_patient_folder_clicked)
         self.include_multiple_patients_folder_pushbutton.clicked.connect(self.__on_include_multiple_patients_folder_clicked)
+        self.include_single_dicom_patient_folder_pushbutton.clicked.connect(self.__on_include_single_dicom_patient_folder_clicked)
+        self.include_multiple_dicom_patients_folder_pushbutton.clicked.connect(self.__on_include_multiple_dicom_patients_folder_clicked)
 
         self.import_data_dialog.mri_volume_imported.connect(self.mri_volume_imported)
         self.import_data_dialog.annotation_volume_imported.connect(self.annotation_volume_imported)
@@ -234,10 +261,16 @@ class SingleStudyWidget(QCollapsibleGroupBox):
         self.resizeRequested.emit()
 
     def __on_patient_name_modified(self):
-        # @TODO. Have to check that the name does not already exist, otherwise it will conflict in the dict.
-        # SoftwareConfigResources.getInstance().update_active_patient_name(self.study_name_lineedit.text())
-        SoftwareConfigResources.getInstance().get_active_study().set_display_name(self.study_name_lineedit.text())
-        self.header_pushbutton.setText(self.study_name_lineedit.text())
+        code, err_msg = SoftwareConfigResources.getInstance().get_active_study().set_display_name(self.study_name_lineedit.text())
+        if code == 1:  # Operation failed
+            self.study_name_lineedit.blockSignals(True)
+            self.study_name_lineedit.setText(SoftwareConfigResources.getInstance().get_active_study().get_display_name())
+            self.study_name_lineedit.blockSignals(False)
+        else:
+            self.header_pushbutton.setText(self.study_name_lineedit.text())
+            self.output_dir_lineedit.setText(SoftwareConfigResources.getInstance().get_active_study().get_output_study_folder())
+            self.output_dir_lineedit.setCursorPosition(0)
+            self.output_dir_lineedit.home(True)
 
     def manual_header_pushbutton_clicked(self, state):
         # @TODO. Has to be a better way to trigger the state change in QCollapsibleGroupBox directly from
@@ -256,7 +289,7 @@ class SingleStudyWidget(QCollapsibleGroupBox):
     def populate_from_study(self, study_uid):
         study_parameters = SoftwareConfigResources.getInstance().study_parameters[study_uid]
         self.study_name_lineedit.setText(study_parameters.get_display_name())
-        self.output_dir_lineedit.setText(os.path.dirname(study_parameters.get_output_study_folder()))
+        self.output_dir_lineedit.setText(study_parameters.get_output_study_folder())
         self.output_dir_lineedit.setCursorPosition(0)
         self.output_dir_lineedit.home(True)
         self.title = study_parameters.get_display_name()
@@ -267,26 +300,25 @@ class SingleStudyWidget(QCollapsibleGroupBox):
 
         """
         self.import_data_dialog.reset()
+        self.import_data_dialog.set_parsing_mode('single')
         code = self.import_data_dialog.exec_()
         # if code == QDialog.Accepted:
         #     self.import_data_triggered.emit()
 
     def __on_include_multiple_patients_folder_clicked(self):
-        input_folder_filedialog = QFileDialog(self)
-        input_folder_filedialog.setWindowFlags(Qt.WindowStaysOnTopHint)
-        if "PYCHARM_HOSTED" in os.environ:
-            input_directory = input_folder_filedialog.getExistingDirectory(self, caption='Select input directory',
-                                                                           options=QFileDialog.DontUseNativeDialog |
-                                                                                   QFileDialog.ShowDirsOnly |
-                                                                                   QFileDialog.DontResolveSymlinks)
-        else:
-            input_directory = input_folder_filedialog.getExistingDirectory(self, caption='Select input directory',
-                                                                           options=QFileDialog.ShowDirsOnly |
-                                                                                   QFileDialog.DontResolveSymlinks)
-        if input_directory == "":
-            return
+        self.import_data_dialog.reset()
+        self.import_data_dialog.set_parsing_mode('multiple')
+        code = self.import_data_dialog.exec_()
 
-        import_patients_from_tree(input_directory)
+    def __on_include_single_dicom_patient_folder_clicked(self):
+        self.import_data_dialog.reset()
+        self.import_data_dialog.set_parsing_mode('single')
+        self.import_data_dialog.set_target_type('dicom')
+        code = self.import_data_dialog.exec_()
+        # if code == QDialog.Accepted:
+
+    def __on_include_multiple_dicom_patients_folder_clicked(self):
+        pass
 
     def __on_run_segmentation(self):
         diag = TumorTypeSelectionQDialog(self)
@@ -315,6 +347,20 @@ class SingleStudyWidget(QCollapsibleGroupBox):
 
         self.on_processing_started()
         self.batch_rads_requested.emit(self.uid, self.model_name)
+
+    def on_patients_loading_started(self):
+        self.include_single_patient_folder_pushbutton.setEnabled(False)
+        self.include_multiple_patients_folder_pushbutton.setEnabled(False)
+        self.batch_processing_segmentation_button.setEnabled(False)
+        self.batch_processing_rads_button.setEnabled(False)
+        self.patient_inclusion_progressbar.setVisible(True)
+
+    def on_patients_loading_finished(self):
+        self.include_single_patient_folder_pushbutton.setEnabled(True)
+        self.include_multiple_patients_folder_pushbutton.setEnabled(True)
+        self.batch_processing_segmentation_button.setEnabled(True)
+        self.batch_processing_rads_button.setEnabled(True)
+        self.patient_inclusion_progressbar.setVisible(False)
 
     def on_processing_started(self):
         nb_patients = SoftwareConfigResources.getInstance().study_parameters[self.uid].get_total_included_patients()

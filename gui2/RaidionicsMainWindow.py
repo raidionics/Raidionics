@@ -16,6 +16,7 @@ from gui2.WelcomeWidget import WelcomeWidget
 from gui2.SinglePatientComponent.SinglePatientWidget import SinglePatientWidget
 from gui2.StudyBatchComponent.StudyBatchWidget import StudyBatchWidget
 from gui2.UtilsWidgets.CustomQDialog.SavePatientChangesDialog import SavePatientChangesDialog
+from gui2.UtilsWidgets.CustomQDialog.SoftwareSettingsDialog import SoftwareSettingsDialog
 
 
 class WorkerThread(QThread):
@@ -93,10 +94,12 @@ class RaidionicsMainWindow(QMainWindow):
         self.mode_menu.addAction(self.batch_mode_action)
 
         self.settings_menu = self.menu_bar.addMenu('Settings')
-        self.settings_update_menu = self.settings_menu.addMenu("Update")
-        self.settings_update_models_menu = self.settings_update_menu.addMenu("Models")
-        self.settings_update_models_menu_active_action = QAction("Active checking", checkable=True)
-        self.settings_update_models_menu.addAction(self.settings_update_models_menu_active_action)
+        self.settings_preferences_action = QAction("Preferences", self)
+        self.settings_menu.addAction(self.settings_preferences_action)
+        # self.settings_update_menu = self.settings_menu.addMenu("Update")
+        # self.settings_update_models_menu = self.settings_update_menu.addMenu("Models")
+        # self.settings_update_models_menu_active_action = QAction("Active checking", checkable=True)
+        # self.settings_update_models_menu.addAction(self.settings_update_models_menu_active_action)
 
         self.help_menu = self.menu_bar.addMenu('Help')
         self.community_action = QAction(
@@ -184,6 +187,7 @@ class RaidionicsMainWindow(QMainWindow):
     def __set_menubar_connections(self):
         self.single_use_action.triggered.connect(self.__on_single_patient_clicked)
         self.batch_mode_action.triggered.connect(self.__on_study_batch_clicked)
+        self.settings_preferences_action.triggered.connect(self.__on_settings_preferences_clicked)
         self.quit_action.triggered.connect(sys.exit)
 
     def __get_screen_dimensions(self):
@@ -251,6 +255,10 @@ class RaidionicsMainWindow(QMainWindow):
             pass
         self.adjustSize()
 
+    def __on_settings_preferences_clicked(self):
+        diag = SoftwareSettingsDialog(self)
+        diag.exec_()
+
     def __on_patient_selected(self, patient_uid):
         self.__on_single_patient_clicked()
         self.single_patient_widget.on_patient_selected(patient_uid)
@@ -301,8 +309,8 @@ class RaidionicsMainWindow(QMainWindow):
         # opens browser with specified url, directs user to Issues section of GitHub repo
         QDesktopServices.openUrl(QUrl("https://github.com/dbouget/Raidionics/issues"))
 
-    def settings_update_models_menu_active_action_triggered(self, status):
-        RuntimeResources.getInstance().active_models_update_state = status
+    # def settings_update_models_menu_active_action_triggered(self, status):
+    #     RuntimeResources.getInstance().active_models_update_state = status
 
     def standardOutputWritten(self, text):
         """

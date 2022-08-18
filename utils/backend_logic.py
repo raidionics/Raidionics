@@ -47,13 +47,13 @@ def run_segmentation(model_name, patient_parameters, queue):
         seg_config.set('System', 'gpu_id', "-1")
         seg_config.set('System', 'input_filename',
                        patient_parameters.mri_volumes[selected_mri_uid].get_usable_input_filepath())
-        seg_config.set('System', 'output_folder', patient_parameters.output_folder)
+        seg_config.set('System', 'output_folder', patient_parameters.get_output_folder())
         seg_config.set('System', 'model_folder',
                        os.path.join(SoftwareConfigResources.getInstance().models_path, model_name))
         seg_config.add_section('Runtime')
         seg_config.set('Runtime', 'reconstruction_method', 'thresholding')
         seg_config.set('Runtime', 'reconstruction_order', 'resample_first')
-        seg_config_filename = os.path.join(patient_parameters.output_folder, 'seg_config.ini')
+        seg_config_filename = os.path.join(patient_parameters.get_output_folder(), 'seg_config.ini')
         with open(seg_config_filename, 'w') as outfile:
             seg_config.write(outfile)
 
@@ -66,18 +66,18 @@ def run_segmentation(model_name, patient_parameters, queue):
         #    logging.debug("Collecting results from multiprocess...")
         #    ret = result.get()[0]
 
-        seg_file = os.path.join(patient_parameters.output_folder, 'labels_Tumor.nii.gz')
-        shutil.move(seg_file, os.path.join(patient_parameters.output_folder, 'patient_tumor.nii.gz'))
-        data_uid, error_msg = patient_parameters.import_data(os.path.join(patient_parameters.output_folder,
+        seg_file = os.path.join(patient_parameters.get_output_folder(), 'labels_Tumor.nii.gz')
+        shutil.move(seg_file, os.path.join(patient_parameters.get_output_folder(), 'patient_tumor.nii.gz'))
+        data_uid, error_msg = patient_parameters.import_data(os.path.join(patient_parameters.get_output_folder(),
                                                                           'patient_tumor.nii.gz'), type='Annotation')
         patient_parameters.annotation_volumes[data_uid].set_annotation_class_type("Tumor")
         patient_parameters.annotation_volumes[data_uid].set_generation_type("Automatic")
         results['Annotation'] = [data_uid]
         # Check if a brain mask has been created, and include it if so.
-        seg_file = os.path.join(patient_parameters.output_folder, 'labels_Brain.nii.gz')
+        seg_file = os.path.join(patient_parameters.get_output_folder(), 'labels_Brain.nii.gz')
         if os.path.exists(seg_file):
-            shutil.move(seg_file, os.path.join(patient_parameters.output_folder, 'patient_brain.nii.gz'))
-            data_uid, error_msg = patient_parameters.import_data(os.path.join(patient_parameters.output_folder,
+            shutil.move(seg_file, os.path.join(patient_parameters.get_output_folder(), 'patient_brain.nii.gz'))
+            data_uid, error_msg = patient_parameters.import_data(os.path.join(patient_parameters.get_output_folder(),
                                                                               'patient_brain.nii.gz'), type='Annotation')
             patient_parameters.annotation_volumes[data_uid].set_annotation_class_type("Brain")
             patient_parameters.annotation_volumes[data_uid].set_generation_type("Automatic")
@@ -116,7 +116,7 @@ def run_reporting(model_name, patient_parameters, queue):
     results = {}  # Holder for all objects computed during the process, which have been added to the patient object
     try:
         download_model(model_name=model_name)
-        reporting_folder = os.path.join(patient_parameters.output_folder, 'reporting')
+        reporting_folder = os.path.join(patient_parameters.get_output_folder(), 'reporting')
         os.makedirs(reporting_folder, exist_ok=True)
         selected_mri_uid = list(patient_parameters.mri_volumes.keys())[0]  # @FIXME. Hack for now to see if batch process works.
         rads_config = configparser.ConfigParser()
@@ -137,7 +137,7 @@ def run_reporting(model_name, patient_parameters, queue):
         rads_config.set('Neuro', 'cortical_features', 'MNI, Schaefer7, Schaefer17, Harvard-Oxford')
         rads_config.set('Neuro', 'subcortical_features', 'BCB')
         #@TODO. Include filenames for brain and tumor segmentation if existing.
-        rads_config_filename = os.path.join(patient_parameters.output_folder, 'rads_config.ini')
+        rads_config_filename = os.path.join(patient_parameters.get_output_folder(), 'rads_config.ini')
         with open(rads_config_filename, 'w') as outfile:
             rads_config.write(outfile)
 
@@ -151,25 +151,25 @@ def run_reporting(model_name, patient_parameters, queue):
         #     ret = result.get()[0]
 
         # Collecting the automatic tumor and brain segmentations
-        seg_file = os.path.join(patient_parameters.output_folder, 'reporting', 'labels_Tumor.nii.gz')
-        shutil.move(seg_file, os.path.join(patient_parameters.output_folder, 'patient_tumor.nii.gz'))
-        data_uid, error_msg = patient_parameters.import_data(os.path.join(patient_parameters.output_folder,
+        seg_file = os.path.join(patient_parameters.get_output_folder(), 'reporting', 'labels_Tumor.nii.gz')
+        shutil.move(seg_file, os.path.join(patient_parameters.get_output_folder(), 'patient_tumor.nii.gz'))
+        data_uid, error_msg = patient_parameters.import_data(os.path.join(patient_parameters.get_output_folder(),
                                                                           'patient_tumor.nii.gz'), type='Annotation')
         patient_parameters.annotation_volumes[data_uid].set_annotation_class_type("Tumor")
         patient_parameters.annotation_volumes[data_uid].set_generation_type("Automatic")
         results['Annotation'] = [data_uid]
         # Check if a brain mask has been created, and include it if so.
-        seg_file = os.path.join(patient_parameters.output_folder, 'reporting', 'labels_Brain.nii.gz')
+        seg_file = os.path.join(patient_parameters.get_output_folder(), 'reporting', 'labels_Brain.nii.gz')
         if os.path.exists(seg_file):
-            shutil.move(seg_file, os.path.join(patient_parameters.output_folder, 'patient_brain.nii.gz'))
-            data_uid, error_msg = patient_parameters.import_data(os.path.join(patient_parameters.output_folder,
+            shutil.move(seg_file, os.path.join(patient_parameters.get_output_folder(), 'patient_brain.nii.gz'))
+            data_uid, error_msg = patient_parameters.import_data(os.path.join(patient_parameters.get_output_folder(),
                                                                               'patient_brain.nii.gz'), type='Annotation')
             patient_parameters.annotation_volumes[data_uid].set_annotation_class_type("Brain")
             patient_parameters.annotation_volumes[data_uid].set_generation_type("Automatic")
             results['Annotation'].append(data_uid)
 
         # Collecting the standardized report
-        report_filename = os.path.join(patient_parameters.output_folder, 'reporting',
+        report_filename = os.path.join(patient_parameters.get_output_folder(), 'reporting',
                                        'neuro_standardized_report.json')
         if os.path.exists(report_filename):  # Should always exist
             error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_standardized_report(report_filename)
@@ -177,7 +177,7 @@ def run_reporting(model_name, patient_parameters, queue):
 
         results['Atlas'] = []
         # Collecting the atlas cortical structures
-        cortical_folder = os.path.join(patient_parameters.output_folder, 'reporting', 'patient', 'Cortical-structures')
+        cortical_folder = os.path.join(patient_parameters.get_output_folder(), 'reporting', 'patient', 'Cortical-structures')
         cortical_masks = []
         for _, _, files in os.walk(cortical_folder):
             for f in files:
@@ -190,7 +190,7 @@ def run_reporting(model_name, patient_parameters, queue):
             results['Atlas'].append(data_uid)
 
         # Collecting the atlas subcortical structures
-        subcortical_folder = os.path.join(patient_parameters.output_folder, 'reporting', 'patient',
+        subcortical_folder = os.path.join(patient_parameters.get_output_folder(), 'reporting', 'patient',
                                           'Subcortical-structures')
 
         subcortical_masks = ['BCB_mask.nii.gz']  # @TODO. Hardcoded for now, have to improve the RADS backend here.

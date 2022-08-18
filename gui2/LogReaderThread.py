@@ -8,7 +8,7 @@ class LogReaderThread(QThread):
     message = Signal(str)
 
     def run(self) -> None:
-        logfile = open(SoftwareConfigResources.getInstance().session_log_filename, 'r')
+        logfile = open(SoftwareConfigResources.getInstance().get_session_log_filename(), 'r')
         newlines = self.follow(logfile)
         for l in newlines:
             self.write(l)

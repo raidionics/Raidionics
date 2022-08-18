@@ -59,13 +59,11 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.output_dir_lineedit = QLineEdit()
         self.output_dir_lineedit.setAlignment(Qt.AlignLeft)
         self.output_dir_lineedit.setReadOnly(True)
-        self.output_dir_modification_button = QPushButton('...')
+        self.output_dir_lineedit.setToolTip("The location must be changed globally in the menu Settings >> Preferences.")
         self.output_dir_layout = QHBoxLayout()
         self.output_dir_layout.setContentsMargins(20, 0, 20, 0)
         self.output_dir_layout.addWidget(self.output_dir_label)
         self.output_dir_layout.addWidget(self.output_dir_lineedit)
-        self.output_dir_layout.addWidget(self.output_dir_modification_button)
-        #self.default_collapsiblegroupbox.content_label_layout.addLayout(self.output_dir_layout)
         self.content_label_layout.addLayout(self.output_dir_layout)
 
     def __set_overall_part(self):
@@ -218,7 +216,6 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.patient_name_lineedit.setFixedHeight(20)
         self.output_dir_label.setFixedHeight(20)
         self.output_dir_lineedit.setFixedHeight(20)
-        self.output_dir_modification_button.setFixedSize(QSize(20, 20))
         # self.default_collapsiblegroupbox.content_label.setFixedHeight(40)
 
         self.tumor_found_header_label.setFixedHeight(20)
@@ -258,7 +255,6 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
 
     def __set_connections(self):
         self.patient_name_lineedit.returnPressed.connect(self.__on_patient_name_modified)
-        self.output_dir_modification_button.clicked.connect(self.__on_output_directory_modification_clicked)
         # self.header_pushbutton.clicked.connect(self.__on_header_pushbutton_clicked)
         self.default_collapsiblegroupbox.header_pushbutton.clicked.connect(self.adjustSize)
         self.overall_collapsiblegroupbox.header_pushbutton.clicked.connect(self.adjustSize)
@@ -534,34 +530,35 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         if code == 0:  # Name edition was successful
             self.header_pushbutton.setText(new_name)
             self.patient_name_edited.emit(self.uid, new_name)
+            self.output_dir_lineedit.setText(SoftwareConfigResources.getInstance().get_active_patient().get_output_folder())
         else:  # Requested name already exists, operation cancelled and user warned.
             self.patient_name_lineedit.setText(SoftwareConfigResources.getInstance().get_active_patient().get_display_name())
             diag = QErrorMessage(self)
             diag.setWindowTitle("Operation not permitted")
             diag.showMessage(msg)
 
-    def __on_output_directory_modification_clicked(self):
-        input_image_filedialog = QFileDialog(self)
-        input_image_filedialog.setWindowFlags(Qt.WindowStaysOnTopHint)
-        if "PYCHARM_HOSTED" in os.environ:
-            input_directory = input_image_filedialog.getExistingDirectory(self, caption='Select destination directory',
-                                                                          directory=self.tr(self.output_dir_lineedit.text()),
-                                                                          options=QFileDialog.DontUseNativeDialog |
-                                                                                  QFileDialog.ShowDirsOnly |
-                                                                                  QFileDialog.DontResolveSymlinks)
-        else:
-            input_directory = input_image_filedialog.getExistingDirectory(self, caption='Select destination directory',
-                                                                          directory=self.tr(self.output_dir_lineedit.text()),
-                                                                          options=QFileDialog.ShowDirsOnly |
-                                                                                  QFileDialog.DontResolveSymlinks)
-        if len(input_directory) == 0 or input_directory == "":
-            return
-
-        if len(input_directory) != 0 and input_directory != "":
-            self.output_dir_lineedit.setText(input_directory)
-            self.output_dir_lineedit.setCursorPosition(0)
-            self.output_dir_lineedit.home(True)
-            SoftwareConfigResources.getInstance().get_active_patient().set_output_directory(input_directory)
+    # def __on_output_directory_modification_clicked(self):
+    #     input_image_filedialog = QFileDialog(self)
+    #     input_image_filedialog.setWindowFlags(Qt.WindowStaysOnTopHint)
+    #     if "PYCHARM_HOSTED" in os.environ:
+    #         input_directory = input_image_filedialog.getExistingDirectory(self, caption='Select destination directory',
+    #                                                                       directory=self.tr(self.output_dir_lineedit.text()),
+    #                                                                       options=QFileDialog.DontUseNativeDialog |
+    #                                                                               QFileDialog.ShowDirsOnly |
+    #                                                                               QFileDialog.DontResolveSymlinks)
+    #     else:
+    #         input_directory = input_image_filedialog.getExistingDirectory(self, caption='Select destination directory',
+    #                                                                       directory=self.tr(self.output_dir_lineedit.text()),
+    #                                                                       options=QFileDialog.ShowDirsOnly |
+    #                                                                               QFileDialog.DontResolveSymlinks)
+    #     if len(input_directory) == 0 or input_directory == "":
+    #         return
+    #
+    #     if len(input_directory) != 0 and input_directory != "":
+    #         self.output_dir_lineedit.setText(input_directory)
+    #         self.output_dir_lineedit.setCursorPosition(0)
+    #         self.output_dir_lineedit.home(True)
+    #         SoftwareConfigResources.getInstance().get_active_patient().set_output_directory(input_directory)
 
     def manual_header_pushbutton_clicked(self, state):
         # @TODO. Has to be a better way to trigger the state change in QCollapsibleGroupBox directly from
@@ -580,7 +577,7 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
     def populate_from_patient(self, patient_uid):
         patient_parameters = SoftwareConfigResources.getInstance().patients_parameters[patient_uid]
         self.patient_name_lineedit.setText(patient_parameters.get_display_name())
-        self.output_dir_lineedit.setText(os.path.dirname(patient_parameters.output_folder))
+        self.output_dir_lineedit.setText(patient_parameters.get_output_folder())
         # The following is necessary for aligning the text to the left, using Qt.AlignLeft or stylesheets does not work.
         self.output_dir_lineedit.setCursorPosition(0)
         self.output_dir_lineedit.home(True)

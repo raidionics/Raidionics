@@ -128,29 +128,29 @@ class CentralAreaExecutionWidget(QLabel):
             seg_config.add_section('System')
             seg_config.set('System', 'gpu_id', "-1")
             seg_config.set('System', 'input_filename', current_patient_parameters.mri_volumes[self.selected_mri_uid].raw_filepath)
-            seg_config.set('System', 'output_folder', current_patient_parameters.output_folder)
+            seg_config.set('System', 'output_folder', current_patient_parameters.get_output_folder())
             seg_config.set('System', 'model_folder',
                            os.path.join(SoftwareConfigResources.getInstance().models_path, self.model_name))
             seg_config.add_section('Runtime')
             seg_config.set('Runtime', 'reconstruction_method', 'thresholding')
             seg_config.set('Runtime', 'reconstruction_order', 'resample_first')
-            seg_config_filename = os.path.join(current_patient_parameters.output_folder, 'seg_config.ini')
+            seg_config_filename = os.path.join(current_patient_parameters.get_output_folder(), 'seg_config.ini')
             with open(seg_config_filename, 'w') as outfile:
                 seg_config.write(outfile)
 
             subprocess.call([QCoreApplication.applicationDirPath() + './raidionicsseg_bin', seg_config_filename])
 
-            seg_file = os.path.join(current_patient_parameters.output_folder, 'labels_Tumor.nii.gz')
-            shutil.move(seg_file, os.path.join(current_patient_parameters.output_folder, 'patient_tumor.nii.gz'))
+            seg_file = os.path.join(current_patient_parameters.get_output_folder(), 'labels_Tumor.nii.gz')
+            shutil.move(seg_file, os.path.join(current_patient_parameters.get_output_folder(), 'patient_tumor.nii.gz'))
             data_uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_data(
-                os.path.join(current_patient_parameters.output_folder, 'patient_tumor.nii.gz'), type='Annotation')
+                os.path.join(current_patient_parameters.get_output_folder(), 'patient_tumor.nii.gz'), type='Annotation')
             self.annotation_volume_imported.emit(data_uid)
             # @TODO. Check if a brain mask has been created?
-            seg_file = os.path.join(current_patient_parameters.output_folder, 'labels_Brain.nii.gz')
+            seg_file = os.path.join(current_patient_parameters.get_output_folder(), 'labels_Brain.nii.gz')
             if os.path.exists(seg_file):
-                shutil.move(seg_file, os.path.join(current_patient_parameters.output_folder, 'patient_brain.nii.gz'))
+                shutil.move(seg_file, os.path.join(current_patient_parameters.get_output_folder(), 'patient_brain.nii.gz'))
                 data_uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_data(
-                    os.path.join(current_patient_parameters.output_folder, 'patient_brain.nii.gz'), type='Annotation')
+                    os.path.join(current_patient_parameters.get_output_folder(), 'patient_brain.nii.gz'), type='Annotation')
                 self.annotation_volume_imported.emit(data_uid)
         except Exception:
             print('{}'.format(traceback.format_exc()))
@@ -182,14 +182,14 @@ class CentralAreaExecutionWidget(QLabel):
             seg_config.set('System', 'gpu_id', "-1")
             seg_config.set('System', 'input_filename',
                            current_patient_parameters.mri_volumes[self.selected_mri_uid].get_usable_input_filepath())
-            seg_config.set('System', 'output_folder', current_patient_parameters.output_folder)
+            seg_config.set('System', 'output_folder', current_patient_parameters.get_output_folder())
             seg_config.set('System', 'model_folder',
                            os.path.join(SoftwareConfigResources.getInstance().models_path, self.model_name))
             seg_config.add_section('Runtime')
             seg_config.set('Runtime', 'reconstruction_method', 'thresholding')
             seg_config.set('Runtime', 'reconstruction_order', 'resample_first')
             # @TODO. Have to include the brain segmentation filename if it exists.
-            seg_config_filename = os.path.join(current_patient_parameters.output_folder, 'seg_config.ini')
+            seg_config_filename = os.path.join(current_patient_parameters.get_output_folder(), 'seg_config.ini')
             with open(seg_config_filename, 'w') as outfile:
                 seg_config.write(outfile)
 
@@ -202,17 +202,17 @@ class CentralAreaExecutionWidget(QLabel):
             #    logging.debug("Collecting results from multiprocess...")
             #    ret = result.get()[0]
 
-            seg_file = os.path.join(current_patient_parameters.output_folder, 'labels_Tumor.nii.gz')
-            shutil.move(seg_file, os.path.join(current_patient_parameters.output_folder, 'patient_tumor.nii.gz'))
+            seg_file = os.path.join(current_patient_parameters.get_output_folder(), 'labels_Tumor.nii.gz')
+            shutil.move(seg_file, os.path.join(current_patient_parameters.get_output_folder(), 'patient_tumor.nii.gz'))
             data_uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_data(
-                os.path.join(current_patient_parameters.output_folder, 'patient_tumor.nii.gz'), type='Annotation')
+                os.path.join(current_patient_parameters.get_output_folder(), 'patient_tumor.nii.gz'), type='Annotation')
             self.annotation_volume_imported.emit(data_uid)
             # @TODO. Check if a brain mask has been created?
-            seg_file = os.path.join(current_patient_parameters.output_folder, 'labels_Brain.nii.gz')
+            seg_file = os.path.join(current_patient_parameters.get_output_folder(), 'labels_Brain.nii.gz')
             if os.path.exists(seg_file):
-                shutil.move(seg_file, os.path.join(current_patient_parameters.output_folder, 'patient_brain.nii.gz'))
+                shutil.move(seg_file, os.path.join(current_patient_parameters.get_output_folder(), 'patient_brain.nii.gz'))
                 data_uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_data(
-                    os.path.join(current_patient_parameters.output_folder, 'patient_brain.nii.gz'), type='Annotation')
+                    os.path.join(current_patient_parameters.get_output_folder(), 'patient_brain.nii.gz'), type='Annotation')
                 self.annotation_volume_imported.emit(data_uid)
         except Exception:
             print('{}'.format(traceback.format_exc()))
@@ -267,7 +267,7 @@ class CentralAreaExecutionWidget(QLabel):
             download_model(model_name=self.model_name)
             current_patient_parameters = SoftwareConfigResources.getInstance().patients_parameters[
                 SoftwareConfigResources.getInstance().active_patient_name]
-            reporting_folder = os.path.join(current_patient_parameters.output_folder, 'reporting')
+            reporting_folder = os.path.join(current_patient_parameters.get_output_folder(), 'reporting')
             os.makedirs(reporting_folder, exist_ok=True)
             rads_config = configparser.ConfigParser()
             rads_config.add_section('Default')
@@ -283,7 +283,7 @@ class CentralAreaExecutionWidget(QLabel):
             rads_config.add_section('Runtime')
             rads_config.set('Runtime', 'reconstruction_method', 'thresholding')
             rads_config.set('Runtime', 'reconstruction_order', 'resample_first')
-            rads_config_filename = os.path.join(current_patient_parameters.output_folder, 'rads_config.ini')
+            rads_config_filename = os.path.join(current_patient_parameters.get_output_folder(), 'rads_config.ini')
             with open(rads_config_filename, 'w') as outfile:
                 rads_config.write(outfile)
 
@@ -315,7 +315,7 @@ class CentralAreaExecutionWidget(QLabel):
             download_model(model_name=self.model_name)
             current_patient_parameters = SoftwareConfigResources.getInstance().patients_parameters[
                 SoftwareConfigResources.getInstance().active_patient_name]
-            reporting_folder = os.path.join(current_patient_parameters.output_folder, 'reporting')
+            reporting_folder = os.path.join(current_patient_parameters.get_output_folder(), 'reporting')
             os.makedirs(reporting_folder, exist_ok=True)
             rads_config = configparser.ConfigParser()
             rads_config.add_section('Default')
@@ -335,7 +335,7 @@ class CentralAreaExecutionWidget(QLabel):
             rads_config.set('Neuro', 'cortical_features', 'MNI, Schaefer7, Schaefer17, Harvard-Oxford')
             rads_config.set('Neuro', 'subcortical_features', 'BCB')
             #@TODO. Include filenames for brain and tumor segmentation if existing.
-            rads_config_filename = os.path.join(current_patient_parameters.output_folder, 'rads_config.ini')
+            rads_config_filename = os.path.join(current_patient_parameters.get_output_folder(), 'rads_config.ini')
             with open(rads_config_filename, 'w') as outfile:
                 rads_config.write(outfile)
 
@@ -365,7 +365,7 @@ class CentralAreaExecutionWidget(QLabel):
 
     def __collect_reporting_outputs(self, current_patient_parameters):
         # Collecting the automatic tumor and brain segmentations
-        tumor_seg_file = os.path.join(current_patient_parameters.output_folder, 'reporting', 'patient',
+        tumor_seg_file = os.path.join(current_patient_parameters.get_output_folder(), 'reporting', 'patient',
                                       'input_tumor_mask.nii.gz')
         if os.path.exists(tumor_seg_file):  # Should always exist?
             data_uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_data(tumor_seg_file,
@@ -374,7 +374,7 @@ class CentralAreaExecutionWidget(QLabel):
             current_patient_parameters.annotation_volumes[data_uid].set_generation_type("Automatic")
             self.annotation_volume_imported.emit(data_uid)
 
-        brain_seg_file = os.path.join(current_patient_parameters.output_folder, 'reporting', 'patient',
+        brain_seg_file = os.path.join(current_patient_parameters.get_output_folder(), 'reporting', 'patient',
                                       'input_brain_mask.nii.gz')
         if os.path.exists(brain_seg_file):
             data_uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_data(brain_seg_file,
@@ -384,14 +384,14 @@ class CentralAreaExecutionWidget(QLabel):
             self.annotation_volume_imported.emit(data_uid)
 
         # Collecting the standardized report
-        report_filename = os.path.join(current_patient_parameters.output_folder, 'reporting',
+        report_filename = os.path.join(current_patient_parameters.get_output_folder(), 'reporting',
                                        'neuro_standardized_report.json')
         if os.path.exists(report_filename):  # Should always exist
             error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_standardized_report(report_filename)
         self.standardized_report_imported.emit()
 
         # Collecting the atlas cortical structures
-        cortical_folder = os.path.join(current_patient_parameters.output_folder, 'reporting', 'patient',
+        cortical_folder = os.path.join(current_patient_parameters.get_output_folder(), 'reporting', 'patient',
                                        'Cortical-structures')
         cortical_masks = []
         for _, _, files in os.walk(cortical_folder):
@@ -404,7 +404,7 @@ class CentralAreaExecutionWidget(QLabel):
             self.atlas_volume_imported.emit(data_uid)
 
         # Collecting the atlas subcortical structures
-        subcortical_folder = os.path.join(current_patient_parameters.output_folder, 'reporting', 'patient',
+        subcortical_folder = os.path.join(current_patient_parameters.get_output_folder(), 'reporting', 'patient',
                                           'Subcortical-structures')
 
         subcortical_masks = ['BCB_mask.nii.gz']  # @TODO. Hardcoded for now, have to improve the RADS backend here.

@@ -35,16 +35,25 @@ class PatientListingWidgetItem(QWidget):
         self.patient_investigation_pushbutton.setIcon(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                                          '../Images/jumpto-icon.png')))
         self.patient_investigation_pushbutton.setToolTip("Press to visualize inspect the patient.")
+        self.patient_remove_pushbutton = QPushButton()
+        self.patient_remove_pushbutton.setIcon(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                                         '../Images/trash-bin_icon.png')))
+        self.patient_remove_pushbutton.setToolTip("Press to remove the patient from the study.")
+        self.patient_remove_pushbutton.setEnabled(False)
         self.layout.addWidget(self.patient_uid_label)
         self.layout.addWidget(self.patient_investigation_pushbutton)
+        self.layout.addWidget(self.patient_remove_pushbutton)
 
     def __set_layout_dimensions(self):
         self.patient_uid_label.setFixedHeight(30)
         self.patient_investigation_pushbutton.setIconSize(QSize(28, 28))
         self.patient_investigation_pushbutton.setFixedSize(QSize(30, 30))
+        self.patient_remove_pushbutton.setIconSize(QSize(28, 28))
+        self.patient_remove_pushbutton.setFixedSize(QSize(30, 30))
 
     def __set_connections(self):
         self.patient_investigation_pushbutton.clicked.connect(self.__on_patient_investigation_clicked)
+        self.patient_remove_pushbutton.clicked.connect(self.__on_patient_remove_clicked)
 
     def __set_stylesheets(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
@@ -87,3 +96,6 @@ class PatientListingWidgetItem(QWidget):
 
     def __on_patient_investigation_clicked(self):
         self.patient_selected.emit(self.patient_uid)
+
+    def __on_patient_remove_clicked(self):
+        pass
