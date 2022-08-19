@@ -132,6 +132,9 @@ class SoftwareConfigResources:
         self._active_model_update = status
         self.__save_user_preferences_file()
 
+    def get_accepted_image_formats(self) -> list:
+        return self.accepted_image_format
+
     def add_new_empty_patient(self, active: bool = True) -> Union[str, Any]:
         """
         At startup a new empty patient is created by default. Otherwise, a new empty patient is created everytime
@@ -219,6 +222,20 @@ class SoftwareConfigResources:
         logging.debug("Active patient uid changed from {} to {}.".format(self.active_patient_name, patient_uid))
         return error_message
 
+    def is_patient_list_empty(self) -> bool:
+        """
+        Convenience method for knowing if the list of patients is empty or not.
+
+        Returns
+        ----------
+        bool
+            True if the list is empty, False otherwise.
+        """
+        if len(self.patients_parameters.keys()) == 0:
+            return True
+        else:
+            return False
+
     def get_active_patient(self) -> str:
         return self.patients_parameters[self.active_patient_name]
 
@@ -277,6 +294,12 @@ class SoftwareConfigResources:
             error_message = "Setting {} as active study failed, with {}.\n".format(os.path.basename(study_uid),
                                                                                    str(traceback.format_exc()))
         return error_message
+
+    def is_study_list_empty(self):
+        if len(self.study_parameters.keys()) == 0:
+            return True
+        else:
+            return False
 
     def get_active_study(self) -> str:
         return self.study_parameters[self.active_study_name]

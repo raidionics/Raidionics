@@ -27,7 +27,7 @@ class AtlasVolume:
     _visible_class_labels = []
     _class_number = 0
     _class_description = {}  # DataFrame containing a look-up-table between atlas labels and descriptive names
-    _class_description_filename = ""  #
+    _class_description_filename = None  #
     _class_display_color = {}
     _class_display_opacity = {}
     _default_affine = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]
@@ -163,8 +163,9 @@ class AtlasVolume:
                                                                        self._output_patient_folder)
             volume_params['display_volume_filepath'] = os.path.relpath(self._display_volume_filepath,
                                                                        self._output_patient_folder)
-            volume_params['description_filepath'] = os.path.relpath(self._class_description_filename,
-                                                                    self._output_patient_folder)
+            if self._class_description_filename:
+                volume_params['description_filepath'] = os.path.relpath(self._class_description_filename,
+                                                                        self._output_patient_folder)
             self._unsaved_changes = False
             return volume_params
         except Exception:
@@ -184,7 +185,7 @@ class AtlasVolume:
         self._visible_class_labels = list(np.unique(self._display_volume))
         self._class_number = len(self._visible_class_labels) - 1
         self._one_hot_display_volume = np.zeros(shape=(self._display_volume.shape + (self._class_number + 1,)),
-                                               dtype='uint8')
+                                                dtype='uint8')
 
         for c in range(1, self._class_number + 1):
             self._class_display_color[c] = [255, 255, 255, 255]

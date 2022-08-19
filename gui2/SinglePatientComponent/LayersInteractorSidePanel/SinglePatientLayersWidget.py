@@ -118,8 +118,18 @@ class SinglePatientLayersWidget(QWidget):
         # @TODO. Would have to check what is the actual data type to trigger the correct signal
         self.import_data_triggered.emit()
 
-    def on_patient_selected(self, patient_uid):
+    def on_patient_selected(self, patient_uid: str) -> None:
+        """
+        The active patient has been changed by the user. All displayed info in the widget are obsolete and should
+        be replaced by the ones attached to patient_uid.
+
+        Parameters
+        ----------
+        patient_uid : str
+            The unique identifier of the newly selected active patient.
+        """
         self.volumes_collapsiblegroupbox.reset()
         self.annotations_collapsiblegroupbox.reset()
+        self.atlases_collapsiblegroupbox.reset()
         # self.import_data_triggered.emit()
         self.patient_view_toggled.emit(patient_uid)

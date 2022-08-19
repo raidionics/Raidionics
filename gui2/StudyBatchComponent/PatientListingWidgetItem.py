@@ -13,6 +13,7 @@ class PatientListingWidgetItem(QWidget):
     """
 
     patient_selected = Signal(str)
+    patient_removed = Signal(str)
 
     def __init__(self, patient_uid: str, parent=None):
         super(PatientListingWidgetItem, self).__init__()
@@ -38,8 +39,8 @@ class PatientListingWidgetItem(QWidget):
         self.patient_remove_pushbutton = QPushButton()
         self.patient_remove_pushbutton.setIcon(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                                          '../Images/trash-bin_icon.png')))
-        self.patient_remove_pushbutton.setToolTip("Press to remove the patient from the study.")
-        self.patient_remove_pushbutton.setEnabled(False)
+        self.patient_remove_pushbutton.setToolTip("Press to remove the patient from the study (but retained on disk).")
+        # self.patient_remove_pushbutton.setEnabled(False)
         self.layout.addWidget(self.patient_uid_label)
         self.layout.addWidget(self.patient_investigation_pushbutton)
         self.layout.addWidget(self.patient_remove_pushbutton)
@@ -98,4 +99,7 @@ class PatientListingWidgetItem(QWidget):
         self.patient_selected.emit(self.patient_uid)
 
     def __on_patient_remove_clicked(self):
-        pass
+        code = SoftwareConfigResources.getInstance().get_active_study().remove_study_patient(self.patient_uid)
+        if code == 0:  # The patient is not in the study list (which should not happen), but somehow the widget exists.
+            logging.warning("Removing patient {} from study was requested, but patient is not in the study...")
+        self.patient_removed.emit(self.patient_uid)

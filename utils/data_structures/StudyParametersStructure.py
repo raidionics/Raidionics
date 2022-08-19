@@ -131,6 +131,14 @@ class StudyParameters:
         else:
             return 1
 
+    def remove_study_patient(self, uid: str) -> int:
+        if uid not in self._included_patients_uids:
+            return 0
+        else:
+            self._included_patients_uids.remove(uid)
+            self._unsaved_changes = True
+            return 1
+
     def save(self) -> None:
         # Saving the study-specific parameters.
         self._last_editing_timestamp = datetime.datetime.now(tz=dateutil.tz.gettz(name='Europe/Oslo'))

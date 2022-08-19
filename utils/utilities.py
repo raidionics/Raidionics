@@ -19,6 +19,21 @@ def get_type_from_string(enum_type: Enum, string: str) -> Union[str, int]:
 
 
 def input_file_category_disambiguation(input_filename: str) -> str:
+    """
+    Identifying whether the volume stored on disk under input_filename contains a raw MRI volume or is an integer-like
+    volume with labels.
+    The category belongs to [MRI, Annotation].
+
+    Parameters
+    ----------
+    input_filename: str
+        Disk location of the volume to disambiguate.
+
+    Returns
+    ----------
+    str
+        Human-readable category identified for the input.
+    """
     category = None
     reader = sitk.ImageFileReader()
     reader.SetFileName(input_filename)

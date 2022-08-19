@@ -572,6 +572,7 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
             self.header_pushbutton.setEnabled(False)
         else:
             self.header_pushbutton.setEnabled(True)
+        self.on_standardized_report_imported()  # Might not be the best way, should be a more generic on_patient_selection
         self.repaint()  # Not sure if the repaint is actually needed.
 
     def populate_from_patient(self, patient_uid):

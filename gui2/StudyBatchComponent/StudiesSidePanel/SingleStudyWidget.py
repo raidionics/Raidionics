@@ -77,7 +77,7 @@ class SingleStudyWidget(QCollapsibleGroupBox):
         self.patient_inclusion_layout.addStretch(1)
         self.patient_folder_inclusion_layout = QHBoxLayout()
         self.include_single_patient_folder_pushbutton = QPushButton("Single")
-        self.include_single_patient_folder_pushbutton.setToolTip("For inclusion a (few) patients, each with a specific folder")
+        self.include_single_patient_folder_pushbutton.setToolTip("For inclusion of a (few) patients, each with a specific folder")
         self.include_multiple_patients_folder_pushbutton = QPushButton("Cohort")
         self.include_multiple_patients_folder_pushbutton.setToolTip("For including a large number of patients, all contained within a same top-folder.")
         self.patient_folder_inclusion_layout.addWidget(self.include_single_patient_folder_pushbutton)
@@ -86,7 +86,8 @@ class SingleStudyWidget(QCollapsibleGroupBox):
         self.patient_inclusion_layout.addLayout(self.patient_folder_inclusion_layout)
         self.patient_folder_dicom_inclusion_layout = QHBoxLayout()
         self.include_single_dicom_patient_folder_pushbutton = QPushButton("Single DICOM")
-        self.include_single_dicom_patient_folder_pushbutton.setToolTip("For inclusion a (few) patients, each from a raw DICOM folder")
+        self.include_single_dicom_patient_folder_pushbutton.setToolTip("For inclusion of a (few) patients, each from"
+                                                                       " a raw DICOM folder")
         # self.include_single_dicom_patient_folder_pushbutton.setEnabled(False)
         self.include_multiple_dicom_patients_folder_pushbutton = QPushButton("Cohort DICOM")
         self.include_multiple_dicom_patients_folder_pushbutton.setToolTip("For including a large number of patients,"
@@ -318,7 +319,11 @@ class SingleStudyWidget(QCollapsibleGroupBox):
         # if code == QDialog.Accepted:
 
     def __on_include_multiple_dicom_patients_folder_clicked(self):
-        pass
+        self.import_data_dialog.reset()
+        self.import_data_dialog.set_parsing_mode('multiple')
+        self.import_data_dialog.set_target_type('dicom')
+        code = self.import_data_dialog.exec_()
+        # if code == QDialog.Accepted:
 
     def __on_run_segmentation(self):
         diag = TumorTypeSelectionQDialog(self)

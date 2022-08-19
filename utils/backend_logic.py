@@ -8,14 +8,30 @@ import subprocess
 import configparser
 import threading
 import shutil
+from typing import Any
 import multiprocessing as mp
 from utils.software_config import SoftwareConfigResources
 from utils.models_download import download_model
 from segmentation.src.Utils.configuration_parser import generate_runtime_config
 from utils.data_structures.MRIVolumeStructure import MRISequenceType
+from utils.data_structures.PatientParametersStructure import PatientParameters
 
 
-def segmentation_main_wrapper(model_name, patient_parameters):
+def segmentation_main_wrapper(model_name: str, patient_parameters: PatientParameters) -> Any:
+    """
+    Wrapper to launch the run_segmentation method inside its own thread, in order to avoid GUI freeze.
+
+    Parameters
+    ----------
+    model_name : str
+        The name of the segmentation model to use.
+    patient_parameters: PatientParameters
+        Patient instance placeholder.
+    Returns
+    -------
+    Any
+        Content gathered from the Queue, resulting from running the run_segmentation method.
+    """
     q = queue.Queue()  # Using the queue to collect the results from the segmentation method, back to the GUI.
     run_segmentation_thread = threading.Thread(target=run_segmentation, args=(model_name, patient_parameters, q,))
     run_segmentation_thread.daemon = True  # using daemon thread the thread is killed gracefully if program is abruptly closed
@@ -23,17 +39,37 @@ def segmentation_main_wrapper(model_name, patient_parameters):
     return q.get()
 
 
-def run_segmentation(model_name, patient_parameters, queue):
-    # @TODO. Have to include the brain segmentation filename to the config file, if it exists.
-    # @TODO2. How to disambiguate for all patient data which input MRI is the correct one for the model? Has
-    # to be supported in the rads or seg lib.
-    logging.info("Starting segmentation process for patient {}.".format(patient_parameters.get_unique_id()))
+def run_segmentation(model_name: str, patient_parameters: PatientParameters, queue: queue.Queue) -> None:
+    """
+    Call to the RADS backend for running the segmentation task. The runtime configuration file is generated
+    on-the-fly at each call.\n
+    The created Annotation objects are directly stored inside the patient_parameters placeholder, and a summary of the
+    annotation unique ids is stored in the 'results' variable. The summary and an execution code (0 or 1 indicating
+    failure or success) are stored inside the queue.\n
+    @TODO. Have to include the brain segmentation filename to the config file, if it exists.\n
+    @TODO2. How to disambiguate for all patient data which input MRI is the correct one for the model? Has
+    to be supported in the rads or seg lib.
+
+    Parameters
+    ----------
+    model_name : str
+        The name of the segmentation model to use.
+    patient_parameters: PatientParameters
+        Patient instance placeholder.
+    queue: queue.Queue
+        Placeholder for holding the results of the method
+    Returns
+    -------
+    None
+        The results are stored inside the queue rather than directly returned, since the method is expected to be
+        called from the wrapper.
+    """
+    logging.info("Starting segmentation process for patient {} using {}.".format(patient_parameters.get_unique_id(),
+                                                                                 model_name))
     seg_config_filename = ""
-    # model_name = args[0]
-    # patient_parameters = args[1]
     results = {}
     try:
-        # @TODO. Hack for now to see if batch process works, has to be better handled
+        # @TODO. Hack for now, using the first possible volume.
         eligible_mris = patient_parameters.get_all_mri_volumes_for_sequence_type(MRISequenceType.T1c)
         if 'LGGlioma' in model_name:
             eligible_mris = patient_parameters.get_all_mri_volumes_for_sequence_type(MRISequenceType.FLAIR)
@@ -42,6 +78,8 @@ def run_segmentation(model_name, patient_parameters, queue):
 
         selected_mri_uid = eligible_mris[0]
         download_model(model_name=model_name)
+
+        # Setting up the runtime configuration file, mandatory for the raidionics_seg lib.
         seg_config = configparser.ConfigParser()
         seg_config.add_section('System')
         seg_config.set('System', 'gpu_id', "-1")
@@ -57,6 +95,7 @@ def run_segmentation(model_name, patient_parameters, queue):
         with open(seg_config_filename, 'w') as outfile:
             seg_config.write(outfile)
 
+        # Execution call
         from raidionicsseg.fit import run_model
         run_model(seg_config_filename)
         # logging.debug("Spawning multiprocess...")
@@ -66,6 +105,7 @@ def run_segmentation(model_name, patient_parameters, queue):
         #    logging.debug("Collecting results from multiprocess...")
         #    ret = result.get()[0]
 
+        # Results collection, imported inside the patient placeholder.
         seg_file = os.path.join(patient_parameters.get_output_folder(), 'labels_Tumor.nii.gz')
         shutil.move(seg_file, os.path.join(patient_parameters.get_output_folder(), 'patient_tumor.nii.gz'))
         data_uid, error_msg = patient_parameters.import_data(os.path.join(patient_parameters.get_output_folder(),
@@ -73,7 +113,7 @@ def run_segmentation(model_name, patient_parameters, queue):
         patient_parameters.annotation_volumes[data_uid].set_annotation_class_type("Tumor")
         patient_parameters.annotation_volumes[data_uid].set_generation_type("Automatic")
         results['Annotation'] = [data_uid]
-        # Check if a brain mask has been created, and include it if so.
+
         seg_file = os.path.join(patient_parameters.get_output_folder(), 'labels_Brain.nii.gz')
         if os.path.exists(seg_file):
             shutil.move(seg_file, os.path.join(patient_parameters.get_output_folder(), 'patient_brain.nii.gz'))
@@ -109,6 +149,7 @@ def run_reporting(model_name, patient_parameters, queue):
     """
     Results of the standardized reporting will be stored inside a /reporting subfolder within the patient
     output folder.
+
     """
     logging.info("Starting RADS process.")
 
@@ -172,7 +213,7 @@ def run_reporting(model_name, patient_parameters, queue):
         report_filename = os.path.join(patient_parameters.get_output_folder(), 'reporting',
                                        'neuro_standardized_report.json')
         if os.path.exists(report_filename):  # Should always exist
-            error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_standardized_report(report_filename)
+            error_msg = patient_parameters.import_standardized_report(report_filename)
         results['Report'] = [report_filename]
 
         results['Atlas'] = []
@@ -185,8 +226,8 @@ def run_reporting(model_name, patient_parameters, queue):
             break
 
         for m in cortical_masks:
-            data_uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_atlas_structures(
-                os.path.join(cortical_folder, m), reference='Patient')
+            data_uid, error_msg = patient_parameters.import_atlas_structures(os.path.join(cortical_folder, m),
+                                                                             reference='Patient')
             results['Atlas'].append(data_uid)
 
         # Collecting the atlas subcortical structures
@@ -202,9 +243,10 @@ def run_reporting(model_name, patient_parameters, queue):
         #     break
 
         for m in subcortical_masks:
-            data_uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_atlas_structures(
-                os.path.join(subcortical_folder, m), reference='Patient')
-            results['Atlas'].append(data_uid)
+            if os.path.exists(os.path.join(subcortical_folder, m)):
+                data_uid, error_msg = patient_parameters.import_atlas_structures(os.path.join(subcortical_folder, m),
+                                                                                 reference='Patient')
+                results['Atlas'].append(data_uid)
 
     except Exception:
         logging.error('RADS for patient {}, using {} failed with: \n{}'.format(patient_parameters.get_unique_id(),

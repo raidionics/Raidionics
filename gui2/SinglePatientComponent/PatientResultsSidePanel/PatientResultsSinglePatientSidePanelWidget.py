@@ -205,8 +205,12 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         self.adjustSize()
 
     def on_external_patient_selection(self, patient_id):
+        """
+        When the patient selection has been requested from a module (e.g. study) outside the single-use mode.
+        """
         self.__on_patient_selection(True, patient_id)
         self.patient_results_widgets[patient_id].manual_header_pushbutton_clicked(True)
+        self.patient_results_widgets[patient_id].on_standardized_report_imported()  # Might not be the best way, should be a more generic on_patient_selection
         self.adjustSize()  # To trigger a proper redrawing after the previous call
 
     def __on_patient_selection(self, state, widget_id):

@@ -127,7 +127,9 @@ class StudyBatchWidget(QWidget):
         return self.widget_name
 
     def __on_save_clicked(self):
-        SoftwareConfigResources.getInstance().get_active_study().save()
+        # @TODO. The Save button should be enabled/disabled on-the-fly in the future.
+        if not SoftwareConfigResources.getInstance().is_study_list_empty():
+            SoftwareConfigResources.getInstance().get_active_study().save()
 
     def on_process_started(self):
         # Not sure what is generic enough to be here, has to depend on whether segm or RADS, single patient update...

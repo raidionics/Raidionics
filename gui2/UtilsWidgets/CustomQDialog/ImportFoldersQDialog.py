@@ -1,7 +1,8 @@
 import logging
 
 from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QGridLayout, QDialog, QDialogButtonBox,\
-    QComboBox, QPushButton, QScrollArea, QLineEdit, QFileDialog, QMessageBox, QProgressBar
+    QComboBox, QPushButton, QScrollArea, QLineEdit, QFileDialog, QMessageBox, QProgressBar, QListView, \
+    QAbstractItemView, QTreeView, QFileSystemModel
 from PySide2.QtCore import Qt, QSize, Signal
 from PySide2.QtGui import QIcon, QMouseEvent
 import os
@@ -133,6 +134,8 @@ class ImportFoldersQDialog(QDialog):
     def __on_import_directory_clicked(self):
         input_image_filedialog = QFileDialog(self)
         input_image_filedialog.setWindowFlags(Qt.WindowStaysOnTopHint)
+
+
         if "PYCHARM_HOSTED" in os.environ:
             input_directory = input_image_filedialog.getExistingDirectory(self, caption='Select input directory',
                                                                           directory=self.tr(self.current_folder),
@@ -254,7 +257,28 @@ class ImportFoldersQDialog(QDialog):
                     diag = QMessageBox()
                     diag.setText("Unable to load patient.\nError message: {}.\n".format(error_msg))
                     diag.exec_()
-
+            elif self.target_type == 'dicom' and self.parsing_mode == 'multiple':
+                for patient in folders_in_path:
+                    dicom_holder = PatientDICOM(os.path.join(input_folderpath, patient))
+                    error_msg = dicom_holder.parse_dicom_folder()
+                    # if error_msg is not None:
+                    #     diag = QMessageBox.warning(self, "DICOM parsing warnings", error_msg)
+                    pat_uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_patient()
+                    if error_msg:
+                        patient_include_error_msg = "Unable to create empty patient.\nError message: {}.\n".format(
+                            error_msg)
+                    SoftwareConfigResources.getInstance().get_patient(uid=pat_uid).set_display_name(dicom_holder.patient_id)
+                    for study_id in dicom_holder.studies.keys():
+                        for series_id in dicom_holder.studies[study_id].dicom_series.keys():
+                            volume_uid, err_msg = SoftwareConfigResources.getInstance().get_patient(uid=pat_uid).import_dicom_data(dicom_holder.studies[study_id].dicom_series[series_id])
+                    self.patient_imported.emit(pat_uid)
+                    SoftwareConfigResources.getInstance().get_patient(pat_uid).save_patient()
+                    msg = SoftwareConfigResources.getInstance().get_active_study().include_study_patient(pat_uid)
+                    self.load_progressbar.setValue(i + 1)
+                    if error_msg:
+                        diag = QMessageBox()
+                        diag.setText("Unable to load patient.\nError message: {}.\n".format(error_msg))
+                        diag.exec_()
         self.load_progressbar.setVisible(False)
         self.accept()
 
@@ -313,6 +337,39 @@ class ImportFolderLineWidget(QWidget):
 
     def __on_file_type_changed(self):
         pass
+
+
+class CustomQFileDialog(QFileDialog):
+    def __int__(self):
+        super(CustomQFileDialog, self).__int__()
+        self.setFileMode(QFileDialog.ShowDirsOnly)
+        # self.setOption(QFileDialog.DontUseNativeDialog, True)
+        # self.setOption(QFileDialog.DontResolveSymlinks, True)
+        for view in self.findChildren((QListView, QTreeView)):
+            if isinstance(view.model(), QFileSystemModel):
+                view.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        # file_view = self.findChild(QListView, 'listView')
+        #
+        # # to make it possible to select multiple directories:
+        # if file_view:
+        #     file_view.setSelectionMode(QAbstractItemView.MultiSelection)
+        # f_tree_view = self.findChild(QTreeView)
+        # if f_tree_view:
+        #     f_tree_view.setSelectionMode(QAbstractItemView.MultiSelection)
+
+    # def exec_(self) -> int:
+    #     # self.setFileMode(QFileDialog.DirectoryOnly)
+    #     # self.setOption(QFileDialog.DontUseNativeDialog, True)
+    #     file_view = self.findChild(QListView, 'listView')
+    #
+    #     # to make it possible to select multiple directories:
+    #     if file_view:
+    #         file_view.setSelectionMode(QAbstractItemView.MultiSelection)
+    #     f_tree_view = self.findChild(QTreeView)
+    #     if f_tree_view:
+    #         f_tree_view.setSelectionMode(QAbstractItemView.MultiSelection)
+    #
+    #     self.exec_()
 
 
 def import_patients_from_tree(tree_path: str):

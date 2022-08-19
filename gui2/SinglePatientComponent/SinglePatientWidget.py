@@ -201,7 +201,6 @@ class SinglePatientWidget(QWidget):
         self.top_logo_panel_label_save_pushbutton.setEnabled(True)
 
     def on_patient_selected(self, patient_name):
-        # @TODO. Most likely deprecated and to be removed
         self.results_panel.on_external_patient_selection(patient_name)
 
     def on_single_patient_clicked(self, patient_name):

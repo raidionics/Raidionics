@@ -101,6 +101,7 @@ class StudyPatientListingWidget(QWidget):
         self.study_patient_widgetitems[patient_uid] = wid
         self.patients_list_scrollarea_layout.insertWidget(self.patients_list_scrollarea_layout.count() - 1, wid)
         wid.patient_selected.connect(self.patient_selected)
+        wid.patient_removed.connect(self.on_patient_removed)
 
     def on_patient_name_edited(self, patient_uid: str, new_name: str) -> None:
         """
@@ -108,3 +109,10 @@ class StudyPatientListingWidget(QWidget):
         """
         if patient_uid in list(self.study_patient_widgetitems.keys()):
             self.study_patient_widgetitems[patient_uid].patient_uid_label.setText(new_name)
+
+    def on_patient_removed(self, patient_uid):
+        self.patients_list_scrollarea_layout.removeWidget(self.study_patient_widgetitems[patient_uid])
+        self.study_patient_widgetitems[patient_uid].setParent(None)
+        del self.study_patient_widgetitems[patient_uid]
+        self.adjustSize()
+        self.repaint()
