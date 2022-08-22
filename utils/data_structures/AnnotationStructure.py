@@ -127,6 +127,10 @@ class AnnotationVolume:
         self._display_name = name
 
     def set_output_patient_folder(self, output_folder: str) -> None:
+        if self._raw_input_filepath and self._output_patient_folder in self._raw_input_filepath:
+            self._raw_input_filepath = self._raw_input_filepath.replace(self._output_patient_folder, output_folder)
+        if self._usable_input_filepath and self._output_patient_folder in self._usable_input_filepath:
+            self._usable_input_filepath = self._usable_input_filepath.replace(self._output_patient_folder, output_folder)
         self._output_patient_folder = output_folder
 
     def get_output_patient_folder(self) -> str:

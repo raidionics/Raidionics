@@ -187,14 +187,27 @@ class PatientParameters:
             return 1, msg
         else:
             self._display_name = new_name.strip()
-            shutil.move(src=self._output_folder, dst=new_output_folder, copy_function=shutil.copytree)
-            self._output_folder = new_output_folder
+            new_patient_parameters_dict_filename = os.path.join(self._output_folder,
+                                                                self._display_name.strip().lower().replace(" ", "_")
+                                                                + '_scene.raidionics')
+            if os.path.exists(self._patient_parameters_dict_filename):
+                os.rename(src=self._patient_parameters_dict_filename, dst=new_patient_parameters_dict_filename)
+            self._patient_parameters_dict_filename = new_patient_parameters_dict_filename
+            if self._standardized_report_filename and os.path.exists(self._standardized_report_filename):
+                self._standardized_report_filename = self._standardized_report_filename.replace(self._output_folder,
+                                                                                                new_output_folder)
 
             for i, disp in enumerate(list(self.mri_volumes.keys())):
-                self.mri_volumes[disp].set_output_patient_folder(self._output_folder)
+                self.mri_volumes[disp].set_output_patient_folder(new_output_folder)
 
             for i, disp in enumerate(list(self.annotation_volumes.keys())):
-                self.annotation_volumes[disp].set_output_patient_folder(self._output_folder)
+                self.annotation_volumes[disp].set_output_patient_folder(new_output_folder)
+
+            for i, disp in enumerate(list(self.atlas_volumes.keys())):
+                self.atlas_volumes[disp].set_output_patient_folder(new_output_folder)
+
+            shutil.move(src=self._output_folder, dst=new_output_folder, copy_function=shutil.copytree)
+            self._output_folder = new_output_folder
             logging.info("Renamed current output folder to: {}".format(self._output_folder))
             if manual_change:
                 self._unsaved_changes = True

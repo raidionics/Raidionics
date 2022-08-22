@@ -18,6 +18,8 @@ class ImportDataQDialog(QDialog):
     annotation_volume_imported = Signal(str)
     # The str is the unique id for the added patient, the active patient remains the same
     patient_imported = Signal(str)
+    # The str is the unique id for the added study
+    study_imported = Signal(str)
 
     def __init__(self, filter=None, parent=None):
         """
@@ -128,6 +130,8 @@ class ImportDataQDialog(QDialog):
             self.filter = "Files (*." + " *.".join(SoftwareConfigResources.getInstance().accepted_image_format) + ")"
         elif filter == 'patient':
             self.filter = "Files (*." + " *.".join(SoftwareConfigResources.getInstance().accepted_scene_file_format) + ")"
+        elif filter == 'study':
+            self.filter = "Files (*." + " *.".join(SoftwareConfigResources.getInstance().accepted_study_file_format) + ")"
 
     def __on_import_files_clicked(self):
         input_image_filedialog = QFileDialog(self)
@@ -171,7 +175,8 @@ class ImportDataQDialog(QDialog):
         for f in selected_files:
             try:
                 ext = f.split('.')[-1]
-                if ext != SoftwareConfigResources.getInstance().accepted_scene_file_format[0]:
+                if ext != SoftwareConfigResources.getInstance().accepted_scene_file_format[0] \
+                        and ext != SoftwareConfigResources.getInstance().accepted_study_file_format[0]:
                     ft = input_file_category_disambiguation(input_filename=f)
                     if ft == "MRI":
                         mris_selected.append(f)
@@ -189,15 +194,28 @@ class ImportDataQDialog(QDialog):
                 diag.exec_()
 
         for i, pf in enumerate(raidionics_selected):
-            uid, error_msg = SoftwareConfigResources.getInstance().load_patient(pf)
-            if error_msg:
-                diag = QMessageBox()
-                diag.setText("Unable to load: {}.\nError message: {}.\n".format(os.path.basename(pf),
-                                                                                error_msg))
-                diag.exec_()
+            ext = pf.split('.')[-1]
+            if ext == SoftwareConfigResources.getInstance().accepted_scene_file_format[0]:
+                uid, error_msg = SoftwareConfigResources.getInstance().load_patient(pf)
+                if error_msg:
+                    diag = QMessageBox()
+                    diag.setText("Unable to load: {}.\nError message: {}.\n".format(os.path.basename(pf),
+                                                                                    error_msg))
+                    diag.exec_()
 
-            if (error_msg and 'Import patient failed' not in error_msg) or not error_msg:
-                self.patient_imported.emit(uid)
+                if (error_msg and 'Import patient failed' not in error_msg) or not error_msg:
+                    self.patient_imported.emit(uid)
+            else:
+                uid, error_msg = SoftwareConfigResources.getInstance().load_study(pf)
+                if error_msg:
+                    diag = QMessageBox()
+                    diag.setText("Unable to load: {}.\nError message: {}.\n".format(os.path.basename(pf),
+                                                                                    error_msg))
+                    diag.exec_()
+
+                if (error_msg and 'Import study failed' not in error_msg) or not error_msg:
+                    self.study_imported.emit(uid)
+
             self.load_progressbar.setValue(i + 1)
 
         # @TODO. Might try something more advanced for pairing annotations with MRIs

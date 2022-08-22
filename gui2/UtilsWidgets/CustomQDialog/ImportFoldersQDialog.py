@@ -190,7 +190,8 @@ class ImportFoldersQDialog(QDialog):
                 pat_uid = imports['Patient'][0]
                 self.patient_imported.emit(pat_uid)
                 SoftwareConfigResources.getInstance().get_patient(pat_uid).save_patient()
-                msg = SoftwareConfigResources.getInstance().get_active_study().include_study_patient(pat_uid)
+                msg = SoftwareConfigResources.getInstance().get_active_study().include_study_patient(uid=pat_uid,
+                                                                                                     folder_name=SoftwareConfigResources.getInstance().get_patient(pat_uid).get_output_folder())
                 self.load_progressbar.setValue(i + 1)
                 if error_msg:
                     diag = QMessageBox()
@@ -219,7 +220,8 @@ class ImportFoldersQDialog(QDialog):
                             os.path.join(input_folderpath, p), error_msg)
                     self.patient_imported.emit(pat_uid)
                     SoftwareConfigResources.getInstance().get_patient(pat_uid).save_patient()
-                    msg = SoftwareConfigResources.getInstance().get_active_study().include_study_patient(pat_uid)
+                    msg = SoftwareConfigResources.getInstance().get_active_study().include_study_patient(uid=pat_uid,
+                                                                                                     folder_name=SoftwareConfigResources.getInstance().get_patient(pat_uid).get_output_folder())
                     self.load_progressbar.setValue(i + 1)
             elif self.target_type == 'regular':  # Case (ii)
                 collective_errors = ""
@@ -229,7 +231,8 @@ class ImportFoldersQDialog(QDialog):
                     pat_uid = imports['Patient'][0]
                     self.patient_imported.emit(pat_uid)
                     SoftwareConfigResources.getInstance().get_patient(pat_uid).save_patient()
-                    msg = SoftwareConfigResources.getInstance().get_active_study().include_study_patient(pat_uid)
+                    msg = SoftwareConfigResources.getInstance().get_active_study().include_study_patient(uid=pat_uid,
+                                                                                                         folder_name=SoftwareConfigResources.getInstance().get_patient(pat_uid).get_output_folder())
                     collective_errors = collective_errors + error_msg
                     self.load_progressbar.setValue(i + 1)
                 if collective_errors != "":
@@ -251,7 +254,8 @@ class ImportFoldersQDialog(QDialog):
                         volume_uid, err_msg = SoftwareConfigResources.getInstance().get_patient(uid=pat_uid).import_dicom_data(dicom_holder.studies[study_id].dicom_series[series_id])
                 self.patient_imported.emit(pat_uid)
                 SoftwareConfigResources.getInstance().get_patient(pat_uid).save_patient()
-                msg = SoftwareConfigResources.getInstance().get_active_study().include_study_patient(pat_uid)
+                msg = SoftwareConfigResources.getInstance().get_active_study().include_study_patient(uid=pat_uid,
+                                                                                                     folder_name=SoftwareConfigResources.getInstance().get_patient(pat_uid).get_output_folder())
                 self.load_progressbar.setValue(i + 1)
                 if error_msg:
                     diag = QMessageBox()
@@ -273,7 +277,8 @@ class ImportFoldersQDialog(QDialog):
                             volume_uid, err_msg = SoftwareConfigResources.getInstance().get_patient(uid=pat_uid).import_dicom_data(dicom_holder.studies[study_id].dicom_series[series_id])
                     self.patient_imported.emit(pat_uid)
                     SoftwareConfigResources.getInstance().get_patient(pat_uid).save_patient()
-                    msg = SoftwareConfigResources.getInstance().get_active_study().include_study_patient(pat_uid)
+                    msg = SoftwareConfigResources.getInstance().get_active_study().include_study_patient(uid=pat_uid,
+                                                                                                         folder_name=SoftwareConfigResources.getInstance().get_patient(pat_uid).get_output_folder())
                     self.load_progressbar.setValue(i + 1)
                     if error_msg:
                         diag = QMessageBox()

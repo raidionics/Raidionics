@@ -170,6 +170,8 @@ class SoftwareConfigResources:
         ----------
         filename : str
             The full filepath to the patient scene file, of type .raidionics
+        active: bool
+            Boolean to specify if the loaded patient should be set as the active patient or not.
         Returns
         ----------
         patient_id str
@@ -198,11 +200,12 @@ class SoftwareConfigResources:
         """
         Updates the active patient upon user request, which triggers a full reloading of the patient_uid parameters
         and removes from memory all memory-heavy imformation linked to the previous active patient.
-        ...
+
         Parameters
         ----------
         patient_uid : str
             Unique id of the newly selected active patient (i.e., patient displayed and loaded in memory)
+
         Returns
         ----------
         error_message Any (str or None)
@@ -236,6 +239,9 @@ class SoftwareConfigResources:
         else:
             return False
 
+    def get_active_patient_uid(self) -> str:
+        return self.active_patient_name
+
     def get_active_patient(self) -> str:
         return self.patients_parameters[self.active_patient_name]
 
@@ -264,6 +270,50 @@ class SoftwareConfigResources:
             error_message = "Error while trying to create a new empty study: \n"
             error_message = error_message + traceback.format_exc()
         return study_uid, error_message
+
+    def load_study(self, filename: str, active: bool = True) -> Union[str, Any]:
+        """
+        Loads all study-related and patient-related files from parsing the study file (*.sraidionics).
+        The active patient is not changed at this point.
+        ...
+        Parameters
+        ----------
+        filename : str
+            The full filepath to the study file, of type .sraidionics
+        active: bool
+            Boolean to specify if the loaded study should be set as the active study or not.
+        Returns
+        ----------
+        study_id str
+            Unique id of the newly loaded study.
+        error_message Any (str or None)
+            None if no error was collected, otherwise a string with a human-readable description of the error.
+        """
+        logging.info("Loading study from {}.\n".format(filename))
+        study_instance = StudyParameters()
+        error_message = study_instance.import_study(filename)
+        # To prevent the save changes dialog to pop-up straight up after loading a patient scene file.
+        study_instance.set_unsaved_changes_state(False)
+        study_id = study_instance.get_unique_id()
+        if study_id in self.study_parameters.keys():
+            # @TODO. The random unique key number is encountered twice, have to randomize it again.
+            error_message = error_message + '\nImport study failed, unique id already exists.\n'
+        self.study_parameters[study_id] = study_instance
+        if active:
+            # Doing the following rather than set_active_study(), to avoid the overhead of doing memory release/load.
+            self.active_study_name = study_id
+
+        # After loading the study, all connected patients should also be reloaded
+        included_pat_uids = study_instance.get_included_patients_uids()
+        for p in included_pat_uids.keys():
+            if p not in self.patients_parameters.keys():
+                logging.info("Reloading patient {} linked to study {}.".format(p, study_id))
+                assumed_patient_filename = os.path.join(included_pat_uids[p], included_pat_uids[p].split('/')[-1] + '_scene.raidionics')
+                self.load_patient(filename=assumed_patient_filename, active=False)
+        return study_id, error_message
+
+    def save_study(self, study_id):
+        self.study_parameters[study_id].save()
 
     def update_active_study_name(self, new_name: str) -> None:
         self.study_parameters[self.active_study_name].update_visible_name(new_name)
@@ -303,6 +353,12 @@ class SoftwareConfigResources:
 
     def get_active_study(self) -> str:
         return self.study_parameters[self.active_study_name]
+
+    def get_study(self, uid: str):
+        if uid in self.study_parameters.keys():
+            return self.study_parameters[uid]
+        else:
+            return None
 
     def get_optimal_dimensions(self):
         return self.optimal_dimensions

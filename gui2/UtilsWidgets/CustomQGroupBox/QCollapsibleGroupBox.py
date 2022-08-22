@@ -103,3 +103,22 @@ class QCollapsibleGroupBox(QWidget):
                 pass
         # N-B: setFixedSize must be used, a simple .resize does not trigger the size update and repainting
         self.content_label.setFixedSize(QSize(self.size().width(), actual_height))
+
+    def clear_content_layout(self):
+        items = (self.content_label_layout.itemAt(i) for i in reversed(range(self.content_label_layout.count())))
+        for i in items:
+            try:
+                if i and i.widget():  # Current item is a QWidget that can be directly removed
+                    w = i.widget()
+                    w.setParent(None)
+                    w.deleteLater()
+                else:  # Current item is possibly a layout. @TODO. Should be doing a recursive search in case of inception layouts...
+                    items2 = (i.itemAt(j) for j in reversed(range(i.count())))
+                    for ii in items2:
+                        if ii and ii.widget():
+                            w2 = ii.widget()
+                            w2.setParent(None)
+                            w2.deleteLater()
+                    self.content_label_layout.removeItem(i)
+            except Exception:
+                pass

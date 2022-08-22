@@ -235,8 +235,20 @@ class StudiesSidePanelWidget(QWidget):
         self.options_menu.exec_(self.bottom_add_study_pushbutton.mapToGlobal(QPoint(0, -55)))
 
     def on_add_existing_study_requested(self):
-        self.on_add_new_empty_study()
-        self.import_study_from_file_requested.emit()
+        if SoftwareConfigResources.getInstance().active_study_name and\
+                SoftwareConfigResources.getInstance().get_active_study().has_unsaved_changes():
+            dialog = SavePatientChangesDialog()
+            code = dialog.exec_()
+            if code == 1:  # Changes have been either saved or discarded
+                self.import_study_from_file_requested.emit()
+        else:
+            self.import_study_from_file_requested.emit()
+
+    def on_study_imported(self, study_uid):
+        self.add_new_study(study_name=study_uid)
+        if len(self.single_study_widgets) == 1:
+            self.single_study_widgets[study_uid].manual_header_pushbutton_clicked(True)
+            self.__on_study_selection(True, study_uid)
 
     def on_batch_segmentation_requested(self, study_id, model_name):
         self.bottom_add_study_pushbutton.setEnabled(False)

@@ -82,7 +82,7 @@ def run_segmentation(model_name: str, patient_parameters: PatientParameters, que
         # Setting up the runtime configuration file, mandatory for the raidionics_seg lib.
         seg_config = configparser.ConfigParser()
         seg_config.add_section('System')
-        seg_config.set('System', 'gpu_id', "-1")
+        seg_config.set('System', 'gpu_id', "-1")  # Always running on CPU
         seg_config.set('System', 'input_filename',
                        patient_parameters.mri_volumes[selected_mri_uid].get_usable_input_filepath())
         seg_config.set('System', 'output_folder', patient_parameters.get_output_folder())
@@ -112,6 +112,7 @@ def run_segmentation(model_name: str, patient_parameters: PatientParameters, que
                                                                           'patient_tumor.nii.gz'), type='Annotation')
         patient_parameters.annotation_volumes[data_uid].set_annotation_class_type("Tumor")
         patient_parameters.annotation_volumes[data_uid].set_generation_type("Automatic")
+        patient_parameters.annotation_volumes[data_uid].set_parent_mri_uid(selected_mri_uid)
         results['Annotation'] = [data_uid]
 
         seg_file = os.path.join(patient_parameters.get_output_folder(), 'labels_Brain.nii.gz')
@@ -121,6 +122,7 @@ def run_segmentation(model_name: str, patient_parameters: PatientParameters, que
                                                                               'patient_brain.nii.gz'), type='Annotation')
             patient_parameters.annotation_volumes[data_uid].set_annotation_class_type("Brain")
             patient_parameters.annotation_volumes[data_uid].set_generation_type("Automatic")
+            patient_parameters.annotation_volumes[data_uid].set_parent_mri_uid(selected_mri_uid)
             results['Annotation'].append(data_uid)
     except Exception:
         logging.error('Segmentation for patient {}, using {} failed with: \n{}'.format(patient_parameters.get_unique_id(),
@@ -137,7 +139,21 @@ def run_segmentation(model_name: str, patient_parameters: PatientParameters, que
     # return 0, results
 
 
-def reporting_main_wrapper(model_name, patient_parameters):
+def reporting_main_wrapper(model_name: str, patient_parameters: PatientParameters) -> Any:
+    """
+    Wrapper to launch the run_reporting (i.e., RADS) method inside its own thread, in order to avoid GUI freeze.
+
+    Parameters
+    ----------
+    model_name : str
+        The name of the segmentation model to use.
+    patient_parameters: PatientParameters
+        Patient instance placeholder.
+    Returns
+    -------
+    Any
+        Content gathered from the Queue, resulting from running the run_reporting method.
+    """
     q = queue.Queue()  # Using the queue to collect the results from the segmentation method, back to the GUI.
     run_segmentation_thread = threading.Thread(target=run_reporting, args=(model_name, patient_parameters, q,))
     run_segmentation_thread.daemon = True  # using daemon thread the thread is killed gracefully if program is abruptly closed
@@ -147,11 +163,31 @@ def reporting_main_wrapper(model_name, patient_parameters):
 
 def run_reporting(model_name, patient_parameters, queue):
     """
-    Results of the standardized reporting will be stored inside a /reporting subfolder within the patient
-    output folder.
+    Call to the RADS backend for running the reporting task. The runtime configuration file is generated
+    on-the-fly at each call.\n
+    The created Annotation/Atlas objects are directly stored inside the patient_parameters placeholder, and a summary
+    of the included unique ids are stored in the 'results' variable. The summary and an execution code (0 or 1
+     indicating failure or success) are stored inside the queue.\n
+    @TODO. Have to include the brain segmentation filename to the config file, if it exists.\n
+    @TODO2. How to disambiguate for all patient data which input MRI is the correct one for the model? Has
+    to be supported in the rads or seg lib.
 
+    Parameters
+    ----------
+    model_name : str
+        The name of the segmentation model to use.
+    patient_parameters: PatientParameters
+        Patient instance placeholder.
+    queue: queue.Queue
+        Placeholder for holding the results of the method
+    Returns
+    -------
+    None
+        The results are stored inside the queue rather than directly returned, since the method is expected to be
+        called from the wrapper.
     """
-    logging.info("Starting RADS process.")
+    logging.info("Starting RADS process for patient {} using {}.".format(patient_parameters.get_unique_id(),
+                                                                         model_name))
 
     rads_config_filename = ''
     results = {}  # Holder for all objects computed during the process, which have been added to the patient object
@@ -159,13 +195,20 @@ def run_reporting(model_name, patient_parameters, queue):
         download_model(model_name=model_name)
         reporting_folder = os.path.join(patient_parameters.get_output_folder(), 'reporting')
         os.makedirs(reporting_folder, exist_ok=True)
-        selected_mri_uid = list(patient_parameters.mri_volumes.keys())[0]  # @FIXME. Hack for now to see if batch process works.
+        # @TODO. Hack for now, using the first possible volume.
+        eligible_mris = patient_parameters.get_all_mri_volumes_for_sequence_type(MRISequenceType.T1c)
+        if 'LGGlioma' in model_name:
+            eligible_mris = patient_parameters.get_all_mri_volumes_for_sequence_type(MRISequenceType.FLAIR)
+        if len(eligible_mris) == 0:
+            eligible_mris = list(patient_parameters.mri_volumes.keys())
+
+        selected_mri_uid = eligible_mris[0]
         rads_config = configparser.ConfigParser()
         rads_config.add_section('Default')
         rads_config.set('Default', 'task', 'neuro_diagnosis')
         rads_config.set('Default', 'caller', 'raidionics')
         rads_config.add_section('System')
-        rads_config.set('System', 'gpu_id', "-1")
+        rads_config.set('System', 'gpu_id', "-1")  # Always running on CPU
         rads_config.set('System', 'input_filename',
                         patient_parameters.mri_volumes[selected_mri_uid].get_usable_input_filepath())
         rads_config.set('System', 'output_folder', reporting_folder)
@@ -198,6 +241,7 @@ def run_reporting(model_name, patient_parameters, queue):
                                                                           'patient_tumor.nii.gz'), type='Annotation')
         patient_parameters.annotation_volumes[data_uid].set_annotation_class_type("Tumor")
         patient_parameters.annotation_volumes[data_uid].set_generation_type("Automatic")
+        patient_parameters.annotation_volumes[data_uid].set_parent_mri_uid(selected_mri_uid)
         results['Annotation'] = [data_uid]
         # Check if a brain mask has been created, and include it if so.
         seg_file = os.path.join(patient_parameters.get_output_folder(), 'reporting', 'labels_Brain.nii.gz')
@@ -207,6 +251,7 @@ def run_reporting(model_name, patient_parameters, queue):
                                                                               'patient_brain.nii.gz'), type='Annotation')
             patient_parameters.annotation_volumes[data_uid].set_annotation_class_type("Brain")
             patient_parameters.annotation_volumes[data_uid].set_generation_type("Automatic")
+            patient_parameters.annotation_volumes[data_uid].set_parent_mri_uid(selected_mri_uid)
             results['Annotation'].append(data_uid)
 
         # Collecting the standardized report

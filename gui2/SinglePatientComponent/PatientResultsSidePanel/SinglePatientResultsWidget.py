@@ -40,6 +40,7 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.__set_multifocality_part()
         self.__set_volumes_part()
         self.__set_laterality_part()
+        self.__set_resectability_part()
         self.__set_cortical_structures_part()
         self.__set_subcortical_structures_part()
         self.content_label_layout.addStretch(1)
@@ -155,6 +156,37 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.laterality_collapsiblegroupbox.content_label_layout.addLayout(self.laterality_midline_layout)
         self.laterality_collapsiblegroupbox.content_label_layout.setContentsMargins(20, 0, 20, 0)
 
+    def __set_resectability_part(self):
+        # @TODO. The resectability part (specific for HGG) could be moved to a tumor-specific part for when there will
+        # be more for the other types.
+        self.resectability_collapsiblegroupbox = QCollapsibleGroupBox("Resectability", self)
+        self.resectability_collapsiblegroupbox.set_header_icons(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                                       '../../Images/uncollapsed_icon.png'),
+                                                          QSize(30, 30),
+                                                          os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                                       '../../Images/collapsed_icon.png'),
+                                                          QSize(30, 30))
+        self.resectability_collapsiblegroupbox.setBaseSize(QSize(self.parent.baseSize().width(), 150))
+        self.content_label_layout.addWidget(self.resectability_collapsiblegroupbox)
+
+        self.resection_index_header_label = QLabel("Resection index: ")
+        self.resection_index_label = QLabel(" - ")
+        self.resection_index_label.setStyleSheet("QLabel{text-align:right;}")
+        self.resection_index_layout = QHBoxLayout()
+        self.resection_index_layout.addWidget(self.resection_index_header_label)
+        self.resection_index_layout.addStretch(1)
+        self.resection_index_layout.addWidget(self.resection_index_label)
+        self.resectability_collapsiblegroupbox.content_label_layout.addLayout(self.resection_index_layout)
+
+        self.expected_residual_volume_header_label = QLabel("Expected residual volume: ")
+        self.expected_residual_volume_label = QLabel(" - (ml) ")
+        self.expected_residual_volume_label.setStyleSheet("QLabel{text-align:right;}")
+        self.expected_residual_volume_layout = QHBoxLayout()
+        self.expected_residual_volume_layout.addWidget(self.expected_residual_volume_header_label)
+        self.expected_residual_volume_layout.addStretch(1)
+        self.expected_residual_volume_layout.addWidget(self.expected_residual_volume_label)
+        self.resectability_collapsiblegroupbox.content_label_layout.addLayout(self.expected_residual_volume_layout)
+
     def __set_multifocality_part(self):
         self.multifocality_collapsiblegroupbox = QCollapsibleGroupBox("Tumor", self)
         self.multifocality_collapsiblegroupbox.set_header_icons(os.path.join(os.path.dirname(os.path.realpath(__file__)),
@@ -238,6 +270,13 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.laterality_collapsiblegroupbox.header_pushbutton.setFixedHeight(40)
         self.laterality_collapsiblegroupbox.content_label.setFixedHeight(60)
 
+        self.resection_index_header_label.setFixedHeight(20)
+        self.resection_index_label.setFixedHeight(20)
+        self.expected_residual_volume_header_label.setFixedHeight(20)
+        self.expected_residual_volume_label.setFixedHeight(20)
+        self.resectability_collapsiblegroupbox.header_pushbutton.setFixedHeight(40)
+        self.resectability_collapsiblegroupbox.content_label.setFixedHeight(60)
+
         self.multifocality_pieces_header_label.setFixedHeight(20)
         self.multifocality_pieces_label.setFixedHeight(20)
         self.multifocality_distance_header_label.setFixedHeight(20)
@@ -260,6 +299,7 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.overall_collapsiblegroupbox.header_pushbutton.clicked.connect(self.adjustSize)
         self.volumes_collapsiblegroupbox.header_pushbutton.clicked.connect(self.adjustSize)
         self.laterality_collapsiblegroupbox.header_pushbutton.clicked.connect(self.adjustSize)
+        self.resectability_collapsiblegroupbox.header_pushbutton.clicked.connect(self.adjustSize)
         self.multifocality_collapsiblegroupbox.header_pushbutton.clicked.connect(self.adjustSize)
         self.corticalstructures_collapsiblegroupbox.header_pushbutton.clicked.connect(self.adjustSize)
         self.subcorticalstructures_collapsiblegroupbox.header_pushbutton.clicked.connect(self.adjustSize)
@@ -466,6 +506,47 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         font-size:14px;
         }""")
 
+        ######################################### RESECTABILITY GROUPBOX ################################################
+        self.resectability_collapsiblegroupbox.header_pushbutton.setStyleSheet("""
+        QPushButton{
+        background-color:rgb(248, 248, 248);
+        color: """ + font_color + """;
+        text-align:left;
+        font:bold;
+        font-size:14px;
+        padding-left:20px;
+        padding-right:20px;
+        }""")
+        self.resectability_collapsiblegroupbox.content_label.setStyleSheet("QLabel{background-color:rgb(254,254,254);}")
+        self.resection_index_header_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        text-align:left;
+        font:semibold;
+        font-size:14px;
+        }""")
+        self.resection_index_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        text-align:right;
+        font:semibold;
+        font-size:14px;
+        }""")
+        self.expected_residual_volume_header_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        text-align:left;
+        font:semibold;
+        font-size:14px;
+        }""")
+        self.expected_residual_volume_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        text-align:right;
+        font:semibold;
+        font-size:14px;
+        }""")
+
         ######################################### MULTIFOCALITY GROUPBOX ##############################################
         self.multifocality_collapsiblegroupbox.header_pushbutton.setStyleSheet("""
         QPushButton{background-color:rgb(248, 248, 248);
@@ -519,6 +600,8 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
                         self.multifocality_collapsiblegroupbox.sizeHint().height() + \
                         self.corticalstructures_collapsiblegroupbox.sizeHint().height() + \
                         self.subcorticalstructures_collapsiblegroupbox.sizeHint().height()
+        if self.resectability_collapsiblegroupbox.isVisible():
+            actual_height = actual_height + self.resectability_collapsiblegroupbox.sizeHint().height()
         self.content_label.setFixedSize(QSize(self.size().width(), actual_height))
         # self.setFixedSize(QSize(self.size().width(), actual_height))
         logging.debug("SinglePatientResultsWidget size set to {}.\n".format(self.content_label.size()))
@@ -586,6 +669,12 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.header_pushbutton.setText(self.title)
         self.on_standardized_report_imported()
 
+    def on_process_started(self):
+        self.patient_name_lineedit.setEnabled(False)
+
+    def on_process_finished(self):
+        self.patient_name_lineedit.setEnabled(True)
+
     def on_standardized_report_imported(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
         report_json = SoftwareConfigResources.getInstance().patients_parameters[self.uid].get_standardized_report()
@@ -609,9 +698,17 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
             self.multifocality_distance_header_label.setVisible(False)
             self.multifocality_distance_label.setVisible(False)
 
+        if 'ResectionIndex' in report_json['Main']['Total'].keys():
+            self.resection_index_label.setText(str(report_json['Main']['Total']['ResectionIndex']))
+            self.expected_residual_volume_label.setText(str(report_json['Main']['Total']['ExpectedResidualVolume (ml)'] + ' ml'))
+            self.resectability_collapsiblegroupbox.setVisible(True)
+        else:
+            self.resection_index_label.setText(' - ')
+            self.expected_residual_volume_label.setText(' - (ml)')
+            self.resectability_collapsiblegroupbox.setVisible(False)
+
         # Cortical structures
-        for i in reversed(range(self.corticalstructures_collapsiblegroupbox.content_label_layout.count())):
-            self.corticalstructures_collapsiblegroupbox.content_label_layout.itemAt(i).widget().setParent(None)
+        self.corticalstructures_collapsiblegroupbox.clear_content_layout()
 
         # @TODO. Something wrong with those layouts, too large and hiding the numbers if adding a stretch in the middle
         # Hardcoding a lot now, but will have to be properly fixed.
@@ -671,8 +768,7 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.corticalstructures_collapsiblegroupbox.adjustSize()
 
         # Subcortical structures
-        for i in reversed(range(self.subcorticalstructures_collapsiblegroupbox.content_label_layout.count())):
-            self.subcorticalstructures_collapsiblegroupbox.content_label_layout.itemAt(i).widget().setParent(None)
+        self.subcorticalstructures_collapsiblegroupbox.clear_content_layout()
 
         for atlas in report_json['Main']['Total']['SubcorticalStructures']:
             sorted_overlaps = dict(sorted(report_json['Main']['Total']['SubcorticalStructures'][atlas]['Overlap'].items(), key=lambda item: item[1], reverse=True))

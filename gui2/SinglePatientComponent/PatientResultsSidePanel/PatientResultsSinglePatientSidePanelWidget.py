@@ -213,6 +213,14 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         self.patient_results_widgets[patient_id].on_standardized_report_imported()  # Might not be the best way, should be a more generic on_patient_selection
         self.adjustSize()  # To trigger a proper redrawing after the previous call
 
+    def on_process_started(self):
+        self.bottom_add_patient_pushbutton.setEnabled(False)
+        self.patient_results_widgets[SoftwareConfigResources.getInstance().get_active_patient_uid()].on_process_started()
+
+    def on_process_finished(self):
+        self.bottom_add_patient_pushbutton.setEnabled(True)
+        self.patient_results_widgets[SoftwareConfigResources.getInstance().get_active_patient_uid()].on_process_finished()
+
     def __on_patient_selection(self, state, widget_id):
         if SoftwareConfigResources.getInstance().get_active_patient().has_unsaved_changes():
             dialog = SavePatientChangesDialog()

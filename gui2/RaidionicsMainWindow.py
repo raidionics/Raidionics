@@ -258,8 +258,21 @@ class RaidionicsMainWindow(QMainWindow):
         diag = SoftwareSettingsDialog(self)
         diag.exec_()
 
-    def __on_patient_selected(self, patient_uid):
+    def __on_patient_selected(self, patient_uid: str) -> None:
+        """
+        A patient has been selected in another module than the single patient one in order to be displayed.
+        The main stacked widget index is changed to display the single patient widget and the requested patient_uid is
+        set as active patient for proper display and interaction.
+
+        Parameters
+        ----------
+        patient_uid: str
+            Internal unique identifier for the patient that should be visualized.
+
+        """
         self.__on_single_patient_clicked()
+        # Important line, otherwise the active patient is still None if loading a study right after launching Raidionics
+        SoftwareConfigResources.getInstance().set_active_patient(patient_uid=patient_uid)
         self.single_patient_widget.on_patient_selected(patient_uid)
 
     def __on_community_action_triggered(self):

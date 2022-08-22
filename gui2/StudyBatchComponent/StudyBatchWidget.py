@@ -1,5 +1,5 @@
 from PySide2.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QLabel, QPushButton, QSplitter,\
-    QStackedWidget
+    QStackedWidget, QDialog
 from PySide2.QtGui import QIcon, QPixmap
 from PySide2.QtCore import Qt, QSize, Signal
 import logging
@@ -8,6 +8,7 @@ import threading
 from utils.software_config import SoftwareConfigResources
 from gui2.StudyBatchComponent.StudiesSidePanel.StudiesSidePanelWidget import StudiesSidePanelWidget
 from gui2.StudyBatchComponent.StudyPatientListingWidget import StudyPatientListingWidget
+from gui2.UtilsWidgets.CustomQDialog.ImportDataQDialog import ImportDataQDialog
 from gui2.UtilsWidgets.CustomQDialog.ImportFoldersQDialog import ImportFoldersQDialog
 from gui2.UtilsWidgets.CustomQDialog.ImportDICOMDataQDialog import ImportDICOMDataQDialog
 
@@ -27,6 +28,7 @@ class StudyBatchWidget(QWidget):
     annotation_volume_imported = Signal(str)
     atlas_volume_imported = Signal(str)
     standard_report_imported = Signal()
+    study_imported = Signal(str)  # uid of the imported study
     processing_advanced = Signal()
     processing_finished = Signal()
 
@@ -35,6 +37,7 @@ class StudyBatchWidget(QWidget):
         self.parent = parent
         self.widget_name = "study_batch_widget"
 
+        self.import_data_dialog = ImportDataQDialog(self)
         self.import_folder_dialog = ImportFoldersQDialog(self)
         self.import_dicom_dialog = ImportDICOMDataQDialog(self)
 
@@ -112,16 +115,21 @@ class StudyBatchWidget(QWidget):
         self.studies_panel.mri_volume_imported.connect(self.mri_volume_imported)
         self.studies_panel.annotation_volume_imported.connect(self.annotation_volume_imported)
         self.studies_panel.patient_imported.connect(self.patient_imported)
+        self.studies_panel.import_study_from_file_requested.connect(self.__on_import_custom_clicked)
         self.studies_panel.patient_imported.connect(self.patient_listing_panel.on_patient_imported)
         self.studies_panel.batch_segmentation_requested.connect(self.on_batch_segmentation_wrapper)
         self.studies_panel.batch_rads_requested.connect(self.on_batch_rads_wrapper)
+        self.study_imported.connect(self.studies_panel.on_study_imported)
 
         self.patient_listing_panel.patient_selected.connect(self.patient_selected)
+        self.study_imported.connect(self.patient_listing_panel.on_study_imported)
 
         self.patient_name_edited.connect(self.patient_listing_panel.on_patient_name_edited)
 
         self.processing_advanced.connect(self.studies_panel.on_processing_advanced)
         self.processing_finished.connect(self.studies_panel.on_processing_finished)
+
+        self.import_data_dialog.study_imported.connect(self.on_study_imported)
 
     def get_widget_name(self):
         return self.widget_name
@@ -137,6 +145,18 @@ class StudyBatchWidget(QWidget):
 
     def on_process_finished(self):
         self.processing_finished.emit()
+
+    def __on_import_custom_clicked(self) -> None:
+        self.import_data_dialog.reset()
+        self.import_data_dialog.set_parsing_filter("study")
+        code = self.import_data_dialog.exec_()
+        # if code == QDialog.Accepted:
+        #     self.study_imported.emit()
+
+    def on_study_imported(self, study_uid: str):
+        self.study_imported.emit(study_uid)
+        for pat_uid in SoftwareConfigResources.getInstance().get_study(study_uid).get_included_patients_uids().keys():
+            self.patient_imported.emit(pat_uid)
 
     def on_batch_segmentation_wrapper(self, study_uid, model_name):
         run_segmentation_thread = threading.Thread(target=self.on_batch_segmentation, args=(study_uid, model_name,))

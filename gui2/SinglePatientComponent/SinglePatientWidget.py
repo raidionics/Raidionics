@@ -208,9 +208,11 @@ class SinglePatientWidget(QWidget):
         self.results_panel.add_new_patient(patient_name)
 
     def on_process_started(self):
+        self.results_panel.on_process_started()
         self.right_panel_stackedwidget.setCurrentIndex(1)
 
     def on_process_finished(self):
+        self.results_panel.on_process_finished()
         self.right_panel_stackedwidget.setCurrentIndex(0)
 
     def on_patient_imported(self, uid: str) -> None:

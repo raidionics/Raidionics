@@ -5,6 +5,7 @@ class TumorTypeSelectionQDialog(QDialog):
 
     def __init__(self, parent=None):
         super(TumorTypeSelectionQDialog, self).__init__(parent)
+        self.setWindowTitle("Tumor type selection")
         self.base_layout = QGridLayout()
         self.select_tumor_type_label = QLabel('Tumor type')
         self.select_tumor_type_label.setStyleSheet("""QLabel{background-color: rgba(248, 248, 248, 1);}""")
