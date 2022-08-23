@@ -140,8 +140,21 @@ class MRIVolumesLayerInteractor(QCollapsibleGroupBox):
         volume_widget.visibility_toggled.connect(self.on_visibility_clicked)
         volume_widget.contrast_changed.connect(self.contrast_changed)
         volume_widget.display_name_changed.connect(self.volume_display_name_changed)
+        volume_widget.remove_volume.connect(self.on_remove_volume)
         # Triggers a repaint with adjusted size for the layout
         self.adjustSize()
+
+    def on_remove_volume(self, volume_uid):
+        self.content_label_layout.removeWidget(self.volumes_widget[volume_uid])
+        self.volumes_widget[volume_uid].setParent(None)
+        del self.volumes_widget[volume_uid]
+        self.adjustSize()
+        self.repaint()
+
+        # The first remaining MRI volume is displayed by default, hence toggling the eye-iconed push button.
+        if len(self.volumes_widget) > 0:
+            self.volumes_widget[list(self.volumes_widget.keys())[0]].display_toggle_radiobutton.setChecked(True)
+            self.volumes_widget[list(self.volumes_widget.keys())[0]].display_toggle_radiobutton.clicked.emit()
 
     def on_visibility_clicked(self, uid, state):
         # @TODO. Auto-exclusive behaviour, should be a cleaner way to achieve this.

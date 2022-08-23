@@ -194,9 +194,22 @@ class AnnotationsLayersInteractor(QCollapsibleGroupBox):
         self.repaint()
         logging.debug("Annotation {} changed parent MRI.\n".format(annotation_uid))
 
-    def on_remove_annotation(self, annotation_uid):
+    def on_remove_annotation(self, annotation_uid: str) -> None:
+        """
+        The deletion of an annotation object is done in multiple steps:\n
+           (i) The annotation is removed from the central viewer (in case it was displayed when the removal was triggered).
+           \t(ii) The AnnotationLayer is updated to remove the entry for the annotation_uid.\n
+           \t(iii) The SoftWareConfigResources logic is updated to remove the entry for the annotation_uid.\n
+
+        Parameters
+        ----------
+        annotation_uid: str
+            Internal unique identifier for the annotation object to remove.
+        """
+        self.annotation_view_toggled.emit(annotation_uid, False)
         self.content_label_layout.removeWidget(self.volumes_widget[annotation_uid])
         self.volumes_widget[annotation_uid].setParent(None)
         del self.volumes_widget[annotation_uid]
         self.adjustSize()
         self.repaint()
+        SoftwareConfigResources.getInstance().get_active_patient().remove_annotation(annotation_uid)

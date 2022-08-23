@@ -411,8 +411,8 @@ class AnnotationSingleLayerWidget(QWidget):
             params.set_parent_mri_uid(mri_uid)
             self.parent_mri_changed.emit(self.uid, old_mri_parent)
 
-    def __on_remove_annotation(self):
-        # @TODO. Have to propagate to the central viewer, or should internally trigger a display toggle off and then
-        # delete
+    def __on_remove_annotation(self) -> None:
+        """
+        A single signal is emitted so that the AnnotationLayer master widget can perform the task.
+        """
         self.remove_annotation.emit(self.uid)
-        SoftwareConfigResources.getInstance().get_active_patient().remove_annotation(self.uid)

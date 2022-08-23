@@ -19,6 +19,7 @@ class MRISeriesLayerWidget(QWidget):
     display_name_changed = Signal(str, str)  # unique_id and new display name
     visibility_toggled = Signal(str, bool)  # unique_id and visibility state
     contrast_changed = Signal(str)  # unique_id
+    remove_volume = Signal(str)  # MRI volume unique id
 
     def __init__(self, mri_uid, parent=None):
         super(MRISeriesLayerWidget, self).__init__(parent)
@@ -111,7 +112,7 @@ class MRISeriesLayerWidget(QWidget):
         self.contrast_adjuster_pushbutton.clicked.connect(self.on_contrast_adjustment_clicked)
         self.contrast_adjuster.contrast_intensity_changed.connect(self.on_contrast_changed)
 
-        # self.delete_layer_action.triggered.connect(self.__on_delete_layer)
+        self.delete_layer_action.triggered.connect(self.__on_delete_layer)
         self.options_menu_dicom_metadata.triggered.connect(self.__on_display_dicom_metadata)
 
     def set_stylesheets(self, selected: bool):
@@ -232,18 +233,27 @@ class MRISeriesLayerWidget(QWidget):
 
     def __on_delete_layer(self):
         """
-        The deletion of an MRI volume layer should lead to a deletion of all linked objects within the patient
+        The deletion of an MRI volume layer leads to a deletion of all linked objects within the patient
         parameters, and then of the corresponding GUI elements.
-        # @TODO. To finish properly
         """
-        diag = QMessageBox()
-        diag.setText("MRI volume layer deletion warning.")
-        diag.setInformativeText("Deleting an MRI volume will also remove all other files linked to it (e.g., annotations).")
-        diag.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
-        diag.setDefaultButton(QMessageBox.Ok)
-        code = diag.exec_()
-        if code == 0:  # Deletion accepted
-            pass
+        linked_annos = SoftwareConfigResources.getInstance().get_active_patient().get_all_annotations_for_mri(self.uid)
+        linked_atlases = SoftwareConfigResources.getInstance().get_active_patient().get_all_atlases_for_mri(self.uid)
+        if (len(linked_annos) + len(linked_atlases)) != 0:
+            # diag = QMessageBox()
+            # diag.setText("MRI volume layer deletion warning.")
+            # diag.setInformativeText("Deleting an MRI volume will also remove all other files linked to it (e.g., annotations).")
+            # diag.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+            # diag.setDefaultButton(QMessageBox.Ok)
+            # code = diag.exec_()
+            code = QMessageBox.warning(self, "MRI volume layer deletion warning.",
+                                       "Deleting an MRI volume will also remove all other files linked to it (e.g., annotations).",
+                                       QMessageBox.Ok | QMessageBox.Cancel, QMessageBox.Ok)
+            if code == QMessageBox.StandardButton.Ok:  # Deletion accepted
+                SoftwareConfigResources.getInstance().get_active_patient().remove_mri_volume(volume_uid=self.uid)
+                self.remove_volume.emit(self.uid)
+        else:
+            SoftwareConfigResources.getInstance().get_active_patient().remove_mri_volume(volume_uid=self.uid)
+            self.remove_volume.emit(self.uid)
 
     def __on_display_dicom_metadata(self):
         dicom_tags = SoftwareConfigResources.getInstance().get_active_patient().mri_volumes[self.uid].get_dicom_metadata()

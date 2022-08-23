@@ -524,6 +524,33 @@ class PatientParameters:
                 res.append(self.atlas_volumes[at].get_unique_id())
         return res
 
+    def remove_mri_volume(self, volume_uid: str) -> None:
+        """
+        Delete the specified MRI volume from the patient parameters, and deletes on disk (within the
+        patient folder) all elements linked to it (e.g., the corresponding display volume).
+        In addition, a recursive deletion of all linked objects (i.e., annotations and atlases) is triggered.\n
+        The operation is irreversible, since all erased files on disk won't be recovered, hence the state is left as
+        unchanged, but a patient save is directly performed to update the scene file.
+
+        Parameters
+        ----------
+        volume_uid: str
+            Internal unique identifier of the MRI volume to delete.
+
+        """
+        linked_annos = self.get_all_annotations_for_mri(mri_volume_uid=volume_uid)
+        for anno in linked_annos:
+            self.remove_annotation(annotation_uid=anno)
+
+        linked_atlases = self.get_all_atlases_for_mri(mri_volume_uid=volume_uid)
+        for atlas in linked_atlases:
+            self.remove_atlas(atlas_uid=atlas)
+
+        self.mri_volumes[volume_uid].delete()
+        del self.mri_volumes[volume_uid]
+        logging.info("Removed MRI volume {} for patient {}".format(volume_uid, self._unique_id))
+        self.save_patient()
+
     def remove_annotation(self, annotation_uid: str) -> None:
         """
         Delete the specified annotation from the patient parameters, and additionally deletes on disk (within the
@@ -531,4 +558,15 @@ class PatientParameters:
         """
         self.annotation_volumes[annotation_uid].delete()
         del self.annotation_volumes[annotation_uid]
-        logging.debug("Removed annotation {} for patient {}".format(annotation_uid, self._unique_id))
+        logging.info("Removed annotation {} for patient {}".format(annotation_uid, self._unique_id))
+        self.save_patient()
+
+    def remove_atlas(self, atlas_uid: str) -> None:
+        """
+        Delete the specified atlas from the patient parameters, and additionally deletes on disk (within the
+        patient folder) all elements linked to it (e.g., the corresponding display volume).
+        """
+        self.atlas_volumes[atlas_uid].delete()
+        del self.atlas_volumes[atlas_uid]
+        logging.info("Removed atlas {} for patient {}".format(atlas_uid, self._unique_id))
+        self.save_patient()

@@ -99,6 +99,14 @@ class AnnotationVolume:
         if self._resampled_input_volume_filepath and os.path.exists(self._resampled_input_volume_filepath):
             os.remove(self._resampled_input_volume_filepath)
 
+        # In case the annotation was automatically generated, its raw version lies inside the patient folder, and can be safely erased
+        if self._raw_input_filepath and self._output_patient_folder in self._raw_input_filepath\
+                and os.path.exists(self._raw_input_filepath):
+            os.remove(self._raw_input_filepath)
+        if self._usable_input_filepath and self._output_patient_folder in self._usable_input_filepath\
+                and os.path.exists(self._usable_input_filepath):
+            os.remove(self._usable_input_filepath)
+
     def set_unsaved_changes_state(self, state: bool) -> None:
         self._unsaved_changes = state
 

@@ -156,6 +156,16 @@ class AtlasVolume:
     def get_visible_class_labels(self) -> List:
         return self._visible_class_labels
 
+    def delete(self):
+        if self._raw_input_filepath and os.path.exists(self._raw_input_filepath):
+            os.remove(self._raw_input_filepath)
+        if self._display_volume_filepath and os.path.exists(self._display_volume_filepath):
+            os.remove(self._display_volume_filepath)
+        if self._resampled_input_volume_filepath and os.path.exists(self._resampled_input_volume_filepath):
+            os.remove(self._resampled_input_volume_filepath)
+        if self._class_description_filename and os.path.exists(self._class_description_filename):
+            os.remove(self._class_description_filename)
+
     def save(self) -> dict:
         """
 

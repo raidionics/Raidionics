@@ -172,6 +172,19 @@ class MRIVolume:
     def get_dicom_metadata(self) -> dict:
         return self._dicom_metadata
 
+    def delete(self):
+        if self._display_volume_filepath and os.path.exists(self._display_volume_filepath):
+            os.remove(self._display_volume_filepath)
+        if self._resampled_input_volume_filepath and os.path.exists(self._resampled_input_volume_filepath):
+            os.remove(self._resampled_input_volume_filepath)
+
+        if self._usable_input_filepath and self._output_patient_folder in self._usable_input_filepath\
+                and os.path.exists(self._usable_input_filepath):
+            os.remove(self._usable_input_filepath)
+
+        if self._dicom_metadata_filepath and os.path.exists(self._dicom_metadata_filepath):
+            os.remove(self._dicom_metadata_filepath)
+
     def save(self) -> dict:
         """
 
