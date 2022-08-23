@@ -91,25 +91,43 @@ class AtlasesLayersInteractor(QCollapsibleGroupBox):
         self.header_pushbutton.setChecked(False)
         self.header_pushbutton.clicked.emit()
 
-    def on_volume_view_toggled(self, volume_uid, state):
+    def on_volume_view_toggled(self, volume_uid: str, state: bool) -> None:
         """
-        @TODO. Might not be necessary, don't care about uid and state, just that the current annotations must be removed
+        A change of the displayed MRI volume has been requested by the user, which should lead to an update of all
+        atlas objects to only show the ones linked to this MRI volume.
+
+        Parameters
+        ----------
+        volume_uid: str
+            Internal unique identifier for the MRI volume selected by the user.
+        state: bool
+            Unused variable, the state should always be True here.
         """
         self.reset()
-        self.on_import_data()
-        # for k in list(self.volumes_widget.keys()):
-        #     wid = self.volumes_widget[k]
-        #     self.content_label_layout.removeWidget(wid)
-        #     self.volumes_widget.pop(k)
+        active_patient = SoftwareConfigResources.getInstance().get_active_patient()
 
-    # def on_annotation_volume_import(self, uid):
+        for atlas_id in active_patient.get_all_atlases_for_mri(mri_volume_uid=volume_uid):
+            if not atlas_id in list(self.volumes_widget.keys()):
+                self.on_import_volume(atlas_id)
 
-    def on_patient_view_toggled(self, patient_uid):
-        active_patient = SoftwareConfigResources.getInstance().patients_parameters[patient_uid]
-        for volume_id in list(active_patient.atlas_volumes.keys()):
-            if not volume_id in list(self.volumes_widget.keys()):
-                self.on_import_volume(volume_id)
         self.adjustSize()  # To force a repaint of the layout with the new elements
+
+    def on_patient_view_toggled(self, patient_uid: str) -> None:
+        """
+        When a patient has been selected in the left-hand side panel, setting up the display of the first of its
+        MRI volumes (if multiple) and corresponding atlas volumes.
+
+        Parameters
+        ----------
+        patient_uid: str
+            Internal unique identifier for the MRI volume selected by the user.
+        """
+        active_patient = SoftwareConfigResources.getInstance().patients_parameters[patient_uid]
+        if len(active_patient.mri_volumes) > 0:
+            for atlas_id in active_patient.get_all_atlases_for_mri(mri_volume_uid=list(active_patient.mri_volumes.keys())[0]):
+                if not atlas_id in list(self.volumes_widget.keys()):
+                    self.on_import_volume(atlas_id)
+            self.adjustSize()
 
     def on_import_volume(self, volume_id):
         volume_widget = AtlasSingleLayerWidget(uid=volume_id, parent=self) #AtlasSingleLayerCollapsibleGroupBox(uid=volume_id, parent=self)

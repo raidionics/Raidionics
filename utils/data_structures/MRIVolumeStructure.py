@@ -96,6 +96,7 @@ class MRIVolume:
     def set_display_name(self, text: str) -> None:
         self._display_name = text
         self._unsaved_changes = True
+        logging.debug("Unsaved changes - MRI volume display name changed to {}".format(self._display_name))
 
     def set_output_patient_folder(self, output_folder: str) -> None:
         self._output_patient_folder = output_folder
@@ -117,6 +118,7 @@ class MRIVolume:
         elif isinstance(type, MRISequenceType):
             self._sequence_type = type
 
+        logging.debug("Unsaved changes - MRI volume sequence changed to {}".format(str(self._sequence_type)))
         self._unsaved_changes = True
 
     def get_display_volume(self) -> np.ndarray:
@@ -159,6 +161,7 @@ class MRIVolume:
         selection), the changes should not be saved until the QDialog has been successfully exited.
         """
         self._unsaved_changes = True
+        logging.debug("Unsaved changes - MRI volume contrast range edited.")
 
     def get_intensity_histogram(self):
         return self._intensity_histogram

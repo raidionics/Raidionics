@@ -272,6 +272,7 @@ def run_reporting(model_name, patient_parameters, queue):
 
         for m in cortical_masks:
             data_uid, error_msg = patient_parameters.import_atlas_structures(os.path.join(cortical_folder, m),
+                                                                             parent_mri_uid=selected_mri_uid,
                                                                              reference='Patient')
             results['Atlas'].append(data_uid)
 
@@ -290,6 +291,7 @@ def run_reporting(model_name, patient_parameters, queue):
         for m in subcortical_masks:
             if os.path.exists(os.path.join(subcortical_folder, m)):
                 data_uid, error_msg = patient_parameters.import_atlas_structures(os.path.join(subcortical_folder, m),
+                                                                                 parent_mri_uid=selected_mri_uid,
                                                                                  reference='Patient')
                 results['Atlas'].append(data_uid)
 

@@ -211,6 +211,7 @@ class PatientParameters:
             logging.info("Renamed current output folder to: {}".format(self._output_folder))
             if manual_change:
                 self._unsaved_changes = True
+                logging.debug("Unsaved changes - Patient object display name edited to {}.".format(new_name))
             return 0, ""
 
     def get_standardized_report_filename(self) -> str:
@@ -283,6 +284,7 @@ class PatientParameters:
                     atlas_volume = AtlasVolume(uid=volume_id,
                                                input_filename=self._patient_parameters_dict['Atlases'][volume_id]['raw_input_filepath'],
                                                output_patient_folder=self._output_folder,
+                                               parent_mri_uid=self._patient_parameters_dict['Atlases'][volume_id]['parent_mri_uid'],
                                                description_filename=os.path.join(self._output_folder, self._patient_parameters_dict['Atlases'][volume_id]['description_filepath']),
                                                reload_params=self._patient_parameters_dict['Atlases'][volume_id])
                     self.atlas_volumes[volume_id] = atlas_volume
@@ -328,6 +330,7 @@ class PatientParameters:
                                                        output_patient_folder=self._output_folder)
             else:
                 if len(self.mri_volumes) != 0:
+                    # @TODO. Not optimal to set a default parent MRI, forces a manual update after, must be improved.
                     default_parent_mri_uid = list(self.mri_volumes.keys())[0]
                     # Generating a unique id for the annotation volume
                     base_data_uid = os.path.basename(filename).strip().split('.')[0]
@@ -349,6 +352,7 @@ class PatientParameters:
 
         logging.info("New data file imported: {}".format(data_uid))
         self._unsaved_changes = True
+        logging.debug("Unsaved changes - Patient object expanded with new volumes.")
         return data_uid, error_message
 
     def import_dicom_data(self, dicom_series: DICOMSeries) -> Union[str, Any]:
@@ -371,7 +375,7 @@ class PatientParameters:
             self.mri_volumes[uid].set_dicom_metadata(dicom_series.dicom_tags)
         return uid, error_msg
 
-    def import_atlas_structures(self, filename: str, description: str = None,
+    def import_atlas_structures(self, filename: str, parent_mri_uid: str, description: str = None,
                                 reference: str = 'Patient') -> Union[str, Any]:
         data_uid = None
         error_message = None
@@ -394,6 +398,7 @@ class PatientParameters:
                                                     base_data_uid.split('_')[0] + '_description.csv')
                 self.atlas_volumes[data_uid] = AtlasVolume(uid=data_uid, input_filename=filename,
                                                            output_patient_folder=self._output_folder,
+                                                           parent_mri_uid=parent_mri_uid,
                                                            description_filename=description_filename)
                 # self.atlas_volumes[data_uid].set_display_volume(deepcopy(image_res))
             else:  # Reference is MNI space then
@@ -496,6 +501,27 @@ class PatientParameters:
         for an in self.annotation_volumes:
             if self.annotation_volumes[an].get_parent_mri_uid() == mri_volume_uid:
                 res.append(self.annotation_volumes[an].get_unique_id())
+        return res
+
+    def get_all_atlases_for_mri(self, mri_volume_uid: str) -> List[str]:
+        """
+        Convenience method for collecting all atlas objects linked to a specific MRI volume.
+
+        Parameters
+        ----------
+        mri_volume_uid : str
+            Unique id for the queried MRI volume object.
+
+        Returns
+        -------
+        List[str]
+            A list of unique identifiers for each atlas object associated with the given MRI volume.
+        """
+        res = []
+
+        for at in self.atlas_volumes:
+            if self.atlas_volumes[at].get_parent_mri_uid() == mri_volume_uid:
+                res.append(self.atlas_volumes[at].get_unique_id())
         return res
 
     def remove_annotation(self, annotation_uid: str) -> None:

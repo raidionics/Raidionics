@@ -213,7 +213,10 @@ class SinglePatientWidget(QWidget):
 
     def on_process_finished(self):
         self.results_panel.on_process_finished()
+        # Hides the process tracking to display back the layers interactor for viewing purposes.
         self.right_panel_stackedwidget.setCurrentIndex(0)
+        # Will force a reset and repopulate with existing layers (i.e., annotations and atlases) for the first MRI.
+        self.layers_panel.on_patient_selected(SoftwareConfigResources.getInstance().get_active_patient_uid())
 
     def on_patient_imported(self, uid: str) -> None:
         self.results_panel.add_new_patient(uid)

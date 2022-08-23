@@ -119,6 +119,7 @@ class AnnotationVolume:
         elif isinstance(anno_type, AnnotationClassType):
             self._annotation_class = anno_type
         self._unsaved_changes = True
+        logging.debug("Unsaved changes - Annotation volume class changed to {}.".format(str(self._annotation_class)))
 
     def get_display_name(self) -> str:
         return self._display_name
@@ -142,6 +143,7 @@ class AnnotationVolume:
     def set_display_opacity(self, opacity: int) -> None:
         self._display_opacity = opacity
         self._unsaved_changes = True
+        logging.debug("Unsaved changes - Annotation volume opacity edited.")
 
     def get_display_color(self) -> Tuple[int]:
         return self._display_color
@@ -149,6 +151,7 @@ class AnnotationVolume:
     def set_display_color(self, color: Tuple[int]) -> None:
         self._display_color = color
         self._unsaved_changes = True
+        logging.debug("Unsaved changes - Annotation volume display color edited.")
 
     def get_display_volume(self) -> np.ndarray:
         return self._display_volume
@@ -159,6 +162,7 @@ class AnnotationVolume:
     def set_parent_mri_uid(self, parent_uid: str) -> None:
         self._parent_mri_uid = parent_uid
         self._unsaved_changes = True
+        logging.debug("Unsaved changes - Annotation volume parent MRI uid changed to {}.".format(parent_uid))
 
     def get_generation_type_enum(self) -> Enum:
         return self._generation_type
@@ -174,6 +178,7 @@ class AnnotationVolume:
         elif isinstance(generation_type, AnnotationGenerationType):
             self._generation_type = generation_type
         self._unsaved_changes = True
+        logging.debug("Unsaved changes - Annotation volume generation type changed to {}.".format(str(self._generation_type)))
 
     def save(self) -> dict:
         """
