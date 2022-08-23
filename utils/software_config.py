@@ -179,7 +179,7 @@ class SoftwareConfigResources:
         error_message Any (str or None)
             None if no error was collected, otherwise a string with a human-readable description of the error.
         """
-        patient_instance = PatientParameters()
+        patient_instance = PatientParameters(dest_location=self._user_home_location)
         error_message = patient_instance.import_patient(filename)
         # To prevent the save changes dialog to pop-up straight up after loading a patient scene file.
         patient_instance.set_unsaved_changes_state(False)
@@ -213,16 +213,20 @@ class SoftwareConfigResources:
         """
         error_message = None
         try:
+            if self.active_patient_name and patient_uid == self.active_patient_name:
+                # The active patient is already the requested active patient, nothing to do.
+                return error_message
+
             # NB: At the very first call, there is no previously active patient, hence the need for an if statement
             if self.active_patient_name:
                 self.patients_parameters[self.active_patient_name].release_from_memory()
             self.active_patient_name = patient_uid
             self.patients_parameters[self.active_patient_name].load_in_memory()
+            logging.debug("Active patient uid changed from {} to {}.".format(self.active_patient_name, patient_uid))
         except Exception:
             logging.error("Setting {} as active patient failed, with {}.\n".format(os.path.basename(patient_uid),
                                                                                      str(traceback.format_exc())))
 
-        logging.debug("Active patient uid changed from {} to {}.".format(self.active_patient_name, patient_uid))
         return error_message
 
     def is_patient_list_empty(self) -> bool:
@@ -308,7 +312,8 @@ class SoftwareConfigResources:
         for p in included_pat_uids.keys():
             if p not in self.patients_parameters.keys():
                 logging.info("Reloading patient {} linked to study {}.".format(p, study_id))
-                assumed_patient_filename = os.path.join(included_pat_uids[p], included_pat_uids[p].split('/')[-1] + '_scene.raidionics')
+                assumed_patient_filename = os.path.join(study_instance.get_output_study_directory(), 'patients',
+                                                        included_pat_uids[p], included_pat_uids[p] + '_scene.raidionics')
                 self.load_patient(filename=assumed_patient_filename, active=False)
         return study_id, error_message
 
@@ -359,6 +364,23 @@ class SoftwareConfigResources:
             return self.study_parameters[uid]
         else:
             return None
+
+    def propagate_patient_name_change(self, patient_uid: str) -> None:
+        """
+        If a patient display name has been manually edited by the user, the folder name on disk has also been changed.
+        As a result, the directory pointing to the patient must also be updated in the Study objects, wherever the
+        patient is included.
+
+        Parameters
+        ----------
+        patient_uid: str
+            Internal unique identifier for the patient who underwent a display name alteration.
+        """
+        for s in self.study_parameters.keys():
+            if patient_uid in self.study_parameters[s].get_included_patients_uids().keys():
+                self.study_parameters[s].change_study_patient_folder(uid=patient_uid,
+                                                                     folder_name=self.patients_parameters[patient_uid].get_output_folder())
+                self.study_parameters[s].save()
 
     def get_optimal_dimensions(self):
         return self.optimal_dimensions

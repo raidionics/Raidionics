@@ -251,8 +251,9 @@ class SingleLineAtlasStructureWidget(QWidget):
             custom_ss = "QPushButton{" + custom_color_str + ";}"
             self.color_dialog_pushbutton.setStyleSheet(self.color_dialog_pushbutton_base_ss + custom_ss)
             struct_ind = SoftwareConfigResources.getInstance().get_active_patient().atlas_volumes[self.atlas_id].get_structure_index_by_name(self.structure_name)
-            atlas_params = SoftwareConfigResources.getInstance().get_active_patient().atlas_volumes[self.atlas_id]
-            atlas_params._class_display_color[struct_ind] = color
+            # atlas_params = SoftwareConfigResources.getInstance().get_active_patient().atlas_volumes[self.atlas_id]
+            # atlas_params._class_display_color[struct_ind] = color
+            SoftwareConfigResources.getInstance().get_active_patient().get_atlas_by_uid(self.atlas_id).set_class_display_color_by_index(index=struct_ind, color=color.getRgb())
             self.color_value_changed.emit(self.atlas_id, struct_ind, color)
 
     def __on_opacity_changed(self, value):

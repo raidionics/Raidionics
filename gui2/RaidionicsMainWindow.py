@@ -82,6 +82,8 @@ class RaidionicsMainWindow(QMainWindow):
         self.menu_bar = QMenuBar(self)
         self.menu_bar.setNativeMenuBar(False)  # https://stackoverflow.com/questions/25261760/menubar-not-showing-for-simple-qmainwindow-code-qt-creator-mac-os
         self.file_menu = self.menu_bar.addMenu('File')
+        self.download_example_data_action = QAction('Download test data', self)
+        self.file_menu.addAction(self.download_example_data_action)
         self.quit_action = QAction('Quit', self)
         self.quit_action.setShortcut("Ctrl+Q")
         self.file_menu.addAction(self.quit_action)
@@ -188,6 +190,7 @@ class RaidionicsMainWindow(QMainWindow):
         self.batch_mode_action.triggered.connect(self.__on_study_batch_clicked)
         self.settings_preferences_action.triggered.connect(self.__on_settings_preferences_clicked)
         self.quit_action.triggered.connect(sys.exit)
+        self.download_example_data_action.triggered.connect(self.__on_download_example_data)
 
     def __get_screen_dimensions(self):
         screen = self.app.primaryScreen()
@@ -304,7 +307,7 @@ class RaidionicsMainWindow(QMainWindow):
         popup.setWindowTitle('About')
         popup.setText('Raidionics is developed by the Medical Technology group, Health department, SINTEF Digital:\n'
                         '* David Bouget, contact: david.bouget@sintef.no\n'
-                        '* Andre Pedersen (deployment and multi-platform support)\n'
+                        '* André Pedersen (deployment and multi-platform support)\n'
                         '* Demah Alsinan (design)\n'
                         '* Valeria Gaitan (design)\n'
                         '* Ingerid Reinertsen (project leader)\n\n'
@@ -321,8 +324,8 @@ class RaidionicsMainWindow(QMainWindow):
         # opens browser with specified url, directs user to Issues section of GitHub repo
         QDesktopServices.openUrl(QUrl("https://github.com/dbouget/Raidionics/issues"))
 
-    # def settings_update_models_menu_active_action_triggered(self, status):
-    #     RuntimeResources.getInstance().active_models_update_state = status
+    def __on_download_example_data(self):
+        QDesktopServices.openUrl(QUrl("https://drive.google.com/file/d/1GYQPR0RvoriJN6Z1Oq8WzOoDf68htdCs/view?usp=sharing"))
 
     def standardOutputWritten(self, text):
         """

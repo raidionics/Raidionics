@@ -43,13 +43,13 @@ class PatientParameters:
 
         # Temporary global placeholder, until a destination folder is chosen by the user.
         if dest_location:
-            self.output_dir = dest_location
+            self._output_dir = dest_location
         else:
-            self.output_dir = os.path.join(expanduser("~"), '.raidionics')
-        os.makedirs(self.output_dir, exist_ok=True)
+            self._output_dir = os.path.join(expanduser("~"), '.raidionics')
+        os.makedirs(self._output_dir, exist_ok=True)
 
         # Temporary placeholder for the current patient files, until a destination folder is chosen by the user.
-        self._output_folder = os.path.join(self.output_dir, "patients", "temp_patient")
+        self._output_folder = os.path.join(self._output_dir, "patients", "temp_patient")
         if os.path.exists(self._output_folder):
             shutil.rmtree(self._output_folder)
         os.makedirs(self._output_folder)
@@ -83,7 +83,7 @@ class PatientParameters:
         return self._unique_id
 
     def get_output_directory(self) -> str:
-        return self.output_dir
+        return self._output_dir
 
     def get_output_folder(self) -> str:
         return self._output_folder
@@ -92,7 +92,7 @@ class PatientParameters:
         #@TODO. DEPRECATED.
         new_output_folder = os.path.join(directory, self._display_name.strip().lower().replace(" ", '_'))
         shutil.move(src=self._output_folder, dst=new_output_folder, copy_function=shutil.copytree)
-        self.output_dir = directory
+        self._output_dir = directory
         self._output_folder = new_output_folder
         for im in self.mri_volumes:
             self.mri_volumes[im].set_output_patient_folder(self._output_folder)
@@ -178,8 +178,15 @@ class PatientParameters:
             The first element is the code indicating success (0) or failure (1) of the operation. The second element
             is a human-readable string describing the problem encountered, if any, otherwise is empty.
         """
+        # If a patient folder has been manually copied somewhere else, outside a proper raidionics home directory
+        # environment, which should include patients and studies sub-folders.
+        if not os.path.exists(os.path.join(self._output_dir, "patients")) or not os.path.join(self._output_dir, "patients") in self._output_folder:
+            msg = """The patient folder is used outside of a proper Raidionics home directory.\n
+            A proper home directory consists of a 'patients' and a 'studies' sub-folder."""
+            return 1, msg
+
         # Removing spaces to prevent potential issues in folder name/access when performing disk IO operations
-        new_output_folder = os.path.join(self.output_dir, "patients", new_name.strip().lower().replace(" ", '_'))
+        new_output_folder = os.path.join(self._output_dir, "patients", new_name.strip().lower().replace(" ", '_'))
         if os.path.exists(new_output_folder):
             msg = """A patient with requested name already exists in the destination folder.\n
             Requested name: [{}].\n
@@ -220,6 +227,12 @@ class PatientParameters:
     def get_standardized_report(self) -> dict:
         return self._standardized_report
 
+    def get_all_atlas_volumes_uids(self):
+        return self.atlas_volumes.keys()
+
+    def get_atlas_by_uid(self, atlas_uid: str) -> AtlasVolume:
+        return self.atlas_volumes[atlas_uid]
+
     def import_standardized_report(self, filename: str) -> Any:
         error_message = None
         try:
@@ -239,6 +252,7 @@ class PatientParameters:
         try:
             self._patient_parameters_dict_filename = filename
             self._output_folder = os.path.dirname(self._patient_parameters_dict_filename)
+            self._output_dir = os.path.dirname(self._output_folder)
             with open(self._patient_parameters_dict_filename, 'r') as infile:
                 self._patient_parameters_dict = json.load(infile)
 
@@ -322,7 +336,7 @@ class PatientParameters:
                 base_data_uid = os.path.basename(filename).strip().split('.')[0]
                 non_available_uid = True
                 while non_available_uid:
-                    data_uid = str(np.random.randint(0, 1000)) + '_' + base_data_uid
+                    data_uid = str(np.random.randint(0, 10000)) + '_' + base_data_uid
                     if data_uid not in list(self.mri_volumes.keys()):
                         non_available_uid = False
 
@@ -336,7 +350,7 @@ class PatientParameters:
                     base_data_uid = os.path.basename(filename).strip().split('.')[0]
                     non_available_uid = True
                     while non_available_uid:
-                        data_uid = str(np.random.randint(0, 1000)) + '_' + base_data_uid
+                        data_uid = str(np.random.randint(0, 10000)) + '_' + base_data_uid
                         if data_uid not in list(self.annotation_volumes.keys()):
                             non_available_uid = False
 
@@ -390,7 +404,7 @@ class PatientParameters:
                 base_data_uid = os.path.basename(filename).strip().split('.')[0]
                 non_available_uid = True
                 while non_available_uid:
-                    data_uid = str(np.random.randint(0, 1000)) + '_' + base_data_uid
+                    data_uid = str(np.random.randint(0, 10000)) + '_' + base_data_uid
                     if data_uid not in list(self.annotation_volumes.keys()):
                         non_available_uid = False
 

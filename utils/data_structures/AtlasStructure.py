@@ -1,6 +1,6 @@
 import os
 import logging
-from typing import Union, List
+from typing import Union, List, Tuple
 import pandas as pd
 import numpy as np
 import nibabel as nib
@@ -28,9 +28,9 @@ class AtlasVolume:
     _visible_class_labels = []
     _class_number = 0
     _class_description = {}  # DataFrame containing a look-up-table between atlas labels and descriptive names
-    _class_description_filename = None  #
-    _class_display_color = {}
-    _class_display_opacity = {}
+    _class_description_filename = None  # Filename on disk for storing the aforementioned information
+    _class_display_color = {}  # Color (rgba) for each class key
+    _class_display_opacity = {}  # Integer value in [0, 100] for each class key
     _default_affine = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]
     _unsaved_changes = False  # Documenting any change, for suggesting saving when swapping between patients
 
@@ -65,10 +65,14 @@ class AtlasVolume:
         @TODO. Might need a prompt if the loading of some elements failed to warn the user.
         """
         self._raw_input_filepath = os.path.join(self._output_patient_folder, parameters['raw_input_filepath'])
-        self.__generate_display_volume()
         self._class_description = pd.read_csv(self._class_description_filename)
+        self.__generate_display_volume()
         self._display_name = parameters['display_name']
         self._parent_mri_uid = parameters['parent_mri_uid']
+        # if 'display_colors' in parameters.keys():
+        #     self._class_display_color = {int(k): v for k, v in parameters['display_colors'].items()}
+        # if 'display_opacities' in parameters.keys():
+        #     self._class_display_opacity = {int(k): v for k, v in parameters['display_opacities'].items()}
 
     def load_in_memory(self) -> None:
         if self._display_volume_filepath and os.path.exists(self._display_volume_filepath):
@@ -125,6 +129,10 @@ class AtlasVolume:
         index = self.get_structure_index_by_name(name)
         return self._class_display_color[index]
 
+    def set_class_display_color_by_index(self, index: int, color: Tuple[int]) -> None:
+        self._class_display_color[index] = color
+        self._unsaved_changes = True
+
     def get_all_class_opacity(self):
         return self._class_display_opacity
 
@@ -139,6 +147,10 @@ class AtlasVolume:
         label = int(self._class_description.loc[self._class_description['text'] == name]['label'].index.values[0])
         index = self._visible_class_labels.index(label)
         return self._class_display_opacity[index]
+
+    def set_class_opacity_by_index(self, index: int, opacity: int) -> None:
+        self._class_display_opacity[index] = opacity
+        self._unsaved_changes = True
 
     def set_output_patient_folder(self, output_folder: str) -> None:
         if self._raw_input_filepath and self._output_patient_folder in self._raw_input_filepath:
@@ -193,6 +205,8 @@ class AtlasVolume:
                 volume_params['description_filepath'] = os.path.relpath(self._class_description_filename,
                                                                         self._output_patient_folder)
             volume_params['parent_mri_uid'] = self._parent_mri_uid
+            volume_params['display_colors'] = self._class_display_color
+            volume_params['display_opacities'] = self._class_display_opacity
             self._unsaved_changes = False
             return volume_params
         except Exception:
@@ -214,6 +228,8 @@ class AtlasVolume:
         self._one_hot_display_volume = np.zeros(shape=(self._display_volume.shape + (self._class_number + 1,)),
                                                 dtype='uint8')
 
+        self._class_display_color = {}
+        self._class_display_opacity = {}
         for c in range(1, self._class_number + 1):
             self._class_display_color[c] = [255, 255, 255, 255]
             self._class_display_opacity[c] = 50

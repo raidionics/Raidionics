@@ -21,7 +21,6 @@ class StudyParameters:
     _study_parameters = {}  # Dict holding the information to be saved as json in the aforementioned file
     _output_study_directory = ""  # Root directory (user-selected home location) for storing all patients info
     _output_study_folder = ""  # Complete folder location where the study info are stored
-    _patients_root_filename = None  # Complete folder location where the patient objects are stored, MIGHT NOT BE USEFUL IF MERGING LOCATION
     _included_patients_uids = {}  # List of internal unique identifiers for all the patients included in the study, and their on-disk folder
     _display_name = ""  # Human-readable name for the study
     _unsaved_changes = False  # Documenting any change, for suggesting saving when exiting the software
@@ -130,6 +129,9 @@ class StudyParameters:
     def get_output_study_folder(self) -> str:
         return self._output_study_folder
 
+    def get_output_study_directory(self) -> str:
+        return self._output_study_directory
+
     def get_included_patients_uids(self) -> dict:
         return self._included_patients_uids
 
@@ -138,7 +140,7 @@ class StudyParameters:
 
     def include_study_patient(self, uid: str, folder_name: str) -> int:
         if uid not in self._included_patients_uids.keys():
-            self._included_patients_uids[uid] = folder_name
+            self._included_patients_uids[uid] = os.path.basename(folder_name)
             self._unsaved_changes = True
             return 0
         else:
@@ -151,6 +153,11 @@ class StudyParameters:
             del self._included_patients_uids[uid]
             self._unsaved_changes = True
             return 1
+
+    def change_study_patient_folder(self, uid: str, folder_name: str) -> None:
+        if uid in self._included_patients_uids.keys():
+            self._included_patients_uids[uid] = os.path.basename(folder_name)
+            self._unsaved_changes = True
 
     def import_study(self, filename: str) -> Any:
         """
@@ -184,7 +191,6 @@ class StudyParameters:
                     "%d/%m/%Y, %H:%M:%S")
 
             if 'Patients' in self._study_parameters["Study"].keys():
-                self._patients_root_filename = self._study_parameters["Study"]['Patients']['root_folder']
                 self._included_patients_uids = self._study_parameters["Study"]['Patients']['listing']
 
         except Exception:
@@ -200,7 +206,6 @@ class StudyParameters:
         self._study_parameters['Default']['display_name'] = self._display_name
         self._study_parameters['Default']['creation_timestamp'] = self._creation_timestamp.strftime("%d/%m/%Y, %H:%M:%S")
         self._study_parameters['Default']['last_editing_timestamp'] = self._last_editing_timestamp.strftime("%d/%m/%Y, %H:%M:%S")
-        self._study_parameters['Study']['Patients']['root_folder'] = self._patients_root_filename
         self._study_parameters['Study']['Patients']['listing'] = self._included_patients_uids
 
         # Saving the json file last, as it must be populated from the previous dumps beforehand
@@ -216,7 +221,6 @@ class StudyParameters:
         self._output_study_directory = dest_location
         self._output_study_folder = os.path.join(dest_location,
                                                  "studies", self._display_name.strip().lower().replace(" ", '_'))
-        self._patients_root_filename = os.path.join(dest_location, "patients")
         # @TODO. How to deal with existing folder locations, if any?
         os.makedirs(self._output_study_folder, exist_ok=True)
         logging.info("Output study directory set to: {}".format(self._output_study_folder))
@@ -232,5 +236,4 @@ class StudyParameters:
         if 'last_editing_timestamp' in self._study_parameters["Default"].keys():
             self._last_editing_timestamp = datetime.datetime.strptime(
                 self._study_parameters["Default"]['last_editing_timestamp'], "%d/%m/%Y, %H:%M:%S")
-        self._patients_root_filename = self._study_parameters['Study']['Patients']['root_folder']
         self._included_patients_uids = self._study_parameters['Study']['Patients']['listing']

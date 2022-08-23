@@ -87,11 +87,12 @@ class AnnotationVolume:
     def load_in_memory(self) -> None:
         if self._display_volume_filepath and os.path.exists(self._display_volume_filepath):
             self._display_volume = nib.load(self._display_volume_filepath).get_data()[:]
-        else:
-            pass
+        if self._resampled_input_volume_filepath and os.path.exists(self._resampled_input_volume_filepath):
+            self._resampled_input_volume = nib.load(self._resampled_input_volume_filepath).get_data()[:]
 
     def release_from_memory(self) -> None:
         self._display_volume = None
+        self._resampled_input_volume = None
 
     def delete(self):
         if self._display_volume_filepath and os.path.exists(self._display_volume_filepath):
@@ -259,7 +260,7 @@ class AnnotationVolume:
         self._resampled_input_volume_filepath = os.path.join(self._output_patient_folder,
                                                              parameters['resample_input_filepath'])
         if os.path.exists(self._resampled_input_volume_filepath):
-            self._resampled_input_volume = nib.load(self._resampled_input_volume_filepath)
+            self._resampled_input_volume = nib.load(self._resampled_input_volume_filepath).get_data()[:]
         else:
             # Patient wasn't saved after loading, hence the volume was not stored on disk and must be recomputed
             self.__generate_display_volume()

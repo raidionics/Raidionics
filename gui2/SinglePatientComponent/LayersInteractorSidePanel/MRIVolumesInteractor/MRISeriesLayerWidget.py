@@ -229,7 +229,9 @@ class MRISeriesLayerWidget(QWidget):
         mri_volume_parameters = SoftwareConfigResources.getInstance().get_active_patient().mri_volumes[self.uid]
         self.display_name_lineedit.setText(mri_volume_parameters.get_display_name())
         sequence_index = self.sequence_type_combobox.findText(mri_volume_parameters.get_sequence_type_str())
+        self.sequence_type_combobox.blockSignals(True)
         self.sequence_type_combobox.setCurrentIndex(sequence_index)
+        self.sequence_type_combobox.blockSignals(False)
 
     def __on_delete_layer(self):
         """

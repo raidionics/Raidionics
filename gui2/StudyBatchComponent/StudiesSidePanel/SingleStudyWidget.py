@@ -328,6 +328,10 @@ class SingleStudyWidget(QCollapsibleGroupBox):
     def __on_run_segmentation(self):
         diag = TumorTypeSelectionQDialog(self)
         code = diag.exec_()
+
+        if code == 0:  # Operation was cancelled by the user
+            return
+
         self.model_name = "MRI_Meningioma"
         if diag.tumor_type == 'High-Grade Glioma':
             self.model_name = "MRI_HGGlioma_P2"
@@ -342,6 +346,10 @@ class SingleStudyWidget(QCollapsibleGroupBox):
     def __on_run_rads(self):
         diag = TumorTypeSelectionQDialog(self)
         code = diag.exec_()
+
+        if code == 0:  # Operation was cancelled by the user
+            return
+
         self.model_name = "MRI_Meningioma"
         if diag.tumor_type == 'High-Grade Glioma':
             self.model_name = "MRI_HGGlioma_P2"

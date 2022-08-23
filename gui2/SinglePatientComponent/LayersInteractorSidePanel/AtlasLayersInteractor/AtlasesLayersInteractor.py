@@ -141,11 +141,14 @@ class AtlasesLayersInteractor(QCollapsibleGroupBox):
         # volume_widget.header_pushbutton.clicked.connect(self.adjustSize)
         # volume_widget.right_clicked.connect(self.on_visibility_clicked)
         volume_widget.structure_view_toggled.connect(self.on_atlas_structure_view_toggled)
-        volume_widget.structure_color_value_changed.connect(self.atlas_color_changed)
+        volume_widget.structure_color_value_changed.connect(self.__on_atlas_color_changed)
         volume_widget.structure_opacity_value_changed.connect(self.atlas_opacity_changed)
         volume_widget.resizeRequested.connect(self.adjustSize)
         # Triggers a repaint with adjusted size for the layout
         self.adjustSize()
+
+    def __on_atlas_color_changed(self, atlas_uid: str, structure_index: int, color: QColor) -> None:
+        self.atlas_color_changed.emit(atlas_uid, structure_index, color)
 
     def on_visibility_clicked(self, uid, state):
         self.atlas_view_toggled.emit(uid, state)

@@ -1,3 +1,5 @@
+import traceback
+
 from PySide2.QtWidgets import QWidget, QLabel, QGridLayout, QPushButton
 from PySide2.QtCore import QSize, Signal
 from PySide2.QtDataVisualization import QtDataVisualization
@@ -228,18 +230,26 @@ class CentralDisplayAreaWidget(QWidget):
         self.sagittal_viewer.update_annotation_color(volume_uid, color)
 
     def on_atlas_structure_view_toggled(self, atlas_uid, structure_index, state):
-        joint_uid = atlas_uid + '_' + str(structure_index)
-        if state:
-            self.current_patient_parameters = SoftwareConfigResources.getInstance().patients_parameters[SoftwareConfigResources.getInstance().active_patient_name]
-            self.overlaid_volumes[joint_uid] = self.current_patient_parameters.atlas_volumes[atlas_uid].get_one_hot_display_volume()[..., structure_index]
-            self.axial_viewer.update_atlas_view(atlas_uid, structure_index, self.overlaid_volumes[joint_uid][:, :, self.point_clicker_position[2]])
-            self.coronal_viewer.update_atlas_view(atlas_uid, structure_index, self.overlaid_volumes[joint_uid][:, self.point_clicker_position[1], :])
-            self.sagittal_viewer.update_atlas_view(atlas_uid, structure_index, self.overlaid_volumes[joint_uid][self.point_clicker_position[0], :, :])
-        else:
-            self.overlaid_volumes.pop(joint_uid, None)  # None should not be necessary as the key should be in the dict
-            self.axial_viewer.remove_atlas_view(atlas_uid, structure_index)
-            self.coronal_viewer.remove_atlas_view(atlas_uid, structure_index)
-            self.sagittal_viewer.remove_atlas_view(atlas_uid, structure_index)
+        """
+
+        """
+        try:
+            joint_uid = atlas_uid + '_' + str(structure_index)
+            if state:
+                self.current_patient_parameters = SoftwareConfigResources.getInstance().patients_parameters[SoftwareConfigResources.getInstance().active_patient_name]
+                self.overlaid_volumes[joint_uid] = self.current_patient_parameters.atlas_volumes[atlas_uid].get_one_hot_display_volume()[..., structure_index]
+                self.axial_viewer.update_atlas_view(atlas_uid, structure_index, self.overlaid_volumes[joint_uid][:, :, self.point_clicker_position[2]])
+                self.coronal_viewer.update_atlas_view(atlas_uid, structure_index, self.overlaid_volumes[joint_uid][:, self.point_clicker_position[1], :])
+                self.sagittal_viewer.update_atlas_view(atlas_uid, structure_index, self.overlaid_volumes[joint_uid][self.point_clicker_position[0], :, :])
+            else:
+                self.overlaid_volumes.pop(joint_uid, None)  # None should not be necessary as the key should be in the dict
+                self.axial_viewer.remove_atlas_view(atlas_uid, structure_index)
+                self.coronal_viewer.remove_atlas_view(atlas_uid, structure_index)
+                self.sagittal_viewer.remove_atlas_view(atlas_uid, structure_index)
+        except Exception:
+            logging.warning("Changing toggle state to structure {} of atlas {} failed with:\n{}.".format(structure_index,
+                                                                                                         atlas_uid,
+                                                                                                         traceback.format_exc()))
 
     def on_atlas_structure_color_changed(self, atlas_uid, structure_index, color):
         joint_uid = atlas_uid + '_' + str(structure_index)
@@ -254,17 +264,24 @@ class CentralDisplayAreaWidget(QWidget):
         self.sagittal_viewer.update_annotation_opacity(joint_uid, opacity)
 
     def on_atlas_layer_toggled(self, volume_uid, state):
-        if state:
-            self.current_patient_parameters = SoftwareConfigResources.getInstance().patients_parameters[SoftwareConfigResources.getInstance().active_patient_name]
-            self.overlaid_volumes[volume_uid] = self.current_patient_parameters.atlas_volumes[volume_uid].get_display_volume()
-            # self.axial_viewer.update_atlas_view(volume_uid, self.overlaid_volumes[volume_uid][:, :, self.point_clicker_position[2]])
-            # self.coronal_viewer.update_atlas_view(volume_uid, self.overlaid_volumes[volume_uid][:, self.point_clicker_position[1], :])
-            # self.sagittal_viewer.update_atlas_view(volume_uid, self.overlaid_volumes[volume_uid][self.point_clicker_position[0], :, :])
-        else:
-            self.overlaid_volumes.pop(volume_uid, None)  # None should not be necessary as the key should be in the dict
-            # self.axial_viewer.remove_atlas_view(volume_uid)
-            # self.coronal_viewer.remove_atlas_view(volume_uid)
-            # self.sagittal_viewer.remove_atlas_view(volume_uid)
+        """
+
+        """
+        try:
+            if state:
+                self.current_patient_parameters = SoftwareConfigResources.getInstance().patients_parameters[SoftwareConfigResources.getInstance().active_patient_name]
+                self.overlaid_volumes[volume_uid] = self.current_patient_parameters.atlas_volumes[volume_uid].get_display_volume()
+                # self.axial_viewer.update_atlas_view(volume_uid, self.overlaid_volumes[volume_uid][:, :, self.point_clicker_position[2]])
+                # self.coronal_viewer.update_atlas_view(volume_uid, self.overlaid_volumes[volume_uid][:, self.point_clicker_position[1], :])
+                # self.sagittal_viewer.update_atlas_view(volume_uid, self.overlaid_volumes[volume_uid][self.point_clicker_position[0], :, :])
+            else:
+                self.overlaid_volumes.pop(volume_uid, None)  # None should not be necessary as the key should be in the dict
+                # self.axial_viewer.remove_atlas_view(volume_uid)
+                # self.coronal_viewer.remove_atlas_view(volume_uid)
+                # self.sagittal_viewer.remove_atlas_view(volume_uid)
+        except Exception:
+            logging.warning("Changing toggle state for atlas {} failed with:\n{}.".format(volume_uid,
+                                                                                          traceback.format_exc()))
 
     def __on_axial_coordinates_changed(self, x, y):
         """

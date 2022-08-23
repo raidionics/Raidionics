@@ -614,6 +614,10 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
             self.header_pushbutton.setText(new_name)
             self.patient_name_edited.emit(self.uid, new_name)
             self.output_dir_lineedit.setText(SoftwareConfigResources.getInstance().get_active_patient().get_output_folder())
+
+            # If some ongoing studies are opened, the associated folder must also be changed there
+            if not SoftwareConfigResources.getInstance().is_study_list_empty():
+                SoftwareConfigResources.getInstance().propagate_patient_name_change(SoftwareConfigResources.getInstance().get_active_patient_uid())
         else:  # Requested name already exists, operation cancelled and user warned.
             self.patient_name_lineedit.setText(SoftwareConfigResources.getInstance().get_active_patient().get_display_name())
             diag = QErrorMessage(self)

@@ -110,7 +110,17 @@ class MRIVolume:
     def get_sequence_type_str(self) -> str:
         return str(self._sequence_type)
 
-    def set_sequence_type(self, type: str) -> None:
+    def set_sequence_type(self, type: str, manual: bool = True) -> None:
+        """
+        Update the MRI sequence type.
+
+        Parameters
+        ----------
+        type: str, MRISequenceType
+            New sequence type to associate with the current MRI volume, either a str or MRISequenceType.
+        manual: bool
+            To specify if the change warrants a change of the saved state.
+        """
         if isinstance(type, str):
             ctype = get_type_from_string(MRISequenceType, type)
             if ctype != -1:
@@ -118,8 +128,9 @@ class MRIVolume:
         elif isinstance(type, MRISequenceType):
             self._sequence_type = type
 
-        logging.debug("Unsaved changes - MRI volume sequence changed to {}".format(str(self._sequence_type)))
-        self._unsaved_changes = True
+        if manual:
+            logging.debug("Unsaved changes - MRI volume sequence changed to {}".format(str(self._sequence_type)))
+            self._unsaved_changes = True
 
     def get_display_volume(self) -> np.ndarray:
         return self._display_volume
@@ -257,7 +268,7 @@ class MRIVolume:
         self._display_volume_filepath = os.path.join(self._output_patient_folder, parameters['display_volume_filepath'])
         self._display_volume = nib.load(self._display_volume_filepath).get_data()[:]
         self._display_name = parameters['display_name']
-        self.set_sequence_type(type=parameters['sequence_type'])
+        self.set_sequence_type(type=parameters['sequence_type'], manual=False)
         self.__generate_intensity_histogram()
 
     def __parse_sequence_type(self):
