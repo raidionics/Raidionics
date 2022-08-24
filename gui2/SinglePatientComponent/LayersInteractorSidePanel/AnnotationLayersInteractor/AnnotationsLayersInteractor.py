@@ -109,7 +109,6 @@ class AnnotationsLayersInteractor(QCollapsibleGroupBox):
         co-registered patient space, or the MNI space for displaying.
         """
         active_patient = SoftwareConfigResources.getInstance().get_active_patient()
-        # for volume_id in list(active_patient.annotation_volumes.keys()):
         for anno_id in active_patient.get_all_annotations_for_mri(mri_volume_uid=volume_uid):
             if not anno_id in list(self.volumes_widget.keys()):
                 self.on_import_volume(anno_id)
@@ -124,8 +123,8 @@ class AnnotationsLayersInteractor(QCollapsibleGroupBox):
         co-registered patient space, or the MNI space for displaying.
         """
         active_patient = SoftwareConfigResources.getInstance().patients_parameters[patient_uid]
-        if len(active_patient.mri_volumes) > 0:
-            for anno_id in active_patient.get_all_annotations_for_mri(mri_volume_uid=list(active_patient.mri_volumes.keys())[0]):
+        if active_patient.get_patient_mri_volumes_number() > 0:
+            for anno_id in active_patient.get_all_annotations_for_mri(mri_volume_uid=active_patient.get_all_mri_volumes_uids()[0]):
                 if not anno_id in list(self.volumes_widget.keys()):
                     self.on_import_volume(anno_id)
             self.adjustSize()  # To force a repaint of the layout with the new elements
@@ -156,16 +155,16 @@ class AnnotationsLayersInteractor(QCollapsibleGroupBox):
 
     def on_name_changed(self, uid, name):
         pat_params = SoftwareConfigResources.getInstance().get_active_patient()
-        pat_params.annotation_volumes[uid].set_display_name(name)
+        pat_params.get_annotation_by_uid(uid).set_display_name(name)
 
     def on_opacity_changed(self, uid, value):
         pat_params = SoftwareConfigResources.getInstance().get_active_patient()
-        pat_params.annotation_volumes[uid].set_display_opacity(value)
+        pat_params.get_annotation_by_uid(uid).set_display_opacity(value)
         self.annotation_opacity_changed.emit(uid, value)
 
     def on_color_changed(self, uid, color):
         pat_params = SoftwareConfigResources.getInstance().get_active_patient()
-        pat_params.annotation_volumes[uid].set_display_color(color.getRgb())
+        pat_params.get_annotation_by_uid(uid).set_display_color(color.getRgb())
         self.annotation_color_changed.emit(uid, color)
 
     def on_mri_volume_display_name_changed(self, volume_uid: str, new_name: str) -> None:
@@ -182,7 +181,7 @@ class AnnotationsLayersInteractor(QCollapsibleGroupBox):
 
         """
         for wid in self.volumes_widget:
-            index = list(SoftwareConfigResources.getInstance().get_active_patient().mri_volumes.keys()).index(volume_uid)
+            index = list(SoftwareConfigResources.getInstance().get_active_patient().get_all_mri_volumes_uids()).index(volume_uid)
             self.volumes_widget[wid].parent_image_combobox.setItemText(index, new_name)
             self.volumes_widget[wid].parent_image_combobox.repaint()
 

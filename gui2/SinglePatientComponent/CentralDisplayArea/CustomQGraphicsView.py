@@ -181,12 +181,12 @@ class CustomQGraphicsView(QGraphicsView):
             self.overlaid_items[annotation_uid] = QGraphicsPixmapItem()
             self.scene.addItem(self.overlaid_items[annotation_uid])
         if not annotation_uid in self.overlaid_items_display_parameters.keys():
-            annotation_color = SoftwareConfigResources.getInstance().get_active_patient().annotation_volumes[annotation_uid].get_display_color()
+            annotation_color = SoftwareConfigResources.getInstance().get_active_patient().get_annotation_by_uid(annotation_uid).get_display_color()
             self.overlaid_items_display_parameters[annotation_uid] = {"color": QColor.fromRgb(annotation_color[0],
                                                                                               annotation_color[1],
                                                                                               annotation_color[2],
                                                                                               annotation_color[3]),
-                                                                      "opacity": float(SoftwareConfigResources.getInstance().get_active_patient().annotation_volumes[annotation_uid].get_display_opacity() / 100.)}
+                                                                      "opacity": float(SoftwareConfigResources.getInstance().get_active_patient().get_annotation_by_uid(annotation_uid).get_display_opacity() / 100.)}
 
         self.original_annotations[annotation_uid] = annotation_slice
         image_2d = annotation_slice[:, ::-1]
@@ -205,8 +205,8 @@ class CustomQGraphicsView(QGraphicsView):
             self.overlaid_items[joint_uid] = QGraphicsPixmapItem()
             self.scene.addItem(self.overlaid_items[joint_uid])
         if not joint_uid in self.overlaid_items_display_parameters.keys():
-            color = SoftwareConfigResources.getInstance().get_active_patient().atlas_volumes[atlas_uid].get_all_class_display_color()[structure_index]
-            opacity = SoftwareConfigResources.getInstance().get_active_patient().atlas_volumes[atlas_uid].get_all_class_opacity()[structure_index]
+            color = SoftwareConfigResources.getInstance().get_active_patient().get_atlas_by_uid(atlas_uid).get_all_class_display_color()[structure_index]
+            opacity = SoftwareConfigResources.getInstance().get_active_patient().get_atlas_by_uid(atlas_uid).get_all_class_opacity()[structure_index]
             self.overlaid_items_display_parameters[joint_uid] = {"color": QColor.fromRgb(color[0], color[1],
                                                                                          color[2], color[3]),
                                                                  "opacity": opacity / 100.}

@@ -70,6 +70,7 @@ class AnnotationVolume:
 
     def __init__(self, uid: str, input_filename: str, output_patient_folder: str,
                  parent_mri_uid: str, reload_params: {} = None) -> None:
+        self.__reset()
         self._unique_id = uid
         self._raw_input_filepath = input_filename
         self._output_patient_folder = output_patient_folder
@@ -80,6 +81,28 @@ class AnnotationVolume:
             self.__reload_from_disk(reload_params)
         else:
             self.__init_from_scratch()
+
+    def __reset(self):
+        """
+        All objects share class or static variables.
+        An instance or non-static variables are different for different objects (every object has a copy).
+        """
+        self._unique_id = ""
+        self._raw_input_filepath = ""
+        self._usable_input_filepath = ""
+        self._output_patient_folder = ""
+        self._annotation_class = AnnotationClassType.Tumor
+        self._resampled_input_volume = None
+        self._resampled_input_volume_filepath = None
+        self._parent_mri_uid = ""
+        self._generation_type = AnnotationGenerationType.Manual
+        self._display_name = ""
+        self._display_volume = None
+        self._display_volume_filepath = None
+        self._display_opacity = 50
+        self._display_color = [255, 255, 255, 255]
+        self._default_affine = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]
+        self._unsaved_changes = False
 
     def get_unique_id(self) -> str:
         return self._unique_id

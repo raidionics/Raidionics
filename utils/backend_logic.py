@@ -74,7 +74,7 @@ def run_segmentation(model_name: str, patient_parameters: PatientParameters, que
         if 'LGGlioma' in model_name:
             eligible_mris = patient_parameters.get_all_mri_volumes_for_sequence_type(MRISequenceType.FLAIR)
         if len(eligible_mris) == 0:
-            eligible_mris = list(patient_parameters.mri_volumes.keys())
+            eligible_mris = patient_parameters.get_all_mri_volumes_uids()
 
         selected_mri_uid = eligible_mris[0]
         download_model(model_name=model_name)
@@ -84,7 +84,7 @@ def run_segmentation(model_name: str, patient_parameters: PatientParameters, que
         seg_config.add_section('System')
         seg_config.set('System', 'gpu_id', "-1")  # Always running on CPU
         seg_config.set('System', 'input_filename',
-                       patient_parameters.mri_volumes[selected_mri_uid].get_usable_input_filepath())
+                       patient_parameters.get_mri_by_uid(selected_mri_uid).get_usable_input_filepath())
         seg_config.set('System', 'output_folder', patient_parameters.get_output_folder())
         seg_config.set('System', 'model_folder',
                        os.path.join(SoftwareConfigResources.getInstance().models_path, model_name))
@@ -110,9 +110,9 @@ def run_segmentation(model_name: str, patient_parameters: PatientParameters, que
         shutil.move(seg_file, os.path.join(patient_parameters.get_output_folder(), 'patient_tumor.nii.gz'))
         data_uid, error_msg = patient_parameters.import_data(os.path.join(patient_parameters.get_output_folder(),
                                                                           'patient_tumor.nii.gz'), type='Annotation')
-        patient_parameters.annotation_volumes[data_uid].set_annotation_class_type("Tumor")
-        patient_parameters.annotation_volumes[data_uid].set_generation_type("Automatic")
-        patient_parameters.annotation_volumes[data_uid].set_parent_mri_uid(selected_mri_uid)
+        patient_parameters.get_annotation_by_uid(data_uid).set_annotation_class_type("Tumor")
+        patient_parameters.get_annotation_by_uid(data_uid).set_generation_type("Automatic")
+        patient_parameters.get_annotation_by_uid(data_uid).set_parent_mri_uid(selected_mri_uid)
         results['Annotation'] = [data_uid]
 
         seg_file = os.path.join(patient_parameters.get_output_folder(), 'labels_Brain.nii.gz')
@@ -120,9 +120,9 @@ def run_segmentation(model_name: str, patient_parameters: PatientParameters, que
             shutil.move(seg_file, os.path.join(patient_parameters.get_output_folder(), 'patient_brain.nii.gz'))
             data_uid, error_msg = patient_parameters.import_data(os.path.join(patient_parameters.get_output_folder(),
                                                                               'patient_brain.nii.gz'), type='Annotation')
-            patient_parameters.annotation_volumes[data_uid].set_annotation_class_type("Brain")
-            patient_parameters.annotation_volumes[data_uid].set_generation_type("Automatic")
-            patient_parameters.annotation_volumes[data_uid].set_parent_mri_uid(selected_mri_uid)
+            patient_parameters.get_annotation_by_uid(data_uid).set_annotation_class_type("Brain")
+            patient_parameters.get_annotation_by_uid(data_uid).set_generation_type("Automatic")
+            patient_parameters.get_annotation_by_uid(data_uid).set_parent_mri_uid(selected_mri_uid)
             results['Annotation'].append(data_uid)
     except Exception:
         logging.error('Segmentation for patient {}, using {} failed with: \n{}'.format(patient_parameters.get_unique_id(),
@@ -200,7 +200,7 @@ def run_reporting(model_name, patient_parameters, queue):
         if 'LGGlioma' in model_name:
             eligible_mris = patient_parameters.get_all_mri_volumes_for_sequence_type(MRISequenceType.FLAIR)
         if len(eligible_mris) == 0:
-            eligible_mris = list(patient_parameters.mri_volumes.keys())
+            eligible_mris = patient_parameters.get_all_mri_volumes_uids()
 
         selected_mri_uid = eligible_mris[0]
         rads_config = configparser.ConfigParser()
@@ -210,7 +210,7 @@ def run_reporting(model_name, patient_parameters, queue):
         rads_config.add_section('System')
         rads_config.set('System', 'gpu_id', "-1")  # Always running on CPU
         rads_config.set('System', 'input_filename',
-                        patient_parameters.mri_volumes[selected_mri_uid].get_usable_input_filepath())
+                        patient_parameters.get_mri_by_uid(selected_mri_uid).get_usable_input_filepath())
         rads_config.set('System', 'output_folder', reporting_folder)
         rads_config.set('System', 'model_folder',
                         os.path.join(SoftwareConfigResources.getInstance().models_path, model_name))
@@ -239,9 +239,9 @@ def run_reporting(model_name, patient_parameters, queue):
         shutil.move(seg_file, os.path.join(patient_parameters.get_output_folder(), 'patient_tumor.nii.gz'))
         data_uid, error_msg = patient_parameters.import_data(os.path.join(patient_parameters.get_output_folder(),
                                                                           'patient_tumor.nii.gz'), type='Annotation')
-        patient_parameters.annotation_volumes[data_uid].set_annotation_class_type("Tumor")
-        patient_parameters.annotation_volumes[data_uid].set_generation_type("Automatic")
-        patient_parameters.annotation_volumes[data_uid].set_parent_mri_uid(selected_mri_uid)
+        patient_parameters.get_annotation_by_uid(data_uid).set_annotation_class_type("Tumor")
+        patient_parameters.get_annotation_by_uid(data_uid).set_generation_type("Automatic")
+        patient_parameters.get_annotation_by_uid(data_uid).set_parent_mri_uid(selected_mri_uid)
         results['Annotation'] = [data_uid]
         # Check if a brain mask has been created, and include it if so.
         seg_file = os.path.join(patient_parameters.get_output_folder(), 'reporting', 'labels_Brain.nii.gz')
@@ -249,9 +249,9 @@ def run_reporting(model_name, patient_parameters, queue):
             shutil.move(seg_file, os.path.join(patient_parameters.get_output_folder(), 'patient_brain.nii.gz'))
             data_uid, error_msg = patient_parameters.import_data(os.path.join(patient_parameters.get_output_folder(),
                                                                               'patient_brain.nii.gz'), type='Annotation')
-            patient_parameters.annotation_volumes[data_uid].set_annotation_class_type("Brain")
-            patient_parameters.annotation_volumes[data_uid].set_generation_type("Automatic")
-            patient_parameters.annotation_volumes[data_uid].set_parent_mri_uid(selected_mri_uid)
+            patient_parameters.get_annotation_by_uid(data_uid).set_annotation_class_type("Brain")
+            patient_parameters.get_annotation_by_uid(data_uid).set_generation_type("Automatic")
+            patient_parameters.get_annotation_by_uid(data_uid).set_parent_mri_uid(selected_mri_uid)
             results['Annotation'].append(data_uid)
 
         # Collecting the standardized report

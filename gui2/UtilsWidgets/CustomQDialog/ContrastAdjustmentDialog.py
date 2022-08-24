@@ -26,7 +26,7 @@ class ContrastAdjustmentDialog(QDialog):
         self.starting_contrast = None
 
     def exec_(self) -> int:
-        curr_img = SoftwareConfigResources.getInstance().get_active_patient().mri_volumes[self.volume_uid]
+        curr_img = SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_uid(self.volume_uid)
         self.intensity_window_min_spinbox.blockSignals(True)
         self.intensity_window_min_spinbox.setMinimum(curr_img.get_resampled_minimum_intensity())
         self.intensity_window_min_spinbox.setMaximum(curr_img.get_resampled_maximum_intensity())
@@ -96,7 +96,7 @@ class ContrastAdjustmentDialog(QDialog):
         Upon validation of the new contrast values, the unsaved changes state is updated to trigger a save QDialog
         to the user later down the line.
         """
-        SoftwareConfigResources.getInstance().get_active_patient().mri_volumes[self.volume_uid].confirm_contrast_modifications()
+        SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_uid(self.volume_uid).confirm_contrast_modifications()
         self.accept()
 
     def __on_exit_cancel_clicked(self):
@@ -104,8 +104,8 @@ class ContrastAdjustmentDialog(QDialog):
         If the contrast adjustment operation is cancelled by the user, the contrast values are restored to their states
         when launching the contrast editor QDialog.
         """
-        SoftwareConfigResources.getInstance().get_active_patient().mri_volumes[self.volume_uid].set_contrast_window_minimum(self.starting_contrast[0])
-        SoftwareConfigResources.getInstance().get_active_patient().mri_volumes[self.volume_uid].set_contrast_window_maximum(self.starting_contrast[1])
+        SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_uid(self.volume_uid).set_contrast_window_minimum(self.starting_contrast[0])
+        SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_uid(self.volume_uid).set_contrast_window_maximum(self.starting_contrast[1])
         self.contrast_intensity_changed.emit()
         self.reject()
 
@@ -115,7 +115,7 @@ class ContrastAdjustmentDialog(QDialog):
         new display volume.
         A signal is then emitted to trigger a repaint of the different central views.
         """
-        SoftwareConfigResources.getInstance().get_active_patient().mri_volumes[self.volume_uid].set_contrast_window_minimum(value)
+        SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_uid(self.volume_uid).set_contrast_window_minimum(value)
         self.contrast_intensity_changed.emit()
 
     def __on_maximum_intensity_changed(self, value: int) -> None:
@@ -124,18 +124,18 @@ class ContrastAdjustmentDialog(QDialog):
         new display volume.
         A signal is then emitted to trigger a repaint of the different central views.
         """
-        SoftwareConfigResources.getInstance().get_active_patient().mri_volumes[self.volume_uid].set_contrast_window_maximum(value)
+        SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_uid(self.volume_uid).set_contrast_window_maximum(value)
         self.contrast_intensity_changed.emit()
 
     def __on_reset_intensity_contrast_window(self):
-        self.intensity_window_min_spinbox.setValue(SoftwareConfigResources.getInstance().get_active_patient().mri_volumes[self.volume_uid].get_resampled_minimum_intensity())
-        self.intensity_window_max_spinbox.setValue(SoftwareConfigResources.getInstance().get_active_patient().mri_volumes[self.volume_uid].get_resampled_maximum_intensity())
-        SoftwareConfigResources.getInstance().get_active_patient().mri_volumes[self.volume_uid].set_contrast_window_minimum(self.intensity_window_min_spinbox.value())
-        SoftwareConfigResources.getInstance().get_active_patient().mri_volumes[self.volume_uid].set_contrast_window_maximum(self.intensity_window_max_spinbox.value())
+        self.intensity_window_min_spinbox.setValue(SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_uid(self.volume_uid).get_resampled_minimum_intensity())
+        self.intensity_window_max_spinbox.setValue(SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_uid(self.volume_uid).get_resampled_maximum_intensity())
+        SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_uid(self.volume_uid).set_contrast_window_minimum(self.intensity_window_min_spinbox.value())
+        SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_uid(self.volume_uid).set_contrast_window_maximum(self.intensity_window_max_spinbox.value())
         self.contrast_intensity_changed.emit()
 
     def __set_hist(self):
-        hist_obj, hist_bound = SoftwareConfigResources.getInstance().get_active_patient().mri_volumes[self.volume_uid].get_intensity_histogram()
+        hist_obj, hist_bound = SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_uid(self.volume_uid).get_intensity_histogram()
 
         df = pd.DataFrame(list(zip(hist_bound[:-1], hist_obj)), columns=["Intensity", "Amount"])
         # create the plotly figure

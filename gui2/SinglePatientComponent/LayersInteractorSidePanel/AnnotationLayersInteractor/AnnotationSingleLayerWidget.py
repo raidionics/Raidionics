@@ -311,13 +311,13 @@ class AnnotationSingleLayerWidget(QWidget):
         self.color_dialogpushbutton_base_ss = """ QPushButton{border-color:rgb(0, 0, 0); border-width:2px;} """
 
     def __init_from_parameters(self):
-        params = SoftwareConfigResources.getInstance().get_active_patient().annotation_volumes[self.uid]
+        params = SoftwareConfigResources.getInstance().get_active_patient().get_annotation_by_uid(self.uid)
         self.display_name_lineedit.setText(params.get_display_name())
 
         # Adding the display names of all loaded MRI volumes, and setting the index to the correct MRI parent.
         self.parent_image_combobox.blockSignals(True)
         self.parent_image_combobox.addItems(list(SoftwareConfigResources.getInstance().get_active_patient().get_all_mri_volumes_display_names()))
-        parent_mri_display_name = SoftwareConfigResources.getInstance().get_active_patient().mri_volumes[params.get_parent_mri_uid()].get_display_name()
+        parent_mri_display_name = SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_uid(params.get_parent_mri_uid()).get_display_name()
         self.parent_image_combobox.setCurrentText(parent_mri_display_name)
         self.parent_image_combobox.blockSignals(False)
 
@@ -399,11 +399,11 @@ class AnnotationSingleLayerWidget(QWidget):
             self.color_dialogpushbutton.setStyleSheet(self.color_dialogpushbutton_base_ss + custom_ss)
 
     def __on_annotation_type_changed(self):
-        params = SoftwareConfigResources.getInstance().get_active_patient().annotation_volumes[self.uid]
+        params = SoftwareConfigResources.getInstance().get_active_patient().get_annotation_by_uid(self.uid)
         params.set_annotation_class_type(self.annotation_type_combobox.currentText())
 
     def __on_parent_mri_changed(self, index: int) -> None:
-        params = SoftwareConfigResources.getInstance().get_active_patient().annotation_volumes[self.uid]
+        params = SoftwareConfigResources.getInstance().get_active_patient().get_annotation_by_uid(self.uid)
         old_mri_parent = params.get_parent_mri_uid()
         mri_display_name = self.parent_image_combobox.currentText()
         mri_uid = SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_display_name(mri_display_name)

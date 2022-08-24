@@ -76,7 +76,6 @@ class SoftwareSettingsDialog(QDialog):
     def __on_exit_accept_clicked(self):
         """
         """
-        # SoftwareConfigResources.getInstance().get_active_patient().mri_volumes[self.volume_uid].confirm_contrast_modifications()
         self.accept()
 
     def __on_exit_cancel_clicked(self):

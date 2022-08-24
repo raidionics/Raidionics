@@ -184,7 +184,7 @@ class SoftwareConfigResources:
         error_message = None
         logging.debug("Patient loading requested from {}.".format(filename))
         try:
-            patient_instance = PatientParameters(dest_location=self._user_home_location)
+            patient_instance = PatientParameters(dest_location=self._user_home_location, patient_filename=filename)
             error_message = patient_instance.import_patient(filename)
             # To prevent the save changes dialog to pop-up straight up after loading a patient scene file.
             patient_instance.set_unsaved_changes_state(False)

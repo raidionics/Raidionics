@@ -103,7 +103,7 @@ class MRIVolumesLayerInteractor(QCollapsibleGroupBox):
 
     def on_import_data(self):
         active_patient = SoftwareConfigResources.getInstance().get_active_patient()
-        for volume_id in list(active_patient.mri_volumes.keys()):
+        for volume_id in active_patient.get_all_mri_volumes_uids():
             if not volume_id in list(self.volumes_widget.keys()):
                 self.on_import_volume(volume_id)
 
@@ -118,7 +118,7 @@ class MRIVolumesLayerInteractor(QCollapsibleGroupBox):
 
     def on_patient_view_toggled(self, patient_uid):
         active_patient = SoftwareConfigResources.getInstance().patients_parameters[patient_uid]
-        for volume_id in list(active_patient.mri_volumes.keys()):
+        for volume_id in active_patient.get_all_mri_volumes_uids():
             if not volume_id in list(self.volumes_widget.keys()):
                 self.on_import_volume(volume_id)
 

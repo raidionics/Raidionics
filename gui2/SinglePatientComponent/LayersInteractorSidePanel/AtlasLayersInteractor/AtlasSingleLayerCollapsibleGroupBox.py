@@ -88,7 +88,7 @@ class AtlasSingleLayerCollapsibleGroupBox(QCollapsibleGroupBox):
         """
         Populate the different widgets with internal parameters specific to the current annotation volume
         """
-        atlas_volume_parameters = SoftwareConfigResources.getInstance().get_active_patient().atlas_volumes[self.uid]
+        atlas_volume_parameters = SoftwareConfigResources.getInstance().get_active_patient().get_atlas_by_uid(self.uid)
         self.title = "Detailed structures"
         self.header_pushbutton.blockSignals(True)
         self.header_pushbutton.setText(self.title)
@@ -144,7 +144,7 @@ class SingleLineAtlasStructureWidget(QWidget):
         super(SingleLineAtlasStructureWidget, self).__init__(parent)
         self.atlas_id = atlas_id
         self.structure_name = structure_name
-        # atlas_params = SoftwareConfigResources.getInstance().get_active_patient().atlas_volumes[self.atlas_id]._class_description
+        # atlas_params = SoftwareConfigResources.getInstance().get_active_patient().get_atlas_by_uid(self.atlas_id)._class_description
         # struct_label = int(atlas_params.loc[atlas_params['text'] == self.structure_name]['label'].index.values[0])
         self.parent = parent
         self.__set_interface()
@@ -222,7 +222,7 @@ class SingleLineAtlasStructureWidget(QWidget):
 
     def __init_from_parameters(self):
         try:
-            pcol = SoftwareConfigResources.getInstance().get_active_patient().atlas_volumes[self.atlas_id].get_class_display_color_by_name(self.structure_name)#SoftwareConfigResources.getInstance().get_active_patient().atlas_volumes[self.atlas_id]._class_display_color[self.structure_index]
+            pcol = SoftwareConfigResources.getInstance().get_active_patient().get_atlas_by_uid(self.atlas_id).get_class_display_color_by_name(self.structure_name)#SoftwareConfigResources.getInstance().get_active_patient().atlas_volumes[self.atlas_id]._class_display_color[self.structure_index]
             self.color_dialog.setCurrentColor(QColor.fromRgb(pcol[0], pcol[1], pcol[2], pcol[3]))
             custom_color_str = "background-color:rgba({}, {}, {}, {})".format(pcol[0], pcol[1], pcol[2], pcol[3])
             custom_ss = "QPushButton{" + custom_color_str + ";}"
@@ -240,7 +240,7 @@ class SingleLineAtlasStructureWidget(QWidget):
             self.color_dialog_pushbutton.setEnabled(False)
             self.opacity_spinbox.setEnabled(False)
 
-        struct_ind = SoftwareConfigResources.getInstance().get_active_patient().atlas_volumes[self.atlas_id].get_structure_index_by_name(self.structure_name)
+        struct_ind = SoftwareConfigResources.getInstance().get_active_patient().get_atlas_by_uid(self.atlas_id).get_structure_index_by_name(self.structure_name)
         self.visibility_toggled.emit(self.atlas_id, struct_ind, state)
 
     def __on_color_selector_clicked(self):
@@ -250,14 +250,14 @@ class SingleLineAtlasStructureWidget(QWidget):
             custom_color_str = "background-color:rgb({}, {}, {})".format(color.red(), color.green(), color.blue())
             custom_ss = "QPushButton{" + custom_color_str + ";}"
             self.color_dialog_pushbutton.setStyleSheet(self.color_dialog_pushbutton_base_ss + custom_ss)
-            struct_ind = SoftwareConfigResources.getInstance().get_active_patient().atlas_volumes[self.atlas_id].get_structure_index_by_name(self.structure_name)
-            # atlas_params = SoftwareConfigResources.getInstance().get_active_patient().atlas_volumes[self.atlas_id]
+            struct_ind = SoftwareConfigResources.getInstance().get_active_patient().get_atlas_by_uid(self.atlas_id).get_structure_index_by_name(self.structure_name)
+            # atlas_params = SoftwareConfigResources.getInstance().get_active_patient().get_atlas_by_uid(self.atlas_id)
             # atlas_params._class_display_color[struct_ind] = color
             SoftwareConfigResources.getInstance().get_active_patient().get_atlas_by_uid(self.atlas_id).set_class_display_color_by_index(index=struct_ind, color=color.getRgb())
             self.color_value_changed.emit(self.atlas_id, struct_ind, color)
 
     def __on_opacity_changed(self, value):
-        struct_ind = SoftwareConfigResources.getInstance().get_active_patient().atlas_volumes[self.atlas_id].get_structure_index_by_name(self.structure_name)
-        atlas_params = SoftwareConfigResources.getInstance().get_active_patient().atlas_volumes[self.atlas_id]
+        struct_ind = SoftwareConfigResources.getInstance().get_active_patient().get_atlas_by_uid(self.atlas_id).get_structure_index_by_name(self.structure_name)
+        atlas_params = SoftwareConfigResources.getInstance().get_active_patient().get_atlas_by_uid(self.atlas_id)
         atlas_params._class_display_opacity[struct_ind] = value
         self.opacity_value_changed.emit(self.atlas_id, struct_ind, value)

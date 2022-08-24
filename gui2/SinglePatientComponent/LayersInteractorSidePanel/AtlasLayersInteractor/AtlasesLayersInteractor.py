@@ -123,8 +123,8 @@ class AtlasesLayersInteractor(QCollapsibleGroupBox):
             Internal unique identifier for the MRI volume selected by the user.
         """
         active_patient = SoftwareConfigResources.getInstance().patients_parameters[patient_uid]
-        if len(active_patient.mri_volumes) > 0:
-            for atlas_id in active_patient.get_all_atlases_for_mri(mri_volume_uid=list(active_patient.mri_volumes.keys())[0]):
+        if active_patient.get_patient_mri_volumes_number() > 0:
+            for atlas_id in active_patient.get_all_atlases_for_mri(mri_volume_uid=active_patient.get_all_mri_volumes_uids()[0]):
                 if not atlas_id in list(self.volumes_widget.keys()):
                     self.on_import_volume(atlas_id)
             self.adjustSize()

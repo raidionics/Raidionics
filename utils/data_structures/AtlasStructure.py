@@ -36,6 +36,7 @@ class AtlasVolume:
 
     def __init__(self, uid: str, input_filename: str, output_patient_folder: str,
                  parent_mri_uid: str, description_filename: str, reload_params: dict = None) -> None:
+        self.__reset()
         self._unique_id = uid
         self._raw_input_filepath = input_filename
         self._output_patient_folder = output_patient_folder
@@ -48,6 +49,30 @@ class AtlasVolume:
             self.__reload_from_disk(reload_params)
         else:
             self.__init_from_scratch()
+
+    def __reset(self):
+        """
+        All objects share class or static variables.
+        An instance or non-static variables are different for different objects (every object has a copy).
+        """
+        self._unique_id = ""
+        self._raw_input_filepath = ""
+        self._output_patient_folder = ""
+        self._resampled_input_volume = None
+        self._resampled_input_volume_filepath = None
+        self._display_name = ""
+        self._display_volume = None
+        self._display_volume_filepath = ""
+        self._parent_mri_uid = ""
+        self._one_hot_display_volume = None
+        self._visible_class_labels = []
+        self._class_number = 0
+        self._class_description = {}
+        self._class_description_filename = None
+        self._class_display_color = {}
+        self._class_display_opacity = {}
+        self._default_affine = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]
+        self._unsaved_changes = False
 
     def __init_from_scratch(self):
         self.__generate_display_volume()

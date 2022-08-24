@@ -31,16 +31,47 @@ class PatientParameters:
     _patient_parameters_dict_filename = ""  # Filepath for storing the aforementioned dictionary (*.raidionics)
     _standardized_report = {}  # Dictionary container for storing of the RADS results
     _standardized_report_filename = ""  # Filepath for storing the aforementioned object (*.json)
+    _mri_volumes = {}  # All MRI volume instances loaded for the current patient.
+    _annotation_volumes = {}  # All Annotation instances loaded for the current patient.
+    _atlas_volumes = {}  # All Atlas instances loaded for the current patient.
     _unsaved_changes = False  # Documenting any change, for suggesting saving when swapping between patients
 
-    def __init__(self, id: str = "-1", dest_location: str = None):
+    def __init__(self, id: str = "-1", dest_location: str = None, patient_filename: str = None):
         """
         Default id value set to -1, the only time a default value is needed is when a patient will be loaded from
         a .raidionics file on disk whereby the correct id will be recovered from the json file.
         """
+        self.__reset()
         self._unique_id = id
-        self._display_name = self._unique_id
 
+        if patient_filename and os.path.exists(patient_filename):
+            # Empty init, self.import_patient() must be called after the instance creation call.
+            pass
+        else:
+            self.__init_from_scratch(dest_location)
+
+    def __reset(self):
+        """
+        All objects share class or static variables.
+        An instance or non-static variables are different for different objects (every object has a copy).
+        """
+        self._unique_id = ""
+        self._creation_timestamp = None
+        self._last_editing_timestamp = None
+        self._display_name = ""
+        self._output_dir = ""
+        self._output_folder = ""
+        self._patient_parameters_dict = {}
+        self._patient_parameters_dict_filename = ""
+        self._standardized_report = {}
+        self._standardized_report_filename = ""
+        self._mri_volumes = {}
+        self._annotation_volumes = {}
+        self._atlas_volumes = {}
+        self._unsaved_changes = False
+
+    def __init_from_scratch(self, dest_location: str) -> None:
+        self._display_name = self._unique_id
         # Temporary global placeholder, until a destination folder is chosen by the user.
         if dest_location:
             self._output_dir = dest_location
@@ -56,9 +87,6 @@ class PatientParameters:
         logging.info("Output patient directory set to: {}".format(self._output_folder))
 
         self.__init_json_config()
-        self.mri_volumes = {}
-        self.annotation_volumes = {}
-        self.atlas_volumes = {}
         self._standardized_report_filename = None
         self._standardized_report = None
         self._creation_timestamp = datetime.datetime.now(tz=dateutil.tz.gettz(name='Europe/Oslo'))
@@ -94,12 +122,12 @@ class PatientParameters:
         shutil.move(src=self._output_folder, dst=new_output_folder, copy_function=shutil.copytree)
         self._output_dir = directory
         self._output_folder = new_output_folder
-        for im in self.mri_volumes:
-            self.mri_volumes[im].set_output_patient_folder(self._output_folder)
-        for an in self.annotation_volumes:
-            self.annotation_volumes[an].set_output_patient_folder(self._output_folder)
-        for at in self.atlas_volumes:
-            self.atlas_volumes[at].set_output_patient_folder(self._output_folder)
+        for im in self._mri_volumes:
+            self._mri_volumes[im].set_output_patient_folder(self._output_folder)
+        for an in self._annotation_volumes:
+            self._annotation_volumes[an].set_output_patient_folder(self._output_folder)
+        for at in self._atlas_volumes:
+            self._atlas_volumes[at].set_output_patient_folder(self._output_folder)
         logging.info("Renamed current output directory to: {}".format(directory))
 
     def release_from_memory(self) -> None:
@@ -108,12 +136,12 @@ class PatientParameters:
         Otherwise, for computer with limited RAM and many opened patients, freezes/crashes might occur.
         """
         logging.debug("Unloading patient {} from memory.".format(self._unique_id))
-        for im in self.mri_volumes:
-            self.mri_volumes[im].release_from_memory()
-        for an in self.annotation_volumes:
-            self.annotation_volumes[an].release_from_memory()
-        for at in self.atlas_volumes:
-            self.atlas_volumes[at].release_from_memory()
+        for im in self._mri_volumes:
+            self._mri_volumes[im].release_from_memory()
+        for an in self._annotation_volumes:
+            self._annotation_volumes[an].release_from_memory()
+        for at in self._atlas_volumes:
+            self._atlas_volumes[at].release_from_memory()
 
     def load_in_memory(self) -> None:
         """
@@ -124,12 +152,12 @@ class PatientParameters:
         to load in memory only if the objects is actually being toggled for viewing.
         """
         logging.debug("Loading patient {} from memory.".format(self._unique_id))
-        for im in self.mri_volumes:
-            self.mri_volumes[im].load_in_memory()
-        for an in self.annotation_volumes:
-            self.annotation_volumes[an].load_in_memory()
-        for at in self.atlas_volumes:
-            self.atlas_volumes[at].load_in_memory()
+        for im in self._mri_volumes:
+            self._mri_volumes[im].load_in_memory()
+        for an in self._annotation_volumes:
+            self._annotation_volumes[an].load_in_memory()
+        for at in self._atlas_volumes:
+            self._atlas_volumes[at].load_in_memory()
 
     def set_unsaved_changes_state(self, state: bool) -> None:
         """
@@ -137,21 +165,21 @@ class PatientParameters:
         modifications are simply related to reading from disk and not real modifications.
         """
         self._unsaved_changes = state
-        for im in self.mri_volumes:
-            self.mri_volumes[im].set_unsaved_changes_state(state)
-        for an in self.annotation_volumes:
-            self.annotation_volumes[an].set_unsaved_changes_state(state)
-        for at in self.atlas_volumes:
-            self.atlas_volumes[at].set_unsaved_changes_state(state)
+        for im in self._mri_volumes:
+            self._mri_volumes[im].set_unsaved_changes_state(state)
+        for an in self._annotation_volumes:
+            self._annotation_volumes[an].set_unsaved_changes_state(state)
+        for at in self._atlas_volumes:
+            self._atlas_volumes[at].set_unsaved_changes_state(state)
 
     def has_unsaved_changes(self) -> bool:
         status = self._unsaved_changes
-        for im in self.mri_volumes:
-            status = status | self.mri_volumes[im].has_unsaved_changes()
-        for an in self.annotation_volumes:
-            status = status | self.annotation_volumes[an].has_unsaved_changes()
-        for at in self.atlas_volumes:
-            status = status | self.atlas_volumes[at].has_unsaved_changes()
+        for im in self._mri_volumes:
+            status = status | self._mri_volumes[im].has_unsaved_changes()
+        for an in self._annotation_volumes:
+            status = status | self._annotation_volumes[an].has_unsaved_changes()
+        for at in self._atlas_volumes:
+            status = status | self._atlas_volumes[at].has_unsaved_changes()
 
         return status
 
@@ -204,14 +232,14 @@ class PatientParameters:
                 self._standardized_report_filename = self._standardized_report_filename.replace(self._output_folder,
                                                                                                 new_output_folder)
 
-            for i, disp in enumerate(list(self.mri_volumes.keys())):
-                self.mri_volumes[disp].set_output_patient_folder(new_output_folder)
+            for i, disp in enumerate(list(self._mri_volumes.keys())):
+                self._mri_volumes[disp].set_output_patient_folder(new_output_folder)
 
-            for i, disp in enumerate(list(self.annotation_volumes.keys())):
-                self.annotation_volumes[disp].set_output_patient_folder(new_output_folder)
+            for i, disp in enumerate(list(self._annotation_volumes.keys())):
+                self._annotation_volumes[disp].set_output_patient_folder(new_output_folder)
 
-            for i, disp in enumerate(list(self.atlas_volumes.keys())):
-                self.atlas_volumes[disp].set_output_patient_folder(new_output_folder)
+            for i, disp in enumerate(list(self._atlas_volumes.keys())):
+                self._atlas_volumes[disp].set_output_patient_folder(new_output_folder)
 
             shutil.move(src=self._output_folder, dst=new_output_folder, copy_function=shutil.copytree)
             self._output_folder = new_output_folder
@@ -220,18 +248,6 @@ class PatientParameters:
                 self._unsaved_changes = True
                 logging.debug("Unsaved changes - Patient object display name edited to {}.".format(new_name))
             return 0, ""
-
-    def get_standardized_report_filename(self) -> str:
-        return self._standardized_report_filename
-
-    def get_standardized_report(self) -> dict:
-        return self._standardized_report
-
-    def get_all_atlas_volumes_uids(self):
-        return self.atlas_volumes.keys()
-
-    def get_atlas_by_uid(self, atlas_uid: str) -> AtlasVolume:
-        return self.atlas_volumes[atlas_uid]
 
     def import_standardized_report(self, filename: str) -> Any:
         error_message = None
@@ -270,7 +286,7 @@ class PatientParameters:
                                            input_filename=self._patient_parameters_dict['Volumes'][volume_id]['raw_input_filepath'],
                                            output_patient_folder=self._output_folder,
                                            reload_params=self._patient_parameters_dict['Volumes'][volume_id])
-                    self.mri_volumes[volume_id] = mri_volume
+                    self._mri_volumes[volume_id] = mri_volume
                 except Exception:
                     logging.error(str(traceback.format_exc()))
                     if error_message:
@@ -285,7 +301,7 @@ class PatientParameters:
                                                          output_patient_folder=self._output_folder,
                                                          parent_mri_uid=self._patient_parameters_dict['Annotations'][volume_id]['parent_mri_uid'],
                                                          reload_params=self._patient_parameters_dict['Annotations'][volume_id])
-                    self.annotation_volumes[volume_id] = annotation_volume
+                    self._annotation_volumes[volume_id] = annotation_volume
                 except Exception:
                     logging.error(str(traceback.format_exc()))
                     if error_message:
@@ -301,7 +317,7 @@ class PatientParameters:
                                                parent_mri_uid=self._patient_parameters_dict['Atlases'][volume_id]['parent_mri_uid'],
                                                description_filename=os.path.join(self._output_folder, self._patient_parameters_dict['Atlases'][volume_id]['description_filepath']),
                                                reload_params=self._patient_parameters_dict['Atlases'][volume_id])
-                    self.atlas_volumes[volume_id] = atlas_volume
+                    self._atlas_volumes[volume_id] = atlas_volume
                 except Exception:
                     logging.error(str(traceback.format_exc()))
                     if error_message:
@@ -337,24 +353,24 @@ class PatientParameters:
                 non_available_uid = True
                 while non_available_uid:
                     data_uid = str(np.random.randint(0, 10000)) + '_' + base_data_uid
-                    if data_uid not in list(self.mri_volumes.keys()):
+                    if data_uid not in list(self._mri_volumes.keys()):
                         non_available_uid = False
 
-                self.mri_volumes[data_uid] = MRIVolume(uid=data_uid, input_filename=filename,
-                                                       output_patient_folder=self._output_folder)
+                self._mri_volumes[data_uid] = MRIVolume(uid=data_uid, input_filename=filename,
+                                                        output_patient_folder=self._output_folder)
             else:
-                if len(self.mri_volumes) != 0:
+                if len(self._mri_volumes) != 0:
                     # @TODO. Not optimal to set a default parent MRI, forces a manual update after, must be improved.
-                    default_parent_mri_uid = list(self.mri_volumes.keys())[0]
+                    default_parent_mri_uid = list(self._mri_volumes.keys())[0]
                     # Generating a unique id for the annotation volume
                     base_data_uid = os.path.basename(filename).strip().split('.')[0]
                     non_available_uid = True
                     while non_available_uid:
                         data_uid = str(np.random.randint(0, 10000)) + '_' + base_data_uid
-                        if data_uid not in list(self.annotation_volumes.keys()):
+                        if data_uid not in list(self._annotation_volumes.keys()):
                             non_available_uid = False
 
-                    self.annotation_volumes[data_uid] = AnnotationVolume(uid=data_uid, input_filename=filename,
+                    self._annotation_volumes[data_uid] = AnnotationVolume(uid=data_uid, input_filename=filename,
                                                                          output_patient_folder=self._output_folder,
                                                                          parent_mri_uid=default_parent_mri_uid)
                 else:
@@ -386,7 +402,7 @@ class PatientParameters:
         logging.info("Converted DICOM import to {}".format(ori_filename))
         uid, error_msg = self.import_data(ori_filename, type="MRI")
         if error_msg is None:
-            self.mri_volumes[uid].set_dicom_metadata(dicom_series.dicom_tags)
+            self._mri_volumes[uid].set_dicom_metadata(dicom_series.dicom_tags)
         return uid, error_msg
 
     def import_atlas_structures(self, filename: str, parent_mri_uid: str, description: str = None,
@@ -405,16 +421,15 @@ class PatientParameters:
                 non_available_uid = True
                 while non_available_uid:
                     data_uid = str(np.random.randint(0, 10000)) + '_' + base_data_uid
-                    if data_uid not in list(self.annotation_volumes.keys()):
+                    if data_uid not in list(self._annotation_volumes.keys()):
                         non_available_uid = False
 
                 description_filename = os.path.join(self._output_folder, 'reporting', 'atlas_descriptions',
                                                     base_data_uid.split('_')[0] + '_description.csv')
-                self.atlas_volumes[data_uid] = AtlasVolume(uid=data_uid, input_filename=filename,
+                self._atlas_volumes[data_uid] = AtlasVolume(uid=data_uid, input_filename=filename,
                                                            output_patient_folder=self._output_folder,
                                                            parent_mri_uid=parent_mri_uid,
                                                            description_filename=description_filename)
-                # self.atlas_volumes[data_uid].set_display_volume(deepcopy(image_res))
             else:  # Reference is MNI space then
                 pass
         except Exception as e:
@@ -449,33 +464,45 @@ class PatientParameters:
         self._patient_parameters_dict['Annotations'] = {}
         self._patient_parameters_dict['Atlases'] = {}
 
-        for i, disp in enumerate(list(self.mri_volumes.keys())):
-            self._patient_parameters_dict['Volumes'][disp] = self.mri_volumes[disp].save()
+        for i, disp in enumerate(list(self._mri_volumes.keys())):
+            self._patient_parameters_dict['Volumes'][disp] = self._mri_volumes[disp].save()
 
-        for i, disp in enumerate(list(self.annotation_volumes.keys())):
-            self._patient_parameters_dict['Annotations'][disp] = self.annotation_volumes[disp].save()
+        for i, disp in enumerate(list(self._annotation_volumes.keys())):
+            self._patient_parameters_dict['Annotations'][disp] = self._annotation_volumes[disp].save()
 
-        for i, disp in enumerate(list(self.atlas_volumes.keys())):
-            self._patient_parameters_dict['Atlases'][disp] = self.atlas_volumes[disp].save()
+        for i, disp in enumerate(list(self._atlas_volumes.keys())):
+            self._patient_parameters_dict['Atlases'][disp] = self._atlas_volumes[disp].save()
 
         # Saving the json file last, as it must be populated from the previous dumps beforehand
         with open(self._patient_parameters_dict_filename, 'w') as outfile:
             json.dump(self._patient_parameters_dict, outfile, indent=4, sort_keys=True)
         self._unsaved_changes = False
 
+    def get_standardized_report_filename(self) -> str:
+        return self._standardized_report_filename
+
+    def get_standardized_report(self) -> dict:
+        return self._standardized_report
+
+    def get_all_mri_volumes_uids(self) -> List[str]:
+        return list(self._mri_volumes.keys())
+
     def get_patient_mri_volumes_number(self) -> int:
-        return len(self.mri_volumes)
+        return len(self._mri_volumes)
 
     def get_all_mri_volumes_display_names(self) -> List[str]:
         res = []
-        for im in self.mri_volumes:
-            res.append(self.mri_volumes[im].get_display_name())
+        for im in self._mri_volumes:
+            res.append(self._mri_volumes[im].get_display_name())
         return res
+
+    def get_mri_by_uid(self, mri_uid: str) -> MRIVolume:
+        return self._mri_volumes[mri_uid]
 
     def get_mri_by_display_name(self, display_name: str) -> str:
         res = "-1"
-        for im in self.mri_volumes:
-            if self.mri_volumes[im].get_display_name() == display_name:
+        for im in self._mri_volumes:
+            if self._mri_volumes[im].get_display_name() == display_name:
                 return im
         return res
 
@@ -494,8 +521,8 @@ class PatientParameters:
             A list of unique identifiers for each MRI volume object associated with the given sequence type.
         """
         res = []
-        for im in self.mri_volumes:
-            if self.mri_volumes[im].get_sequence_type_enum() == sequence_type:
+        for im in self._mri_volumes:
+            if self._mri_volumes[im].get_sequence_type_enum() == sequence_type:
                 res.append(im)
         return res
 
@@ -515,10 +542,19 @@ class PatientParameters:
         """
         res = []
 
-        for an in self.annotation_volumes:
-            if self.annotation_volumes[an].get_parent_mri_uid() == mri_volume_uid:
-                res.append(self.annotation_volumes[an].get_unique_id())
+        for an in self._annotation_volumes:
+            if self._annotation_volumes[an].get_parent_mri_uid() == mri_volume_uid:
+                res.append(self._annotation_volumes[an].get_unique_id())
         return res
+
+    def get_all_annotation_volumes(self) -> dict:
+        return self._annotation_volumes
+
+    def get_all_annotation_volumes_uids(self):
+        return self._annotation_volumes.keys()
+
+    def get_annotation_by_uid(self, annotation_uid: str) -> AnnotationVolume:
+        return self._annotation_volumes[annotation_uid]
 
     def get_all_atlases_for_mri(self, mri_volume_uid: str) -> List[str]:
         """
@@ -536,10 +572,19 @@ class PatientParameters:
         """
         res = []
 
-        for at in self.atlas_volumes:
-            if self.atlas_volumes[at].get_parent_mri_uid() == mri_volume_uid:
-                res.append(self.atlas_volumes[at].get_unique_id())
+        for at in self._atlas_volumes:
+            if self._atlas_volumes[at].get_parent_mri_uid() == mri_volume_uid:
+                res.append(self._atlas_volumes[at].get_unique_id())
         return res
+
+    def get_all_atlas_volumes(self) -> dict:
+        return self._atlas_volumes
+
+    def get_all_atlas_volumes_uids(self) -> List[str]:
+        return list(self._atlas_volumes.keys())
+
+    def get_atlas_by_uid(self, atlas_uid: str) -> AtlasVolume:
+        return self._atlas_volumes[atlas_uid]
 
     def remove_mri_volume(self, volume_uid: str) -> Tuple[dict, Union[None, str]]:
         """
@@ -574,8 +619,8 @@ class PatientParameters:
         if len(linked_atlases) != 0:
             results['Atlases'] = linked_atlases
 
-        self.mri_volumes[volume_uid].delete()
-        del self.mri_volumes[volume_uid]
+        self._mri_volumes[volume_uid].delete()
+        del self._mri_volumes[volume_uid]
         logging.info("Removed MRI volume {} for patient {}".format(volume_uid, self._unique_id))
         self.save_patient()
 
@@ -586,8 +631,8 @@ class PatientParameters:
         Delete the specified annotation from the patient parameters, and additionally deletes on disk (within the
         patient folder) all elements linked to it (e.g., the corresponding display volume).
         """
-        self.annotation_volumes[annotation_uid].delete()
-        del self.annotation_volumes[annotation_uid]
+        self._annotation_volumes[annotation_uid].delete()
+        del self._annotation_volumes[annotation_uid]
         logging.info("Removed annotation {} for patient {}".format(annotation_uid, self._unique_id))
         self.save_patient()
 
@@ -596,7 +641,7 @@ class PatientParameters:
         Delete the specified atlas from the patient parameters, and additionally deletes on disk (within the
         patient folder) all elements linked to it (e.g., the corresponding display volume).
         """
-        self.atlas_volumes[atlas_uid].delete()
-        del self.atlas_volumes[atlas_uid]
+        self._atlas_volumes[atlas_uid].delete()
+        del self._atlas_volumes[atlas_uid]
         logging.info("Removed atlas {} for patient {}".format(atlas_uid, self._unique_id))
         self.save_patient()

@@ -226,7 +226,7 @@ class MRISeriesLayerWidget(QWidget):
         }""")
 
     def __init_from_parameters(self):
-        mri_volume_parameters = SoftwareConfigResources.getInstance().get_active_patient().mri_volumes[self.uid]
+        mri_volume_parameters = SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_uid(self.uid)
         self.display_name_lineedit.setText(mri_volume_parameters.get_display_name())
         sequence_index = self.sequence_type_combobox.findText(mri_volume_parameters.get_sequence_type_str())
         self.sequence_type_combobox.blockSignals(True)
@@ -253,7 +253,7 @@ class MRISeriesLayerWidget(QWidget):
             self.remove_volume.emit(self.uid)
 
     def __on_display_dicom_metadata(self):
-        dicom_tags = SoftwareConfigResources.getInstance().get_active_patient().mri_volumes[self.uid].get_dicom_metadata()
+        dicom_tags = SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_uid(self.uid).get_dicom_metadata()
         if dicom_tags is None:
             box = QMessageBox.warning(self, "DICOM metadata", "No metadata is available for the current MRI volume",
                                       QMessageBox.Ok)
@@ -291,11 +291,11 @@ class MRISeriesLayerWidget(QWidget):
 
     def on_name_change(self, text):
         # @TODO. Should there be a check that the name is available?
-        SoftwareConfigResources.getInstance().get_active_patient().mri_volumes[self.uid].set_display_name(text)
+        SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_uid(self.uid).set_display_name(text)
         self.display_name_changed.emit(self.uid, text)
 
     def on_sequence_type_changed(self, text) -> None:
-        SoftwareConfigResources.getInstance().get_active_patient().mri_volumes[self.uid].set_sequence_type(text)
+        SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_uid(self.uid).set_sequence_type(text)
 
     def on_contrast_adjustment_clicked(self):
         self.contrast_adjuster.exec_()

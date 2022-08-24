@@ -228,9 +228,9 @@ class ImportDataQDialog(QDialog):
                                                                                 error_msg))
                 diag.exec_()
             else:
-                if uid in list(SoftwareConfigResources.getInstance().get_active_patient().mri_volumes.keys()):
+                if uid in SoftwareConfigResources.getInstance().get_active_patient().get_all_mri_volumes_uids():
                     self.mri_volume_imported.emit(uid)
-                elif uid in list(SoftwareConfigResources.getInstance().get_active_patient().annotation_volumes.keys()):
+                elif uid in list(SoftwareConfigResources.getInstance().get_active_patient().get_all_annotation_volumes_uids()):
                     self.annotation_volume_imported.emit(uid)
             self.load_progressbar.setValue(i + 1)
         self.load_progressbar.setVisible(False)

@@ -29,6 +29,7 @@ class StudyParameters:
         """
 
         """
+        self.__reset()
         self._unique_id = uid.replace(" ", '_').strip()
 
         if study_filename:
@@ -39,6 +40,22 @@ class StudyParameters:
                 logging.warning("Home folder location for new study creation is None.")
                 dest_location = os.path.join(os.path.expanduser('~'), '.raidionics')
             self.__init_from_scratch(dest_location)
+
+    def __reset(self):
+        """
+        All objects share class or static variables.
+        An instance or non-static variables are different for different objects (every object has a copy).
+        """
+        self._unique_id = ""
+        self._creation_timestamp = None
+        self._last_editing_timestamp = None
+        self._study_parameters_filename = ""
+        self._study_parameters = {}
+        self._output_study_directory = ""
+        self._output_study_folder = ""
+        self._included_patients_uids = {}
+        self._display_name = ""
+        self._unsaved_changes = False
 
     def __init_json_config(self):
         """

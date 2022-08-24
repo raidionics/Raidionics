@@ -137,7 +137,7 @@ class AtlasSingleLayerWidget(QWidget):
         }""")
 
     def __init_from_parameters(self):
-        params = SoftwareConfigResources.getInstance().get_active_patient().atlas_volumes[self.uid]
+        params = SoftwareConfigResources.getInstance().get_active_patient().get_atlas_by_uid(self.uid)
         self.display_name_lineedit.setText(params.get_display_name())
 
     def adjustSize(self):
