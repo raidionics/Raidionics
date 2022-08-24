@@ -217,6 +217,13 @@ class CustomQGraphicsView(QGraphicsView):
         self.display_annotations[joint_uid] = image_2d
         self.__repaint_overlay(joint_uid)
 
+    def reset_viewer(self):
+        """
+        Not used as of now, hasn't been tried either.
+        """
+        self.cleanse_annotations()
+        self.update_slice_view(np.zeros((150, 150), dtype="uint8"), 75, 75)
+
     def cleanse_annotations(self):
         for k in list(self.overlaid_items):
             self.remove_annotation_view(k)

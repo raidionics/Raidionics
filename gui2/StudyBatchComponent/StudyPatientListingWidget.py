@@ -93,8 +93,8 @@ class StudyPatientListingWidget(QWidget):
             else:
                 pass
         self.patients_list_scrollarea_dummy_widget.setFixedSize(QSize(self.size().width(), actual_height))
-        logging.debug("Study patient listing scroll area size set to {}.\n".format(QSize(self.size().width(),
-                                                                                         actual_height)))
+        # logging.debug("Study patient listing scroll area size set to {}.\n".format(QSize(self.size().width(),
+        #                                                                                  actual_height)))
 
     def on_patient_imported(self, patient_uid: str) -> None:
         wid = PatientListingWidgetItem(patient_uid=patient_uid, parent=self)

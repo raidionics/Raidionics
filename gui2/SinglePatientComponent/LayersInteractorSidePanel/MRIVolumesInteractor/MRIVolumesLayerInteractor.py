@@ -16,6 +16,7 @@ class MRIVolumesLayerInteractor(QCollapsibleGroupBox):
     volume_view_toggled = Signal(str, bool)
     volume_display_name_changed = Signal(str, str)
     contrast_changed = Signal(str)  # Unique id of the volume for which contrast has been altered
+    volume_removed = Signal(str)  # Unique id of the volume to remove
 
     def __init__(self, parent=None):
         super(MRIVolumesLayerInteractor, self).__init__("MRI Series", self, header_style='left')
@@ -76,7 +77,7 @@ class MRIVolumesLayerInteractor(QCollapsibleGroupBox):
             else:
                 pass
         self.content_label.setFixedSize(QSize(self.size().width(), actual_height))
-        logging.debug("MRI Series container set to {}.\n".format(QSize(self.size().width(), actual_height)))
+        # logging.debug("MRI Series container set to {}.\n".format(QSize(self.size().width(), actual_height)))
 
     def reset(self):
         for w in list(self.volumes_widget):
@@ -145,11 +146,18 @@ class MRIVolumesLayerInteractor(QCollapsibleGroupBox):
         self.adjustSize()
 
     def on_remove_volume(self, volume_uid):
+        visible = False
+        if self.volumes_widget[volume_uid].display_toggle_radiobutton.isChecked():
+            visible = True
+
         self.content_label_layout.removeWidget(self.volumes_widget[volume_uid])
         self.volumes_widget[volume_uid].setParent(None)
         del self.volumes_widget[volume_uid]
         self.adjustSize()
         self.repaint()
+
+        # Will trigger a repainting of the central view accordingly, setting the view to empty black if no more volumes
+        self.volume_removed.emit(volume_uid)
 
         # The first remaining MRI volume is displayed by default, hence toggling the eye-iconed push button.
         if len(self.volumes_widget) > 0:

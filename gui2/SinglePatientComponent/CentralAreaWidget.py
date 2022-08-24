@@ -35,7 +35,7 @@ class CentralAreaWidget(QWidget):
         self.widget_name = "central_area_widget"
         self.setBaseSize(QSize((885 / SoftwareConfigResources.getInstance().get_optimal_dimensions().width()) * self.parent.baseSize().width(),
                                ((935 / SoftwareConfigResources.getInstance().get_optimal_dimensions().height()) * self.parent.baseSize().height())))
-        logging.debug("Setting CentralAreaWidget dimensions to {}.\n".format(self.size()))
+        logging.debug("Setting CentralAreaWidget dimensions to {}.".format(self.size()))
 
         self.__set_interface()
         self.__set_layout_dimensions()

@@ -43,7 +43,7 @@ class StudyBatchWidget(QWidget):
 
         self.setMinimumSize(self.parent.baseSize())
         self.setBaseSize(self.parent.baseSize())
-        logging.debug("Setting StudyBatchWidget dimensions to {}.\n".format(self.size()))
+        logging.debug("Setting StudyBatchWidget dimensions to {}.".format(self.size()))
 
         self.__set_interface()
         self.__set_layout_dimensions()

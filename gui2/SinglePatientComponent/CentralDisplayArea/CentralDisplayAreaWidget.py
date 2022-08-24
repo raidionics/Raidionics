@@ -31,7 +31,7 @@ class CentralDisplayAreaWidget(QWidget):
         # self.setMinimumHeight((int(800/4) / SoftwareConfigResources.getInstance().get_optimal_dimensions().height()) * self.parent.size().height())
         self.setBaseSize(QSize((1325 / SoftwareConfigResources.getInstance().get_optimal_dimensions().width()) * self.parent.baseSize().width(),
                                ((950 / SoftwareConfigResources.getInstance().get_optimal_dimensions().height()) * self.parent.baseSize().height())))
-        logging.debug("Setting CentralDisplayAreaWidget dimensions to {}.\n".format(self.size()))
+        logging.debug("Setting CentralDisplayAreaWidget dimensions to {}.".format(self.size()))
         self.__set_interface()
         # self.__set_layout_dimensions()
         self.__set_stylesheets()
@@ -183,6 +183,13 @@ class CentralDisplayAreaWidget(QWidget):
 
             # Reset to the view-point, until the time there's co-registration or MNI space, where we can keep it.
             # @FIXME. Is the center of the volume actually correct? Looks fishy
+            self.point_clicker_position = [int(self.displayed_image.shape[0] / 2),
+                                           int(self.displayed_image.shape[1] / 2),
+                                           int(self.displayed_image.shape[2] / 2)]
+            self.update_viewers_image()
+        else:  # If all images have been removed by the user, should display an empty view
+            self.displayed_image = np.zeros(shape=(150, 150, 150), dtype='uint8')
+            self.displayed_image_uid = None
             self.point_clicker_position = [int(self.displayed_image.shape[0] / 2),
                                            int(self.displayed_image.shape[1] / 2),
                                            int(self.displayed_image.shape[2] / 2)]

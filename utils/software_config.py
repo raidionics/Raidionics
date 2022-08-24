@@ -159,6 +159,7 @@ class SoftwareConfigResources:
         except Exception:
             error_message = "Error while trying to create a new empty patient: \n"
             error_message = error_message + traceback.format_exc()
+            logging.error(error_message)
         return patient_uid, error_message
 
     def load_patient(self, filename: str, active: bool = True) -> Union[str, Any]:
@@ -179,18 +180,26 @@ class SoftwareConfigResources:
         error_message Any (str or None)
             None if no error was collected, otherwise a string with a human-readable description of the error.
         """
-        patient_instance = PatientParameters(dest_location=self._user_home_location)
-        error_message = patient_instance.import_patient(filename)
-        # To prevent the save changes dialog to pop-up straight up after loading a patient scene file.
-        patient_instance.set_unsaved_changes_state(False)
-        patient_id = patient_instance.get_unique_id()
-        if patient_id in self.patients_parameters.keys():
-            # @TODO. The random unique key number is encountered twice, have to randomize it again.
-            error_message = error_message + '\nImport patient failed, unique id already exists.\n'
-        self.patients_parameters[patient_id] = patient_instance
-        if active:
-            # Doing the following rather than set_active_patient(), to avoid the overhead of doing memory release/load.
-            self.active_patient_name = patient_id
+        patient_id = None
+        error_message = None
+        logging.debug("Patient loading requested from {}.".format(filename))
+        try:
+            patient_instance = PatientParameters(dest_location=self._user_home_location)
+            error_message = patient_instance.import_patient(filename)
+            # To prevent the save changes dialog to pop-up straight up after loading a patient scene file.
+            patient_instance.set_unsaved_changes_state(False)
+            patient_id = patient_instance.get_unique_id()
+            if patient_id in self.patients_parameters.keys():
+                # @TODO. The random unique key number is encountered twice, have to randomize it again.
+                error_message = error_message + '\nImport patient failed, unique id already exists.\n'
+            self.patients_parameters[patient_id] = patient_instance
+            if active:
+                # Doing the following rather than set_active_patient(), to avoid the overhead of doing memory release/load.
+                self.active_patient_name = patient_id
+        except Exception:
+            error_message = "Error while trying to load a patient: \n"
+            error_message = error_message + traceback.format_exc()
+            logging.error(error_message)
         return patient_id, error_message
 
     def update_active_patient_name(self, new_name: str) -> None:
@@ -214,19 +223,18 @@ class SoftwareConfigResources:
         error_message = None
         try:
             if self.active_patient_name and patient_uid == self.active_patient_name:
-                # The active patient is already the requested active patient, nothing to do.
+                # The active patient is already the requested active patient, nothing to do, no error to trigger.
                 return error_message
 
             # NB: At the very first call, there is no previously active patient, hence the need for an if statement
             if self.active_patient_name:
                 self.patients_parameters[self.active_patient_name].release_from_memory()
+            logging.debug("Active patient uid changed from {} to {}.".format(self.active_patient_name, patient_uid))
             self.active_patient_name = patient_uid
             self.patients_parameters[self.active_patient_name].load_in_memory()
-            logging.debug("Active patient uid changed from {} to {}.".format(self.active_patient_name, patient_uid))
         except Exception:
             logging.error("Setting {} as active patient failed, with {}.\n".format(os.path.basename(patient_uid),
                                                                                      str(traceback.format_exc())))
-
         return error_message
 
     def is_patient_list_empty(self) -> bool:
@@ -259,7 +267,7 @@ class SoftwareConfigResources:
         non_available_uid = True
         study_uid = None
         error_message = None
-        logging.debug("New study creation requested.")
+        logging.debug("New empty study creation requested.")
         try:
             while non_available_uid:
                 study_uid = str(np.random.randint(0, 100000))
@@ -273,6 +281,7 @@ class SoftwareConfigResources:
         except Exception:
             error_message = "Error while trying to create a new empty study: \n"
             error_message = error_message + traceback.format_exc()
+            logging.error(error_message)
         return study_uid, error_message
 
     def load_study(self, filename: str, active: bool = True) -> Union[str, Any]:
@@ -293,28 +302,39 @@ class SoftwareConfigResources:
         error_message Any (str or None)
             None if no error was collected, otherwise a string with a human-readable description of the error.
         """
-        logging.info("Loading study from {}.\n".format(filename))
-        study_instance = StudyParameters()
-        error_message = study_instance.import_study(filename)
-        # To prevent the save changes dialog to pop-up straight up after loading a patient scene file.
-        study_instance.set_unsaved_changes_state(False)
-        study_id = study_instance.get_unique_id()
-        if study_id in self.study_parameters.keys():
-            # @TODO. The random unique key number is encountered twice, have to randomize it again.
-            error_message = error_message + '\nImport study failed, unique id already exists.\n'
-        self.study_parameters[study_id] = study_instance
-        if active:
-            # Doing the following rather than set_active_study(), to avoid the overhead of doing memory release/load.
-            self.active_study_name = study_id
+        logging.info("Study loading requested from {}.".format(filename))
+        study_id = None
+        error_message = None
+        try:
+            study_instance = StudyParameters(study_filename=filename)
+            error_message = study_instance.import_study(filename)
+            # To prevent the save changes dialog to pop-up straight up after loading a patient scene file.
+            study_instance.set_unsaved_changes_state(False)
+            study_id = study_instance.get_unique_id()
+            if study_id in self.study_parameters.keys():
+                # @TODO. The random unique key number is encountered twice, have to randomize it again.
+                error_message = error_message + '\nImport study failed, unique id already exists.\n'
+            self.study_parameters[study_id] = study_instance
+            if active:
+                # Doing the following rather than set_active_study(), to avoid the overhead of doing memory release/load.
+                self.active_study_name = study_id
 
-        # After loading the study, all connected patients should also be reloaded
-        included_pat_uids = study_instance.get_included_patients_uids()
-        for p in included_pat_uids.keys():
-            if p not in self.patients_parameters.keys():
-                logging.info("Reloading patient {} linked to study {}.".format(p, study_id))
-                assumed_patient_filename = os.path.join(study_instance.get_output_study_directory(), 'patients',
-                                                        included_pat_uids[p], included_pat_uids[p] + '_scene.raidionics')
-                self.load_patient(filename=assumed_patient_filename, active=False)
+            # After loading the study, all connected patients should also be reloaded
+            included_pat_uids = study_instance.get_included_patients_uids()
+            for p in included_pat_uids.keys():
+                if p not in self.patients_parameters.keys():
+                    logging.info("Importing patient {} linked to study {}.".format(p, study_id))
+                    assumed_patient_filename = os.path.join(study_instance.get_output_study_directory(), 'patients',
+                                                            included_pat_uids[p],
+                                                            included_pat_uids[p] + '_scene.raidionics')
+                    pat_id, pat_err_mnsg = self.load_patient(filename=assumed_patient_filename, active=False)
+                    if pat_err_mnsg:
+                        error_message = error_message + "\n" + pat_err_mnsg
+        except Exception:
+            error_message = "Error while trying to load a study: \n"
+            error_message = error_message + traceback.format_exc()
+            logging.error(error_message)
+
         return study_id, error_message
 
     def save_study(self, study_id):
@@ -339,6 +359,10 @@ class SoftwareConfigResources:
         """
         error_message = None
         try:
+            if self.active_study_name and study_uid == self.active_study_name:
+                # The active patient is already the requested active patient, nothing to do, no error to trigger.
+                return error_message
+
             logging.debug("Active study uid changed from {} to {}.".format(self.active_study_name, study_uid))
             # NB: At the very first call, there is no previously active patient, hence the need for an if statement
             if self.active_study_name:
@@ -348,6 +372,7 @@ class SoftwareConfigResources:
         except Exception:
             error_message = "Setting {} as active study failed, with {}.\n".format(os.path.basename(study_uid),
                                                                                    str(traceback.format_exc()))
+            logging.error(error_message)
         return error_message
 
     def is_study_list_empty(self):

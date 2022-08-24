@@ -33,7 +33,7 @@ class SinglePatientWidget(QWidget):
 
         self.setMinimumSize(self.parent.baseSize())
         self.setBaseSize(self.parent.baseSize())
-        logging.debug("Setting SinglePatientWidget dimensions to {}.\n".format(self.size()))
+        logging.debug("Setting SinglePatientWidget dimensions to {}.".format(self.size()))
 
         self.__set_interface()
         self.__set_layout_dimensions()

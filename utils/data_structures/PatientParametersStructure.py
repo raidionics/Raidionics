@@ -463,6 +463,9 @@ class PatientParameters:
             json.dump(self._patient_parameters_dict, outfile, indent=4, sort_keys=True)
         self._unsaved_changes = False
 
+    def get_patient_mri_volumes_number(self) -> int:
+        return len(self.mri_volumes)
+
     def get_all_mri_volumes_display_names(self) -> List[str]:
         res = []
         for im in self.mri_volumes:
@@ -538,7 +541,7 @@ class PatientParameters:
                 res.append(self.atlas_volumes[at].get_unique_id())
         return res
 
-    def remove_mri_volume(self, volume_uid: str) -> None:
+    def remove_mri_volume(self, volume_uid: str) -> Tuple[dict, Union[None, str]]:
         """
         Delete the specified MRI volume from the patient parameters, and deletes on disk (within the
         patient folder) all elements linked to it (e.g., the corresponding display volume).
@@ -551,19 +554,32 @@ class PatientParameters:
         volume_uid: str
             Internal unique identifier of the MRI volume to delete.
 
+        Returns
+        ---------
+        Tuple
+            (i) Removed internal unique ids, associated by category, as a dict.
+            (ii) Error message collected during the recursive removal (as a string), None if no error encountered.
         """
+        results = {}
+        error_message = None
         linked_annos = self.get_all_annotations_for_mri(mri_volume_uid=volume_uid)
         for anno in linked_annos:
             self.remove_annotation(annotation_uid=anno)
+        if len(linked_annos) != 0:
+            results['Annotations'] = linked_annos
 
         linked_atlases = self.get_all_atlases_for_mri(mri_volume_uid=volume_uid)
         for atlas in linked_atlases:
             self.remove_atlas(atlas_uid=atlas)
+        if len(linked_atlases) != 0:
+            results['Atlases'] = linked_atlases
 
         self.mri_volumes[volume_uid].delete()
         del self.mri_volumes[volume_uid]
         logging.info("Removed MRI volume {} for patient {}".format(volume_uid, self._unique_id))
         self.save_patient()
+
+        return results, error_message
 
     def remove_annotation(self, annotation_uid: str) -> None:
         """

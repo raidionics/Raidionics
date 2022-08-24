@@ -25,15 +25,15 @@ class StudyParameters:
     _display_name = ""  # Human-readable name for the study
     _unsaved_changes = False  # Documenting any change, for suggesting saving when exiting the software
 
-    def __init__(self, uid: str = "-1", dest_location: str = None, reload_params: dict = None) -> None:
+    def __init__(self, uid: str = "-1", dest_location: str = None, study_filename: str = None) -> None:
         """
 
         """
         self._unique_id = uid.replace(" ", '_').strip()
 
-        if reload_params:
-            self._study_parameters = reload_params
-            self.__reload_from_disk()
+        if study_filename:
+            # Empty init, self.import_study() must be called after the instance creation call.
+            pass
         else:
             if not dest_location:
                 logging.warning("Home folder location for new study creation is None.")
@@ -159,15 +159,15 @@ class StudyParameters:
             self._included_patients_uids[uid] = os.path.basename(folder_name)
             self._unsaved_changes = True
 
-    def import_study(self, filename: str) -> Any:
+    def import_study(self, filename: str) -> Union[None, str]:
         """
-        Method for reloading/importing a previously investigated patient, for which a Raidionics scene has been
+        Method for reloading/importing a previously investigated study, for which a Raidionics scene has been
         created and can be read from a .raidionics file.
 
         Parameters
         ----------
         filename: str
-            Filepath
+            Filepath on disk pointing to the .sraidionics study file.
         """
         error_message = None
         try:
@@ -225,15 +225,3 @@ class StudyParameters:
         os.makedirs(self._output_study_folder, exist_ok=True)
         logging.info("Output study directory set to: {}".format(self._output_study_folder))
         self.__init_json_config()
-
-    def __reload_from_disk(self) -> None:
-        # @TODO. Have to include the dir/folder.
-        self._unique_id = self._study_parameters["Default"]["unique_id"]
-        self._display_name = self._study_parameters["Default"]["display_name"]
-        if 'creation_timestamp' in self._study_parameters["Default"].keys():
-            self._creation_timestamp = datetime.datetime.strptime(
-                self._study_parameters["Default"]['creation_timestamp'], "%d/%m/%Y, %H:%M:%S")
-        if 'last_editing_timestamp' in self._study_parameters["Default"].keys():
-            self._last_editing_timestamp = datetime.datetime.strptime(
-                self._study_parameters["Default"]['last_editing_timestamp'], "%d/%m/%Y, %H:%M:%S")
-        self._included_patients_uids = self._study_parameters['Study']['Patients']['listing']

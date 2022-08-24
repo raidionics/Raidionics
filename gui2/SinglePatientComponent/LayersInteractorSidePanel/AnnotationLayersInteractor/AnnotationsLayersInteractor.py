@@ -77,7 +77,7 @@ class AnnotationsLayersInteractor(QCollapsibleGroupBox):
             else:
                 pass
         self.content_label.setFixedSize(QSize(self.size().width(), actual_height))
-        logging.debug("Annotations container set to {}.\n".format(QSize(self.size().width(), actual_height)))
+        # logging.debug("Annotations container set to {}.\n".format(QSize(self.size().width(), actual_height)))
 
     def reset(self):
         """

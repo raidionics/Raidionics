@@ -102,7 +102,7 @@ class MRISeriesLayerWidget(QWidget):
         self.display_toggle_radiobutton.setFixedSize(QSize(30, 30))
         self.display_toggle_radiobutton.setIconSize(QSize(25, 25))
 
-        logging.debug("MRISeriesLayerWidget size set to {}.\n".format(self.size()))
+        # logging.debug("MRISeriesLayerWidget size set to {}.\n".format(self.size()))
 
     def __set_connections(self):
         self.display_name_lineedit.textEdited.connect(self.on_name_change)
@@ -237,24 +237,19 @@ class MRISeriesLayerWidget(QWidget):
         """
         The deletion of an MRI volume layer leads to a deletion of all linked objects within the patient
         parameters, and then of the corresponding GUI elements.
+        All GUI elements should be deleted first, starting by the CentralView, and then removed from the logic
+        PatientParameters instance.
         """
         linked_annos = SoftwareConfigResources.getInstance().get_active_patient().get_all_annotations_for_mri(self.uid)
         linked_atlases = SoftwareConfigResources.getInstance().get_active_patient().get_all_atlases_for_mri(self.uid)
         if (len(linked_annos) + len(linked_atlases)) != 0:
-            # diag = QMessageBox()
-            # diag.setText("MRI volume layer deletion warning.")
-            # diag.setInformativeText("Deleting an MRI volume will also remove all other files linked to it (e.g., annotations).")
-            # diag.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
-            # diag.setDefaultButton(QMessageBox.Ok)
-            # code = diag.exec_()
             code = QMessageBox.warning(self, "MRI volume layer deletion warning.",
                                        "Deleting an MRI volume will also remove all other files linked to it (e.g., annotations).",
                                        QMessageBox.Ok | QMessageBox.Cancel, QMessageBox.Ok)
             if code == QMessageBox.StandardButton.Ok:  # Deletion accepted
-                SoftwareConfigResources.getInstance().get_active_patient().remove_mri_volume(volume_uid=self.uid)
                 self.remove_volume.emit(self.uid)
+                # SoftwareConfigResources.getInstance().get_active_patient().remove_mri_volume(volume_uid=self.uid)
         else:
-            SoftwareConfigResources.getInstance().get_active_patient().remove_mri_volume(volume_uid=self.uid)
             self.remove_volume.emit(self.uid)
 
     def __on_display_dicom_metadata(self):

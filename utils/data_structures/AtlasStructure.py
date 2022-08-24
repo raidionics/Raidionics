@@ -69,10 +69,10 @@ class AtlasVolume:
         self.__generate_display_volume()
         self._display_name = parameters['display_name']
         self._parent_mri_uid = parameters['parent_mri_uid']
-        # if 'display_colors' in parameters.keys():
-        #     self._class_display_color = {int(k): v for k, v in parameters['display_colors'].items()}
-        # if 'display_opacities' in parameters.keys():
-        #     self._class_display_opacity = {int(k): v for k, v in parameters['display_opacities'].items()}
+        if 'display_colors' in parameters.keys():
+            self._class_display_color = {int(k): v for k, v in parameters['display_colors'].items()}
+        if 'display_opacities' in parameters.keys():
+            self._class_display_opacity = {int(k): v for k, v in parameters['display_opacities'].items()}
 
     def load_in_memory(self) -> None:
         if self._display_volume_filepath and os.path.exists(self._display_volume_filepath):

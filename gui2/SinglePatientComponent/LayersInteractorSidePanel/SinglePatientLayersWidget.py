@@ -38,7 +38,7 @@ class SinglePatientLayersWidget(QWidget):
         self.__set_interface()
         self.__set_connections()
         self.__set_stylesheets()
-        logging.debug("SinglePatientLayersWidget size set to {}.\n".format(self.size()))
+        logging.debug("SinglePatientLayersWidget size set to {}.".format(self.size()))
 
     def __set_interface(self):
         self.layout = QVBoxLayout(self)
@@ -89,6 +89,7 @@ class SinglePatientLayersWidget(QWidget):
         self.volumes_collapsiblegroupbox.volume_view_toggled.connect(self.annotations_collapsiblegroupbox.on_volume_view_toggled)
         self.volumes_collapsiblegroupbox.volume_view_toggled.connect(self.atlases_collapsiblegroupbox.on_volume_view_toggled)
         self.volumes_collapsiblegroupbox.contrast_changed.connect(self.volume_contrast_changed)
+        self.volumes_collapsiblegroupbox.volume_removed.connect(self.on_mri_volume_removed)
         self.volumes_collapsiblegroupbox.volume_display_name_changed.connect(self.annotations_collapsiblegroupbox.on_mri_volume_display_name_changed)
         self.annotations_collapsiblegroupbox.annotation_view_toggled.connect(self.annotation_view_toggled)
         self.annotations_collapsiblegroupbox.annotation_opacity_changed.connect(self.annotation_opacity_changed)
@@ -108,6 +109,18 @@ class SinglePatientLayersWidget(QWidget):
 
     def on_mri_volume_import(self, uid):
         self.mri_volume_imported.emit(uid)
+
+    def on_mri_volume_removed(self, uid):
+        """
+        The MRI volume has been requested for deletion by the user. If other MRI volumes exist, the central view will
+        automatically display the next available MRI volume. If the last MRI volume has just been deleted, the central
+        view is set to display an empty black image.
+        """
+        objects_uids, error_msg = SoftwareConfigResources.getInstance().get_active_patient().remove_mri_volume(volume_uid=uid)
+        if SoftwareConfigResources.getInstance().get_active_patient().get_patient_mri_volumes_number() == 0:
+            self.volume_view_toggled.emit(uid, False)
+            self.annotations_collapsiblegroupbox.reset()
+            self.atlases_collapsiblegroupbox.reset()
 
     def on_annotation_volume_import(self, uid):
         self.annotation_volume_imported.emit(uid)

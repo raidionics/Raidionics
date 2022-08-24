@@ -134,7 +134,7 @@ class StudiesSidePanelWidget(QWidget):
             else:
                 pass
         self.study_list_scrollarea_dummy_widget.setFixedSize(QSize(self.size().width(), actual_height))
-        logging.debug("Studies scroll area size set to {}.\n".format(QSize(self.size().width(), actual_height)))
+        # logging.debug("Studies scroll area size set to {}.\n".format(QSize(self.size().width(), actual_height)))
 
     def on_import_data(self):
         """

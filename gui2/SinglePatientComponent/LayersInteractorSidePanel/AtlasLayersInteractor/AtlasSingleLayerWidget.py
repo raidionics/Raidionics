@@ -163,7 +163,7 @@ class AtlasSingleLayerWidget(QWidget):
             else:
                 pass
         self.setFixedSize(QSize(self.size().width(), actual_height))
-        logging.debug("Single atlas widget container set to {}.\n".format(QSize(self.size().width(), actual_height)))
+        # logging.debug("Single atlas widget container set to {}.\n".format(QSize(self.size().width(), actual_height)))
         self.resizeRequested.emit()
 
     def on_right_clicked(self, point):

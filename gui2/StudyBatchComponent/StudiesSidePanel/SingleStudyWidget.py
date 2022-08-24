@@ -258,7 +258,7 @@ class SingleStudyWidget(QCollapsibleGroupBox):
         actual_height = self.default_collapsiblegroupbox.sizeHint().height()
         self.content_label.setFixedSize(QSize(self.size().width(), actual_height))
         # self.setFixedSize(QSize(self.size().width(), actual_height))
-        logging.debug("SingleStudyWidget size set to {}.\n".format(self.content_label.size()))
+        # logging.debug("SingleStudyWidget size set to {}.\n".format(self.content_label.size()))
         self.resizeRequested.emit()
 
     def __on_patient_name_modified(self):

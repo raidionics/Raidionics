@@ -120,15 +120,28 @@ class AnnotationVolume:
     def get_annotation_class_str(self) -> str:
         return str(self._annotation_class)
 
-    def set_annotation_class_type(self, anno_type: Union[str, Enum]) -> None:
+    def set_annotation_class_type(self, anno_type: Union[str, Enum], manual: bool = True) -> None:
+        """
+        Update the annotation class type.
+
+        Parameters
+        ----------
+        anno_type: str, AnnotationClassType
+            New annotation class type to associate with the current Annotation, either a str or AnnotationClassType.
+        manual: bool
+            To specify if the change warrants a change of the saved state. True for calls coming from a user input and
+            False for internal calls linked to loading/reloading of the instance.
+        """
         if isinstance(anno_type, str):
             ctype = get_type_from_string(AnnotationClassType, anno_type)
             if ctype != -1:
                 self._annotation_class = ctype
         elif isinstance(anno_type, AnnotationClassType):
             self._annotation_class = anno_type
-        self._unsaved_changes = True
-        logging.debug("Unsaved changes - Annotation volume class changed to {}.".format(str(self._annotation_class)))
+
+        if manual:
+            logging.debug("Unsaved changes - Annotation volume class changed to {}.".format(str(self._annotation_class)))
+            self._unsaved_changes = True
 
     def get_display_name(self) -> str:
         return self._display_name
@@ -179,15 +192,28 @@ class AnnotationVolume:
     def get_generation_type_str(self) -> str:
         return str(self._generation_type)
 
-    def set_generation_type(self, generation_type: Union[str, Enum]) -> None:
+    def set_generation_type(self, generation_type: Union[str, Enum], manual: bool = True) -> None:
+        """
+        Update the EnumType regarding how the annotation has been obtained, from [Manual, Automatic].
+
+        Parameters
+        ----------
+        generation_type: str, AnnotationGenerationType
+            New generation type to associate with the current Annotation, either a str or AnnotationGenerationType.
+        manual: bool
+            To specify if the change warrants a change of the saved state. True for calls coming from a user input and
+            False for internal calls linked to loading/reloading of the instance.
+        """
         if isinstance(generation_type, str):
             ctype = get_type_from_string(AnnotationGenerationType, generation_type)
             if ctype != -1:
                 self._generation_type = ctype
         elif isinstance(generation_type, AnnotationGenerationType):
             self._generation_type = generation_type
-        self._unsaved_changes = True
-        logging.debug("Unsaved changes - Annotation volume generation type changed to {}.".format(str(self._generation_type)))
+
+        if manual:
+            logging.debug("Unsaved changes - Annotation volume generation type changed to {}.".format(str(self._generation_type)))
+            self._unsaved_changes = True
 
     def save(self) -> dict:
         """
@@ -270,8 +296,8 @@ class AnnotationVolume:
             self._display_volume = nib.load(self._display_volume_filepath).get_data()[:]
         else:
             self.__generate_display_volume()
-        self.set_annotation_class_type(anno_type=parameters['annotation_class'])
-        self.set_generation_type(generation_type=parameters['generation_type'])
+        self.set_annotation_class_type(anno_type=parameters['annotation_class'], manual=False)
+        self.set_generation_type(generation_type=parameters['generation_type'], manual=False)
         self._parent_mri_uid = parameters['parent_mri_uid']
         self._display_name = parameters['display_name']
         self._display_color = parameters['display_color']

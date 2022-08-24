@@ -65,6 +65,19 @@ class RaidionicsMainWindow(QMainWindow):
         self.fixed_width = 0.75 * new_size.width()
         self.fixed_height = 0.75 * new_size.height()
 
+    def __on_exit_software(self) -> None:
+        """
+        Mirroring of the closeEvent, for when the user press the Quit action in the main menu.
+        """
+        if not SoftwareConfigResources.getInstance().is_patient_list_empty()\
+                and SoftwareConfigResources.getInstance().get_active_patient().has_unsaved_changes():
+            dialog = SavePatientChangesDialog()
+            code = dialog.exec_()
+            if code == 1:  # Operation approved
+                sys.exit()
+        else:
+            sys.exit()
+
     def __set_interface(self):
         self.setWindowTitle("Raidionics")
         self.__get_screen_dimensions()
@@ -189,7 +202,8 @@ class RaidionicsMainWindow(QMainWindow):
         self.single_use_action.triggered.connect(self.__on_single_patient_clicked)
         self.batch_mode_action.triggered.connect(self.__on_study_batch_clicked)
         self.settings_preferences_action.triggered.connect(self.__on_settings_preferences_clicked)
-        self.quit_action.triggered.connect(sys.exit)
+        # self.quit_action.triggered.connect(sys.exit)
+        self.quit_action.triggered.connect(self.__on_exit_software)
         self.download_example_data_action.triggered.connect(self.__on_download_example_data)
 
     def __get_screen_dimensions(self):
