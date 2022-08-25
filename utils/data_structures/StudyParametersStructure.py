@@ -12,7 +12,7 @@ from typing import Union, Any, Tuple
 
 class StudyParameters:
     """
-    Class defining how the information relating to a project/study should be held.
+    Class defining how the information relating to a project/study should be held internally.
     """
     _unique_id = ""  # Internal unique identifier for the study
     _creation_timestamp = None  # Timestamp for recording when the patient was created
@@ -115,7 +115,7 @@ class StudyParameters:
         if os.path.exists(new_output_folder):
             msg = """A study with requested name already exists in the destination folder.\n
             Requested name: [{}].\n
-            Destination folder: [{}].""".format(new_name, os.path.dirname(self._output_folder))
+            Destination folder: [{}].""".format(new_name, os.path.dirname(self._output_study_directory))
             return 1, msg
         else:
             self._display_name = new_name.strip()
@@ -135,13 +135,10 @@ class StudyParameters:
             return 0, ""
 
     def set_output_study_folder(self, output_folder: str) -> None:
-        new_output_folder = os.path.join(output_folder, "studies", self._display_name.strip().lower().replace(" ", '_'))
-        if os.path.exists(new_output_folder):
-            # @TODO.
-            pass
-        shutil.move(src=self._output_study_folder, dst=new_output_folder, copy_function=shutil.copytree)
-        logging.info("Renamed current study output directory to: {}".format(new_output_folder))
-        self._output_study_folder = new_output_folder
+        """
+        Not Implemented Yet.
+        """
+        pass
 
     def get_output_study_folder(self) -> str:
         return self._output_study_folder

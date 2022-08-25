@@ -117,7 +117,10 @@ class PatientParameters:
         return self._output_folder
 
     def set_output_directory(self, directory: str) -> None:
-        #@TODO. DEPRECATED.
+        """
+        DEPRECATED. The output directory is not allowed to be changed on the fly, newly created patients will have
+        the modified output directory.
+        """
         new_output_folder = os.path.join(directory, self._display_name.strip().lower().replace(" ", '_'))
         shutil.move(src=self._output_folder, dst=new_output_folder, copy_function=shutil.copytree)
         self._output_dir = directory
@@ -268,7 +271,7 @@ class PatientParameters:
         try:
             self._patient_parameters_dict_filename = filename
             self._output_folder = os.path.dirname(self._patient_parameters_dict_filename)
-            self._output_dir = os.path.dirname(self._output_folder)
+            self._output_dir = os.path.dirname(os.path.dirname(self._output_folder))
             with open(self._patient_parameters_dict_filename, 'r') as infile:
                 self._patient_parameters_dict = json.load(infile)
 

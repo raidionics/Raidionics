@@ -171,6 +171,8 @@ class AnnotationVolume:
 
     def set_display_name(self, name: str) -> None:
         self._display_name = name
+        self._unsaved_changes = True
+        logging.debug("Unsaved changes - Annotation volume display name changed to {}.".format(name))
 
     def set_output_patient_folder(self, output_folder: str) -> None:
         if self._raw_input_filepath and self._output_patient_folder in self._raw_input_filepath:

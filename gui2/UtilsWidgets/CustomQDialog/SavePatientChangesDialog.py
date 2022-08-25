@@ -48,5 +48,12 @@ class SavePatientChangesDialog(QDialog):
         self.accept()
 
     def discard_changes(self):
+        """
+        The changes performed for the patient are not saved on disk, but they are not reverted since there is no
+        caching for each and every variable within a PatientParameters.
+        Changes are hence still visible in the software, and are on RAM, until the software is exited.
+        If the patient is saved manually by the user at a later stage, those discarded changes WILL be stored on disk.
+        """
+        SoftwareConfigResources.getInstance().get_active_patient().set_unsaved_changes_state(False)
         self.accept()
 

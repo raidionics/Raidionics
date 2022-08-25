@@ -136,8 +136,8 @@ class ImportDataQDialog(QDialog):
     def __on_import_files_clicked(self):
         input_image_filedialog = QFileDialog(self)
         input_image_filedialog.setWindowFlags(Qt.WindowStaysOnTopHint)
-        # @TODO. Should query the allowed file extensions from SoftwareResources
-        # @FIXME. The QFileDialog ignores the director parameter
+        # # @TODO. Should query the allowed file extensions from SoftwareResources
+        # # @FIXME. The QFileDialog ignores the director parameter
         if "PYCHARM_HOSTED" in os.environ:
             input_filepaths, filters = input_image_filedialog.getOpenFileNames(self, caption='Select input file(s)',
                                                                                directory=self.tr(self.current_folder),
@@ -196,7 +196,7 @@ class ImportDataQDialog(QDialog):
         for i, pf in enumerate(raidionics_selected):
             ext = pf.split('.')[-1]
             if ext == SoftwareConfigResources.getInstance().accepted_scene_file_format[0]:
-                uid, error_msg = SoftwareConfigResources.getInstance().load_patient(pf)
+                uid, error_msg = SoftwareConfigResources.getInstance().load_patient(pf, active=False)
                 if error_msg:
                     diag = QMessageBox()
                     diag.setText("Unable to load: {}.\nError message: {}.\n".format(os.path.basename(pf),
@@ -242,9 +242,26 @@ class ImportDataQDialog(QDialog):
     def setup_interface_from_files(self, files_list):
         for fp in files_list:
             if fp != '':
-                wid = ImportDataLineWidget(self)
-                self.import_scrollarea_layout.insertWidget(self.import_scrollarea_layout.count() - 1, wid)
-                wid.filepath_lineedit.setText(fp)
+                if not self.doppelganger_check(fp):
+                    wid = ImportDataLineWidget(self)
+                    self.import_scrollarea_layout.insertWidget(self.import_scrollarea_layout.count() - 1, wid)
+                    wid.filepath_lineedit.setText(fp)
+
+    def doppelganger_check(self, filepath: str) -> bool:
+        """
+        Verification that the requested filepath for inclusion is not already inside the list of filepaths to import.
+        """
+        already_inserted = False
+        items = (self.import_scrollarea_layout.itemAt(i) for i in reversed(range(self.import_scrollarea_layout.count())))
+        for i in items:
+            try:
+                if i and i.widget():
+                    w = i.widget()
+                    if w.filepath_lineedit.text() == filepath:
+                        already_inserted = True
+            except Exception:
+                pass
+        return already_inserted
 
 
 class ImportDataLineWidget(QWidget):

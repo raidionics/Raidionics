@@ -176,6 +176,8 @@ class SinglePatientWidget(QWidget):
     def __on_import_custom_clicked(self) -> None:
         self.import_data_dialog.reset()
         self.import_data_dialog.set_parsing_filter("patient")
+        # self.import_data_dialog.setModal(True)
+        # self.import_data_dialog.show()
         code = self.import_data_dialog.exec_()
         # if code == QDialog.Accepted:
         #     self.import_data_triggered.emit()

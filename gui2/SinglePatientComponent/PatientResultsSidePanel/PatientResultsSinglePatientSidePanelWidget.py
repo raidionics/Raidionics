@@ -163,11 +163,12 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         A patient result instance is created for the newly imported patient, and appended at the bottom of the
         scroll area with all other already imported patients.
         """
-        # @TODO. Which behaviour if only a temp patient opened, should it be deleted?
         self.add_new_patient(uid)
 
         # A patient is to be displayed at all time
         if len(self.patient_results_widgets) == 1:
+            # For the first imported patient, setting it to active, which is not done at loading time.
+            SoftwareConfigResources.getInstance().set_active_patient(patient_uid=uid)
             self.__on_patient_selection(True, list(self.patient_results_widgets.keys())[0])
 
     def add_new_patient(self, patient_name):
@@ -222,10 +223,15 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         self.patient_results_widgets[SoftwareConfigResources.getInstance().get_active_patient_uid()].on_process_finished()
 
     def __on_patient_selection(self, state, widget_id):
-        if SoftwareConfigResources.getInstance().get_active_patient().has_unsaved_changes():
+        if SoftwareConfigResources.getInstance().get_active_patient_uid() != None \
+                and SoftwareConfigResources.getInstance().get_active_patient().has_unsaved_changes():
             dialog = SavePatientChangesDialog()
             code = dialog.exec_()
             if code == 0:  # Operation cancelled
+                # The widget for the clicked patient must be collapsed back down, since the change has not
+                # been confirmed by the user in the end.
+                self.patient_results_widgets[widget_id].manual_header_pushbutton_clicked(False)
+                self.patient_results_widgets[widget_id].set_stylesheets(selected=False)
                 return
 
         # @TODO. Must better handle the interaction between all patient results objects
