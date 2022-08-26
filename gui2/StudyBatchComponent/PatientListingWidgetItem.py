@@ -35,7 +35,7 @@ class PatientListingWidgetItem(QWidget):
         self.patient_investigation_pushbutton = QPushButton()
         self.patient_investigation_pushbutton.setIcon(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                                          '../Images/jumpto-icon.png')))
-        self.patient_investigation_pushbutton.setToolTip("Press to visualize inspect the patient.")
+        self.patient_investigation_pushbutton.setToolTip("Press to visually inspect the patient.")
         self.patient_remove_pushbutton = QPushButton()
         self.patient_remove_pushbutton.setIcon(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                                          '../Images/trash-bin_icon.png')))

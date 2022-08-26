@@ -7,7 +7,7 @@
 
 Software to automatically segment brain tumors from pre-operative MRI scans, compute their characteristics (e.g., volume, location), and generate a standardized report.
 The software was introduced in the article "Brain tumor preoperative surgery imaging: models and software solutions for
-segmentation and standardized reporting", which has been accepted in [Frontiers in Neurology](https://www.frontiersin.org/journals/neurology).  
+segmentation and standardized reporting", which has been published in [Frontiers in Neurology](https://www.frontiersin.org/articles/10.3389/fneur.2022.932219/full).  
 Version 1.0 corresponds to the software as it was when the article was submitted, while version 1.1 is an improvement providing a more user-friendly graphical user interface.
 
 * Please visit the [wiki](https://github.com/dbouget/Raidionics/wiki) to know more about usage, use-cases, and access tutorials.  

@@ -25,7 +25,6 @@ class ImportFoldersQDialog(QDialog):
     patient_imported = Signal(str)
 
     def __init__(self, filter=None, parent=None):
-        # @TODO. The filter should be used to specify if looking for image files or a raidionics file.
         super().__init__(parent)
         self.setWindowTitle("Import patient folder(s)")
         self.current_folder = "~"  # Keep in memory the last open directory, to easily open multiple files in a row
@@ -114,9 +113,9 @@ class ImportFoldersQDialog(QDialog):
         if type in ['regular', 'dicom']:
             self.target_type = type
 
-    def reset(self):
+    def reset(self) -> None:
         """
-        Remove all entries in the import scroll area, each entry being a ImportDataLineWidget
+        Remove all entries in the import scroll area, each entry being a ImportDataLineWidget.
         """
         # Mandatory to perform the operation backwards => https://stackoverflow.com/questions/4528347/clear-all-widgets-in-a-layout-in-pyqt
         items = (self.import_scrollarea_layout.itemAt(i) for i in reversed(range(self.import_scrollarea_layout.count())))
@@ -158,12 +157,19 @@ class ImportFoldersQDialog(QDialog):
         self.import_scrollarea_layout.insertWidget(self.import_scrollarea_layout.count() - 1, wid)
         wid.filepath_lineedit.setText(input_directory)
 
-    def __on_exit_accept_clicked(self):
+    def __on_exit_accept_clicked(self) -> None:
         """
-        Iterating over the list of selected folders and internally creating patient objects.
+        Iterating over the list of selected folders and internally creating patient objects accordingly.
+        Currently, the following folder architectures are considered:
+        (i) The folder contains the data for only one patient in any format but DICOM (single mode and regular target type).
+        (ii) The folder contains sub-folders, one for each patient, in any format but DICOM (multiple mode and regular target type).
+        (iii) The folder contains lots of single-file volumes, one for each patient.
+        (iv) The folder contains the data for only one patient, stored as a DICOM folder (single mode and dicom target type).
+        (v) The folder contains sub-folders, one for each patient, stored as a DICOM folder (multiple mode and dicom target type).
+
+        @TODO. Potential patient import error messages should be collected, appended, and reported to the user
+         at the end of the import process.
         """
-        # @TODO. Should check if there is a .raidionics file in the folder, and check if it is already loaded
-        # in the software, and if not loads it.
         widgets = (self.import_scrollarea_layout.itemAt(i) for i in range(self.import_scrollarea_layout.count() - 1))
 
         self.load_progressbar.reset()
@@ -176,15 +182,13 @@ class ImportFoldersQDialog(QDialog):
         for i, w in enumerate(widgets):
             input_folderpath = w.wid.filepath_lineedit.text()
             folders_in_path = []
-            # Checking for the proper use-case based on the type of folder architecture
+
             for _, dirs, _ in os.walk(input_folderpath):
                 for d in dirs:
                     folders_in_path.append(d)
                 break
 
-            # Case (i): the folder contains the data for only one patient
-            # Case (ii): the folder contains sub-folders for each patient
-            # Case (iii): the folder contains lots of images, one for each patient
+            # Checking for the proper use-case based on the type of folder architecture
             if len(folders_in_path) == 0 and self.parsing_mode == 'single' and self.target_type == 'regular':  # Case (i)
                 imports, error_msg = import_patient_from_folder(folder_path=input_folderpath)
                 pat_uid = imports['Patient'][0]
@@ -201,8 +205,8 @@ class ImportFoldersQDialog(QDialog):
                 single_files_in_path = []
                 for _, _, files in os.walk(input_folderpath):
                     for f in files:
-                        # @TODO. Should include a file type check to not create patients for text files...
-                        single_files_in_path.append(f)
+                        if '.'.join(f.split('.')[1:]) in SoftwareConfigResources.getInstance().get_accepted_image_formats():
+                            single_files_in_path.append(f)
                     break
 
                 self.load_progressbar.setMaximum(len(single_files_in_path))
@@ -239,7 +243,7 @@ class ImportFoldersQDialog(QDialog):
                     diag = QMessageBox()
                     diag.setText("Unable to load patients.\nError message: {}.\n".format(collective_errors))
                     diag.exec_()
-            elif self.target_type == 'dicom' and self.parsing_mode == 'single':
+            elif self.target_type == 'dicom' and self.parsing_mode == 'single':  # Case (iv)
                 dicom_holder = PatientDICOM(input_folderpath)
                 error_msg = dicom_holder.parse_dicom_folder()
                 # if error_msg is not None:
@@ -261,7 +265,7 @@ class ImportFoldersQDialog(QDialog):
                     diag = QMessageBox()
                     diag.setText("Unable to load patient.\nError message: {}.\n".format(error_msg))
                     diag.exec_()
-            elif self.target_type == 'dicom' and self.parsing_mode == 'multiple':
+            elif self.target_type == 'dicom' and self.parsing_mode == 'multiple':  # Case (v)
                 for patient in folders_in_path:
                     dicom_holder = PatientDICOM(os.path.join(input_folderpath, patient))
                     error_msg = dicom_holder.parse_dicom_folder()
@@ -375,32 +379,6 @@ class CustomQFileDialog(QFileDialog):
     #         f_tree_view.setSelectionMode(QAbstractItemView.MultiSelection)
     #
     #     self.exec_()
-
-
-def import_patients_from_tree(tree_path: str):
-    """
-    Entry point to the overall folder parsing (excluding DICOM), current possibilities:
-    (i) without sub-folders, all patient files are inside the same folder, assuming one MRI files per patient.
-    (ii) with sub-folders, assuming each sub-folder corresponds to a different patient.
-    """
-    folders_in_path = []
-
-    # Checking for the proper use-case based on the type of folder architecture
-    for _, dirs, _ in os.walk(tree_path):
-        for d in dirs:
-            folders_in_path.append(d)
-        break
-
-    imports = {}
-    error_msg = ""
-    # No sub-folders contained, going for use-case (i)
-    if len(folders_in_path) == 0:
-        imports, error_msg = import_patient_from_folder(folder_path=tree_path)
-    else:  # Existing sub-folders contained, going for use-case (ii)
-        for patient in folders_in_path:
-            imports, error_msg = import_patient_from_folder(folder_path=os.path.join(tree_path, patient))
-
-    # Iterating over the imports to trigger signals, and then displaying patients for which an error occurred
 
 
 def import_patient_from_folder(folder_path: str) -> Tuple[dict, str]:

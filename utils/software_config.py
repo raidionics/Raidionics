@@ -54,10 +54,9 @@ class SoftwareConfigResources:
         if platform.system() == 'Windows':
             self.optimal_dimensions = QSize(1440, 974)  # Minor decrease because of the bottom menu bar...
         # self.optimal_dimensions = QSize(1920, 1080)  # Full high definition screen
-        self.accepted_image_format = ['nii', 'nii.gz', 'mhd', 'mha', 'nrrd']  # @TODO. Should I have an exhaustive list?
+        self.accepted_image_format = ['nii', 'nii.gz', 'mhd', 'mha', 'nrrd']
         self.accepted_scene_file_format = ['raidionics']
         self.accepted_study_file_format = ['sraidionics']
-        self.diagnostics_runner = None
 
         self.__set_default_values()
         self.__set_default_stylesheet_components()
