@@ -12,7 +12,6 @@ from typing import Any
 import multiprocessing as mp
 from utils.software_config import SoftwareConfigResources
 from utils.models_download import download_model
-from segmentation.src.Utils.configuration_parser import generate_runtime_config
 from utils.data_structures.MRIVolumeStructure import MRISequenceType
 from utils.data_structures.PatientParametersStructure import PatientParameters
 

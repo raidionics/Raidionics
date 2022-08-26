@@ -5,7 +5,7 @@ import pandas as pd
 import hashlib
 import zipfile
 from os.path import expanduser
-from utils.runtime_config_parser import RuntimeResources
+from utils.software_config import SoftwareConfigResources
 
 
 def get_available_cloud_models_list():
@@ -40,7 +40,7 @@ def download_model(model_name):
             models_archive_path = os.path.join(expanduser('~'), '.raidionics', 'resources', 'models',
                                                '.cache', model_name + '.zip')
             os.makedirs(os.path.dirname(models_archive_path), exist_ok=True)
-            if not os.path.exists(models_archive_path) or (hashlib.md5(open(models_archive_path, 'rb').read()).hexdigest() != md5 and RuntimeResources.getInstance().active_models_update_state):
+            if not os.path.exists(models_archive_path) or (hashlib.md5(open(models_archive_path, 'rb').read()).hexdigest() != md5 and SoftwareConfigResources.getInstance().get_active_model_check_status()):
                 download_state = True
 
             if download_state:

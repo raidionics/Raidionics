@@ -10,7 +10,6 @@ import logging
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
-from utils.runtime_config_parser import RuntimeResources
 from utils.software_config import SoftwareConfigResources
 from gui2.WelcomeWidget import WelcomeWidget
 from gui2.SinglePatientComponent.SinglePatientWidget import SinglePatientWidget

@@ -14,7 +14,6 @@ import multiprocessing as mp
 from utils.software_config import SoftwareConfigResources
 from utils.models_download import download_model
 from gui2.UtilsWidgets.CustomQDialog.TumorTypeSelectionQDialog import TumorTypeSelectionQDialog
-from segmentation.src.Utils.configuration_parser import generate_runtime_config
 
 
 class CentralAreaExecutionWidget(QLabel):
