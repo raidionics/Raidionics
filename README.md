@@ -5,15 +5,12 @@
 ![CI](https://github.com/dbouget/Raidionics/workflows/Build%20Ubuntu/badge.svg?branch=master&event=push)
 ![CI](https://github.com/dbouget/Raidionics/workflows/Build%20macOS/badge.svg?branch=master&event=push)
 
+⚠️***DEPRECATED: This version of Raidionics (v1.0) is no longer actively maintained. Please, use the latest version instead.***
+
 Software to automatically segment brain tumors from pre-operative MRI scans, compute their characteristics (e.g., volume, location), and generate a standardized report.
 The software was introduced in the article [_"Brain tumor preoperative surgery imaging: models and software solutions for
 segmentation and standardized reporting"_](https://www.frontiersin.org/articles/10.3389/fneur.2022.932219/full), which was published in Frontiers in Neurology. The article is open access.
-Version 1.0 corresponds to the software as it was when the article was submitted, whereas version 1.1 is an improvement providing a more user-friendly graphical user interface.
-
-* Please visit the [wiki](https://github.com/dbouget/Raidionics/wiki) to know more about usage, use-cases, and access tutorials.  
-* For any issue, please report them [here](https://github.com/dbouget/Raidionics/issues).
-
-![interface](images/interface-snapshot.png)
+Version 1.0 corresponds to the software as it was when the article was submitted.
 
 
 ## Installation
