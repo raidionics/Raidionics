@@ -16,55 +16,31 @@ os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = plugin_path
 
 import sys
 from PySide2.QtWidgets import QApplication
-# from main_gui import MainWindow
-from gui.CustomQMainWindow import MainWindow
 from gui2.RaidionicsMainWindow import RaidionicsMainWindow
 import logging
 
 
 def main(argv):
     gui_usage = 1
-    input_filename = ''
-    input_tumor_segmentation_filename = ''
-    output_folder = ''
-    gpu_id = '-1'
-    task = ''
-    model_segmentation = ''
     try:
-        opts, args = getopt.getopt(argv, "hg:i:s:o:m:d:t:", ["gui=1"])
+        opts, args = getopt.getopt(argv, "hg:", ["gui=1"])
     except getopt.GetoptError:
-        print('main.py -g <use_gui> [-i <input_filename> -s <input_tumor_segmentation_filename> -o <output_folder> -d <gpu_id>]')
+        print('main.py')
         sys.exit(2)
     for opt, arg in opts:
         if opt == '-h':
-            print('main.py -g <use_gui> [-i <input_filename> -s <input_tumor_segmentation_filename> -o <output_folder> -d <gpu_id>]')
+            print('main.py')
             sys.exit()
-        elif opt in ("-g", "--use_gui"):
-            gui_usage = int(arg)
-        elif opt in ("-i", "--input_filename"):
-            input_filename = arg
-        elif opt in ("-s", "--input_tumor_segmentation_filename"):
-            input_tumor_segmentation_filename = arg
-        elif opt in ("-o", "--output_folder"):
-            output_folder = arg
-        elif opt in ("-m", "--model_segmentation"):
-            model_segmentation = arg
-        elif opt in ("-d", "--gpu_id"):
-            gpu_id = arg
-        elif opt in ("-t", "--task"):
-            task = arg
+        # elif opt in ("-g", "--use_gui"):
+        #     gui_usage = int(arg)
     try:
         from utils.software_config import SoftwareConfigResources
         logging.basicConfig(filename=SoftwareConfigResources.getInstance().get_session_log_filename(), filemode='w')  # stream=sys.stdout
         logging.getLogger().setLevel(logging.DEBUG)
         if gui_usage == 1:
             app = QApplication(sys.argv)
-
-            # @TODO. The runtime_config.ini should be cleared before running the GUI, maybe keeping the system params?
-            # window = MainWindow(application=app)
             window = RaidionicsMainWindow(application=app)
             window.show()
-
             app.exec_()
 
             #@TODO. Windows-specific stuff to check.
@@ -72,19 +48,10 @@ def main(argv):
             # QWindowsWindowFunctions::setWindowActivationBehavior(QWindowsWindowFunctions::AlwaysActivateWindow);
             # # endif
             # For mac, try: window.raise()
-
-        elif task == 'diagnosis':
-            from diagnosis.main import diagnose_main
-            diagnose_main(input_volume_filename=input_filename,
-                          input_segmentation_filename=input_tumor_segmentation_filename,
-                          output_folder=output_folder, gpu_id=gpu_id)
-        elif task == 'segmentation':
-            from segmentation.main import main_segmentation
-            main_segmentation(input_filename=input_filename, output_folder=output_folder, model_name=model_segmentation,
-                              gpu_device=gpu_id)
     except Exception as e:
         print('Process could not proceed. Caught error: {}'.format(e.args[0]))
         print('{}'.format(traceback.format_exc()))
+        logging.critical(traceback.format_exc())
 
 
 if __name__ == "__main__":
