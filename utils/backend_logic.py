@@ -77,6 +77,7 @@ def run_segmentation(model_name: str, patient_parameters: PatientParameters, que
             eligible_mris = patient_parameters.get_all_mri_volumes_uids()
 
         selected_mri_uid = eligible_mris[0]
+        # @TODO. Must check the active_model value in settings, to download or not.
         download_model(model_name=model_name)
 
         # Setting up the runtime configuration file, mandatory for the raidionics_seg lib.

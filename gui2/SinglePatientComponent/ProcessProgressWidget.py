@@ -1,3 +1,5 @@
+import logging
+
 from PySide2.QtWidgets import QWidget, QVBoxLayout, QPushButton, QLabel, QHBoxLayout
 from PySide2.QtCore import Qt, QSize, Signal
 from PySide2.QtGui import QIcon, QPixmap
@@ -34,18 +36,18 @@ class ProcessProgressWidget(QWidget):
         self.overall_progress_layout.addStretch(1)
         self.overall_progress_layout.addWidget(self.progress_label)
         self.overall_progress_layout.addStretch(1)
-        self.detailed_progression_label = QLabel()
         self.detailed_progression_layout = QVBoxLayout()
         self.detailed_progression_layout.setSpacing(5)
         self.cancel_process_layout = QHBoxLayout()
+        self.cancel_process_layout.setContentsMargins(0, 10, 0, 0)
         self.cancel_process_pushbutton = QPushButton('Cancel...')
-        self.cancel_process_pushbutton.setEnabled(False)  # Impossible to actually kill the process thread for now.
+        self.cancel_process_pushbutton.setEnabled(False)  # Impossible to actually kill the process thread atm.
+        self.cancel_process_pushbutton.setToolTip("The process cannot be interrupted for now.")
         self.cancel_process_layout.addStretch(1)
         self.cancel_process_layout.addWidget(self.cancel_process_pushbutton)
         self.cancel_process_layout.addStretch(1)
 
         self.layout.addLayout(self.overall_progress_layout)
-        # self.layout.addWidget(self.detailed_progression_label)
         self.layout.addLayout(self.detailed_progression_layout)
         self.layout.addLayout(self.cancel_process_layout)
         self.layout.addStretch(1)
@@ -55,18 +57,19 @@ class ProcessProgressWidget(QWidget):
         self.progress_label.setFixedSize(QSize(165, 165))
 
     def __set_stylesheets(self):
+        software_ss = SoftwareConfigResources.getInstance().stylesheet_components
+        font_color = software_ss["Color7"]
+
         self.cancel_process_pushbutton.setStyleSheet("""QPushButton{background-color:rgb(255, 0, 0);}""")
+
         # border-image automatically resizes to the QLabel size, while background-image keeps its original size.
         self.progress_label.setStyleSheet("""
         QLabel{
+        color: """ + font_color + """;
         font-style: bold;
         font-size: 17px;
-        padding-left: 8px;
+        padding-left: 9px;
         border-image: url(""" + os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/progress_icon_empty.png') + """)
-        }""")
-        self.detailed_progression_label.setStyleSheet("""
-        QLabel{
-        font-size: 16px;
         }""")
 
     def __set_connections(self):
@@ -75,15 +78,18 @@ class ProcessProgressWidget(QWidget):
 
     def on_process_started(self):
         self.processing_steps = None
+
+        software_ss = SoftwareConfigResources.getInstance().stylesheet_components
+        font_color = software_ss["Color7"]
         self.progress_label.setStyleSheet("""
         QLabel{
+        color: """ + font_color + """;
         font-style: bold;
         font-size: 17px;
         padding-left: 8px;
         border-image: url(""" + os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/progress_icon_empty.png') + """)
         }""")
         self.progress_label.setText("Overall progress: ")
-        self.detailed_progression_label.setText("")
         self.process_stages_stack = []
         self.progress_widget = []
         items = (self.detailed_progression_layout.itemAt(i) for i in reversed(range(self.detailed_progression_layout.count())))
@@ -100,9 +106,19 @@ class ProcessProgressWidget(QWidget):
     def on_process_finished(self):
         self.process_monitoring_thread.stop()
 
-    def on_process_message(self, message):
-        # @TODO. Have to update both backends to provide an identifier together with the LOG message,
-        # to track down the steps accordingly.
+    def on_process_message(self, message: str) -> None:
+        """
+        Collecting all messages coming from the two backend libraries, which are containing the LOG: keyword,
+        indicating that the message should be processed in here.
+        Each of such messages contains either a Begin, End, or Runtime statement, and if not simply indicate
+        the overall start of a processing type (e.g., segmentation or reporting).
+        If multiple processes are nested, only the steps for the outer process are reporting here.
+
+        Parameters
+        ----------
+        message: str
+            Line emitted by either processing backends (i.e., seg or rads) whenever a process is ongoing.
+        """
         if ':LOG:' in message:
             if 'Begin' not in message and 'End' not in message and 'Runtime' not in message:
                 task = message.strip().split('-')[0].strip()
@@ -111,15 +127,13 @@ class ProcessProgressWidget(QWidget):
 
                 if not self.processing_steps:
                     self.processing_steps = self.process_stages_stack[0]['total_steps']
-                    self.progress_label.setText("Overall progress:\n\t1 / " + str(self.processing_steps))
+                    self.progress_label.setText("Overall progress:\n\t0 / " + str(self.processing_steps))
 
             elif 'Begin' in message:
                 current_task = message.strip().split('-')[1].strip()
                 current_step = int(message.strip().split('(')[1].split('/')[0])
                 self.process_stages_stack[-1]['steps'][current_step] = current_task
                 if len(self.process_stages_stack) == 1:
-                    self.detailed_progression_label.setText(self.detailed_progression_label.text() + current_task + '...')
-                    self.progress_label.setText("Overall progress:\n\t" + str(current_step) + " / " + str(self.processing_steps))
                     progress_widget = ProgressItemWidget(self)
                     progress_widget.set_progress_text(current_task, status=False)
                     self.progress_widget.append(progress_widget)
@@ -128,7 +142,7 @@ class ProcessProgressWidget(QWidget):
                 current_task = message.strip().split('-')[1].strip()
                 current_step = int(message.strip().split('(')[1].split('/')[0])
                 if len(self.process_stages_stack) == 1:
-                    self.detailed_progression_label.setText(self.detailed_progression_label.text()[:-3] + ' (' + self.process_stages_stack[-1]['runtime'] + 's)' + '\n')
+                    self.progress_label.setText("Overall progress:\n\t" + str(current_step) + " / " + str(self.processing_steps))
                     self.progress_widget[-1].set_progress_text(self.process_stages_stack[-1]['runtime'], status=True)
                     self.__update_progress_stylesheet(current_step=current_step,
                                                       total_steps=self.process_stages_stack[-1]['total_steps'])
@@ -139,9 +153,24 @@ class ProcessProgressWidget(QWidget):
                 self.process_stages_stack[-1]['runtime'] = '{:.2f}'.format(runtime)
 
     def __update_progress_stylesheet(self, current_step: int, total_steps: int) -> None:
+        """
+        Inelegant but efficient way to update the advancement image by seemingly filling up a circle until completion.
+        A set of about 10 images is used to that end, with different completion ratios.
+
+        Parameters
+        ----------
+        current_step: int
+            Ongoing process step number.
+        total_steps: int
+            Total amount of steps for the ongoing process to be complete.
+        """
+        software_ss = SoftwareConfigResources.getInstance().stylesheet_components
+        font_color = software_ss["Color7"]
+
         if float(current_step) / float(total_steps) == 0.25:
             self.progress_label.setStyleSheet("""
             QLabel{
+            color: """ + font_color + """;
             font-style: bold;
             font-size: 17px;
             padding-left: 8px;
@@ -151,6 +180,7 @@ class ProcessProgressWidget(QWidget):
         elif float(current_step) / float(total_steps) == 0.5:
             self.progress_label.setStyleSheet("""
             QLabel{
+            color: """ + font_color + """;
             font-style: bold;
             font-size: 17px;
             padding-left: 8px;
@@ -160,6 +190,7 @@ class ProcessProgressWidget(QWidget):
         elif float(current_step) / float(total_steps) == 0.75:
             self.progress_label.setStyleSheet("""
             QLabel{
+            color: """ + font_color + """;
             font-style: bold;
             font-size: 17px;
             padding-left: 8px;
@@ -169,6 +200,7 @@ class ProcessProgressWidget(QWidget):
         elif float(current_step) / float(total_steps) == 1.0:
             self.progress_label.setStyleSheet("""
             QLabel{
+            color: """ + font_color + """;
             font-style: bold;
             font-size: 17px;
             padding-left: 8px;
@@ -178,6 +210,7 @@ class ProcessProgressWidget(QWidget):
         elif float(current_step) / float(total_steps) < 0.25:
             self.progress_label.setStyleSheet("""
             QLabel{
+            color: """ + font_color + """;
             font-style: bold;
             font-size: 17px;
             padding-left: 8px;
@@ -187,6 +220,7 @@ class ProcessProgressWidget(QWidget):
         elif float(current_step) / float(total_steps) < 0.5:
             self.progress_label.setStyleSheet("""
             QLabel{
+            color: """ + font_color + """;
             font-style: bold;
             font-size: 17px;
             padding-left: 8px;
@@ -196,6 +230,7 @@ class ProcessProgressWidget(QWidget):
         elif float(current_step) / float(total_steps) < 0.75:
             self.progress_label.setStyleSheet("""
             QLabel{
+            color: """ + font_color + """;
             font-style: bold;
             font-size: 17px;
             padding-left: 8px;
@@ -205,6 +240,7 @@ class ProcessProgressWidget(QWidget):
         elif float(current_step) / float(total_steps) < 1.0:
             self.progress_label.setStyleSheet("""
             QLabel{
+            color: """ + font_color + """;
             font-style: bold;
             font-size: 17px;
             padding-left: 8px;
@@ -238,8 +274,11 @@ class ProgressItemWidget(QWidget):
         self.progress_label.setFixedHeight(20)
 
     def __set_stylesheets(self):
+        software_ss = SoftwareConfigResources.getInstance().stylesheet_components
+        font_color = software_ss["Color7"]
         self.progress_label.setStyleSheet("""
         QLabel{
+        color: """ + font_color + """;
         font-size: 16px;
         }""")
 
@@ -252,9 +291,28 @@ class ProgressItemWidget(QWidget):
         pass
 
     def set_progress_text(self, text: str, status: bool) -> None:
+        """
+        Displays the ongoing process task when the current step is starting. Upon step completion, indicating by a True
+        status, the total elapsed time for the current step is appended to the displayed text.
+
+        Parameters
+        ----------
+        text: str
+            Indication coming from the LOG: elements, either as the name of the ongoing step (i.e., when Begin), or the
+            elapsed time (in seconds) as a string (i.e., when End).
+        status: bool
+            Completion status. Set to False is the step just began and to True upon step completion.
+        """
         if status:
             self.status_pushbutton.setIcon(QIcon(
                 os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/radio_round_toggle_on_icon.png')))
             self.progress_label.setText(self.progress_label.text()[:-3] + ' (' + text + 's)')
         else:
-            self.progress_label.setText(text + '...')
+            new_text = text + ' ...'
+            if len(new_text) > 30:
+                nb_words = len(new_text.split(' '))
+                final_text = ' '.join(new_text.split(' ')[:int(nb_words / 2)]) + '\n' + ' '.join(new_text.split(' ')[int(nb_words / 2):])
+                self.progress_label.setFixedHeight(40)
+                self.progress_label.setText(final_text)
+            else:
+                self.progress_label.setText(new_text)

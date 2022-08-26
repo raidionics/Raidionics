@@ -186,6 +186,7 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
         self.expected_residual_volume_layout.addStretch(1)
         self.expected_residual_volume_layout.addWidget(self.expected_residual_volume_label)
         self.resectability_collapsiblegroupbox.content_label_layout.addLayout(self.expected_residual_volume_layout)
+        self.resectability_collapsiblegroupbox.content_label_layout.setContentsMargins(20, 0, 20, 0)
 
     def __set_multifocality_part(self):
         self.multifocality_collapsiblegroupbox = QCollapsibleGroupBox("Tumor", self)
@@ -704,7 +705,7 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
 
         if 'ResectionIndex' in report_json['Main']['Total'].keys():
             self.resection_index_label.setText(str(report_json['Main']['Total']['ResectionIndex']))
-            self.expected_residual_volume_label.setText(str(report_json['Main']['Total']['ExpectedResidualVolume (ml)'] + ' ml'))
+            self.expected_residual_volume_label.setText(str(report_json['Main']['Total']['ExpectedResidualVolume (ml)']) + ' ml')
             self.resectability_collapsiblegroupbox.setVisible(True)
         else:
             self.resection_index_label.setText(' - ')

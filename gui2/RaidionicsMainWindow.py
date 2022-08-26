@@ -326,7 +326,7 @@ class RaidionicsMainWindow(QMainWindow):
                         '* Valeria Gaitan (design)\n'
                         '* Ingerid Reinertsen (project leader)\n\n'
                       'For questions about the methodological aspect, please refer to the following published articles:\n'
-                      '* Preoperative brain tumor imaging: models and software for segmentation and standardized reporting (https://arxiv.org/pdf/2204.14199.pdf)\n'
+                      '* Preoperative brain tumor imaging: models and software for segmentation and standardized reporting (https://www.frontiersin.org/articles/10.3389/fneur.2022.932219/full)\n'
                       '* Glioblastoma Surgery Imaging–Reporting and Data System: Validation and Performance of the Automated Segmentation Task (https://www.mdpi.com/2072-6694/13/18/4674)\n'
                       '* Glioblastoma Surgery Imaging—Reporting and Data System: Standardized Reporting of Tumor Volume, Location, and Resectability Based on Automated Segmentations (https://www.mdpi.com/2072-6694/13/12/2854)\n'
                       '* Meningioma Segmentation in T1-Weighted MRI Leveraging Global Context and Attention Mechanisms (https://www.frontiersin.org/articles/10.3389/fradi.2021.711514/full)\n'
