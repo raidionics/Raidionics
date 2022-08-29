@@ -1,7 +1,14 @@
 import getopt, traceback
-# macOS relevant
 import os
 from pathlib import PurePath
+import PySide2
+import sys
+from PySide2.QtWidgets import QApplication
+from gui2.RaidionicsMainWindow import RaidionicsMainWindow
+import logging
+
+
+# macOS relevant
 os.environ['LC_CTYPE'] = "en_US.UTF-8"
 os.environ['LANG'] = "en_US.UTF-8"
 
@@ -9,15 +16,9 @@ os.environ['LANG'] = "en_US.UTF-8"
 os.environ['QT_MAC_WANTS_LAYER'] = '1'
 
 # relevant for PySide, Qt stuff. See issue here: https://www.programmersought.com/article/8605863159/
-import PySide2
 dirname = os.path.dirname(PySide2.__file__)
 plugin_path = os.path.join(dirname, 'plugins', 'platforms')
 os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = plugin_path
-
-import sys
-from PySide2.QtWidgets import QApplication
-from gui2.RaidionicsMainWindow import RaidionicsMainWindow
-import logging
 
 
 def main(argv):
@@ -35,7 +36,7 @@ def main(argv):
         #     gui_usage = int(arg)
     try:
         from utils.software_config import SoftwareConfigResources
-        logging.basicConfig(filename=SoftwareConfigResources.getInstance().get_session_log_filename(), filemode='w')  # stream=sys.stdout
+        logging.basicConfig(filename=SoftwareConfigResources.getInstance().get_session_log_filename(), filemode='w')
         logging.getLogger().setLevel(logging.DEBUG)
         if gui_usage == 1:
             app = QApplication(sys.argv)
