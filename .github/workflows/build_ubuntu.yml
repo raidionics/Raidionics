@@ -2,9 +2,11 @@ name: Build Ubuntu
 
 on:
   push:
-    branches: [ master, design_update, dev ]
+    branches:
+      - '*'
   pull_request:
-    branches: [ master, design_update, dev ]
+    branches:
+      - '*'
 
 jobs:
   build:
