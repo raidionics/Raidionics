@@ -115,8 +115,6 @@ CreateDirectory $INSTDIR
 File /nonfatal /a /r ".\dist\Raidionics\*"
 ExecWait "$INSTDIR\Raidionics-installed.exe"
 
-# --- moved this below
-
 !ifdef REG_START_MENU
 !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
 CreateDirectory "$SMPROGRAMS\$SM_Folder"
