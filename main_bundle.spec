@@ -1,7 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 
 # necessary for MacOS
-import os 
+import os
 os.environ['LC_CTYPE'] = "en_US.UTF-8"
 os.environ['LANG'] = "en_US.UTF-8"
 
@@ -51,8 +51,8 @@ exe = EXE(pyz,
           bootloader_ignore_signals=False,
           strip=False,
           upx=True,
-          console=True,
-          icon="./tmp_dependencies/images/raidionics-logo.ico",
+          console=False,
+          # icon="./tmp_dependencies/images/raidionics-logo.ico",
 )
 coll = COLLECT(exe,
                a.binaries,
@@ -66,7 +66,7 @@ coll = COLLECT(exe,
 )
 app = BUNDLE(coll,
              name='Raidionics.app',
-             icon="./tmp_dependencies/images/raidionics-logo.ico",
+             icon="./tmp_dependencies/images/raidionics-logo.icns",
              bundle_identifier=None,
              info_plist={
                 'CFBundleDisplayName': 'Raidionics',
