@@ -41,7 +41,9 @@ class RaidionicsMainWindow(QMainWindow):
         super(RaidionicsMainWindow, self).__init__(*args, **kwargs)
 
         self.app = application
-        self.app.setStyle("Fusion")
+        self.app.setWindowIcon(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                  '../images/raidionics-logo.png')))
+        self.app.setStyle("Fusion")  # @TODO: Should we remove Fusion style? Looks strange on macOS
         self.__set_interface()
         self.__set_layouts()
         self.__set_stylesheet()

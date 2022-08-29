@@ -2,9 +2,9 @@ name: Build Windows
 
 on:
   push:
-    branches: [ master, design_update ]
+    branches: [ master, design_update, dev ]
   pull_request:
-    branches: [ master, design_update ]
+    branches: [ master, design_update, dev ]
 
 jobs:
   build:
@@ -36,7 +36,6 @@ jobs:
         pip install -r requirements.txt
         pip install -e git+https://github.com/dbouget/raidionics_rads_lib.git@master#egg=raidionicsrads
         pip install -e git+https://github.com/dbouget/raidionics_seg_lib.git@master#egg=raidionicsseg
-
 
     - name: Build application
       run: |              
