@@ -6,7 +6,7 @@ from PySide2.QtGui import QIcon, QPixmap
 import os
 from utils.software_config import SoftwareConfigResources
 from gui2.LogReaderThread import LogReaderThread
-
+from gui2.UtilsWidgets.QCircularProgressBar import QCircularProgressBar
 
 class ProcessProgressWidget(QWidget):
     """
@@ -32,9 +32,11 @@ class ProcessProgressWidget(QWidget):
     def __set_interface(self):
         self.layout = QVBoxLayout(self)
         self.overall_progress_layout = QHBoxLayout()
-        self.progress_label = QLabel('Overall progress: ???')
+        self.progress_label = QLabel()
+        self.circular_progressbar = QCircularProgressBar(self)
         self.overall_progress_layout.addStretch(1)
-        self.overall_progress_layout.addWidget(self.progress_label)
+        self.overall_progress_layout.addWidget(self.circular_progressbar)
+        # self.overall_progress_layout.addWidget(self.progress_label)
         self.overall_progress_layout.addStretch(1)
         self.detailed_progression_layout = QVBoxLayout()
         self.detailed_progression_layout.setSpacing(5)
@@ -79,17 +81,9 @@ class ProcessProgressWidget(QWidget):
     def on_process_started(self):
         self.processing_steps = None
 
-        software_ss = SoftwareConfigResources.getInstance().stylesheet_components
-        font_color = software_ss["Color7"]
-        self.progress_label.setStyleSheet("""
-        QLabel{
-        color: """ + font_color + """;
-        font-style: bold;
-        font-size: 17px;
-        padding-left: 8px;
-        border-image: url(""" + os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/progress_icon_empty.png') + """)
-        }""")
+        self.circular_progressbar.advance(0.)
         self.progress_label.setText("Overall progress: ")
+
         self.process_stages_stack = []
         self.progress_widget = []
         items = (self.detailed_progression_layout.itemAt(i) for i in reversed(range(self.detailed_progression_layout.count())))
@@ -144,109 +138,12 @@ class ProcessProgressWidget(QWidget):
                 if len(self.process_stages_stack) == 1:
                     self.progress_label.setText("Overall progress:\n\t" + str(current_step) + " / " + str(self.processing_steps))
                     self.progress_widget[-1].set_progress_text(self.process_stages_stack[-1]['runtime'], status=True)
-                    self.__update_progress_stylesheet(current_step=current_step,
-                                                      total_steps=self.process_stages_stack[-1]['total_steps'])
+                    self.circular_progressbar.advance(perc=float(current_step/self.process_stages_stack[-1]['total_steps']))
                 if current_step == self.process_stages_stack[-1]['total_steps']:
                     self.process_stages_stack.pop(-1)
             elif 'Runtime' in message:
                 runtime = float(message.strip().split(':')[-1].split('seconds')[0].strip())
                 self.process_stages_stack[-1]['runtime'] = '{:.2f}'.format(runtime)
-
-    def __update_progress_stylesheet(self, current_step: int, total_steps: int) -> None:
-        """
-        Inelegant but efficient way to update the advancement image by seemingly filling up a circle until completion.
-        A set of about 10 images is used to that end, with different completion ratios.
-
-        Parameters
-        ----------
-        current_step: int
-            Ongoing process step number.
-        total_steps: int
-            Total amount of steps for the ongoing process to be complete.
-        """
-        software_ss = SoftwareConfigResources.getInstance().stylesheet_components
-        font_color = software_ss["Color7"]
-
-        if float(current_step) / float(total_steps) == 0.25:
-            self.progress_label.setStyleSheet("""
-            QLabel{
-            color: """ + font_color + """;
-            font-style: bold;
-            font-size: 17px;
-            padding-left: 8px;
-            border-image: url(""" + os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                                 '../Images/progress_icon_quarter.png') + """)
-            }""")
-        elif float(current_step) / float(total_steps) == 0.5:
-            self.progress_label.setStyleSheet("""
-            QLabel{
-            color: """ + font_color + """;
-            font-style: bold;
-            font-size: 17px;
-            padding-left: 8px;
-            border-image: url(""" + os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                                 '../Images/progress_icon_half.png') + """)
-            }""")
-        elif float(current_step) / float(total_steps) == 0.75:
-            self.progress_label.setStyleSheet("""
-            QLabel{
-            color: """ + font_color + """;
-            font-style: bold;
-            font-size: 17px;
-            padding-left: 8px;
-            border-image: url(""" + os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                                 '../Images/progress_icon_threefourth.png') + """)
-            }""")
-        elif float(current_step) / float(total_steps) == 1.0:
-            self.progress_label.setStyleSheet("""
-            QLabel{
-            color: """ + font_color + """;
-            font-style: bold;
-            font-size: 17px;
-            padding-left: 8px;
-            border-image: url(""" + os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                                 '../Images/progress_icon_complete.png') + """)
-            }""")
-        elif float(current_step) / float(total_steps) < 0.25:
-            self.progress_label.setStyleSheet("""
-            QLabel{
-            color: """ + font_color + """;
-            font-style: bold;
-            font-size: 17px;
-            padding-left: 8px;
-            border-image: url(""" + os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                                 '../Images/progress_icon_oneeigth.png') + """)
-            }""")
-        elif float(current_step) / float(total_steps) < 0.5:
-            self.progress_label.setStyleSheet("""
-            QLabel{
-            color: """ + font_color + """;
-            font-style: bold;
-            font-size: 17px;
-            padding-left: 8px;
-            border-image: url(""" + os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                                 '../Images/progress_icon_threeeigth.png') + """)
-            }""")
-        elif float(current_step) / float(total_steps) < 0.75:
-            self.progress_label.setStyleSheet("""
-            QLabel{
-            color: """ + font_color + """;
-            font-style: bold;
-            font-size: 17px;
-            padding-left: 8px;
-            border-image: url(""" + os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                                 '../Images/progress_icon_fiveeigth.png') + """)
-            }""")
-        elif float(current_step) / float(total_steps) < 1.0:
-            self.progress_label.setStyleSheet("""
-            QLabel{
-            color: """ + font_color + """;
-            font-style: bold;
-            font-size: 17px;
-            padding-left: 8px;
-            border-image: url(""" + os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                                 '../Images/progress_icon_seveneigth.png') + """)
-            }""")
 
 
 class ProgressItemWidget(QWidget):
