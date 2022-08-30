@@ -18,7 +18,7 @@ jobs:
           - os: windows-2019
             TARGET: windows
             CMD_BUILD: "ls"
-            OUT_FILE_NAME: Raidionics-1.0.0-win.exe
+            OUT_FILE_NAME: Raidionics-1.1.0-win.exe
             ASSET_MIME: application/vnd.microsoft.portable-executable
     steps:
     - uses: actions/checkout@v1
@@ -45,7 +45,7 @@ jobs:
         mkdir tmp_dependencies
         pyinstaller --noconfirm --clean main.spec
         makensis.exe Raidionics.nsi
-        cp -r Raidionics-1.0.0-win.exe dist/Raidionics-1.0.0-win.exe
+        cp -r Raidionics-1.1.0-win.exe dist/Raidionics-1.1.0-win.exe
 
     - name: Build with pyinstaller for ${{matrix.TARGET}}
       run: ${{matrix.CMD_BUILD}}

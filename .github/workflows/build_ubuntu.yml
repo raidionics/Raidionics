@@ -23,8 +23,8 @@ jobs:
                        mkdir -p Raidionics_ubuntu/usr/local/bin &&
                        cp -r dist/Raidionics Raidionics_ubuntu/usr/local/bin &&
                        dpkg-deb --build --root-owner-group Raidionics_ubuntu &&
-                       cp -r Raidionics_ubuntu.deb dist/Raidionics-1.0.0-ubuntu.deb"
-            OUT_FILE_NAME: Raidionics-1.0.0-ubuntu.deb
+                       cp -r Raidionics_ubuntu.deb dist/Raidionics-1.1.0-ubuntu.deb"
+            OUT_FILE_NAME: Raidionics-1.1.0-ubuntu.deb
             ASSET_MIME: application/vnd.debian.binary-package
     steps:
     - uses: actions/checkout@v1
