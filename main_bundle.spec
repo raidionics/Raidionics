@@ -69,6 +69,7 @@ app = BUNDLE(coll,
              icon="./tmp_dependencies/images/raidionics-logo.icns",
              bundle_identifier=None,
              info_plist={
+                'NSRequiresAquaSystemAppearance': 'true',
                 'CFBundleDisplayName': 'Raidionics',
                 'CFBundleExecutable': 'Raidionics',
                 'CFBundleIdentifier': 'Raidionics',
