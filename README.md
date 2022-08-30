@@ -12,6 +12,7 @@ Version 1.0 corresponds to the software as it was when the article was submitted
 
 * Please visit the [wiki](https://github.com/dbouget/Raidionics/wiki) to know more about usage, use-cases, and access tutorials.  
 * For any issue, please report them [here](https://github.com/dbouget/Raidionics/issues).
+* Frequently asked questions (FAQs) can be found [here](https://github.com/dbouget/Raidionics/wiki/Frequently-Asked-Questions-(FAQ)).
 
 ![interface](images/interface-snapshot.png)
 
