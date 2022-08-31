@@ -61,6 +61,7 @@ def main(argv):
 
 if __name__ == "__main__":
     if platform.system() == 'Windows':
-        from multiprocessing import freeze_support
-        freeze_support()
+        import multiprocessing as mp
+        mp.freeze_support()
+        mp.set_start_method('spawn', force=True)
     main(sys.argv[1:])

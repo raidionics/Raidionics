@@ -115,8 +115,7 @@ def run_segmentation(model_name: str, patient_parameters: PatientParameters, que
         # Execution call
         # from raidionicsseg.fit import run_model
         # run_model(seg_config_filename)
-
-        mp.set_start_method('spawn', force=True)
+        # mp.set_start_method('spawn', force=True)
         with mp.Pool(processes=1, maxtasksperchild=1) as p:  # , initializer=initializer)
             result = p.map_async(run_model_wrapper, ((seg_config_filename, SoftwareConfigResources.getInstance().get_session_log_filename()),))
             ret = result.get()[0]
@@ -268,7 +267,7 @@ def run_reporting(model_name, patient_parameters, queue):
         # from raidionicsrads.compute import run_rads
         # run_rads(rads_config_filename)
 
-        mp.set_start_method('spawn', force=True)
+        #mp.set_start_method('spawn', force=True)
         with mp.Pool(processes=1, maxtasksperchild=1) as p:  # , initializer=initializer)
             result = p.map_async(run_rads_wrapper, ((rads_config_filename, SoftwareConfigResources.getInstance().get_session_log_filename()),))
             ret = result.get()[0]
