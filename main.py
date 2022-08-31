@@ -38,8 +38,10 @@ def main(argv):
         #     gui_usage = int(arg)
     try:
         from utils.software_config import SoftwareConfigResources
-        logging.basicConfig(filename=SoftwareConfigResources.getInstance().get_session_log_filename(), filemode='w')
+        logging.basicConfig(filename=SoftwareConfigResources.getInstance().get_session_log_filename(), filemode='w',
+                            format="%(asctime)s ; %(name)s ; %(levelname)s ; %(message)s", datefmt='%d/%m/%Y %H.%M')
         logging.getLogger().setLevel(logging.DEBUG)
+
         if gui_usage == 1:
             app = QApplication(sys.argv)
             window = RaidionicsMainWindow(application=app)

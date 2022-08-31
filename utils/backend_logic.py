@@ -1,6 +1,7 @@
 import queue
 import time
 import logging
+import logging.handlers
 import traceback
 import sys
 import os
@@ -8,7 +9,7 @@ import subprocess
 import configparser
 import threading
 import shutil
-from typing import Any
+from typing import Any, Tuple
 import multiprocessing as mp
 from utils.software_config import SoftwareConfigResources
 from utils.models_download import download_model
@@ -38,9 +39,21 @@ def segmentation_main_wrapper(model_name: str, patient_parameters: PatientParame
     return q.get()
 
 
-def run_model_wrapper(config_filename: str) -> None:
+def run_model_wrapper(params: Tuple[str]) -> None:
+    """
+    Additional wrapper around the run_model method from the raidionics_seg_lib, necessary for multiprocessing to work.
+    Being able to run it in another process is also mandatory for the study/batch mode, given the existing memory leaks
+    inside TensorFlow.
+
+    Parameters
+    ----------
+    params: Tuple[str]
+        The first element is the runtime configuration filename containing the specific information for the process
+        (e.g., model name, input MRI volume filename). The second element is the log filename to be able to track
+        what is happening inside the spawned processes, by filling in the same file on disk as Raidionics.
+    """
     from raidionicsseg.fit import run_model
-    run_model(config_filename)
+    run_model(params[0], params[1])
 
 
 def run_segmentation(model_name: str, patient_parameters: PatientParameters, queue: queue.Queue) -> None:
@@ -105,15 +118,15 @@ def run_segmentation(model_name: str, patient_parameters: PatientParameters, que
 
         mp.set_start_method('spawn', force=True)
         with mp.Pool(processes=1, maxtasksperchild=1) as p:  # , initializer=initializer)
-            result = p.map_async(run_model_wrapper, (seg_config_filename,))
+            result = p.map_async(run_model_wrapper, ((seg_config_filename, SoftwareConfigResources.getInstance().get_session_log_filename()),))
             ret = result.get()[0]
 
-        # logging.debug("Spawning multiprocess...")
-        # mp.set_start_method('spawn', force=True)
-        # with mp.Pool(processes=1, maxtasksperchild=1) as p:  # , initializer=initializer)
-        #    result = p.map_async(run_model, [seg_config_filename])
-        #    logging.debug("Collecting results from multiprocess...")
-        #    ret = result.get()[0]
+        # Must start again the logging, otherwise it writes in the middle of the file somehow...
+        log_handler = logging.getLogger().handlers[-1]
+        logging.getLogger().removeHandler(log_handler)
+        log_handler.close()
+        logging.basicConfig(filename=SoftwareConfigResources.getInstance().get_session_log_filename(), filemode='a',
+                            format="%(asctime)s ; %(name)s ; %(levelname)s ; %(message)s", datefmt='%d/%m/%Y %H.%M')
 
         # Results collection, imported inside the patient placeholder.
         seg_file = os.path.join(patient_parameters.get_output_folder(), 'labels_Tumor.nii.gz')
@@ -169,6 +182,23 @@ def reporting_main_wrapper(model_name: str, patient_parameters: PatientParameter
     run_segmentation_thread.daemon = True  # using daemon thread the thread is killed gracefully if program is abruptly closed
     run_segmentation_thread.start()
     return q.get()
+
+
+def run_rads_wrapper(params: Tuple[str]) -> None:
+    """
+    Additional wrapper around the run_rads method from the raidionics_rads_lib, necessary for multiprocessing to work.
+    Being able to run it in another process is also mandatory for the study/batch mode, given the existing memory leaks
+    inside TensorFlow.
+
+    Parameters
+    ----------
+    params: Tuple[str]
+        The first element is the runtime configuration filename containing the specific information for the process
+        (e.g., model name, input MRI volume filename). The second element is the log filename to be able to track
+        what is happening inside the spawned processes, by filling in the same file on disk as Raidionics.
+    """
+    from raidionicsrads.compute import run_rads
+    run_rads(params[0], params[1])
 
 
 def run_reporting(model_name, patient_parameters, queue):
@@ -235,8 +265,21 @@ def run_reporting(model_name, patient_parameters, queue):
         with open(rads_config_filename, 'w') as outfile:
             rads_config.write(outfile)
 
-        from raidionicsrads.compute import run_rads
-        run_rads(rads_config_filename)
+        # from raidionicsrads.compute import run_rads
+        # run_rads(rads_config_filename)
+
+        mp.set_start_method('spawn', force=True)
+        with mp.Pool(processes=1, maxtasksperchild=1) as p:  # , initializer=initializer)
+            result = p.map_async(run_rads_wrapper, ((rads_config_filename, SoftwareConfigResources.getInstance().get_session_log_filename()),))
+            ret = result.get()[0]
+
+        # Must start again the logging, otherwise it writes in the middle of the file somehow...
+        log_handler = logging.getLogger().handlers[-1]
+        logging.getLogger().removeHandler(log_handler)
+        log_handler.close()
+        logging.basicConfig(filename=SoftwareConfigResources.getInstance().get_session_log_filename(), filemode='a',
+                            format="%(asctime)s ; %(name)s ; %(levelname)s ; %(message)s", datefmt='%d/%m/%Y %H.%M')
+
         # logging.debug("Spawning multiprocess...")
         # mp.set_start_method('spawn', force=True)
         # with mp.Pool(processes=1, maxtasksperchild=1) as p:  # , initializer=initializer)

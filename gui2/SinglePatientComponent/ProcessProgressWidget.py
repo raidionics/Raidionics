@@ -81,7 +81,6 @@ class ProcessProgressWidget(QWidget):
     def on_process_started(self):
         self.processing_steps = None
 
-        self.circular_progressbar.advance(0.)
         self.progress_label.setText("Overall progress: ")
 
         self.process_stages_stack = []
@@ -113,7 +112,7 @@ class ProcessProgressWidget(QWidget):
         message: str
             Line emitted by either processing backends (i.e., seg or rads) whenever a process is ongoing.
         """
-        if ':LOG:' in message:
+        if 'LOG:' in message:
             if 'Begin' not in message and 'End' not in message and 'Runtime' not in message:
                 task = message.strip().split('-')[0].strip()
                 total_steps = int(message.strip().split('-')[1].strip().split(' ')[0].strip())
@@ -122,6 +121,7 @@ class ProcessProgressWidget(QWidget):
                 if not self.processing_steps:
                     self.processing_steps = self.process_stages_stack[0]['total_steps']
                     self.progress_label.setText("Overall progress:\n\t0 / " + str(self.processing_steps))
+                    self.circular_progressbar.advance(0, self.process_stages_stack[0]['total_steps'])
 
             elif 'Begin' in message:
                 current_task = message.strip().split('-')[1].strip()
@@ -138,7 +138,7 @@ class ProcessProgressWidget(QWidget):
                 if len(self.process_stages_stack) == 1:
                     self.progress_label.setText("Overall progress:\n\t" + str(current_step) + " / " + str(self.processing_steps))
                     self.progress_widget[-1].set_progress_text(self.process_stages_stack[-1]['runtime'], status=True)
-                    self.circular_progressbar.advance(perc=float(current_step/self.process_stages_stack[-1]['total_steps']))
+                    self.circular_progressbar.advance(current_step, self.process_stages_stack[-1]['total_steps'])
                 if current_step == self.process_stages_stack[-1]['total_steps']:
                     self.process_stages_stack.pop(-1)
             elif 'Runtime' in message:

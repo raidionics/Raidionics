@@ -11,7 +11,9 @@ class QCircularProgressBar(QWidget):
     def __init__(self, parent):
         super(QCircularProgressBar, self).__init__()
         self.parent = parent
-        self.current_perc = 0  # Float in [0., 1.]
+        self.progress_ratio = 0  # Float in [0., 1.]
+        self.display_header = "Progress: "
+        self.display_progress = " "
         self.__set_stylesheets()
 
     def __set_stylesheets(self):
@@ -21,7 +23,7 @@ class QCircularProgressBar(QWidget):
         self.text_color = QColor(67, 88, 90)
 
     def paintEvent(self, event: QPaintEvent) -> None:
-        pd = self.current_perc * 360
+        pd = self.progress_ratio * 360
         rd = 360 - pd
         painter = QPainter(self)
         painter.fillRect(self.rect(), Qt.white)
@@ -51,15 +53,19 @@ class QCircularProgressBar(QWidget):
         text_font = QFont("Arial", 18)
         text_font.setBold(True)
         painter.setFont(text_font)
-        cast_perc = int(self.current_perc * 100.)
+        cast_perc = int(self.progress_ratio * 100.)
+        painter.drawText(25, 94, self.display_header)
         if cast_perc < 10:
-            painter.drawText(90, 104, str(cast_perc) + '%')
+            painter.drawText(90, 124, self.display_progress)
         elif cast_perc < 100:
-            painter.drawText(85, 104, str(cast_perc) + '%')
+            painter.drawText(80, 124, self.display_progress)
         else:
-            painter.drawText(80, 104, str(cast_perc) + '%')
+            painter.drawText(70, 124, self.display_progress)
         painter.end()
 
-    def advance(self, perc: float) -> None:
-        self.current_perc = perc
+    def advance(self, current_step: int, total_steps: int) -> None:
+        self.progress_ratio = float(current_step/total_steps)
+        cast_perc = int(self.progress_ratio * 100.)
+        self.display_header = "Progress: {}/{}".format(current_step, total_steps)
+        self.display_progress = "{}%".format(cast_perc)
         self.update()

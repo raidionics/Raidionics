@@ -58,6 +58,7 @@ class RaidionicsMainWindow(QMainWindow):
             code = dialog.exec_()
             if code == 0:  # Operation cancelled
                 event.ignore()
+        logging.info("Graceful exit.")
 
     def resizeEvent(self, event):
         new_size = event.size()
@@ -75,8 +76,10 @@ class RaidionicsMainWindow(QMainWindow):
             dialog = SavePatientChangesDialog()
             code = dialog.exec_()
             if code == 1:  # Operation approved
+                logging.info("Graceful exit.")
                 sys.exit()
         else:
+            logging.info("Graceful exit.")
             sys.exit()
 
     def __set_interface(self):
