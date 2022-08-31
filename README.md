@@ -17,6 +17,7 @@ The current version (i.e., v1.1) provides a more user-friendly graphical user in
 
 * Please visit the [wiki](https://github.com/dbouget/Raidionics/wiki) to know more about usage, use-cases, and access tutorials.  
 * For any issue, please report them [here](https://github.com/dbouget/Raidionics/issues).
+* Frequently asked questions (FAQs) can be found [here](https://github.com/dbouget/Raidionics/wiki/Frequently-Asked-Questions-(FAQ)).
 
 
 ## Installation
