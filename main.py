@@ -1,5 +1,7 @@
-import getopt, traceback
+import getopt
+import traceback
 import os
+import platform
 from pathlib import PurePath
 import PySide2
 import sys
@@ -56,4 +58,7 @@ def main(argv):
 
 
 if __name__ == "__main__":
+    if platform.system() == 'Windows':
+        from multiprocessing import freeze_support
+        freeze_support()
     main(sys.argv[1:])

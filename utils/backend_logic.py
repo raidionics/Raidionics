@@ -38,6 +38,11 @@ def segmentation_main_wrapper(model_name: str, patient_parameters: PatientParame
     return q.get()
 
 
+def run_model_wrapper(config_filename: str) -> None:
+    from raidionicsseg.fit import run_model
+    run_model(config_filename)
+
+
 def run_segmentation(model_name: str, patient_parameters: PatientParameters, queue: queue.Queue) -> None:
     """
     Call to the RADS backend for running the segmentation task. The runtime configuration file is generated
@@ -76,7 +81,6 @@ def run_segmentation(model_name: str, patient_parameters: PatientParameters, que
             eligible_mris = patient_parameters.get_all_mri_volumes_uids()
 
         selected_mri_uid = eligible_mris[0]
-        # @TODO. Must check the active_model value in settings, to download or not.
         download_model(model_name=model_name)
 
         # Setting up the runtime configuration file, mandatory for the raidionics_seg lib.
@@ -96,8 +100,14 @@ def run_segmentation(model_name: str, patient_parameters: PatientParameters, que
             seg_config.write(outfile)
 
         # Execution call
-        from raidionicsseg.fit import run_model
-        run_model(seg_config_filename)
+        # from raidionicsseg.fit import run_model
+        # run_model(seg_config_filename)
+
+        mp.set_start_method('spawn', force=True)
+        with mp.Pool(processes=1, maxtasksperchild=1) as p:  # , initializer=initializer)
+            result = p.map_async(run_model_wrapper, (seg_config_filename,))
+            ret = result.get()[0]
+
         # logging.debug("Spawning multiprocess...")
         # mp.set_start_method('spawn', force=True)
         # with mp.Pool(processes=1, maxtasksperchild=1) as p:  # , initializer=initializer)
