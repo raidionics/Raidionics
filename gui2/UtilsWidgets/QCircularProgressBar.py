@@ -23,6 +23,14 @@ class QCircularProgressBar(QWidget):
         self.text_color = QColor(67, 88, 90)
 
     def paintEvent(self, event: QPaintEvent) -> None:
+        """
+        Repainting the widget fully everytime, the painter can only be called/accessed from within here.
+
+        Parameters
+        ----------
+        event: QPaintEvent
+            Qt internal painting event, not directly used.
+        """
         pd = self.progress_ratio * 360
         rd = 360 - pd
         painter = QPainter(self)
@@ -60,10 +68,29 @@ class QCircularProgressBar(QWidget):
         elif cast_perc < 100:
             painter.drawText(80, 124, self.display_progress)
         else:
-            painter.drawText(70, 124, self.display_progress)
+            painter.drawText(75, 124, self.display_progress)
         painter.end()
 
+    def reset(self):
+        """
+        Repainting the widget with default values at the start of a new process.
+        """
+        self.progress_ratio = 0.
+        self.display_header = "Progress: "
+        self.display_progress = "-%"
+        self.update()
+
     def advance(self, current_step: int, total_steps: int) -> None:
+        """
+        Advancing the progress of the widget by providing the newly reached step of a process.
+
+        Parameters
+        ----------
+        current_step: int
+            Value of the step currently performed by the ongoing process.
+        total_steps: int
+            Value of the total number of steps to be performed by the ongoing process.
+        """
         self.progress_ratio = float(current_step/total_steps)
         cast_perc = int(self.progress_ratio * 100.)
         self.display_header = "Progress: {}/{}".format(current_step, total_steps)

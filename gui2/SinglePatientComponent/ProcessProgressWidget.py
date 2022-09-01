@@ -82,7 +82,7 @@ class ProcessProgressWidget(QWidget):
         self.processing_steps = None
 
         self.progress_label.setText("Overall progress: ")
-
+        self.circular_progressbar.reset()
         self.process_stages_stack = []
         self.progress_widget = []
         items = (self.detailed_progression_layout.itemAt(i) for i in reversed(range(self.detailed_progression_layout.count())))
