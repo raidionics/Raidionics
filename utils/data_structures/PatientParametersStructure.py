@@ -30,7 +30,7 @@ class PatientParameters:
     _patient_parameters_dict = {}  # Dictionary container for saving/loading all patient-related parameters
     _patient_parameters_dict_filename = ""  # Filepath for storing the aforementioned dictionary (*.raidionics)
     _standardized_report = {}  # Dictionary container for storing of the RADS results
-    _standardized_report_filename = ""  # Filepath for storing the aforementioned object (*.json)
+    _standardized_report_filename = None  # Filepath for storing the aforementioned object (*.json)
     _mri_volumes = {}  # All MRI volume instances loaded for the current patient.
     _annotation_volumes = {}  # All Annotation instances loaded for the current patient.
     _atlas_volumes = {}  # All Atlas instances loaded for the current patient.
@@ -64,7 +64,7 @@ class PatientParameters:
         self._patient_parameters_dict = {}
         self._patient_parameters_dict_filename = ""
         self._standardized_report = {}
-        self._standardized_report_filename = ""
+        self._standardized_report_filename = None
         self._mri_volumes = {}
         self._annotation_volumes = {}
         self._atlas_volumes = {}

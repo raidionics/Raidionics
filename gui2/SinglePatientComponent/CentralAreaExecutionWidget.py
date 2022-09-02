@@ -273,7 +273,8 @@ class CentralAreaExecutionWidget(QLabel):
                 box.exec_()
                 readiness = False
         elif task == 'rads':
-            if os.path.exists(SoftwareConfigResources.getInstance().get_active_patient().get_standardized_report_filename()):
+            if SoftwareConfigResources.getInstance().get_active_patient().get_standardized_report_filename() and \
+                    os.path.exists(SoftwareConfigResources.getInstance().get_active_patient().get_standardized_report_filename()):
                 box = QMessageBox(self)
                 box.setWindowTitle("Results already generated")
                 box.setText("The results for this process have already been generated for the current combination of "
