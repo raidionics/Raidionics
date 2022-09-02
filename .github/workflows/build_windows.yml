@@ -32,7 +32,7 @@ jobs:
         pip install -e git+https://github.com/dbouget/raidionics_seg_lib.git@master#egg=raidionicsseg
 
     - name: Build software
-      run: |              
+      run: |
         pip install pyinstaller
         mkdir tmp_dependencies
         pyinstaller --noconfirm --clean assets/main.spec
