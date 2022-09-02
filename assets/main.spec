@@ -18,7 +18,7 @@ print("CWD:", cwd)
 print("PLATFORM:", sys.platform)
 
 # fix hidden imports
-hidden_imports = loadtxt(cwd + "/misc/requirements.txt", comments="#", delimiter=",", unpack=False, dtype=str)
+hidden_imports = loadtxt(cwd + "/assets/requirements.txt", comments="#", delimiter=",", unpack=False, dtype=str)
 hidden_imports = [x.split("=")[0] for x in hidden_imports] + ["medpy", "ants", "sklearn", "scikit-learn",
  "statsmodels", "gevent", "distutils", "PySide2", "gdown", "tensorflow", "raidionicsrads", "raidionicsseg"]
 hidden_imports = [x.lower() for x in hidden_imports]
@@ -33,7 +33,7 @@ a = Analysis([cwd + '/src/main.py'],
              binaries=[],
              datas=[],
              hiddenimports=hidden_imports,
-             hookspath=[cwd + "/misc/hooks/"],
+             hookspath=[cwd + "/assets/hooks/"],
              runtime_hooks=[],
              excludes=[],
              win_no_prefer_redirects=False,
