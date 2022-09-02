@@ -27,7 +27,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r misc/requirements.txt
+        pip install -r assets/requirements.txt
         pip install -e git+https://github.com/dbouget/raidionics_rads_lib.git@master#egg=raidionicsrads
         pip install -e git+https://github.com/dbouget/raidionics_seg_lib.git@master#egg=raidionicsseg
 
@@ -35,7 +35,7 @@ jobs:
       run: |
         pip install pyinstaller
         mkdir tmp_dependencies
-        pyinstaller --noconfirm --clean misc/main.spec
+        pyinstaller --noconfirm --clean assets/main.spec
 
     - name: Make installer
       run: |

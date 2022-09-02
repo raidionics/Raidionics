@@ -35,14 +35,14 @@ jobs:
       run: |
         pip install pyinstaller
         mkdir tmp_dependencies
-        pyinstaller --noconfirm --clean misc/main.spec
+        pyinstaller --noconfirm --clean assets/main.spec
 
     - name: Make installer
       run: |
-        mkdir -p misc/Raidionics_ubuntu/usr/local/bin
-        cp -r dist/Raidionics misc/Raidionics_ubuntu/usr/local/bin
-        dpkg-deb --build --root-owner-group misc/Raidionics_ubuntu
-        cp -r misc/Raidionics_ubuntu.deb dist/Raidionics-1.1.0-ubuntu.deb
+        mkdir -p assets/Raidionics_ubuntu/usr/local/bin
+        cp -r dist/Raidionics assets/Raidionics_ubuntu/usr/local/bin
+        dpkg-deb --build --root-owner-group assets/Raidionics_ubuntu
+        cp -r assets/Raidionics_ubuntu.deb dist/Raidionics-1.1.0-ubuntu.deb
 
     - name: Upload package
       uses: actions/upload-artifact@v2
