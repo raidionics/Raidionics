@@ -4,5 +4,5 @@ Comment=Raidionics
 Exec=/usr/local/bin/Raidionics/Raidionics
 Terminal=false
 Type=Application
-Icon=/usr/local/bin/Raidionics/images/raidionics-logo.png
+Icon=/usr/local/bin/Raidionics/src/images/raidionics-logo.png
 Categories=public.app-categorical.medical
