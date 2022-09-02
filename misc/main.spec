@@ -1,20 +1,24 @@
 # -*- mode: python ; coding: utf-8 -*-
-
-# necessary for MacOS
 import sys
 import os
+import ants
+import shutil
+from PyInstaller.utils.hooks import collect_data_files
+from numpy import loadtxt
+
+
+# necessary for MacOS
 os.environ['LC_CTYPE'] = "en_US.UTF-8"
 os.environ['LANG'] = "en_US.UTF-8"
 
-from PyInstaller.utils.hooks import collect_data_files
-from numpy import loadtxt
-import ants
-import shutil
-
 block_cipher = None
+curr_path = os.path.dirname(os.path.abspath(__file__))
+
+print("\nCURR PATH:", curr_path)
+print("\nREQ FILE PATH:", os.join(curr_path, "requirements.txt"))
 
 # fix hidden imports
-hidden_imports = loadtxt("./misc/requirements.txt", comments="#", delimiter=",", unpack=False, dtype=str)
+hidden_imports = loadtxt(os.join(curr_path, "requirements.txt"), comments="#", delimiter=",", unpack=False, dtype=str)
 hidden_imports = [x.split("=")[0] for x in hidden_imports] + ["medpy", "ants", "sklearn", "scikit-learn",
  "statsmodels", "gevent", "distutils", "PySide2", "gdown", "tensorflow", "raidionicsrads", "raidionicsseg"]
 hidden_imports = [x.lower() for x in hidden_imports]
