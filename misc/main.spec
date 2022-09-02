@@ -12,29 +12,25 @@ os.environ['LC_CTYPE'] = "en_US.UTF-8"
 os.environ['LANG'] = "en_US.UTF-8"
 
 block_cipher = None
-curr_path = os.path.dirname(os.path.abspath(__file__))
-
-print("\nCURR PATH:", curr_path)
-print("\nREQ FILE PATH:", os.join(curr_path, "requirements.txt"))
+cwd = os.path.abspath(os.getcwd())
 
 # fix hidden imports
-hidden_imports = loadtxt(os.join(curr_path, "requirements.txt"), comments="#", delimiter=",", unpack=False, dtype=str)
+hidden_imports = loadtxt(cwd + "/misc/requirements.txt", comments="#", delimiter=",", unpack=False, dtype=str)
 hidden_imports = [x.split("=")[0] for x in hidden_imports] + ["medpy", "ants", "sklearn", "scikit-learn",
  "statsmodels", "gevent", "distutils", "PySide2", "gdown", "tensorflow", "raidionicsrads", "raidionicsseg"]
 hidden_imports = [x.lower() for x in hidden_imports]
 
-# copy dependencies and overwrite if already exists (as well as images)
+# copy dependencies and images
 shutil.copytree("./images/", "./tmp_dependencies/images/")
 shutil.copytree("./utils/", "./tmp_dependencies/utils/")
 shutil.copytree("./gui2/", "./tmp_dependencies/gui2/")
-# shutil.copytree("./raidionics_rads_lib/", "./tmp_dependencies/raidionics_rads_lib/")
 
-a = Analysis(['./main.py'],
+a = Analysis([cwd + '/main.py'],
              pathex=['.'],
              binaries=[],
              datas=[],
              hiddenimports=hidden_imports,
-             hookspath=["./misc/hooks/"],
+             hookspath=[cwd + "/misc/hooks/"],
              runtime_hooks=[],
              excludes=[],
              win_no_prefer_redirects=False,
@@ -57,11 +53,11 @@ exe = EXE(pyz,
           strip=False,
           upx=True,
           console=True,
-          icon="./tmp_dependencies/images/raidionics-logo.ico" if sys.platform != "darwin" else None
+          icon=cwd + "/tmp_dependencies/images/raidionics-logo.ico" if sys.platform != "darwin" else None
 )
 coll = COLLECT(exe,
                a.binaries,
-               Tree("./tmp_dependencies/"),
+               Tree(cwd + "/tmp_dependencies/"),
                a.zipfiles,
                a.datas,
                strip=False,
@@ -74,7 +70,7 @@ coll = COLLECT(exe,
 if sys.platform == "darwin":
     app = BUNDLE(coll,
                  name='Raidionics.app',
-                 icon="./tmp_dependencies/images/raidionics-logo.icns",
+                 icon=cwd + "/tmp_dependencies/images/raidionics-logo.icns",
                  bundle_identifier=None,
                  info_plist={
                     'NSRequiresAquaSystemAppearance': 'true',
