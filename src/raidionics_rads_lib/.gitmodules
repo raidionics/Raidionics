@@ -1,0 +1,3 @@
+[submodule "raidionics_seg_lib"]
+	path = raidionics_seg_lib
+	url = https://github.com/dbouget/raidionics_seg_lib.git

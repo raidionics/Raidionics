@@ -1,0 +1,36 @@
+# use glob syntax.
+syntax: glob
+
+.DS_Store
+*.elc
+*.pyc
+*~
+.idea/
+*.xml
+os
+numpy
+*.h5
+*.hd5
+*.ckpt
+*.mhd
+*.raw
+venv*/
+tmp_dependencies/
+build/
+dist/
+resources/
+*egg-info/
+*.ini
+*.sqlite3
+*.idea
+*.vscode
+/home
+ANTs/
+*.exe
+*.pkg
+*.deb
+quickpkg/
+*.nii.gz
+*.nii
+*.csv
+*.zip
