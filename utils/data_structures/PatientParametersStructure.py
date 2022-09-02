@@ -15,7 +15,7 @@ import logging
 from typing import Union, Any, Tuple, List
 from utils.patient_dicom import DICOMSeries
 from utils.data_structures.MRIVolumeStructure import MRIVolume, MRISequenceType
-from utils.data_structures.AnnotationStructure import AnnotationVolume
+from utils.data_structures.AnnotationStructure import AnnotationVolume, AnnotationClassType, AnnotationGenerationType
 from utils.data_structures.AtlasStructure import AtlasVolume
 from utils.utilities import input_file_category_disambiguation
 
@@ -547,6 +547,31 @@ class PatientParameters:
 
         for an in self._annotation_volumes:
             if self._annotation_volumes[an].get_parent_mri_uid() == mri_volume_uid:
+                res.append(self._annotation_volumes[an].get_unique_id())
+        return res
+
+    def get_specific_annotations_for_mri(self, mri_volume_uid: str, annotation_class: AnnotationClassType,
+                                         generation_type: AnnotationGenerationType) -> List[str]:
+        """
+        Convenience method for checking if an automatic segmentation of the requested class is linked to
+        the specific MRI volume.
+
+        Parameters
+        ----------
+        mri_volume_uid : str
+            Unique id for the queried MRI volume object.
+
+        Returns
+        -------
+        bool
+            True if an automatic segmentation exists for the given class, False otherwise.
+        """
+        res = []
+
+        for an in self._annotation_volumes:
+            if self._annotation_volumes[an].get_parent_mri_uid() == mri_volume_uid \
+                    and self._annotation_volumes[an].get_annotation_class_enum() == annotation_class \
+                    and self._annotation_volumes[an].get_generation_type_enum() == generation_type:
                 res.append(self._annotation_volumes[an].get_unique_id())
         return res
 

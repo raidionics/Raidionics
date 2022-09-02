@@ -1,5 +1,4 @@
-from PySide2.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QLabel, QPushButton, QSplitter,\
-    QStackedWidget, QDialog
+from PySide2.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QPushButton, QStackedWidget
 from PySide2.QtGui import QIcon, QPixmap
 from PySide2.QtCore import Qt, QSize, Signal
 import logging
@@ -7,7 +6,7 @@ import os
 import threading
 from utils.software_config import SoftwareConfigResources
 from gui2.StudyBatchComponent.StudiesSidePanel.StudiesSidePanelWidget import StudiesSidePanelWidget
-from gui2.StudyBatchComponent.StudyPatientListingWidget import StudyPatientListingWidget
+from gui2.StudyBatchComponent.PatientsListingPanel.StudyPatientListingWidget import StudyPatientListingWidget
 from gui2.UtilsWidgets.CustomQDialog.ImportDataQDialog import ImportDataQDialog
 from gui2.UtilsWidgets.CustomQDialog.ImportFoldersQDialog import ImportFoldersQDialog
 from gui2.UtilsWidgets.CustomQDialog.ImportDICOMDataQDialog import ImportDICOMDataQDialog

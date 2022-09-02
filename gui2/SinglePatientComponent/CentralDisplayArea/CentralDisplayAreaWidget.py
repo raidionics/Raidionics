@@ -220,7 +220,7 @@ class CentralDisplayAreaWidget(QWidget):
             self.axial_viewer.update_annotation_view(volume_uid, self.overlaid_volumes[volume_uid][:, :, self.point_clicker_position[2]])
             self.coronal_viewer.update_annotation_view(volume_uid, self.overlaid_volumes[volume_uid][:, self.point_clicker_position[1], :])
             self.sagittal_viewer.update_annotation_view(volume_uid, self.overlaid_volumes[volume_uid][self.point_clicker_position[0], :, :])
-        else:
+        elif volume_uid in list(self.overlaid_volumes.keys()):
             self.overlaid_volumes.pop(volume_uid, None)  # None should not be necessary as the key should be in the dict
             self.axial_viewer.remove_annotation_view(volume_uid)
             self.coronal_viewer.remove_annotation_view(volume_uid)

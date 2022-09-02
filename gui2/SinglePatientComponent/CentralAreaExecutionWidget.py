@@ -1,5 +1,5 @@
 import time
-from PySide2.QtWidgets import QWidget, QHBoxLayout, QPushButton, QLabel
+from PySide2.QtWidgets import QWidget, QHBoxLayout, QPushButton, QLabel, QMessageBox
 from PySide2.QtCore import Signal, QCoreApplication, QSize
 from PySide2.QtGui import QIcon, QPixmap
 import logging
@@ -14,6 +14,8 @@ import multiprocessing as mp
 from utils.software_config import SoftwareConfigResources
 from utils.models_download import download_model
 from gui2.UtilsWidgets.CustomQDialog.TumorTypeSelectionQDialog import TumorTypeSelectionQDialog
+from utils.data_structures.PatientParametersStructure import MRISequenceType
+from utils.data_structures.AnnotationStructure import AnnotationGenerationType, AnnotationClassType
 
 
 class CentralAreaExecutionWidget(QLabel):
@@ -103,8 +105,10 @@ class CentralAreaExecutionWidget(QLabel):
         elif diag.tumor_type == 'Metastasis':
             self.model_name = "MRI_Metastasis"
 
-        self.process_started.emit()
-        self.segmentation_main_wrapper()
+        # @TODO. Until the backend can perform sequence classification
+        if self.assertion_ready_to_process('segmentation', diag.tumor_type):
+            self.process_started.emit()
+            self.segmentation_main_wrapper()
 
     def segmentation_main_wrapper(self):
         self.run_segmentation_thread = threading.Thread(target=self.run_segmentation)
@@ -155,8 +159,10 @@ class CentralAreaExecutionWidget(QLabel):
         elif diag.tumor_type == 'Metastasis':
             self.model_name = "MRI_Metastasis"
 
-        self.process_started.emit()
-        self.reporting_main_wrapper()
+        # @TODO. Until the backend can perform sequence classification
+        if self.assertion_ready_to_process('rads', diag.tumor_type):
+            self.process_started.emit()
+            self.reporting_main_wrapper()
 
     def reporting_main_wrapper(self):
         self.run_reporting_thread = threading.Thread(target=self.run_reporting)
@@ -204,3 +210,81 @@ class CentralAreaExecutionWidget(QLabel):
 
     def on_process_message(self, mess):
         print("Collected message: {}.\n".format(mess))
+
+    def assertion_input_compatible(self, tumor_type: str) -> bool:
+        # Making sure an MRI series with the proper sequence type has been loaded and tagged.
+        if tumor_type != 'Low-Grade Glioma':
+            valid_ids = SoftwareConfigResources.getInstance().get_active_patient().get_all_mri_volumes_for_sequence_type(MRISequenceType.T1c)
+            if len(valid_ids) == 0:
+                box = QMessageBox(self)
+                box.setWindowTitle("Missing contrast-enhanced MRI scan")
+                box.setText("Please make sure to load a contrast-enhanced MRI scan for running this task.\n"
+                            "Also make sure to properly fill in the sequence type attribute for the loaded "
+                            "MRI Series in the right-hand panel!")
+                box.setIcon(QMessageBox.Warning)
+                box.setStyleSheet("""QLabel{
+                color: rgba(0, 0, 0, 1);
+                background-color: rgba(255, 255, 255, 1);
+                }""")
+                box.exec_()
+                return False
+        else:
+            valid_ids = SoftwareConfigResources.getInstance().get_active_patient().get_all_mri_volumes_for_sequence_type(MRISequenceType.FLAIR)
+            if len(valid_ids) == 0:
+                box = QMessageBox(self)
+                box.setWindowTitle("Missing FLAIR MRI scan")
+                box.setText("Please make sure to load a contrast-enhanced MRI scan for running this task.\n"
+                            "Also make sure to properly fill in the sequence type attribute for the loaded "
+                            "MRI Series in the right-hand panel!")
+                box.setIcon(QMessageBox.Warning)
+                box.setStyleSheet("""QLabel{
+                color: rgba(0, 0, 0, 1);
+                background-color: rgba(255, 255, 255, 1);
+                }""")
+                box.exec_()
+                return False
+
+        return True
+
+    def assertion_ready_to_process(self, task: str, tumor_type: str) -> bool:
+        readiness = True
+        # 1. Making sure an MRI series with the proper sequence type has been loaded and tagged.
+        correct_input = self.assertion_input_compatible(tumor_type)
+        readiness = readiness and correct_input
+
+        # 2. If results have already been generated, ask confirmation to compute again. Only checking the first image
+        # of its type because it's the one used by default for running the process.
+        if task == 'segmentation':
+            input_uids = SoftwareConfigResources.getInstance().get_active_patient().get_all_mri_volumes_for_sequence_type(MRISequenceType.T1c)
+            if len(input_uids) > 0 and\
+                    len(SoftwareConfigResources.getInstance().get_active_patient().get_specific_annotations_for_mri(input_uids[0],
+                                                                                                                    AnnotationClassType.Tumor,
+                                                                                                                    AnnotationGenerationType.Automatic)) > 0:
+                box = QMessageBox(self)
+                box.setWindowTitle("Results already generated")
+                box.setText("The results for this process have already been generated for the current combination of "
+                            "patient and MRI sequence type. The process will not be performed, unless the previous results "
+                            "are manually deleted.")
+                box.setIcon(QMessageBox.Warning)
+                box.setStyleSheet("""QLabel{
+                color: rgba(0, 0, 0, 1);
+                background-color: rgba(255, 255, 255, 1);
+                }""")
+                box.exec_()
+                readiness = False
+        elif task == 'rads':
+            if os.path.exists(SoftwareConfigResources.getInstance().get_active_patient().get_standardized_report_filename()):
+                box = QMessageBox(self)
+                box.setWindowTitle("Results already generated")
+                box.setText("The results for this process have already been generated for the current combination of "
+                            "patient and MRI sequence type. The process will not be performed, unless the previous results "
+                            "are manually deleted.")
+                box.setIcon(QMessageBox.Warning)
+                box.setStyleSheet("""QLabel{
+                color: rgba(0, 0, 0, 1);
+                background-color: rgba(255, 255, 255, 1);
+                }""")
+                box.exec_()
+                readiness = False
+
+        return readiness

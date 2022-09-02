@@ -1,10 +1,7 @@
-from PySide2.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QScrollArea, QPushButton, QLabel, QSpacerItem,\
-    QGridLayout, QMenu, QAction
-from PySide2.QtCore import QSize, Qt, Signal, QPoint
-from PySide2.QtGui import QIcon, QPixmap
-import os
-import logging
-from gui2.StudyBatchComponent.PatientListingWidgetItem import PatientListingWidgetItem
+from PySide2.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QScrollArea, QLabel, QSpacerItem,\
+    QGridLayout
+from PySide2.QtCore import QSize, Qt, Signal
+from gui2.StudyBatchComponent.PatientsListingPanel.PatientListingWidgetItem import PatientListingWidgetItem
 from utils.software_config import SoftwareConfigResources
 
 
@@ -102,6 +99,8 @@ class StudyPatientListingWidget(QWidget):
         self.patients_list_scrollarea_layout.insertWidget(self.patients_list_scrollarea_layout.count() - 1, wid)
         wid.patient_selected.connect(self.patient_selected)
         wid.patient_removed.connect(self.on_patient_removed)
+        self.adjustSize()
+        self.repaint()
 
     def on_patient_name_edited(self, patient_uid: str, new_name: str) -> None:
         """

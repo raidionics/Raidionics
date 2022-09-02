@@ -8,6 +8,7 @@ from gui2.UtilsWidgets.QCustomIconsPushButton import QCustomIconsPushButton
 class QCollapsibleGroupBox(QWidget):
     """
     @TODO. Poorly designed. Has to be redone to work properly in general.
+    Might try => https://stackoverflow.com/questions/52615115/how-to-create-collapsible-box-in-pyqt
     """
 
     clicked_signal = Signal(bool, str)

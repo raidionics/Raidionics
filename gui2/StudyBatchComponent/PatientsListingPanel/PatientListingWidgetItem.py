@@ -34,11 +34,11 @@ class PatientListingWidgetItem(QWidget):
         self.patient_uid_label = QLabel(SoftwareConfigResources.getInstance().patients_parameters[self.patient_uid].get_display_name())
         self.patient_investigation_pushbutton = QPushButton()
         self.patient_investigation_pushbutton.setIcon(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                                                         '../Images/jumpto-icon.png')))
+                                                                         '../../Images/jumpto-icon.png')))
         self.patient_investigation_pushbutton.setToolTip("Press to visually inspect the patient.")
         self.patient_remove_pushbutton = QPushButton()
         self.patient_remove_pushbutton.setIcon(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                                                         '../Images/trash-bin_icon.png')))
+                                                                  '../../Images/trash-bin_icon.png')))
         self.patient_remove_pushbutton.setToolTip("Press to remove the patient from the study (but retained on disk).")
         # self.patient_remove_pushbutton.setEnabled(False)
         self.layout.addWidget(self.patient_uid_label)
