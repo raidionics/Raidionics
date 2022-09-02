@@ -40,7 +40,7 @@ jobs:
     - name: Make installer
       run: |
         makensis.exe misc/Raidionics.nsi
-        cp -r Raidionics-1.1.0-win.exe dist/Raidionics-1.1.0-win.exe
+        cp -r misc/Raidionics-1.1.0-win.exe dist/Raidionics-1.1.0-win.exe
 
     - name: Upload package
       uses: actions/upload-artifact@v2
