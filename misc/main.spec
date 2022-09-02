@@ -14,19 +14,24 @@ os.environ['LANG'] = "en_US.UTF-8"
 block_cipher = None
 cwd = os.path.abspath(os.getcwd())
 
+print("CWD:", cwd)
+print("PLATFORM:", sys.platform)
+
 # fix hidden imports
 hidden_imports = loadtxt(cwd + "/misc/requirements.txt", comments="#", delimiter=",", unpack=False, dtype=str)
 hidden_imports = [x.split("=")[0] for x in hidden_imports] + ["medpy", "ants", "sklearn", "scikit-learn",
  "statsmodels", "gevent", "distutils", "PySide2", "gdown", "tensorflow", "raidionicsrads", "raidionicsseg"]
 hidden_imports = [x.lower() for x in hidden_imports]
 
-# copy dependencies and images
-shutil.copytree("./images/", "./tmp_dependencies/images/")
-shutil.copytree("./utils/", "./tmp_dependencies/utils/")
-shutil.copytree("./gui2/", "./tmp_dependencies/gui2/")
+# copy dependencies and images, remove if folder already exists
+if os.path.exists(cwd + "/tmp_dependencies/"):
+    shutil.rmtree(cwd + "/tmp_dependencies/")
+shutil.copytree(cwd + "/images/", cwd + "/tmp_dependencies/images/")
+shutil.copytree(cwd + "/utils/", cwd + "/tmp_dependencies/utils/")
+shutil.copytree(cwd + "/gui2/", cwd + "/tmp_dependencies/gui2/")
 
 a = Analysis([cwd + '/main.py'],
-             pathex=['.'],
+             pathex=[cwd],
              binaries=[],
              datas=[],
              hiddenimports=hidden_imports,
