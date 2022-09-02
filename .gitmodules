@@ -1,4 +1,4 @@
 [submodule "raidionics_rads_lib"]
-	path = raidionics_rads_lib
+	path = src/raidionics_rads_lib
 	url = https://github.com/dbouget/raidionics_rads_lib.git
 	branch = submodule_seg
