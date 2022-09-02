@@ -11,21 +11,7 @@ on:
 jobs:
   build:
     name: Build packages
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        include:
-          - os: ubuntu-18.04
-            TARGET: ubuntu
-            CMD_BUILD: "pip install pyinstaller &&
-                       mkdir tmp_dependencies &&
-                       pyinstaller --noconfirm --clean main.spec &&
-                       mkdir -p Raidionics_ubuntu/usr/local/bin &&
-                       cp -r dist/Raidionics Raidionics_ubuntu/usr/local/bin &&
-                       dpkg-deb --build --root-owner-group Raidionics_ubuntu &&
-                       cp -r Raidionics_ubuntu.deb dist/Raidionics-1.1.0-ubuntu.deb"
-            OUT_FILE_NAME: Raidionics-1.1.0-ubuntu.deb
-            ASSET_MIME: application/vnd.debian.binary-package
+    runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v1
     - name: Set up Python 3.7
@@ -41,12 +27,22 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install -r misc/requirements.txt
         pip install -e git+https://github.com/dbouget/raidionics_rads_lib.git@master#egg=raidionicsrads
         pip install -e git+https://github.com/dbouget/raidionics_seg_lib.git@master#egg=raidionicsseg
 
-    - name: Build with pyinstaller for ${{matrix.TARGET}}
-      run: ${{matrix.CMD_BUILD}}
+    - name: Build software
+      run: |
+        pip install pyinstaller
+        mkdir tmp_dependencies
+        pyinstaller --noconfirm --clean misc/main.spec
+
+    - name: Make installer
+      run: |
+        mkdir -p Raidionics_ubuntu/usr/local/bin
+        cp -r dist/Raidionics Raidionics_ubuntu/usr/local/bin
+        dpkg-deb --build --root-owner-group Raidionics_ubuntu
+        cp -r Raidionics_ubuntu.deb dist/Raidionics-1.1.0-ubuntu.deb
 
     - name: Upload package
       uses: actions/upload-artifact@v2
