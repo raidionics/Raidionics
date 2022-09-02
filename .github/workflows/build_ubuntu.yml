@@ -39,9 +39,9 @@ jobs:
 
     - name: Make installer
       run: |
-        mkdir -p Raidionics_ubuntu/usr/local/bin
-        cp -r dist/Raidionics Raidionics_ubuntu/usr/local/bin
-        dpkg-deb --build --root-owner-group Raidionics_ubuntu
+        mkdir -p misc/Raidionics_ubuntu/usr/local/bin
+        cp -r dist/Raidionics misc/Raidionics_ubuntu/usr/local/bin
+        dpkg-deb --build --root-owner-group misc/Raidionics_ubuntu
         cp -r Raidionics_ubuntu.deb dist/Raidionics-1.1.0-ubuntu.deb
 
     - name: Upload package
