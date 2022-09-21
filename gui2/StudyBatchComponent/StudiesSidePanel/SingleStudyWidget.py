@@ -45,6 +45,7 @@ class SingleStudyWidget(QCollapsibleGroupBox):
         self.__set_patient_inclusion_part()
         self.__set_batch_processing_part()
         self.__set_progress_part()
+        self.content_label_layout.addWidget(self.collapsible_view)
         self.content_label_layout.addStretch(1)
 
     def __set_system_part(self):

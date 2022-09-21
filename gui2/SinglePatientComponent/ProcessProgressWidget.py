@@ -104,7 +104,7 @@ class ProcessProgressWidget(QWidget):
         Collecting all messages coming from the two backend libraries, which are containing the LOG: keyword,
         indicating that the message should be processed in here.
         Each of such messages contains either a Begin, End, or Runtime statement, and if not simply indicate
-        the overall start of a processing type (e.g., segmentation or reporting).
+        the overall start of a processing type (e.g., pipeline, segmentation or classification).
         If multiple processes are nested, only the steps for the outer process are reporting here.
 
         Parameters
@@ -114,7 +114,7 @@ class ProcessProgressWidget(QWidget):
         """
         if 'LOG:' in message:
             if 'Begin' not in message and 'End' not in message and 'Runtime' not in message:
-                task = message.strip().split('-')[0].strip()
+                task = message.strip().split('LOG:')[1].split('-')[0].strip()
                 total_steps = int(message.strip().split('-')[1].strip().split(' ')[0].strip())
                 self.process_stages_stack.append({'task': task, 'total_steps': total_steps, 'steps': {}})
 
@@ -125,7 +125,7 @@ class ProcessProgressWidget(QWidget):
 
             elif 'Begin' in message:
                 current_task = message.strip().split('-')[1].strip()
-                current_step = int(message.strip().split('(')[1].split('/')[0])
+                current_step = int(message.strip().split('(')[-1].split('/')[0])
                 self.process_stages_stack[-1]['steps'][current_step] = current_task
                 if len(self.process_stages_stack) == 1:
                     progress_widget = ProgressItemWidget(self)
@@ -133,8 +133,8 @@ class ProcessProgressWidget(QWidget):
                     self.progress_widget.append(progress_widget)
                     self.detailed_progression_layout.insertWidget(self.detailed_progression_layout.count(), progress_widget)
             elif 'End' in message:
-                current_task = message.strip().split('-')[1].strip()
-                current_step = int(message.strip().split('(')[1].split('/')[0])
+                # current_task = message.strip().split('-')[1].strip()
+                current_step = int(message.strip().split('(')[-1].split('/')[0])
                 if len(self.process_stages_stack) == 1:
                     self.progress_label.setText("Overall progress:\n\t" + str(current_step) + " / " + str(self.processing_steps))
                     self.progress_widget[-1].set_progress_text(self.process_stages_stack[-1]['runtime'], status=True)
