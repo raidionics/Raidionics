@@ -17,6 +17,7 @@ from utils.patient_dicom import DICOMSeries
 from utils.data_structures.MRIVolumeStructure import MRIVolume, MRISequenceType
 from utils.data_structures.AnnotationStructure import AnnotationVolume, AnnotationClassType, AnnotationGenerationType
 from utils.data_structures.AtlasStructure import AtlasVolume
+from utils.data_structures.InvestigationTimestampStructure import InvestigationTimestamp, InvestigationType
 from utils.utilities import input_file_category_disambiguation
 
 
@@ -34,6 +35,7 @@ class PatientParameters:
     _mri_volumes = {}  # All MRI volume instances loaded for the current patient.
     _annotation_volumes = {}  # All Annotation instances loaded for the current patient.
     _atlas_volumes = {}  # All Atlas instances loaded for the current patient.
+    _investigation_timestamps = {}  # All investigation timestamps for the current patient.
     _unsaved_changes = False  # Documenting any change, for suggesting saving when swapping between patients
 
     def __init__(self, id: str = "-1", dest_location: str = None, patient_filename: str = None):
@@ -253,6 +255,7 @@ class PatientParameters:
             return 0, ""
 
     def import_standardized_report(self, filename: str) -> Any:
+        # @TODO. Have also return a report_uid, and have a special container for all reports.
         error_message = None
         try:
             self._standardized_report_filename = filename
@@ -283,9 +286,25 @@ class PatientParameters:
             if 'last_editing_timestamp' in self._patient_parameters_dict["Parameters"]["Default"].keys():
                 self._last_editing_timestamp = datetime.datetime.strptime(self._patient_parameters_dict["Parameters"]["Default"]['last_editing_timestamp'],
                                                                           "%d/%m/%Y, %H:%M:%S")
+            for ts_id in list(self._patient_parameters_dict['Timestamps'].keys()):
+                try:
+                    timestamp = InvestigationTimestamp(uid=ts_id,
+                                                       order=self._patient_parameters_dict['Timestamps'][ts_id]['order'],
+                                                       inv_time=self._patient_parameters_dict['Timestamps'][ts_id]['datetime'])
+                    self._investigation_timestamps[ts_id] = timestamp
+                except Exception:
+                    logging.error(str(traceback.format_exc()))
+                    if error_message:
+                        error_message = error_message + "\nImport timestamp failed, for volume {}.\n".format(ts_id)\
+                                        + str(traceback.format_exc())
+                    else:
+                        error_message = "Import timestamp failed, for volume {}.\n".format(ts_id)\
+                                        + str(traceback.format_exc())
+
             for volume_id in list(self._patient_parameters_dict['Volumes'].keys()):
                 try:
                     mri_volume = MRIVolume(uid=volume_id,
+                                           inv_ts_uid=self._patient_parameters_dict['Volumes'][volume_id]['investigation_timestamp_uid'],
                                            input_filename=self._patient_parameters_dict['Volumes'][volume_id]['raw_input_filepath'],
                                            output_patient_folder=self._output_folder,
                                            reload_params=self._patient_parameters_dict['Volumes'][volume_id])
@@ -338,17 +357,30 @@ class PatientParameters:
             logging.error(error_message)
         return error_message
 
-    def import_data(self, filename: str, type: str = "MRI") -> Union[str, Any]:
+    def import_data(self, filename: str, investigation_ts: str = None, type: str = "MRI") -> Union[str, Any]:
         """
         Defining how stand-alone MRI volumes or annotation volumes are loaded into the system for the current patient.
 
         Importing an annotation volume is not allowed unless there is at least an MRI volume to link it to.
         An annotation volume MUST be attached to an MRI volume.
+
+        Imported data must also be linked to an InvestigationTimestamp, and their output folders will be named after
+        the timestamp.
         """
         data_uid = None
         error_message = None
 
         try:
+            # When including data for a patient, creating a Timestamp if none exists, otherwise assign to the first one
+            # @TODO. Better way to handle this.
+            if not investigation_ts:
+                if len(self._investigation_timestamps) == 0:
+                    investigation_ts = 'T0'
+                    curr_ts = InvestigationTimestamp(investigation_ts, order=0)
+                    self._investigation_timestamps[investigation_ts] = curr_ts
+                else:
+                    investigation_ts = list(self._investigation_timestamps.keys())[0]
+
             type = input_file_category_disambiguation(filename)
             if type == 'MRI':
                 # Generating a unique id for the MRI volume
@@ -359,8 +391,9 @@ class PatientParameters:
                     if data_uid not in list(self._mri_volumes.keys()):
                         non_available_uid = False
 
-                self._mri_volumes[data_uid] = MRIVolume(uid=data_uid, input_filename=filename,
-                                                        output_patient_folder=self._output_folder)
+                self._mri_volumes[data_uid] = MRIVolume(uid=data_uid, inv_ts_uid=investigation_ts,
+                                                        input_filename=filename,
+                                                        output_patient_folder=os.path.join(self._output_folder, investigation_ts))
             else:
                 if len(self._mri_volumes) != 0:
                     # @TODO. Not optimal to set a default parent MRI, forces a manual update after, must be improved.
@@ -374,7 +407,7 @@ class PatientParameters:
                             non_available_uid = False
 
                     self._annotation_volumes[data_uid] = AnnotationVolume(uid=data_uid, input_filename=filename,
-                                                                         output_patient_folder=self._output_folder,
+                                                                         output_patient_folder=os.path.join(self._output_folder, investigation_ts),
                                                                          parent_mri_uid=default_parent_mri_uid)
                 else:
                     error_message = "No MRI volume has been imported yet. Mandatory for importing an annotation."
@@ -388,10 +421,17 @@ class PatientParameters:
         logging.debug("Unsaved changes - Patient object expanded with new volumes.")
         return data_uid, error_message
 
-    def import_dicom_data(self, dicom_series: DICOMSeries) -> Union[str, Any]:
+    def import_dicom_data(self, dicom_series: DICOMSeries, inv_ts: str = None) -> Union[str, Any]:
         """
         Half the content should be deported within the MRI structure, so that the DICOM metadata can be properly
         saved.
+
+        Parameters
+        ----------
+        dicom_series: DICOMSeries
+            Placeholder from SimpleITK containing the reader and metadata for the current MRI Series
+        inv_ts: str
+            Internal unique identifier for the investigation timestamp to which this MRI Series belongs to.
         """
         ori_filename = os.path.join(self._output_folder, dicom_series.get_unique_readable_name() + '.nii.gz')
         filename_taken = os.path.exists(ori_filename)
@@ -424,15 +464,13 @@ class PatientParameters:
                 non_available_uid = True
                 while non_available_uid:
                     data_uid = str(np.random.randint(0, 10000)) + '_' + base_data_uid
-                    if data_uid not in list(self._annotation_volumes.keys()):
+                    if data_uid not in list(self._atlas_volumes.keys()):
                         non_available_uid = False
 
-                description_filename = os.path.join(self._output_folder, 'reporting', 'atlas_descriptions',
-                                                    base_data_uid.split('_')[0] + '_description.csv')
                 self._atlas_volumes[data_uid] = AtlasVolume(uid=data_uid, input_filename=filename,
-                                                           output_patient_folder=self._output_folder,
+                                                           output_patient_folder=self._mri_volumes[parent_mri_uid].get_output_patient_folder(),
                                                            parent_mri_uid=parent_mri_uid,
-                                                           description_filename=description_filename)
+                                                           description_filename=description)
             else:  # Reference is MNI space then
                 pass
         except Exception as e:
@@ -460,12 +498,13 @@ class PatientParameters:
         else:
             self._patient_parameters_dict['Parameters']['Reporting']['report_filename'] = ""
 
-        display_folder = os.path.join(self._output_folder, 'display')
-        os.makedirs(display_folder, exist_ok=True)
-
+        self._patient_parameters_dict['Timestamps'] = {}
         self._patient_parameters_dict['Volumes'] = {}
         self._patient_parameters_dict['Annotations'] = {}
         self._patient_parameters_dict['Atlases'] = {}
+
+        for i, disp in enumerate(list(self._investigation_timestamps.keys())):
+            self._patient_parameters_dict['Timestamps'][disp] = self._investigation_timestamps[disp].save()
 
         for i, disp in enumerate(list(self._mri_volumes.keys())):
             self._patient_parameters_dict['Volumes'][disp] = self._mri_volumes[disp].save()
@@ -526,6 +565,37 @@ class PatientParameters:
         res = []
         for im in self._mri_volumes:
             if self._mri_volumes[im].get_sequence_type_enum() == sequence_type:
+                res.append(im)
+        return res
+
+    def get_all_mri_volumes_for_sequence_type_and_timestamp(self, sequence_type: MRISequenceType,
+                                                            timestamp_order: int) -> List[str]:
+        """
+        Convenience method for collecting all MRI volumes with a specific sequence type and for a specific
+        investigation timestamp.
+
+        Parameters
+        ----------
+        sequence_type : MRISequenceType
+            MRISequenceType (EnumType) to query MRI volumes from.
+        timestamp_order: int
+            Number of the timestamp order in the list of all timestamps.
+        Returns
+        -------
+        List[str]
+            A list of unique identifiers for each MRI volume object associated with the given input parameters.
+        """
+        res = []
+        inv_ts_uid = None
+        for ts in list(self._investigation_timestamps.keys()):
+            if self._investigation_timestamps[ts].get_order() == timestamp_order:
+                inv_ts_uid = ts
+        if not inv_ts_uid:
+            return res
+
+        for im in self._mri_volumes:
+            if self._mri_volumes[im].get_sequence_type_enum() == sequence_type \
+                    and self._mri_volumes[im].get_timestamp_uid() == inv_ts_uid:
                 res.append(im)
         return res
 

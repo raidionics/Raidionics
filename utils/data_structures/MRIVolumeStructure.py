@@ -35,6 +35,7 @@ class MRIVolume:
     Class defining how an MRI volume should be handled.
     """
     _unique_id = ""  # Internal unique identifier for the MRI volume
+    _timestamp_uid = None  # Internal unique identifier to the investigation timestamp this MRI belongs to.
     _raw_input_filepath = ""  # Original MRI volume filepath on the user's machine
     _usable_input_filepath = ""  # Usable MRI volume filepath, e.g., after conversion from nrrd to nifti (or other)
     _output_patient_folder = ""
@@ -51,13 +52,15 @@ class MRIVolume:
     _default_affine = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]  # Affine matrix for dumping resampled files
     _unsaved_changes = False  # Documenting any change, for suggesting saving when swapping between patients
 
-    def __init__(self, uid: str, input_filename: str, output_patient_folder: str, reload_params: dict = None) -> None:
+    def __init__(self, uid: str, inv_ts_uid: str, input_filename: str, output_patient_folder: str,
+                 reload_params: dict = None) -> None:
         # @TODO. Should also add the registered versions in here.
-        # @TODO. Should add a date/timestamp field.
         self.__reset()
         self._unique_id = uid
+        self._timestamp_uid = inv_ts_uid
         self._raw_input_filepath = input_filename
         self._output_patient_folder = output_patient_folder
+        os.makedirs(output_patient_folder, exist_ok=True)
         self._display_name = uid
 
         if reload_params:
@@ -65,12 +68,17 @@ class MRIVolume:
         else:
             self.__init_from_scratch()
 
+        if not inv_ts_uid:
+            raise ValueError("[MRIVolumeStructure] Impossible to instanciate an MRI object without an existing"
+                             " Investigation timestamp.")
+
     def __reset(self):
         """
         All objects share class or static variables.
         An instance or non-static variables are different for different objects (every object has a copy).
         """
         self._unique_id = ""
+        self._timestamp_uid = None
         self._raw_input_filepath = ""
         self._usable_input_filepath = ""
         self._output_patient_folder = ""
@@ -106,6 +114,9 @@ class MRIVolume:
 
     def get_unique_id(self) -> str:
         return self._unique_id
+
+    def get_timestamp_uid(self) -> str:
+        return self._timestamp_uid
 
     def set_unsaved_changes_state(self, state: bool) -> None:
         self._unsaved_changes = state
@@ -247,25 +258,32 @@ class MRIVolume:
             # Parameters-filling operations
             volume_params = {}
             volume_params['display_name'] = self._display_name
+            volume_params['investigation_timestamp_uid'] = self._timestamp_uid
             volume_params['raw_input_filepath'] = self._raw_input_filepath
+
+            base_patient_folder = '/'.join(self._output_patient_folder.split('/')[:-1])  # To keep the timestamp folder
             volume_params['resample_input_filepath'] = os.path.relpath(self._resampled_input_volume_filepath,
-                                                                       self._output_patient_folder)
+                                                                       base_patient_folder)
             volume_params['usable_input_filepath'] = self._usable_input_filepath
             volume_params['display_volume_filepath'] = os.path.relpath(self._display_volume_filepath,
-                                                                       self._output_patient_folder)
+                                                                       base_patient_folder)
             volume_params['sequence_type'] = str(self._sequence_type)
             volume_params['contrast_window'] = str(self._contrast_window[0]) + ',' + str(self._contrast_window[1])
             if self._dicom_metadata_filepath:
                 volume_params['dicom_metadata_filepath'] = os.path.relpath(self._dicom_metadata_filepath,
-                                                                           self._output_patient_folder)
+                                                                           base_patient_folder)
             self._unsaved_changes = False
             return volume_params
         except Exception:
             logging.error("MRIVolumeStructure saving failed with:\n {}".format(traceback.format_exc()))
 
     def __init_from_scratch(self) -> None:
+        os.makedirs(os.path.join(self._output_patient_folder, 'raw'), exist_ok=True)
+        os.makedirs(os.path.join(self._output_patient_folder, 'display'), exist_ok=True)
+
         self._usable_input_filepath = input_file_type_conversion(input_filename=self._raw_input_filepath,
-                                                                 output_folder=self._output_patient_folder)
+                                                                 output_folder=os.path.join(self._output_patient_folder,
+                                                                                            'raw'))
         self.__parse_sequence_type()
         self.__generate_display_volume()
 

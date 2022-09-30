@@ -1,3 +1,5 @@
+import shutil
+
 from aenum import Enum, unique
 from typing import Union
 import os
@@ -50,6 +52,7 @@ def input_file_category_disambiguation(input_filename: str) -> str:
 
 def input_file_type_conversion(input_filename: str, output_folder: str) -> str:
     # Always converting the input file to nifti (if possible), otherwise will be discarded.
+    # Saving anyway a correct nifti file inside the raidionics patient folder, for use in the backend.
     # @TODO. Do we catch a potential .seg file that would be coming from 3D Slicer for annotations?
     pre_file_extension = os.path.basename(input_filename).split('.')[0]
     file_extension = '.'.join(os.path.basename(input_filename).split('.')[1:])
@@ -59,5 +62,9 @@ def input_file_type_conversion(input_filename: str, output_folder: str) -> str:
         nifti_outfilename = os.path.join(output_folder, pre_file_extension + '.nii.gz')
         sitk.WriteImage(input_sitk, nifti_outfilename)
         filename = nifti_outfilename
+    else:
+        filename = os.path.join(output_folder, os.path.basename(input_filename))
+        if input_filename != filename:
+            shutil.copyfile(input_filename, filename)
 
     return filename

@@ -5,6 +5,7 @@ import logging.handlers
 import traceback
 import sys
 import os
+import json
 import subprocess
 import configparser
 import threading
@@ -12,9 +13,9 @@ import shutil
 from typing import Any, Tuple
 import multiprocessing as mp
 from utils.software_config import SoftwareConfigResources
-from utils.models_download import download_model
-from utils.data_structures.MRIVolumeStructure import MRISequenceType
 from utils.data_structures.PatientParametersStructure import PatientParameters
+from utils.logic.PipelineCreationHandler import create_pipeline
+from utils.logic.PipelineResultsCollector import collect_results
 
 
 def segmentation_main_wrapper(model_name: str, patient_parameters: PatientParameters) -> Any:
@@ -58,14 +59,12 @@ def run_model_wrapper(params: Tuple[str]) -> None:
 
 def run_segmentation(model_name: str, patient_parameters: PatientParameters, queue: queue.Queue) -> None:
     """
+    @TODO. Should be merged with the run_rads, and simply add a new attribute for the specific use-case.
     Call to the RADS backend for running the segmentation task. The runtime configuration file is generated
     on-the-fly at each call.\n
     The created Annotation objects are directly stored inside the patient_parameters placeholder, and a summary of the
     annotation unique ids is stored in the 'results' variable. The summary and an execution code (0 or 1 indicating
     failure or success) are stored inside the queue.\n
-    @TODO. Have to include the brain segmentation filename to the config file, if it exists.\n
-    @TODO2. How to disambiguate for all patient data which input MRI is the correct one for the model? Has
-    to be supported in the rads or seg lib.
 
     Parameters
     ----------
@@ -83,41 +82,40 @@ def run_segmentation(model_name: str, patient_parameters: PatientParameters, que
     """
     logging.info("Starting segmentation process for patient {} using {}.".format(patient_parameters.get_unique_id(),
                                                                                  model_name))
-    seg_config_filename = ""
-    results = {}
+    rads_config_filename = ''
+    pipeline_filename = ''
+    results = {}  # Holder for all objects computed during the process, which have been added to the patient object
     try:
-        # @TODO. Hack for now, using the first possible volume.
-        eligible_mris = patient_parameters.get_all_mri_volumes_for_sequence_type(MRISequenceType.T1c)
-        if 'LGGlioma' in model_name:
-            eligible_mris = patient_parameters.get_all_mri_volumes_for_sequence_type(MRISequenceType.FLAIR)
-        if len(eligible_mris) == 0:
-            eligible_mris = patient_parameters.get_all_mri_volumes_uids()
+        reporting_folder = os.path.join(patient_parameters.get_output_folder(), 'reporting')
+        os.makedirs(reporting_folder, exist_ok=True)
 
-        selected_mri_uid = eligible_mris[0]
-        download_model(model_name=model_name)
+        # Dumping the currently loaded patient MRI/annotation volumes, to be sorted/used by the backend
+        patient_parameters.save_patient()
 
-        # Setting up the runtime configuration file, mandatory for the raidionics_seg lib.
-        seg_config = configparser.ConfigParser()
-        seg_config.add_section('System')
-        seg_config.set('System', 'gpu_id', "-1")  # Always running on CPU
-        seg_config.set('System', 'input_filename',
-                       patient_parameters.get_mri_by_uid(selected_mri_uid).get_usable_input_filepath())
-        seg_config.set('System', 'output_folder', patient_parameters.get_output_folder())
-        seg_config.set('System', 'model_folder',
-                       os.path.join(SoftwareConfigResources.getInstance().models_path, model_name))
-        seg_config.add_section('Runtime')
-        seg_config.set('Runtime', 'reconstruction_method', 'thresholding')
-        seg_config.set('Runtime', 'reconstruction_order', 'resample_first')
-        seg_config_filename = os.path.join(patient_parameters.get_output_folder(), 'seg_config.ini')
-        with open(seg_config_filename, 'w') as outfile:
-            seg_config.write(outfile)
+        rads_config = configparser.ConfigParser()
+        rads_config.add_section('Default')
+        rads_config.set('Default', 'task', 'neuro_diagnosis')
+        rads_config.set('Default', 'caller', 'raidionics')
+        rads_config.add_section('System')
+        rads_config.set('System', 'gpu_id', "-1")  # Always running on CPU
+        rads_config.set('System', 'input_folder', patient_parameters.get_output_folder())
+        rads_config.set('System', 'output_folder', reporting_folder)
+        rads_config.set('System', 'model_folder', SoftwareConfigResources.getInstance().models_path)
+        pipeline = create_pipeline(model_name, patient_parameters, 'seg')
+        pipeline_filename = os.path.join(patient_parameters.get_output_folder(), 'rads_pipeline.json')
+        with open(pipeline_filename, 'w', newline='\n') as outfile:
+            json.dump(pipeline, outfile, indent=4, sort_keys=True)
+        rads_config.set('System', 'pipeline_filename', pipeline_filename)
+        rads_config.add_section('Runtime')
+        rads_config.set('Runtime', 'reconstruction_method', 'thresholding')
+        rads_config.set('Runtime', 'reconstruction_order', 'resample_first')
+        rads_config_filename = os.path.join(patient_parameters.get_output_folder(), 'rads_config.ini')
+        with open(rads_config_filename, 'w') as outfile:
+            rads_config.write(outfile)
 
-        # Execution call
-        # from raidionicsseg.fit import run_model
-        # run_model(seg_config_filename)
-        # mp.set_start_method('spawn', force=True)
+        #mp.set_start_method('spawn', force=True)
         with mp.Pool(processes=1, maxtasksperchild=1) as p:  # , initializer=initializer)
-            result = p.map_async(run_model_wrapper, ((seg_config_filename, SoftwareConfigResources.getInstance().get_session_log_filename()),))
+            result = p.map_async(run_pipeline_wrapper, ((rads_config_filename, SoftwareConfigResources.getInstance().get_session_log_filename()),))
             ret = result.get()[0]
 
         # Must start again the logging, otherwise it writes in the middle of the file somehow...
@@ -127,38 +125,34 @@ def run_segmentation(model_name: str, patient_parameters: PatientParameters, que
         logging.basicConfig(filename=SoftwareConfigResources.getInstance().get_session_log_filename(), filemode='a',
                             format="%(asctime)s ; %(name)s ; %(levelname)s ; %(message)s", datefmt='%d/%m/%Y %H.%M')
 
-        # Results collection, imported inside the patient placeholder.
-        seg_file = os.path.join(patient_parameters.get_output_folder(), 'labels_Tumor.nii.gz')
-        shutil.move(seg_file, os.path.join(patient_parameters.get_output_folder(), 'patient_tumor.nii.gz'))
-        data_uid, error_msg = patient_parameters.import_data(os.path.join(patient_parameters.get_output_folder(),
-                                                                          'patient_tumor.nii.gz'), type='Annotation')
-        patient_parameters.get_annotation_by_uid(data_uid).set_annotation_class_type("Tumor")
-        patient_parameters.get_annotation_by_uid(data_uid).set_generation_type("Automatic")
-        patient_parameters.get_annotation_by_uid(data_uid).set_parent_mri_uid(selected_mri_uid)
-        results['Annotation'] = [data_uid]
+        # logging.debug("Spawning multiprocess...")
+        # mp.set_start_method('spawn', force=True)
+        # with mp.Pool(processes=1, maxtasksperchild=1) as p:  # , initializer=initializer)
+        #     result = p.map_async(run_rads, [rads_config_filename])
+        #     logging.debug("Collecting results from multiprocess...")
+        #     ret = result.get()[0]
 
-        seg_file = os.path.join(patient_parameters.get_output_folder(), 'labels_Brain.nii.gz')
-        if os.path.exists(seg_file):
-            shutil.move(seg_file, os.path.join(patient_parameters.get_output_folder(), 'patient_brain.nii.gz'))
-            data_uid, error_msg = patient_parameters.import_data(os.path.join(patient_parameters.get_output_folder(),
-                                                                              'patient_brain.nii.gz'), type='Annotation')
-            patient_parameters.get_annotation_by_uid(data_uid).set_annotation_class_type("Brain")
-            patient_parameters.get_annotation_by_uid(data_uid).set_generation_type("Automatic")
-            patient_parameters.get_annotation_by_uid(data_uid).set_parent_mri_uid(selected_mri_uid)
-            results['Annotation'].append(data_uid)
+        results = collect_results(patient_parameters, pipeline)
     except Exception:
         logging.error('Segmentation for patient {}, using {} failed with: \n{}'.format(patient_parameters.get_unique_id(),
                                                                                        model_name, traceback.format_exc()))
-        if os.path.exists(seg_config_filename):
-            os.remove(seg_config_filename)
-        queue.put((1, results))
-        # return 1, results
+        if os.path.exists(rads_config_filename):
+            os.remove(rads_config_filename)
+        if os.path.exists(pipeline_filename):
+            os.remove(pipeline_filename)
+        if os.path.exists(os.path.join(patient_parameters.get_output_folder(), 'reporting')):
+            shutil.rmtree(os.path.join(patient_parameters.get_output_folder(), 'reporting'))
 
-    if os.path.exists(seg_config_filename):
-        os.remove(seg_config_filename)
+        queue.put((1, results))
+
+    if os.path.exists(rads_config_filename):
+        os.remove(rads_config_filename)
+    if os.path.exists(pipeline_filename):
+        os.remove(pipeline_filename)
+    if os.path.exists(os.path.join(patient_parameters.get_output_folder(), 'reporting')):
+        shutil.rmtree(os.path.join(patient_parameters.get_output_folder(), 'reporting'))
 
     queue.put((0, results))
-    # return 0, results
 
 
 def reporting_main_wrapper(model_name: str, patient_parameters: PatientParameters) -> Any:
@@ -183,7 +177,7 @@ def reporting_main_wrapper(model_name: str, patient_parameters: PatientParameter
     return q.get()
 
 
-def run_rads_wrapper(params: Tuple[str]) -> None:
+def run_pipeline_wrapper(params: Tuple[str]) -> None:
     """
     Additional wrapper around the run_rads method from the raidionics_rads_lib, necessary for multiprocessing to work.
     Being able to run it in another process is also mandatory for the study/batch mode, given the existing memory leaks
@@ -207,9 +201,6 @@ def run_reporting(model_name, patient_parameters, queue):
     The created Annotation/Atlas objects are directly stored inside the patient_parameters placeholder, and a summary
     of the included unique ids are stored in the 'results' variable. The summary and an execution code (0 or 1
      indicating failure or success) are stored inside the queue.\n
-    @TODO. Have to include the brain segmentation filename to the config file, if it exists.\n
-    @TODO2. How to disambiguate for all patient data which input MRI is the correct one for the model? Has
-    to be supported in the rads or seg lib.
 
     Parameters
     ----------
@@ -225,34 +216,35 @@ def run_reporting(model_name, patient_parameters, queue):
         The results are stored inside the queue rather than directly returned, since the method is expected to be
         called from the wrapper.
     """
-    logging.info("Starting RADS process for patient {} using {}.".format(patient_parameters.get_unique_id(),
-                                                                         model_name))
+    logging.info("Starting Pipeline process for patient {} using {}.".format(patient_parameters.get_unique_id(),
+                                                                             model_name))
 
     rads_config_filename = ''
+    pipeline_filename = ''
     results = {}  # Holder for all objects computed during the process, which have been added to the patient object
     try:
-        download_model(model_name=model_name)
         reporting_folder = os.path.join(patient_parameters.get_output_folder(), 'reporting')
         os.makedirs(reporting_folder, exist_ok=True)
-        # @TODO. Hack for now, using the first possible volume.
-        eligible_mris = patient_parameters.get_all_mri_volumes_for_sequence_type(MRISequenceType.T1c)
-        if 'LGGlioma' in model_name:
-            eligible_mris = patient_parameters.get_all_mri_volumes_for_sequence_type(MRISequenceType.FLAIR)
-        if len(eligible_mris) == 0:
-            eligible_mris = patient_parameters.get_all_mri_volumes_uids()
 
-        selected_mri_uid = eligible_mris[0]
+        # Dumping the currently loaded patient MRI/annotation volumes, to be sorted/used by the backend
+        patient_parameters.save_patient()
+
+        # Preparing the config/pipeline files
+        pipeline = create_pipeline(model_name, patient_parameters, 'reporting')
+        pipeline_filename = os.path.join(patient_parameters.get_output_folder(), 'rads_pipeline.json')
+        with open(pipeline_filename, 'w', newline='\n') as outfile:
+            json.dump(pipeline, outfile, indent=4, sort_keys=True)
+
         rads_config = configparser.ConfigParser()
         rads_config.add_section('Default')
         rads_config.set('Default', 'task', 'neuro_diagnosis')
         rads_config.set('Default', 'caller', 'raidionics')
         rads_config.add_section('System')
         rads_config.set('System', 'gpu_id', "-1")  # Always running on CPU
-        rads_config.set('System', 'input_filename',
-                        patient_parameters.get_mri_by_uid(selected_mri_uid).get_usable_input_filepath())
+        rads_config.set('System', 'input_folder', patient_parameters.get_output_folder())
         rads_config.set('System', 'output_folder', reporting_folder)
-        rads_config.set('System', 'model_folder',
-                        os.path.join(SoftwareConfigResources.getInstance().models_path, model_name))
+        rads_config.set('System', 'model_folder', SoftwareConfigResources.getInstance().models_path)
+        rads_config.set('System', 'pipeline_filename', pipeline_filename)
         rads_config.add_section('Runtime')
         rads_config.set('Runtime', 'reconstruction_method', 'thresholding')
         rads_config.set('Runtime', 'reconstruction_order', 'resample_first')
@@ -269,7 +261,7 @@ def run_reporting(model_name, patient_parameters, queue):
 
         #mp.set_start_method('spawn', force=True)
         with mp.Pool(processes=1, maxtasksperchild=1) as p:  # , initializer=initializer)
-            result = p.map_async(run_rads_wrapper, ((rads_config_filename, SoftwareConfigResources.getInstance().get_session_log_filename()),))
+            result = p.map_async(run_pipeline_wrapper, ((rads_config_filename, SoftwareConfigResources.getInstance().get_session_log_filename()),))
             ret = result.get()[0]
 
         # Must start again the logging, otherwise it writes in the middle of the file somehow...
@@ -286,73 +278,27 @@ def run_reporting(model_name, patient_parameters, queue):
         #     logging.debug("Collecting results from multiprocess...")
         #     ret = result.get()[0]
 
-        # Collecting the automatic tumor and brain segmentations
-        seg_file = os.path.join(patient_parameters.get_output_folder(), 'reporting', 'labels_Tumor.nii.gz')
-        shutil.move(seg_file, os.path.join(patient_parameters.get_output_folder(), 'patient_tumor.nii.gz'))
-        data_uid, error_msg = patient_parameters.import_data(os.path.join(patient_parameters.get_output_folder(),
-                                                                          'patient_tumor.nii.gz'), type='Annotation')
-        patient_parameters.get_annotation_by_uid(data_uid).set_annotation_class_type("Tumor")
-        patient_parameters.get_annotation_by_uid(data_uid).set_generation_type("Automatic")
-        patient_parameters.get_annotation_by_uid(data_uid).set_parent_mri_uid(selected_mri_uid)
-        results['Annotation'] = [data_uid]
-        # Check if a brain mask has been created, and include it if so.
-        seg_file = os.path.join(patient_parameters.get_output_folder(), 'reporting', 'labels_Brain.nii.gz')
-        if os.path.exists(seg_file):
-            shutil.move(seg_file, os.path.join(patient_parameters.get_output_folder(), 'patient_brain.nii.gz'))
-            data_uid, error_msg = patient_parameters.import_data(os.path.join(patient_parameters.get_output_folder(),
-                                                                              'patient_brain.nii.gz'), type='Annotation')
-            patient_parameters.get_annotation_by_uid(data_uid).set_annotation_class_type("Brain")
-            patient_parameters.get_annotation_by_uid(data_uid).set_generation_type("Automatic")
-            patient_parameters.get_annotation_by_uid(data_uid).set_parent_mri_uid(selected_mri_uid)
-            results['Annotation'].append(data_uid)
-
-        # Collecting the standardized report
-        report_filename = os.path.join(patient_parameters.get_output_folder(), 'reporting',
-                                       'neuro_standardized_report.json')
-        if os.path.exists(report_filename):  # Should always exist
-            error_msg = patient_parameters.import_standardized_report(report_filename)
-        results['Report'] = [report_filename]
-
-        results['Atlas'] = []
-        # Collecting the atlas cortical structures
-        cortical_folder = os.path.join(patient_parameters.get_output_folder(), 'reporting', 'patient', 'Cortical-structures')
-        cortical_masks = []
-        for _, _, files in os.walk(cortical_folder):
-            for f in files:
-                cortical_masks.append(f)
-            break
-
-        for m in cortical_masks:
-            data_uid, error_msg = patient_parameters.import_atlas_structures(os.path.join(cortical_folder, m),
-                                                                             parent_mri_uid=selected_mri_uid,
-                                                                             reference='Patient')
-            results['Atlas'].append(data_uid)
-
-        # Collecting the atlas subcortical structures
-        subcortical_folder = os.path.join(patient_parameters.get_output_folder(), 'reporting', 'patient',
-                                          'Subcortical-structures')
-
-        subcortical_masks = ['BCB_mask.nii.gz']  # @TODO. Hardcoded for now, have to improve the RADS backend here.
-        # subcortical_masks = []
-        # for _, _, files in os.walk(subcortical_folder):
-        #     for f in files:
-        #         if '_mask' in f:
-        #             subcortical_masks.append(f)
-        #     break
-
-        for m in subcortical_masks:
-            if os.path.exists(os.path.join(subcortical_folder, m)):
-                data_uid, error_msg = patient_parameters.import_atlas_structures(os.path.join(subcortical_folder, m),
-                                                                                 parent_mri_uid=selected_mri_uid,
-                                                                                 reference='Patient')
-                results['Atlas'].append(data_uid)
+        # Collecting automatically all generated results
+        results = collect_results(patient_parameters, pipeline)
 
     except Exception:
-        logging.error('RADS for patient {}, using {} failed with: \n{}'.format(patient_parameters.get_unique_id(),
-                                                                               model_name, traceback.format_exc()))
+        logging.error('Pipeline for patient {}, using {} failed with: \n{}'.format(patient_parameters.get_unique_id(),
+                                                                                   model_name, traceback.format_exc()))
+        # Clean-up
+        if os.path.exists(rads_config_filename):
+            os.remove(rads_config_filename)
+        if os.path.exists(pipeline_filename):
+            os.remove(pipeline_filename)
+        if os.path.exists(os.path.join(patient_parameters.get_output_folder(), 'reporting')):
+            shutil.rmtree(os.path.join(patient_parameters.get_output_folder(), 'reporting'))
         queue.put((1, results))
 
+    # Clean-up
     if os.path.exists(rads_config_filename):
         os.remove(rads_config_filename)
+    if os.path.exists(pipeline_filename):
+        os.remove(pipeline_filename)
+    if os.path.exists(os.path.join(patient_parameters.get_output_folder(), 'reporting')):
+        shutil.rmtree(os.path.join(patient_parameters.get_output_folder(), 'reporting'))
 
     queue.put((0, results))

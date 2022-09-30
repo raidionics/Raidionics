@@ -189,7 +189,8 @@ class ImportDICOMDataQDialog(QDialog):
 
     def __on_exit_accept_clicked(self):
         """
-
+        @TODO. Should allow for multiple timestamps inside a same DICOM folder, and such creating timestamp objects
+        on-the-fly
         """
         # @Behaviour. Do we force the user to create a patient, or allow on-the-fly creation when loading data?
         # In case of DICOM data, do we rename the patient with the content of the metadata tag?

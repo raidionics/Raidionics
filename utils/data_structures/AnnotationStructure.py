@@ -74,6 +74,7 @@ class AnnotationVolume:
         self._unique_id = uid
         self._raw_input_filepath = input_filename
         self._output_patient_folder = output_patient_folder
+        os.makedirs(output_patient_folder, exist_ok=True)
         self._display_name = uid
         self._parent_mri_uid = parent_mri_uid
 
@@ -259,22 +260,24 @@ class AnnotationVolume:
 
             # Parameters-filling operations
             volume_params = {}
+            base_patient_folder = '/'.join(self._output_patient_folder.split('/')[:-1])  # To keep the timestamp folder
+
             volume_params['display_name'] = self._display_name
             if self._output_patient_folder in self._raw_input_filepath:
-                volume_params['raw_input_filepath'] = os.path.relpath(self._raw_input_filepath, self._output_patient_folder)
+                volume_params['raw_input_filepath'] = os.path.relpath(self._raw_input_filepath, base_patient_folder)
             else:
                 volume_params['raw_input_filepath'] = self._raw_input_filepath
 
             if self._output_patient_folder in self._usable_input_filepath:
                 volume_params['usable_input_filepath'] = os.path.relpath(self._usable_input_filepath,
-                                                                         self._output_patient_folder)
+                                                                         base_patient_folder)
             else:
                 volume_params['usable_input_filepath'] = self._usable_input_filepath
 
             volume_params['resample_input_filepath'] = os.path.relpath(self._resampled_input_volume_filepath,
-                                                                       self._output_patient_folder)
+                                                                       base_patient_folder)
             volume_params['display_volume_filepath'] = os.path.relpath(self._display_volume_filepath,
-                                                                       self._output_patient_folder)
+                                                                       base_patient_folder)
             volume_params['annotation_class'] = str(self._annotation_class)
             volume_params['generation_type'] = str(self._generation_type)
             volume_params['parent_mri_uid'] = self._parent_mri_uid
@@ -288,7 +291,8 @@ class AnnotationVolume:
 
     def __init_from_scratch(self) -> None:
         self._usable_input_filepath = input_file_type_conversion(input_filename=self._raw_input_filepath,
-                                                                 output_folder=self._output_patient_folder)
+                                                                 output_folder=os.path.join(self._output_patient_folder,
+                                                                                            'raw'))
         self.__generate_display_volume()
 
     def __reload_from_disk(self, parameters: dict) -> None:
