@@ -25,6 +25,7 @@ class SoftwareConfigResources:
     _user_preferences_filename = None  # json file containing the user preferences (for when reopening the software).
     _active_model_update = False  # True for regularly checking if new models are available, False otherwise
     _session_log_filename = None  # log filename containing the runtime logging for each software execution.
+    _software_version = "1.2"  # Current software version (minor) for selecting which models to use in the backend.
 
     @staticmethod
     def getInstance():
@@ -99,6 +100,9 @@ class SoftwareConfigResources:
         if 'Models' in preferences.keys():
             if 'active_update' in preferences['Models'].keys():
                 self._active_model_update = preferences['Models']['active_update']
+
+    def get_software_version(self) -> str:
+        return self._software_version
 
     def get_session_log_filename(self):
         return self._session_log_filename

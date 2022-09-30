@@ -27,9 +27,9 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r misc/requirements.txt
         pip install -e git+https://github.com/dbouget/raidionics_rads_lib.git@master#egg=raidionicsrads
-        pip install -e git+https://github.com/dbouget/raidionics_seg_lib.git@master#egg=raidionicsseg
+        pip install -r misc/requirements.txt
+#        pip install -e git+https://github.com/dbouget/raidionics_seg_lib.git@master#egg=raidionicsseg
 
     - name: Build software
       run: |

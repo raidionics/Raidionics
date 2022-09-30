@@ -10,7 +10,9 @@ from utils.software_config import SoftwareConfigResources
 
 def get_available_cloud_models_list():
     cloud_models_list = []
-    cloud_models_list_url = 'https://drive.google.com/uc?id=1vRUr0VXgnDFNq7AlB5ILyBCmW_sGuciP'
+    cloud_models_list_url = 'https://drive.google.com/uc?id=1vRUr0VXgnDFNq7AlB5ILyBCmW_sGuciP'  # Initial v1.0/v1.1
+    if SoftwareConfigResources.getInstance().get_software_version() == "1.2":
+        cloud_models_list_url = 'https://drive.google.com/uc?id=12tFP9trt8CLS6UBfNpodlRUwfSqZJJNQ'
     try:
         cloud_models_list_filename = os.path.join(expanduser("~"), '.raidionics', 'resources/models',
                                                   'cloud_models_list.csv')
