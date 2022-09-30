@@ -40,8 +40,8 @@ jobs:
     - name: Make installer
       run: |
         git clone https://github.com/andreped/quickpkg.git
-        quickpkg/quickpkg dist/Raidionics.app --output Raidionics-1.1.0-macOS.pkg
-        cp -r Raidionics-1.1.0-macOS.pkg dist/Raidionics-1.1.0-macOS.pkg
+        quickpkg/quickpkg dist/Raidionics.app --output Raidionics-1.2.0-macOS.pkg
+        cp -r Raidionics-1.2.0-macOS.pkg dist/Raidionics-1.2.0-macOS.pkg
 
     - name: Upload package
       uses: actions/upload-artifact@v2

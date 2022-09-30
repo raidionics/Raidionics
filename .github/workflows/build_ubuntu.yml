@@ -43,7 +43,7 @@ jobs:
         cp -r dist/Raidionics misc/Raidionics_ubuntu/usr/local/bin
         dpkg-deb --build --root-owner-group misc/Raidionics_ubuntu
         ls -la
-        cp -r misc/Raidionics_ubuntu.deb dist/Raidionics-1.1.0-ubuntu.deb
+        cp -r misc/Raidionics_ubuntu.deb dist/Raidionics-1.2.0-ubuntu.deb
 
     - name: Upload package
       uses: actions/upload-artifact@v2
