@@ -25,7 +25,7 @@ InstallDirRegKey "${REG_ROOT}" "${REG_APP_PATH}" ""
 InstallDir "$PROGRAMFILES\Raidionics"
 
 !include 'MUI.nsh'
-!define MUI_ICON ".\images\raidionics-logo.ico"
+!define MUI_ICON "..\images\raidionics-logo.ico"
 
 !define MUI_ABORTWARNING
 !define MUI_UNABORTWARNING
@@ -112,7 +112,7 @@ WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}"  "Publisher" "${COMP_NAME}"
 CreateDirectory $INSTDIR
 
 # PACKAGE ENTIRE CONTENT OF BUNDLE THE NEW BINARY!
-File /nonfatal /a /r ".\dist\Raidionics\*"
+File /nonfatal /a /r "..\dist\Raidionics\*"
 ExecWait "$INSTDIR\Raidionics-installed.exe"
 
 !ifdef REG_START_MENU
