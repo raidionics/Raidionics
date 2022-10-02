@@ -8,6 +8,7 @@ import nibabel as nib
 from nibabel.processing import resample_to_output
 from copy import deepcopy
 import os
+from pathlib import PurePath
 
 from utils.utilities import get_type_from_string, input_file_type_conversion
 
@@ -261,6 +262,11 @@ class AnnotationVolume:
             # Parameters-filling operations
             volume_params = {}
             base_patient_folder = '/'.join(self._output_patient_folder.split('/')[:-1])  # To keep the timestamp folder
+            if os.name == 'nt':
+                base_patient_folder_parts = list(PurePath(os.path.realpath(self._output_patient_folder)).parts[:-1])
+                base_patient_folder = PurePath()
+                for x in base_patient_folder_parts:
+                    base_patient_folder = base_patient_folder.joinpath(x)
 
             volume_params['display_name'] = self._display_name
             if self._output_patient_folder in self._raw_input_filepath:

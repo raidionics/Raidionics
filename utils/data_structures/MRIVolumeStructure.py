@@ -10,6 +10,7 @@ import nibabel as nib
 from nibabel.processing import resample_to_output
 import numpy as np
 import json
+from pathlib import PurePath
 
 from utils.utilities import get_type_from_string, input_file_type_conversion
 
@@ -262,6 +263,11 @@ class MRIVolume:
             volume_params['raw_input_filepath'] = self._raw_input_filepath
 
             base_patient_folder = '/'.join(self._output_patient_folder.split('/')[:-1])  # To keep the timestamp folder
+            if os.name == 'nt':
+                base_patient_folder_parts = list(PurePath(os.path.realpath(self._output_patient_folder)).parts[:-1])
+                base_patient_folder = PurePath()
+                for x in base_patient_folder_parts:
+                    base_patient_folder = base_patient_folder.joinpath(x)
             volume_params['resample_input_filepath'] = os.path.relpath(self._resampled_input_volume_filepath,
                                                                        base_patient_folder)
             volume_params['usable_input_filepath'] = self._usable_input_filepath
