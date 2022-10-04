@@ -37,7 +37,9 @@ def collect_results(patient_parameters, pipeline):
                 dest_file = os.path.join(patient_parameters.get_mri_by_uid(parent_mri_uid).get_output_patient_folder(),
                                          'raw', os.path.basename(seg_file))
                 shutil.move(seg_file, dest_file)
-                data_uid, error_msg = patient_parameters.import_data(dest_file, type='Annotation')
+                data_uid, error_msg = patient_parameters.import_data(dest_file,
+                                                                     investigation_ts='T' + str(pip_step["inputs"]["0"]["timestamp"]),
+                                                                     type='Annotation')
                 patient_parameters.get_annotation_by_uid(data_uid).set_annotation_class_type(anno_str)
                 patient_parameters.get_annotation_by_uid(data_uid).set_generation_type("Automatic")
                 patient_parameters.get_annotation_by_uid(data_uid).set_parent_mri_uid(parent_mri_uid)

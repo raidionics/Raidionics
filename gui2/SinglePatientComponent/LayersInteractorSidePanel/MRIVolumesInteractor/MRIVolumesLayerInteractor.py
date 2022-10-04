@@ -29,7 +29,7 @@ class MRIVolumesLayerInteractor(QCollapsibleGroupBox):
         self.parent = parent
         self.volumes_widget = {}
         # @TODO. Might have to give up on dynamic scaling, many side effects extremely annoying to debug
-        self.setFixedWidth(315)
+        # self.setFixedWidth(315)
         # self.setFixedWidth((315 / SoftwareConfigResources.getInstance().get_optimal_dimensions().width()) * self.parent.baseSize().width())
         # self.setBaseSize(QSize(self.width(), 500))  # Defining a base size is necessary as inner widgets depend on it.
         self.__set_interface()

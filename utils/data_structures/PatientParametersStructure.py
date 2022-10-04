@@ -36,6 +36,7 @@ class PatientParameters:
     _annotation_volumes = {}  # All Annotation instances loaded for the current patient.
     _atlas_volumes = {}  # All Atlas instances loaded for the current patient.
     _investigation_timestamps = {}  # All investigation timestamps for the current patient.
+    _active_investigation_timestamp_uid = None  # Convenience for now, to know into which TS to load the imported data
     _unsaved_changes = False  # Documenting any change, for suggesting saving when swapping between patients
 
     def __init__(self, id: str = "-1", dest_location: str = None, patient_filename: str = None):
@@ -70,6 +71,8 @@ class PatientParameters:
         self._mri_volumes = {}
         self._annotation_volumes = {}
         self._atlas_volumes = {}
+        self._investigation_timestamps = {}
+        self._active_investigation_timestamp_uid = None
         self._unsaved_changes = False
 
     def __init_from_scratch(self, dest_location: str) -> None:
@@ -134,6 +137,12 @@ class PatientParameters:
         for at in self._atlas_volumes:
             self._atlas_volumes[at].set_output_patient_folder(self._output_folder)
         logging.info("Renamed current output directory to: {}".format(directory))
+
+    def set_active_investigation_timestamp(self, timestamp_uid: str) -> None:
+        self._active_investigation_timestamp_uid = timestamp_uid
+
+    def get_active_investigation_timestamp_uid(self) -> str:
+        return self._active_investigation_timestamp_uid
 
     def release_from_memory(self) -> None:
         """
@@ -378,6 +387,8 @@ class PatientParameters:
                     investigation_ts = 'T0'
                     curr_ts = InvestigationTimestamp(investigation_ts, order=0)
                     self._investigation_timestamps[investigation_ts] = curr_ts
+                elif self._active_investigation_timestamp_uid:
+                    investigation_ts = self._active_investigation_timestamp_uid
                 else:
                     investigation_ts = list(self._investigation_timestamps.keys())[0]
 
@@ -525,6 +536,9 @@ class PatientParameters:
 
     def get_standardized_report(self) -> dict:
         return self._standardized_report
+
+    def get_timestamp_by_uid(self, uid: str) -> InvestigationTimestamp:
+        return self._investigation_timestamps[uid]
 
     def get_all_mri_volumes_uids(self) -> List[str]:
         return list(self._mri_volumes.keys())
@@ -743,3 +757,25 @@ class PatientParameters:
         del self._atlas_volumes[atlas_uid]
         logging.info("Removed atlas {} for patient {}".format(atlas_uid, self._unique_id))
         self.save_patient()
+
+    def insert_investigation_timestamp(self, order: int) -> Tuple[str, int]:
+        """
+        Creates a new investigation timestamp for the current order in the timestamps sequence.
+        Functioning similarly to an append function to insert a new timestamp at the end of the list.
+
+        Parameters
+        ----------
+        order: int
+            Current sequence order value for the current timestamp, should be the highest value
+        """
+        error_code = 0
+        investigation_uid = None
+        try:
+            investigation_uid = 'T' + str(order)
+            curr_ts = InvestigationTimestamp(investigation_uid, order=order)
+            self._investigation_timestamps[investigation_uid] = curr_ts
+        except Exception as e:
+            logging.error("Inserting a new investigation timestamp failed with: {}".format(traceback.format_exc()))
+            error_code = 1
+
+        return investigation_uid, error_code

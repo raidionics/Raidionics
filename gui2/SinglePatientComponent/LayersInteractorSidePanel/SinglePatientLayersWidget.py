@@ -1,9 +1,10 @@
-from PySide2.QtWidgets import QWidget, QVBoxLayout, QScrollArea
+from PySide2.QtWidgets import QWidget, QVBoxLayout, QScrollArea, QTabWidget
 from PySide2.QtCore import Qt, QSize, Signal
 from PySide2.QtGui import QColor
 
 import logging
 
+from gui2.SinglePatientComponent.LayersInteractorSidePanel.TimestampsInteractor.TimestampsLayerInteractor import TimestampsLayerInteractor
 from gui2.SinglePatientComponent.LayersInteractorSidePanel.MRIVolumesInteractor.MRIVolumesLayerInteractor import MRIVolumesLayerInteractor
 from gui2.SinglePatientComponent.LayersInteractorSidePanel.AnnotationLayersInteractor.AnnotationsLayersInteractor import AnnotationsLayersInteractor
 from gui2.SinglePatientComponent.LayersInteractorSidePanel.AtlasLayersInteractor.AtlasesLayersInteractor import AtlasesLayersInteractor
@@ -59,18 +60,24 @@ class SinglePatientLayersWidget(QWidget):
         self.overall_scrollarea_layout.setSpacing(0)
         self.overall_scrollarea_layout.setContentsMargins(0, 0, 0, 0)
 
+        self.main_tabwidget = QTabWidget()
+        self.timestamp_layer_widget = TimestampsLayerInteractor(self)
+        self.main_tabwidget.addTab(self.timestamp_layer_widget, "Data")
+        self.main_tabwidget.addTab(QWidget(), "Actions")
+        self.overall_scrollarea_layout.addWidget(self.main_tabwidget)
+
         self.volumes_collapsiblegroupbox = MRIVolumesLayerInteractor(self)
         # self.volumes_collapsiblegroupbox.setFixedSize(QSize(200, self.parent.baseSize().height()))
         # self.volumes_collapsiblegroupbox.content_label.setBaseSize(QSize(200, self.parent.baseSize().height()))
-        self.overall_scrollarea_layout.addWidget(self.volumes_collapsiblegroupbox)
+        # self.overall_scrollarea_layout.addWidget(self.volumes_collapsiblegroupbox)
 
         self.annotations_collapsiblegroupbox = AnnotationsLayersInteractor(self)
         # self.volumes_collapsiblegroupbox.setFixedSize(QSize(200, self.parent.baseSize().height()))
         # self.volumes_collapsiblegroupbox.content_label.setBaseSize(QSize(200, self.parent.baseSize().height()))
-        self.overall_scrollarea_layout.addWidget(self.annotations_collapsiblegroupbox)
+        # self.overall_scrollarea_layout.addWidget(self.annotations_collapsiblegroupbox)
 
         self.atlases_collapsiblegroupbox = AtlasesLayersInteractor(self)
-        self.overall_scrollarea_layout.addWidget(self.atlases_collapsiblegroupbox)
+        # self.overall_scrollarea_layout.addWidget(self.atlases_collapsiblegroupbox)
 
         self.overall_scrollarea_layout.addStretch(1)
         self.overall_scrollarea_dummy_widget.setLayout(self.overall_scrollarea_layout)
@@ -98,6 +105,19 @@ class SinglePatientLayersWidget(QWidget):
         self.atlases_collapsiblegroupbox.atlas_structure_view_toggled.connect(self.atlas_structure_view_toggled)
         self.atlases_collapsiblegroupbox.atlas_color_changed.connect(self.atlas_structure_color_changed)
         self.atlases_collapsiblegroupbox.atlas_opacity_changed.connect(self.atlas_structure_opacity_changed)
+
+        # # Timestamp-based connections
+        self.mri_volume_imported.connect(self.timestamp_layer_widget.on_mri_volume_import)
+        self.annotation_volume_imported.connect(self.timestamp_layer_widget.on_import_annotation)
+        self.atlas_volume_imported.connect(self.timestamp_layer_widget.on_import_atlas)
+        self.timestamp_layer_widget.volume_view_toggled.connect(self.volume_view_toggled)
+        self.timestamp_layer_widget.volume_contrast_changed.connect(self.volume_contrast_changed)
+        self.timestamp_layer_widget.annotation_view_toggled.connect(self.annotation_view_toggled)
+        self.timestamp_layer_widget.annotation_opacity_changed.connect(self.annotation_opacity_changed)
+        self.timestamp_layer_widget.annotation_color_changed.connect(self.annotation_color_changed)
+        self.timestamp_layer_widget.atlas_structure_view_toggled.connect(self.atlas_structure_view_toggled)
+        self.timestamp_layer_widget.atlas_structure_color_changed.connect(self.atlas_structure_color_changed)
+        self.timestamp_layer_widget.atlas_structure_opacity_changed.connect(self.atlas_structure_opacity_changed)
 
         # @TODO. Can be removed, deprecated?
         self.import_data_triggered.connect(self.volumes_collapsiblegroupbox.on_import_data)

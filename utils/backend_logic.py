@@ -101,10 +101,10 @@ def run_segmentation(model_name: str, patient_parameters: PatientParameters, que
         rads_config.set('System', 'input_folder', patient_parameters.get_output_folder())
         rads_config.set('System', 'output_folder', reporting_folder)
         rads_config.set('System', 'model_folder', SoftwareConfigResources.getInstance().models_path)
-        pipeline = create_pipeline(model_name, patient_parameters, 'seg')
+        pipeline = create_pipeline(model_name, patient_parameters, 'postop_seg')
         pipeline_filename = os.path.join(patient_parameters.get_output_folder(), 'rads_pipeline.json')
         with open(pipeline_filename, 'w', newline='\n') as outfile:
-            json.dump(pipeline, outfile, indent=4, sort_keys=True)
+            json.dump(pipeline, outfile, indent=4)
         rads_config.set('System', 'pipeline_filename', pipeline_filename)
         rads_config.add_section('Runtime')
         rads_config.set('Runtime', 'reconstruction_method', 'thresholding')
@@ -233,7 +233,7 @@ def run_reporting(model_name, patient_parameters, queue):
         pipeline = create_pipeline(model_name, patient_parameters, 'reporting')
         pipeline_filename = os.path.join(patient_parameters.get_output_folder(), 'rads_pipeline.json')
         with open(pipeline_filename, 'w', newline='\n') as outfile:
-            json.dump(pipeline, outfile, indent=4, sort_keys=True)
+            json.dump(pipeline, outfile, indent=4)
 
         rads_config = configparser.ConfigParser()
         rads_config.add_section('Default')

@@ -382,6 +382,7 @@ class AnnotationSingleLayerWidget(QWidget):
             self.color_dialogpushbutton.setEnabled(False)
 
         self.visibility_toggled.emit(self.uid, state)
+        logging.debug("Annotation layer {}, visibility toggled {}.".format(self.uid, state))
 
     def on_name_changed(self, text):
         self.display_name_changed.emit(self.uid, text)
