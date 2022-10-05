@@ -537,6 +537,9 @@ class PatientParameters:
     def get_standardized_report(self) -> dict:
         return self._standardized_report
 
+    def get_all_timestamps_uids(self) -> List[str]:
+        return list(self._investigation_timestamps.keys())
+
     def get_timestamp_by_uid(self, uid: str) -> InvestigationTimestamp:
         return self._investigation_timestamps[uid]
 
@@ -579,6 +582,26 @@ class PatientParameters:
         res = []
         for im in self._mri_volumes:
             if self._mri_volumes[im].get_sequence_type_enum() == sequence_type:
+                res.append(im)
+        return res
+
+    def get_all_mri_volumes_for_timestamp(self, timestamp_uid: str) -> List[str]:
+        """
+        Convenience method for collecting all MRI volumes for a specific investigation timestamp.
+
+        Parameters
+        ----------
+        timestamp_uid: str
+            Internal unique ID of the timestamp.
+        Returns
+        -------
+        List[str]
+            A list of unique identifiers for each MRI volume object associated with the given input parameters.
+        """
+        res = []
+
+        for im in self._mri_volumes:
+            if self._mri_volumes[im].get_timestamp_uid() == timestamp_uid:
                 res.append(im)
         return res
 

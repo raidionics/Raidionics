@@ -20,6 +20,7 @@ class CentralAreaWidget(QWidget):
     annotation_view_toggled = Signal(str, bool)
     annotation_opacity_changed = Signal(str, int)
     annotation_color_changed = Signal(str, QColor)
+    annotation_display_state_changed = Signal()
     atlas_view_toggled = Signal(str, bool)
     atlas_structure_view_toggled = Signal(str, int, bool)
     atlas_structure_color_changed = Signal(str, int, QColor)
@@ -80,6 +81,7 @@ class CentralAreaWidget(QWidget):
         self.display_area_widget.mri_volume_imported.connect(self.on_import_mri_volume)
         self.display_area_widget.annotation_volume_imported.connect(self.on_import_annotation)
         self.display_area_widget.atlas_volume_imported.connect(self.on_import_atlas)
+        self.display_area_widget.annotation_display_state_changed.connect(self.annotation_display_state_changed)
 
         # Connections from/to the execution area
         self.execution_area_widget.annotation_volume_imported.connect(self.on_import_annotation)

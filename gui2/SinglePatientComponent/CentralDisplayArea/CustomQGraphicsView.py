@@ -19,6 +19,7 @@ class CustomQGraphicsView(QGraphicsView):
     annotation_volume_imported = Signal(str)  # From the drag/drop event to include more annotations
     patient_imported = Signal(str)  # From the drag/drop event to include more patients to the project?
     coordinates_changed = Signal(int, int)  # From the mouse move event to change the point-of-view.
+    annotation_display_state_changed = Signal()  # When pressing 's' to toggle on/off the annotations
 
     def __init__(self, view_type='axial', size=QSize(150, 150), parent=None):
         super(CustomQGraphicsView, self).__init__()
@@ -86,6 +87,11 @@ class CustomQGraphicsView(QGraphicsView):
 
     def __set_stylesheets(self):
         self.setStyleSheet("QGraphicsView{background-color:rgb(0,0,0);}")
+
+    def keyPressEvent(self, event) -> None:
+        if event.key() == Qt.Key_S:
+            logging.info("Changing annotations display state.")
+            self.annotation_display_state_changed.emit()
 
     def mousePressEvent(self, event):
         """

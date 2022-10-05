@@ -20,12 +20,14 @@ class SinglePatientLayersWidget(QWidget):
     atlas_volume_imported = Signal(str)
 
     import_data_triggered = Signal()
+    patient_imported = Signal(str)
     patient_view_toggled = Signal(str)
     volume_view_toggled = Signal(str, bool)
     volume_contrast_changed = Signal(str)
     annotation_view_toggled = Signal(str, bool)
     annotation_opacity_changed = Signal(str, int)
     annotation_color_changed = Signal(str, QColor)
+    annotation_display_state_changed = Signal()
     atlas_view_toggled = Signal(str, bool)
     atlas_structure_view_toggled = Signal(str, int, bool)
     atlas_structure_color_changed = Signal(str, int, QColor)
@@ -85,31 +87,34 @@ class SinglePatientLayersWidget(QWidget):
         self.layout.addWidget(self.overall_scrollarea)
 
     def __set_connections(self):
-        self.mri_volume_imported.connect(self.volumes_collapsiblegroupbox.on_mri_volume_import)
-        self.annotation_volume_imported.connect(self.annotations_collapsiblegroupbox.on_import_volume)
-        self.atlas_volume_imported.connect(self.atlases_collapsiblegroupbox.on_import_volume)
-        self.patient_view_toggled.connect(self.volumes_collapsiblegroupbox.on_patient_view_toggled)
-        self.patient_view_toggled.connect(self.annotations_collapsiblegroupbox.on_patient_view_toggled)
-        self.patient_view_toggled.connect(self.atlases_collapsiblegroupbox.on_patient_view_toggled)
-
-        self.volumes_collapsiblegroupbox.volume_view_toggled.connect(self.volume_view_toggled)
-        self.volumes_collapsiblegroupbox.volume_view_toggled.connect(self.annotations_collapsiblegroupbox.on_volume_view_toggled)
-        self.volumes_collapsiblegroupbox.volume_view_toggled.connect(self.atlases_collapsiblegroupbox.on_volume_view_toggled)
-        self.volumes_collapsiblegroupbox.contrast_changed.connect(self.volume_contrast_changed)
-        self.volumes_collapsiblegroupbox.volume_removed.connect(self.on_mri_volume_removed)
-        self.volumes_collapsiblegroupbox.volume_display_name_changed.connect(self.annotations_collapsiblegroupbox.on_mri_volume_display_name_changed)
-        self.annotations_collapsiblegroupbox.annotation_view_toggled.connect(self.annotation_view_toggled)
-        self.annotations_collapsiblegroupbox.annotation_opacity_changed.connect(self.annotation_opacity_changed)
-        self.annotations_collapsiblegroupbox.annotation_color_changed.connect(self.annotation_color_changed)
-        # self.atlases_collapsiblegroupbox.atlas_view_toggled.connect(self.atlas_view_toggled)
-        self.atlases_collapsiblegroupbox.atlas_structure_view_toggled.connect(self.atlas_structure_view_toggled)
-        self.atlases_collapsiblegroupbox.atlas_color_changed.connect(self.atlas_structure_color_changed)
-        self.atlases_collapsiblegroupbox.atlas_opacity_changed.connect(self.atlas_structure_opacity_changed)
+        # self.mri_volume_imported.connect(self.volumes_collapsiblegroupbox.on_mri_volume_import)
+        # self.annotation_volume_imported.connect(self.annotations_collapsiblegroupbox.on_import_volume)
+        # self.atlas_volume_imported.connect(self.atlases_collapsiblegroupbox.on_import_volume)
+        # self.patient_view_toggled.connect(self.volumes_collapsiblegroupbox.on_patient_view_toggled)
+        # self.patient_view_toggled.connect(self.annotations_collapsiblegroupbox.on_patient_view_toggled)
+        # self.patient_view_toggled.connect(self.atlases_collapsiblegroupbox.on_patient_view_toggled)
+        #
+        # self.volumes_collapsiblegroupbox.volume_view_toggled.connect(self.volume_view_toggled)
+        # self.volumes_collapsiblegroupbox.volume_view_toggled.connect(self.annotations_collapsiblegroupbox.on_volume_view_toggled)
+        # self.volumes_collapsiblegroupbox.volume_view_toggled.connect(self.atlases_collapsiblegroupbox.on_volume_view_toggled)
+        # self.volumes_collapsiblegroupbox.contrast_changed.connect(self.volume_contrast_changed)
+        # self.volumes_collapsiblegroupbox.volume_removed.connect(self.on_mri_volume_removed)
+        # self.volumes_collapsiblegroupbox.volume_display_name_changed.connect(self.annotations_collapsiblegroupbox.on_mri_volume_display_name_changed)
+        # self.annotations_collapsiblegroupbox.annotation_view_toggled.connect(self.annotation_view_toggled)
+        # self.annotations_collapsiblegroupbox.annotation_opacity_changed.connect(self.annotation_opacity_changed)
+        # self.annotations_collapsiblegroupbox.annotation_color_changed.connect(self.annotation_color_changed)
+        # # self.atlases_collapsiblegroupbox.atlas_view_toggled.connect(self.atlas_view_toggled)
+        # self.atlases_collapsiblegroupbox.atlas_structure_view_toggled.connect(self.atlas_structure_view_toggled)
+        # self.atlases_collapsiblegroupbox.atlas_color_changed.connect(self.atlas_structure_color_changed)
+        # self.atlases_collapsiblegroupbox.atlas_opacity_changed.connect(self.atlas_structure_opacity_changed)
 
         # # Timestamp-based connections
+        self.patient_imported.connect(self.timestamp_layer_widget.on_import_patient)
+        self.patient_view_toggled.connect(self.timestamp_layer_widget.on_patient_view_toggled)
         self.mri_volume_imported.connect(self.timestamp_layer_widget.on_mri_volume_import)
         self.annotation_volume_imported.connect(self.timestamp_layer_widget.on_import_annotation)
         self.atlas_volume_imported.connect(self.timestamp_layer_widget.on_import_atlas)
+        self.annotation_display_state_changed.connect(self.timestamp_layer_widget.on_annotation_display_state_changed)
         self.timestamp_layer_widget.volume_view_toggled.connect(self.volume_view_toggled)
         self.timestamp_layer_widget.volume_contrast_changed.connect(self.volume_contrast_changed)
         self.timestamp_layer_widget.annotation_view_toggled.connect(self.annotation_view_toggled)
@@ -124,8 +129,37 @@ class SinglePatientLayersWidget(QWidget):
         self.import_data_triggered.connect(self.annotations_collapsiblegroupbox.on_import_data)
 
     def __set_stylesheets(self):
-        # self.overall_scrollarea.setStyleSheet("QScrollArea{background-color:rgb(0, 0, 255);}")
-        pass
+        software_ss = SoftwareConfigResources.getInstance().stylesheet_components
+        font_color = software_ss["Color7"]
+        background_color = software_ss["Color5"]
+        background_color_selected = software_ss["Color3"]
+
+        # self.main_tabwidget.setStyleSheet("""
+        # QTableWidget:pane{
+        # border: 2px solid black;
+        # }
+        # """)
+
+        self.main_tabwidget.tabBar().setStyleSheet("""
+        QTabBar{
+        background-color: """ + background_color + """;
+        color: """ + font_color + """;
+        font-size: 14px;
+        font-style: bold;
+        }
+        QTabBar:tab{
+        background-color: """ + background_color + """;
+        color: """ + font_color + """;
+        font-size: 14px;
+        font-style: bold;
+        }
+        QTabBar:tab::selected{
+        background-color: """ + background_color_selected + """;
+        color: """ + font_color + """;
+        font-size: 14px;
+        font-style: bold;
+        }
+        """)
 
     def on_mri_volume_import(self, uid):
         self.mri_volume_imported.emit(uid)
@@ -162,8 +196,10 @@ class SinglePatientLayersWidget(QWidget):
         patient_uid : str
             The unique identifier of the newly selected active patient.
         """
-        self.volumes_collapsiblegroupbox.reset()
-        self.annotations_collapsiblegroupbox.reset()
-        self.atlases_collapsiblegroupbox.reset()
-        # self.import_data_triggered.emit()
+        # self.volumes_collapsiblegroupbox.reset()
+        # self.annotations_collapsiblegroupbox.reset()
+        # self.atlases_collapsiblegroupbox.reset()
         self.patient_view_toggled.emit(patient_uid)
+
+    def on_import_patient(self, patient_uid: str) -> None:
+        self.patient_imported.emit(patient_uid)

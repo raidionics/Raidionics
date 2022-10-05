@@ -1,5 +1,5 @@
 from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QLineEdit, QComboBox, QGridLayout, QPushButton,\
-    QRadioButton, QMenu, QAction, QVBoxLayout, QMessageBox
+    QRadioButton, QMenu, QAction, QVBoxLayout, QMessageBox, QSpacerItem
 from PySide2.QtCore import Qt, QSize, Signal, QPoint
 from PySide2.QtGui import QPixmap, QIcon, QColor
 import os
@@ -15,12 +15,13 @@ class TimestampLayerWidget(QWidget):
     """
 
     """
+    timestamp_display_name_changed = Signal(str, str)  # Timestamp uid, new display name
     mri_volume_imported = Signal(str)
     annotation_volume_imported = Signal(str)
     atlas_volume_imported = Signal(str)
 
     import_data_triggered = Signal()
-    patient_view_toggled = Signal(str)
+    patient_view_toggled = Signal(str, str)  # Patient uid, timestamp uid
     volume_view_toggled = Signal(str, bool)
     volume_contrast_changed = Signal(str)
     annotation_view_toggled = Signal(str, bool)
@@ -64,13 +65,13 @@ class TimestampLayerWidget(QWidget):
         self.timestamp_name_lineedit.setFixedHeight(20)
 
     def __set_connections(self):
-        self.timestamp_name_lineedit.textEdited.connect(self.on_name_change)
+        self.timestamp_name_lineedit.returnPressed.connect(self.on_name_change)
         # self.mri_volume_imported.connect(self.volumes_collapsiblegroupbox.on_mri_volume_import)
         # self.annotation_volume_imported.connect(self.annotations_collapsiblegroupbox.on_import_volume)
         # self.atlas_volume_imported.connect(self.atlases_collapsiblegroupbox.on_import_volume)
-        # self.patient_view_toggled.connect(self.volumes_collapsiblegroupbox.on_patient_view_toggled)
-        # self.patient_view_toggled.connect(self.annotations_collapsiblegroupbox.on_patient_view_toggled)
-        # self.patient_view_toggled.connect(self.atlases_collapsiblegroupbox.on_patient_view_toggled)
+        self.patient_view_toggled.connect(self.volumes_collapsiblegroupbox.on_patient_view_toggled)
+        self.patient_view_toggled.connect(self.annotations_collapsiblegroupbox.on_patient_view_toggled)
+        self.patient_view_toggled.connect(self.atlases_collapsiblegroupbox.on_patient_view_toggled)
 
         self.volumes_collapsiblegroupbox.volume_view_toggled.connect(self.volume_view_toggled)
         self.volumes_collapsiblegroupbox.volume_view_toggled.connect(self.annotations_collapsiblegroupbox.on_volume_view_toggled)
@@ -117,8 +118,43 @@ class TimestampLayerWidget(QWidget):
         timestamp_parameters = SoftwareConfigResources.getInstance().get_active_patient().get_timestamp_by_uid(self.uid)
         self.timestamp_name_lineedit.setText(timestamp_parameters.get_display_name())
 
-    def on_name_change(self, text):
+    def adjustSize(self):
+        """
+        How to adjust the size properly here?
+        """
         pass
+
+    def on_name_change(self):
+        new_name = self.timestamp_name_lineedit.text()
+        timestamp_parameters = SoftwareConfigResources.getInstance().get_active_patient().get_timestamp_by_uid(self.uid)
+        timestamp_parameters.set_display_name(new_name)
+        self.timestamp_display_name_changed.emit(self.uid, new_name)
+
+    def on_patient_view_toggled(self, patient_uid: str) -> None:
+        """
+        The active patient has been changed by the user. All displayed info in the widget are obsolete and should
+        be replaced by the ones attached to patient_uid.
+
+        Parameters
+        ----------
+        patient_uid : str
+            The unique identifier of the newly selected active patient.
+        """
+        self.volumes_collapsiblegroupbox.reset()
+        self.annotations_collapsiblegroupbox.reset()
+        self.atlases_collapsiblegroupbox.reset()
+        self.patient_view_toggled.emit(patient_uid, self.uid)
+        self.adjustSize()
+
+    def on_import_patient(self, patient_uid: str) -> None:
+        """
+        Not sure if it should be the exact same as above, or not.
+        """
+        self.volumes_collapsiblegroupbox.reset()
+        self.annotations_collapsiblegroupbox.reset()
+        self.atlases_collapsiblegroupbox.reset()
+        self.patient_view_toggled.emit(patient_uid, self.uid)
+        self.adjustSize()
 
     def on_mri_volume_import(self, uid):
         self.volumes_collapsiblegroupbox.on_mri_volume_import(uid)
@@ -140,3 +176,6 @@ class TimestampLayerWidget(QWidget):
 
     def on_atlas_volume_import(self, uid):
         self.atlases_collapsiblegroupbox.on_import_volume(uid)
+
+    def on_annotation_display_state_changed(self):
+        self.annotations_collapsiblegroupbox.on_annotation_display_state_changed()

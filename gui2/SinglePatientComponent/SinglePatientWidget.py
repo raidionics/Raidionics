@@ -129,6 +129,7 @@ class SinglePatientWidget(QWidget):
         # Connections relating patient selection (left-hand side) with data display
         self.results_panel.patient_selected.connect(self.center_panel.on_patient_selected)
         self.results_panel.patient_selected.connect(self.layers_panel.on_patient_selected)
+        self.import_data_dialog.patient_imported.connect(self.layers_panel.on_import_patient)
 
         # Connections between the patient results panel (left-hand) and the study/batch mode
         self.results_panel.patient_name_edited.connect(self.patient_name_edited)
@@ -149,6 +150,7 @@ class SinglePatientWidget(QWidget):
         self.center_panel.process_started.connect(self.process_progress_panel.on_process_started)
         self.center_panel.process_finished.connect(self.process_progress_panel.on_process_finished)
         self.center_panel.standardized_report_imported.connect(self.results_panel.on_standardized_report_imported)
+        self.center_panel.annotation_display_state_changed.connect(self.layers_panel.annotation_display_state_changed)
 
         # To sort
         self.center_panel.mri_volume_imported.connect(self.layers_panel.on_mri_volume_import)

@@ -112,7 +112,7 @@ class AtlasesLayersInteractor(QCollapsibleGroupBox):
 
         self.adjustSize()  # To force a repaint of the layout with the new elements
 
-    def on_patient_view_toggled(self, patient_uid: str) -> None:
+    def on_patient_view_toggled(self, patient_uid: str, timestamp_uid: str) -> None:
         """
         When a patient has been selected in the left-hand side panel, setting up the display of the first of its
         MRI volumes (if multiple) and corresponding atlas volumes.
@@ -123,8 +123,9 @@ class AtlasesLayersInteractor(QCollapsibleGroupBox):
             Internal unique identifier for the MRI volume selected by the user.
         """
         active_patient = SoftwareConfigResources.getInstance().patients_parameters[patient_uid]
-        if active_patient.get_patient_mri_volumes_number() > 0:
-            for atlas_id in active_patient.get_all_atlases_for_mri(mri_volume_uid=active_patient.get_all_mri_volumes_uids()[0]):
+        volumes_uids = active_patient.get_all_mri_volumes_for_timestamp(timestamp_uid=timestamp_uid)
+        if len(volumes_uids) > 0:
+            for atlas_id in active_patient.get_all_atlases_for_mri(mri_volume_uid=volumes_uids[0]):
                 if not atlas_id in list(self.volumes_widget.keys()):
                     self.on_import_volume(atlas_id)
             self.adjustSize()

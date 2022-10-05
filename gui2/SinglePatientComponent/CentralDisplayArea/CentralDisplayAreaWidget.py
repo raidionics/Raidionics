@@ -15,14 +15,11 @@ class CentralDisplayAreaWidget(QWidget):
 
     """
     import_data_triggered = Signal()
-
-    # The str is the unique id for the MRI volume, belonging to the active patient
-    mri_volume_imported = Signal(str)
-    # The str is the unique id for the annotation volume, belonging to the active patient
-    annotation_volume_imported = Signal(str)
+    mri_volume_imported = Signal(str)  # The str is the unique id for the MRI volume, belonging to the active patient
+    annotation_volume_imported = Signal(str)  # The str is the unique id for the annotation volume, belonging to the active patient
     atlas_volume_imported = Signal(str)
-    # The str is the unique id for the patient
-    patient_imported = Signal(str)
+    patient_imported = Signal(str)  # The str is the unique id for the patient
+    annotation_display_state_changed = Signal()
 
     def __init__(self, parent=None):
         super(CentralDisplayAreaWidget, self).__init__()
@@ -103,12 +100,15 @@ class CentralDisplayAreaWidget(QWidget):
 
         self.axial_viewer.mri_volume_imported.connect(self.mri_volume_imported)
         self.axial_viewer.annotation_volume_imported.connect(self.annotation_volume_imported)
+        self.axial_viewer.annotation_display_state_changed.connect(self.annotation_display_state_changed)
         # self.axial_viewer.patient_imported.connect(self.patient_imported)
         self.coronal_viewer.mri_volume_imported.connect(self.mri_volume_imported)
         self.coronal_viewer.annotation_volume_imported.connect(self.annotation_volume_imported)
+        self.coronal_viewer.annotation_display_state_changed.connect(self.annotation_display_state_changed)
         # self.coronal_viewer.patient_imported.connect(self.patient_imported)
         self.sagittal_viewer.mri_volume_imported.connect(self.mri_volume_imported)
         self.sagittal_viewer.annotation_volume_imported.connect(self.annotation_volume_imported)
+        self.sagittal_viewer.annotation_display_state_changed.connect(self.annotation_display_state_changed)
         # self.sagittal_viewer.patient_imported.connect(self.patient_imported)
 
     def reset_overlay(self):

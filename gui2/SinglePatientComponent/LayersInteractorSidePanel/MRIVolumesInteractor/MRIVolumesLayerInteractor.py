@@ -116,9 +116,12 @@ class MRIVolumesLayerInteractor(QCollapsibleGroupBox):
         self.content_label.update()
         QApplication.processEvents()
 
-    def on_patient_view_toggled(self, patient_uid):
+    def on_patient_view_toggled(self, patient_uid: str, timestamp_uid: str) -> None:
+        """
+        """
         active_patient = SoftwareConfigResources.getInstance().patients_parameters[patient_uid]
-        for volume_id in active_patient.get_all_mri_volumes_uids():
+        volumes_uids = active_patient.get_all_mri_volumes_for_timestamp(timestamp_uid=timestamp_uid)
+        for volume_id in volumes_uids:
             if not volume_id in list(self.volumes_widget.keys()):
                 self.on_import_volume(volume_id)
 
@@ -136,6 +139,10 @@ class MRIVolumesLayerInteractor(QCollapsibleGroupBox):
 
     def on_import_volume(self, volume_id):
         volume_widget = MRISeriesLayerWidget(mri_uid=volume_id, parent=self)
+        if volume_id in list(self.volumes_widget.keys()):
+            logging.warning("[MRIVolumesLayerInteractor] Trying to add an already existing MRI volume widget.")
+            return
+
         self.volumes_widget[volume_id] = volume_widget
         self.content_label_layout.insertWidget(self.content_label_layout.count() - 1, volume_widget)
         volume_widget.visibility_toggled.connect(self.on_visibility_clicked)

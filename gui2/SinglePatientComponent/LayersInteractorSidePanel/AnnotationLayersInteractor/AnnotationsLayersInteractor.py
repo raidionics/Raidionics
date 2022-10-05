@@ -115,7 +115,7 @@ class AnnotationsLayersInteractor(QCollapsibleGroupBox):
 
         self.adjustSize()  # To force a repaint of the layout with the new elements
 
-    def on_patient_view_toggled(self, patient_uid: str) -> None:
+    def on_patient_view_toggled(self, patient_uid: str, timestamp_uid: str) -> None:
         """
         When a patient has been selected in the left-hand side panel, setting up the display of the first of its
         MRI volumes (if multiple) and corresponding annotations volumes
@@ -123,8 +123,9 @@ class AnnotationsLayersInteractor(QCollapsibleGroupBox):
         co-registered patient space, or the MNI space for displaying.
         """
         active_patient = SoftwareConfigResources.getInstance().patients_parameters[patient_uid]
-        if active_patient.get_patient_mri_volumes_number() > 0:
-            for anno_id in active_patient.get_all_annotations_for_mri(mri_volume_uid=active_patient.get_all_mri_volumes_uids()[0]):
+        volumes_uids = active_patient.get_all_mri_volumes_for_timestamp(timestamp_uid=timestamp_uid)
+        if len(volumes_uids) > 0:
+            for anno_id in active_patient.get_all_annotations_for_mri(mri_volume_uid=volumes_uids[0]):
                 if not anno_id in list(self.volumes_widget.keys()):
                     self.on_import_volume(anno_id)
             self.adjustSize()  # To force a repaint of the layout with the new elements
@@ -212,3 +213,15 @@ class AnnotationsLayersInteractor(QCollapsibleGroupBox):
         self.adjustSize()
         self.repaint()
         SoftwareConfigResources.getInstance().get_active_patient().remove_annotation(annotation_uid)
+
+    def on_annotation_display_state_changed(self):
+        """
+        When the 's' key is pressed by the user in the central view, the annotations for the current radiological
+        volume displayed should be toggled on/off.
+        @TODO. Should be improved to target specific annotation(s) to toggle on/off.
+        """
+        for w_id in self.volumes_widget:
+            w = self.volumes_widget[w_id]
+            if w.annotation_type_combobox.currentText() == 'Tumor':
+                # w.display_toggle_button.toggled.emit(not w.display_toggle_button.isChecked())
+                w.display_toggle_button.setChecked(not w.display_toggle_button.isChecked())
