@@ -11,12 +11,28 @@ def create_pipeline(model_name, patient_parameters, task='seg') -> dict:
     dict
         A dictionary containing the Pipeline structure, which will be saved on disk as json.
     """
-    if task == 'seg':
+    if task == 'folders_classification':
+        return __create_folders_classification_pipeline()
+    elif task == 'preop_segmentation':
         return __create_segmentation_pipeline(model_name, patient_parameters)
     elif task == 'postop_seg':
         return __create_segmentation_pipeline_postop(model_name, patient_parameters)
     elif task == 'reporting':
         return __create_reporting_pipeline(model_name, patient_parameters)
+
+
+def __create_folders_classification_pipeline():
+    pip = {}
+    pip_num_int = 1
+    pip_num = str(pip_num_int)
+    pip[pip_num] = {}
+    pip[pip_num]["task"] = 'Classification'
+    pip[pip_num]["inputs"] = {}
+    pip[pip_num]["model"] = 'MRI_Sequence_Classifier'
+    pip[pip_num]["description"] = "Classification of the MRI sequence type for all input scans"
+    download_model(model_name='MRI_Sequence_Classifier')
+
+    return pip
 
 
 def __create_segmentation_pipeline(model_name, patient_parameters):

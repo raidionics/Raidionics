@@ -135,6 +135,7 @@ class SinglePatientWidget(QWidget):
         self.results_panel.patient_name_edited.connect(self.patient_name_edited)
 
         # Connections related to data display (from right-hand panel to update the central viewer)
+        self.layers_panel.reset_central_viewer.connect(self.center_panel.reset_central_viewer)
         self.layers_panel.volume_view_toggled.connect(self.center_panel.on_volume_layer_toggled)
         self.layers_panel.volume_contrast_changed.connect(self.center_panel.on_volume_contrast_changed)
         self.layers_panel.annotation_view_toggled.connect(self.center_panel.on_annotation_layer_toggled)
@@ -144,6 +145,8 @@ class SinglePatientWidget(QWidget):
         self.layers_panel.atlas_structure_view_toggled.connect(self.center_panel.atlas_structure_view_toggled)
         self.layers_panel.atlas_structure_color_changed.connect(self.center_panel.atlas_structure_color_changed)
         self.layers_panel.atlas_structure_opacity_changed.connect(self.center_panel.atlas_structure_opacity_changed)
+        self.layers_panel.execute_folders_classification_requested.connect(self.center_panel.execute_folders_classification_requested)
+        self.layers_panel.preop_segmentation_requested.connect(self.center_panel.preop_segmentation_requested)
 
         self.center_panel.process_started.connect(self.on_process_started)
         self.center_panel.process_finished.connect(self.on_process_finished)

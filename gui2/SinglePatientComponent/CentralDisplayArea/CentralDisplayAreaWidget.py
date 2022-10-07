@@ -111,6 +111,17 @@ class CentralDisplayAreaWidget(QWidget):
         self.sagittal_viewer.annotation_display_state_changed.connect(self.annotation_display_state_changed)
         # self.sagittal_viewer.patient_imported.connect(self.patient_imported)
 
+    def reset_viewer(self):
+        """
+        """
+        self.reset_overlay()
+        self.displayed_image = np.zeros(shape=(150, 150, 150), dtype='uint8')
+        self.displayed_image_uid = None
+        self.point_clicker_position = [int(self.displayed_image.shape[0] / 2),
+                                       int(self.displayed_image.shape[1] / 2),
+                                       int(self.displayed_image.shape[2] / 2)]
+        self.update_viewers_image()
+
     def reset_overlay(self):
         """
         When the active patient is changed, or the active volume (unless in the future we co-register MRI volumes),

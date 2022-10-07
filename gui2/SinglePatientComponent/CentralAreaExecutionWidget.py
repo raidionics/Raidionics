@@ -91,6 +91,64 @@ class CentralAreaExecutionWidget(QLabel):
         self.run_segmentation_pushbutton.setEnabled(True)
         self.run_reporting_pushbutton.setEnabled(True)
 
+    def on_execute_folders_classification(self):
+        self.process_started.emit()
+        self.model_name = ""
+        self.pipeline_main_wrapper("folders_classification")
+
+    def on_preop_segmentation(self):
+        diag = TumorTypeSelectionQDialog(self)
+        code = diag.exec_()
+        if code == 0:  # Operation cancelled
+            return
+
+        self.model_name = "MRI_Meningioma"
+        if diag.tumor_type == 'High-Grade Glioma':
+            self.model_name = "MRI_HGGlioma"
+        elif diag.tumor_type == 'Low-Grade Glioma':
+            self.model_name = "MRI_LGGlioma"
+        elif diag.tumor_type == 'Metastasis':
+            self.model_name = "MRI_Metastasis"
+
+        self.process_started.emit()
+        self.pipeline_main_wrapper("preop_segmentation")
+
+    def pipeline_main_wrapper(self, task: str) -> None:
+        self.run_pipeline_thread = threading.Thread(target=self.run_pipeline, args=(task, ))
+        self.run_pipeline_thread.daemon = True  # using daemon thread the thread is killed gracefully if program is abruptly closed
+        self.run_pipeline_thread.start()
+
+    def run_pipeline(self, task: str) -> None:
+        logging.info("Starting pipeline process for task: {}.".format(task))
+
+        # Freezing buttons
+        self.run_segmentation_pushbutton.setEnabled(False)
+        self.run_reporting_pushbutton.setEnabled(False)
+
+        try:
+            from utils.backend_logic import pipeline_main_wrapper
+            current_patient_parameters = SoftwareConfigResources.getInstance().patients_parameters[
+            SoftwareConfigResources.getInstance().active_patient_name]
+            code, results = pipeline_main_wrapper(pipeline_task=task, model_name=self.model_name,
+                                                  patient_parameters=current_patient_parameters)
+            # # @TODO. Should have an exhaustive way to process whatever inside the results dict, needed?
+            # if 'Annotation' in list(results.keys()):
+            #     for a in results['Annotation']:
+            #         self.annotation_volume_imported.emit(a)
+
+            # Automatically saving the patient (with the latest results) for an easier loading afterwards.
+            SoftwareConfigResources.getInstance().get_active_patient().save_patient()
+        except Exception:
+            print('{}'.format(traceback.format_exc()))
+            self.run_segmentation_pushbutton.setEnabled(True)
+            self.run_reporting_pushbutton.setEnabled(True)
+            self.process_finished.emit()
+            return
+
+        self.run_segmentation_pushbutton.setEnabled(True)
+        self.run_reporting_pushbutton.setEnabled(True)
+        self.process_finished.emit()
+
     def on_run_segmentation(self):
         diag = TumorTypeSelectionQDialog(self)
         code = diag.exec_()
@@ -99,7 +157,7 @@ class CentralAreaExecutionWidget(QLabel):
 
         self.model_name = "MRI_Meningioma"
         if diag.tumor_type == 'High-Grade Glioma':
-            self.model_name = "MRI_HGGlioma_P2"
+            self.model_name = "MRI_HGGlioma"
         elif diag.tumor_type == 'Low-Grade Glioma':
             self.model_name = "MRI_LGGlioma"
         elif diag.tumor_type == 'Metastasis':

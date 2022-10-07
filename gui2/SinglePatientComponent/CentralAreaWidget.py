@@ -11,6 +11,7 @@ class CentralAreaWidget(QWidget):
     """
 
     """
+    reset_central_viewer = Signal()
     mri_volume_imported = Signal(str)  # The str is the unique id for the MRI volume, belonging to the active patient
     annotation_volume_imported = Signal(str)  # The str is the unique id for the annotation volume, belonging to the active patient
     atlas_volume_imported = Signal(str)  # The str is the unique id for the atlas volume, belonging to the active patient
@@ -28,7 +29,8 @@ class CentralAreaWidget(QWidget):
     standardized_report_imported = Signal()
     process_started = Signal()
     process_finished = Signal()
-
+    execute_folders_classification_requested = Signal()
+    preop_segmentation_requested = Signal()
 
     def __init__(self, parent=None):
         super(CentralAreaWidget, self).__init__()
@@ -67,6 +69,7 @@ class CentralAreaWidget(QWidget):
 
     def __set_cross_connections(self):
         # Connections related to data display (from right-hand panel to update the central viewer)
+        self.reset_central_viewer.connect(self.display_area_widget.reset_viewer)
         self.volume_view_toggled.connect(self.display_area_widget.on_volume_layer_toggled)
         self.volume_contrast_changed.connect(self.display_area_widget.on_volume_contrast_changed)
         self.annotation_view_toggled.connect(self.display_area_widget.on_annotation_layer_toggled)
@@ -90,6 +93,8 @@ class CentralAreaWidget(QWidget):
         self.execution_area_widget.process_started.connect(self.process_started)
         self.execution_area_widget.process_finished.connect(self.process_finished)
         self.volume_view_toggled.connect(self.execution_area_widget.on_volume_layer_toggled)
+        self.execute_folders_classification_requested.connect(self.execution_area_widget.on_execute_folders_classification)
+        self.preop_segmentation_requested.connect(self.execution_area_widget.on_preop_segmentation)
 
         # Connections from the left patient panel
         self.patient_view_toggled.connect(self.display_area_widget.on_patient_selected)

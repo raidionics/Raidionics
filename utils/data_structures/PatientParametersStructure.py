@@ -565,6 +565,13 @@ class PatientParameters:
                 return im
         return res
 
+    def get_mri_volume_by_base_filename(self, base_fn: str) -> Union[None, MRIVolume]:
+        result = None
+        for im in self._mri_volumes:
+            if os.path.basename(self._mri_volumes[im].get_usable_input_filepath()) == base_fn:
+                return self._mri_volumes[im]
+        return result
+
     def get_all_mri_volumes_for_sequence_type(self, sequence_type: MRISequenceType) -> List[str]:
         """
         Convenience method for collecting all MRI volumes with a specific sequence type.

@@ -12,6 +12,7 @@ class TimestampsLayerInteractor(QWidget):
     """
 
     """
+    reset_central_viewer = Signal()
     patient_imported = Signal(str)
     patient_view_toggled = Signal(str)
     volume_view_toggled = Signal(str, bool)
@@ -49,9 +50,11 @@ class TimestampsLayerInteractor(QWidget):
         self.timestamp_rankup_pushbutton = QPushButton()
         self.timestamp_rankup_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../Images/arrow_circle_up.png'))))
         self.timestamp_rankup_pushbutton.setToolTip("Move the timestamp one rank up the order list.")
+        self.timestamp_rankup_pushbutton.setEnabled(False)
         self.timestamp_rankdown_pushbutton = QPushButton()
         self.timestamp_rankdown_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../Images/arrow_circle_down.png'))))
         self.timestamp_rankdown_pushbutton.setToolTip("Move the timestamp one rank down the order list.")
+        self.timestamp_rankdown_pushbutton.setEnabled(False)
         self.timestamp_add_pushbutton = QPushButton()
         self.timestamp_add_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../Images/plus_icon.png'))))
         self.timestamp_add_pushbutton.setToolTip("Add a new timestamp to the list.")
@@ -195,6 +198,7 @@ class TimestampsLayerInteractor(QWidget):
             self.timestamps_widget[ts_uid] = timestamp_widget
             self.patient_imported.connect(timestamp_widget.on_import_patient)
             self.patient_view_toggled.connect(timestamp_widget.on_patient_view_toggled)
+            timestamp_widget.reset_central_viewer.connect(self.reset_central_viewer)
             timestamp_widget.timestamp_display_name_changed.connect(self.on_timestamp_display_name_changed)
             timestamp_widget.volume_view_toggled.connect(self.volume_view_toggled)
             timestamp_widget.volume_contrast_changed.connect(self.volume_contrast_changed)
@@ -220,6 +224,7 @@ class TimestampsLayerInteractor(QWidget):
         self.timestamps_widget[ts_uid] = timestamp_widget
         self.patient_imported.connect(timestamp_widget.on_import_patient)
         self.patient_view_toggled.connect(timestamp_widget.on_patient_view_toggled)
+        timestamp_widget.reset_central_viewer.connect(self.reset_central_viewer)
         timestamp_widget.timestamp_display_name_changed.connect(self.on_timestamp_display_name_changed)
         timestamp_widget.volume_view_toggled.connect(self.volume_view_toggled)
         timestamp_widget.volume_contrast_changed.connect(self.volume_contrast_changed)
@@ -232,14 +237,31 @@ class TimestampsLayerInteractor(QWidget):
         self.timestamp_widgets_stacked.addWidget(timestamp_widget)
         self.timestamp_selector_combobox.addItem(ts_uid)
 
-    def __on_selected_timestamp_changed(self, index):
+    def __on_selected_timestamp_changed(self, index: int) -> None:
+        """
+        Whenever the user manually changes the displayed timestamp from the combobox, the proper timestamp widget
+        from the stacked widget is shown.
+        """
         ts_uid = self.timestamps_widget[list(self.timestamps_widget.keys())[index]].uid
         SoftwareConfigResources.getInstance().get_active_patient().set_active_investigation_timestamp(ts_uid)
         self.timestamp_widgets_stacked.setCurrentIndex(index)
 
         # Forcing to display the first image for the given timestamp
-        self.timestamps_widget[list(self.timestamps_widget.keys())[index]].on_patient_view_toggled(SoftwareConfigResources.getInstance().get_active_patient_uid())
-        # @TODO. If the timestamp has not image linked to it, it should undisplay the previous image.
+        self.timestamps_widget[list(self.timestamps_widget.keys())[index]].on_timestamp_view_toggled()
+
+        if len(self.timestamps_widget) > 1 and index > 0:
+            self.timestamp_rankup_pushbutton.setEnabled(True)
+        elif len(self.timestamps_widget) > 1 and index == 0:
+            self.timestamp_rankup_pushbutton.setEnabled(False)
+            self.timestamp_rankdown_pushbutton.setEnabled(True)
+        elif len(self.timestamps_widget) > 1 and index == (len(self.timestamps_widget) - 1):
+            self.timestamp_rankdown_pushbutton.setEnabled(False)
+        elif len(self.timestamps_widget) > 1:
+            self.timestamp_rankup_pushbutton.setEnabled(True)
+            self.timestamp_rankdown_pushbutton.setEnabled(True)
+        else:
+            self.timestamp_rankup_pushbutton.setEnabled(False)
+            self.timestamp_rankdown_pushbutton.setEnabled(False)
 
     def reset(self):
         for w in list(self.timestamps_widget):
@@ -298,7 +320,7 @@ class TimestampsLayerInteractor(QWidget):
             self.timestamp_widgets_stacked.addWidget(timestamp_widget)
 
         # @TODO. Have to find the proper way to trigger the display of the first image, below line not working as intented.
-        # self.timestamps_widget[ts_uid].on_mri_volume_import(uid)
+        self.timestamps_widget[ts_uid].on_mri_volume_import(uid)
 
     def on_import_annotation(self, uid):
         annotation = SoftwareConfigResources.getInstance().get_active_patient().get_annotation_by_uid(uid)

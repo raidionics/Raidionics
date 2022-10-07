@@ -5,6 +5,7 @@ from PySide2.QtGui import QPixmap, QIcon, QColor
 import os
 import logging
 
+from gui2.UtilsWidgets.CustomQGroupBox.QCollapsibleWidget import QCollapsibleWidget
 from gui2.SinglePatientComponent.LayersInteractorSidePanel.MRIVolumesInteractor.MRIVolumesLayerInteractor import MRIVolumesLayerInteractor
 from gui2.SinglePatientComponent.LayersInteractorSidePanel.AnnotationLayersInteractor.AnnotationsLayersInteractor import AnnotationsLayersInteractor
 from gui2.SinglePatientComponent.LayersInteractorSidePanel.AtlasLayersInteractor.AtlasesLayersInteractor import AtlasesLayersInteractor
@@ -15,6 +16,7 @@ class TimestampLayerWidget(QWidget):
     """
 
     """
+    reset_central_viewer = Signal()
     timestamp_display_name_changed = Signal(str, str)  # Timestamp uid, new display name
     mri_volume_imported = Signal(str)
     annotation_volume_imported = Signal(str)
@@ -61,6 +63,8 @@ class TimestampLayerWidget(QWidget):
         self.atlases_collapsiblegroupbox = AtlasesLayersInteractor(self)
         self.layout.addWidget(self.atlases_collapsiblegroupbox)
 
+        self.layout.addStretch(1)
+
     def __set_layout_dimensions(self):
         self.timestamp_name_lineedit.setFixedHeight(20)
 
@@ -73,6 +77,7 @@ class TimestampLayerWidget(QWidget):
         self.patient_view_toggled.connect(self.annotations_collapsiblegroupbox.on_patient_view_toggled)
         self.patient_view_toggled.connect(self.atlases_collapsiblegroupbox.on_patient_view_toggled)
 
+        self.volumes_collapsiblegroupbox.reset_central_viewer.connect(self.reset_central_viewer)
         self.volumes_collapsiblegroupbox.volume_view_toggled.connect(self.volume_view_toggled)
         self.volumes_collapsiblegroupbox.volume_view_toggled.connect(self.annotations_collapsiblegroupbox.on_volume_view_toggled)
         self.volumes_collapsiblegroupbox.volume_view_toggled.connect(self.atlases_collapsiblegroupbox.on_volume_view_toggled)
@@ -145,6 +150,9 @@ class TimestampLayerWidget(QWidget):
         self.atlases_collapsiblegroupbox.reset()
         self.patient_view_toggled.emit(patient_uid, self.uid)
         self.adjustSize()
+
+    def on_timestamp_view_toggled(self) -> None:
+        self.volumes_collapsiblegroupbox.set_default_display()
 
     def on_import_patient(self, patient_uid: str) -> None:
         """

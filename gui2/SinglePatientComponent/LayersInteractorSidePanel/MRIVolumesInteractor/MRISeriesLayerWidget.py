@@ -288,6 +288,7 @@ class MRISeriesLayerWidget(QWidget):
         # NB: Important to perform this after emitting the signal, as we also enforce a volume to be displayed at all
         # time, hence discarding a False state if clicking on an already toggled radio button.
         self.contrast_adjuster_pushbutton.setEnabled(self.display_toggle_radiobutton.isChecked())
+        logging.info("[MRISeriesLayerWidget] Visibility toggled to {} for {}".format(state, self.uid))
 
     def on_name_change(self, text):
         # @TODO. Should there be a check that the name is available?

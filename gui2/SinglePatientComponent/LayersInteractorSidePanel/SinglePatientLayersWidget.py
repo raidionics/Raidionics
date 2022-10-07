@@ -8,6 +8,7 @@ from gui2.SinglePatientComponent.LayersInteractorSidePanel.TimestampsInteractor.
 from gui2.SinglePatientComponent.LayersInteractorSidePanel.MRIVolumesInteractor.MRIVolumesLayerInteractor import MRIVolumesLayerInteractor
 from gui2.SinglePatientComponent.LayersInteractorSidePanel.AnnotationLayersInteractor.AnnotationsLayersInteractor import AnnotationsLayersInteractor
 from gui2.SinglePatientComponent.LayersInteractorSidePanel.AtlasLayersInteractor.AtlasesLayersInteractor import AtlasesLayersInteractor
+from gui2.SinglePatientComponent.LayersInteractorSidePanel.ActionsInteractor.ActionsInteractorWidget import ActionsInteractorWidget
 from utils.software_config import SoftwareConfigResources
 
 
@@ -15,6 +16,7 @@ class SinglePatientLayersWidget(QWidget):
     """
 
     """
+    reset_central_viewer = Signal()
     mri_volume_imported = Signal(str)
     annotation_volume_imported = Signal(str)
     atlas_volume_imported = Signal(str)
@@ -32,6 +34,9 @@ class SinglePatientLayersWidget(QWidget):
     atlas_structure_view_toggled = Signal(str, int, bool)
     atlas_structure_color_changed = Signal(str, int, QColor)
     atlas_structure_opacity_changed = Signal(str, int, int)
+
+    execute_folders_classification_requested = Signal()
+    preop_segmentation_requested = Signal()
 
     def __init__(self, parent=None):
         super(SinglePatientLayersWidget, self).__init__()
@@ -65,7 +70,8 @@ class SinglePatientLayersWidget(QWidget):
         self.main_tabwidget = QTabWidget()
         self.timestamp_layer_widget = TimestampsLayerInteractor(self)
         self.main_tabwidget.addTab(self.timestamp_layer_widget, "Data")
-        self.main_tabwidget.addTab(QWidget(), "Actions")
+        self.execution_actions_widget = ActionsInteractorWidget(self)
+        self.main_tabwidget.addTab(self.execution_actions_widget, "Actions")
         self.overall_scrollarea_layout.addWidget(self.main_tabwidget)
 
         self.volumes_collapsiblegroupbox = MRIVolumesLayerInteractor(self)
@@ -115,6 +121,7 @@ class SinglePatientLayersWidget(QWidget):
         self.annotation_volume_imported.connect(self.timestamp_layer_widget.on_import_annotation)
         self.atlas_volume_imported.connect(self.timestamp_layer_widget.on_import_atlas)
         self.annotation_display_state_changed.connect(self.timestamp_layer_widget.on_annotation_display_state_changed)
+        self.timestamp_layer_widget.reset_central_viewer.connect(self.reset_central_viewer)
         self.timestamp_layer_widget.volume_view_toggled.connect(self.volume_view_toggled)
         self.timestamp_layer_widget.volume_contrast_changed.connect(self.volume_contrast_changed)
         self.timestamp_layer_widget.annotation_view_toggled.connect(self.annotation_view_toggled)
@@ -123,6 +130,10 @@ class SinglePatientLayersWidget(QWidget):
         self.timestamp_layer_widget.atlas_structure_view_toggled.connect(self.atlas_structure_view_toggled)
         self.timestamp_layer_widget.atlas_structure_color_changed.connect(self.atlas_structure_color_changed)
         self.timestamp_layer_widget.atlas_structure_opacity_changed.connect(self.atlas_structure_opacity_changed)
+
+        # Actions-based connections
+        self.execution_actions_widget.execute_folders_classification_requested.connect(self.execute_folders_classification_requested)
+        self.execution_actions_widget.preop_segmentation_requested.connect(self.preop_segmentation_requested)
 
         # @TODO. Can be removed, deprecated?
         self.import_data_triggered.connect(self.volumes_collapsiblegroupbox.on_import_data)

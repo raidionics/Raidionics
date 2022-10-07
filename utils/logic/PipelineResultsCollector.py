@@ -1,12 +1,16 @@
+import logging
 import os
 import shutil
+
+import pandas as pd
+
 from utils.data_structures.MRIVolumeStructure import MRISequenceType
 from utils.utilities import get_type_from_string
 
 
 def collect_results(patient_parameters, pipeline):
     """
-    Collecting the automatic tumor and brain segmentations
+    Collecting relevant processes outputs
     @TODO. Should we have the outputs to collect within the pipeline file? or a report file from the rads lib
     with a list of created objects?
     """
@@ -18,7 +22,16 @@ def collect_results(patient_parameters, pipeline):
     for step in list(pipeline.keys()):
         pip_step = pipeline[step]
         if pip_step["task"] == "Classification":
-            pass
+            # @TODO. Will have to be more generic when more than one classification model exists.
+            classification_results_filename = os.path.join(patient_parameters.get_output_folder(), 'reporting', 'mri_sequences.csv')
+            df = pd.read_csv(classification_results_filename)
+            volume_basenames = list(df['File'].values)
+            for vn in volume_basenames:
+                volume_object = patient_parameters.get_mri_volume_by_base_filename(vn)
+                if volume_object:
+                    volume_object.set_sequence_type(df.loc[df['File'] == vn]['MRI sequence'].values[0], manual=True)
+                else:
+                    logging.warning("Classification results collection failed. Filename {} not matching any patient MRI volume.".format(vn))
         elif pip_step["task"] == "Segmentation":
             seq_type = get_type_from_string(MRISequenceType, pip_step["inputs"]["0"]["sequence"])
             if seq_type == -1:
