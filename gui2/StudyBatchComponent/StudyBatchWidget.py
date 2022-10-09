@@ -154,7 +154,7 @@ class StudyBatchWidget(QWidget):
 
     def on_study_imported(self, study_uid: str):
         self.study_imported.emit(study_uid)
-        for pat_uid in SoftwareConfigResources.getInstance().get_study(study_uid).get_included_patients_uids().keys():
+        for pat_uid in SoftwareConfigResources.getInstance().get_study(study_uid).included_patients_uids.keys():
             self.patient_imported.emit(pat_uid)
 
     def on_batch_segmentation_wrapper(self, study_uid, model_name):
@@ -166,7 +166,7 @@ class StudyBatchWidget(QWidget):
         from utils.backend_logic import segmentation_main_wrapper
         self.on_process_started()
         study = SoftwareConfigResources.getInstance().study_parameters[study_uid]
-        patients_uid = study.get_included_patients_uids()
+        patients_uid = study.included_patients_uids
         for u in patients_uid:
             # @TODO. Have to change the global behaviour about the active patient, otherwise needs to manually set it
             # to the currently iterated patient. Should be an active display patient, and an active process patient to
@@ -194,7 +194,7 @@ class StudyBatchWidget(QWidget):
         from utils.backend_logic import reporting_main_wrapper
         self.on_process_started()
         study = SoftwareConfigResources.getInstance().study_parameters[study_uid]
-        patients_uid = study.get_included_patients_uids()
+        patients_uid = study.included_patients_uids
         for u in patients_uid:
             # @TODO. Have to change the global behaviour about the active patient, otherwise needs to manually set it
             # to the currently iterated patient. Should be an active display patient, and an active process patient to

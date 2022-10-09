@@ -15,6 +15,7 @@ def collect_results(patient_parameters, pipeline):
     with a list of created objects?
     """
     results = {}  # Holder for all objects computed during the process, which have been added to the patient object
+    results['Classification'] = []
     results['Annotation'] = []
     results['Atlas'] = []
     results['Report'] = []
@@ -23,7 +24,7 @@ def collect_results(patient_parameters, pipeline):
         pip_step = pipeline[step]
         if pip_step["task"] == "Classification":
             # @TODO. Will have to be more generic when more than one classification model exists.
-            classification_results_filename = os.path.join(patient_parameters.get_output_folder(), 'reporting', 'mri_sequences.csv')
+            classification_results_filename = os.path.join(patient_parameters.output_folder, 'reporting', 'mri_sequences.csv')
             df = pd.read_csv(classification_results_filename)
             volume_basenames = list(df['File'].values)
             for vn in volume_basenames:
@@ -32,6 +33,7 @@ def collect_results(patient_parameters, pipeline):
                     volume_object.set_sequence_type(df.loc[df['File'] == vn]['MRI sequence'].values[0], manual=True)
                 else:
                     logging.warning("Classification results collection failed. Filename {} not matching any patient MRI volume.".format(vn))
+            results['Classification'] = "sequences"
         elif pip_step["task"] == "Segmentation":
             seq_type = get_type_from_string(MRISequenceType, pip_step["inputs"]["0"]["sequence"])
             if seq_type == -1:
@@ -42,12 +44,12 @@ def collect_results(patient_parameters, pipeline):
                                                                                    pip_step["inputs"]["0"][
                                                                                        "timestamp"])[0]
             for anno_str in pip_step["target"]:
-                seg_file = os.path.join(patient_parameters.get_output_folder(), 'reporting',
+                seg_file = os.path.join(patient_parameters.output_folder, 'reporting',
                                         "T" + str(pip_step["inputs"]["0"]["timestamp"]),
                                         os.path.basename(patient_parameters.get_mri_by_uid(
                                             parent_mri_uid).get_usable_input_filepath()).split('.')[
                                             0] + '_annotation-' + anno_str + '.nii.gz')
-                dest_file = os.path.join(patient_parameters.get_mri_by_uid(parent_mri_uid).get_output_patient_folder(),
+                dest_file = os.path.join(patient_parameters.get_mri_by_uid(parent_mri_uid).output_patient_folder,
                                          'raw', os.path.basename(seg_file))
                 shutil.move(seg_file, dest_file)
                 data_uid, error_msg = patient_parameters.import_data(dest_file,
@@ -69,7 +71,7 @@ def collect_results(patient_parameters, pipeline):
                 parent_mri_uid = parent_mri_uid[0]
 
                 # Collecting the atlas cortical structures
-                cortical_folder = os.path.join(patient_parameters.get_output_folder(), 'reporting',
+                cortical_folder = os.path.join(patient_parameters.output_folder, 'reporting',
                                                'T' + str(pip_step["moving"]["timestamp"]), 'Cortical-structures')
                 cortical_masks = []
                 for _, _, files in os.walk(cortical_folder):
@@ -79,12 +81,12 @@ def collect_results(patient_parameters, pipeline):
 
                 for m in cortical_masks:
                     atlas_filename = os.path.join(cortical_folder, m)
-                    dest_atlas_filename = os.path.join(patient_parameters.get_mri_by_uid(parent_mri_uid).get_output_patient_folder(),
+                    dest_atlas_filename = os.path.join(patient_parameters.get_mri_by_uid(parent_mri_uid).output_patient_folder,
                                                        'raw', m)
                     shutil.move(atlas_filename, dest_atlas_filename)
-                    description_filename = os.path.join(patient_parameters.get_output_folder(), 'reporting',
+                    description_filename = os.path.join(patient_parameters.output_folder, 'reporting',
                                                         'atlas_descriptions', m.split('_')[1] + '_description.csv')
-                    dest_desc_filename = os.path.join(patient_parameters.get_output_folder(), 'atlas_descriptions',
+                    dest_desc_filename = os.path.join(patient_parameters.output_folder, 'atlas_descriptions',
                                                        m.split('_')[1] + '_description.csv')
                     os.makedirs(os.path.dirname(dest_desc_filename), exist_ok=True)
                     if not os.path.exists(dest_desc_filename):
@@ -97,7 +99,7 @@ def collect_results(patient_parameters, pipeline):
                     results['Atlas'].append(data_uid)
 
                 # Collecting the atlas subcortical structures
-                subcortical_folder = os.path.join(patient_parameters.get_output_folder(), 'reporting',
+                subcortical_folder = os.path.join(patient_parameters.output_folder, 'reporting',
                                                'T' + str(pip_step["moving"]["timestamp"]), 'Subcortical-structures')
 
                 subcortical_masks = ['MNI_BCB_atlas.nii.gz']  # @TODO. Hardcoded for now, have to improve the RADS backend here.
@@ -110,12 +112,12 @@ def collect_results(patient_parameters, pipeline):
 
                 for m in subcortical_masks:
                     atlas_filename = os.path.join(subcortical_folder, m)
-                    dest_atlas_filename = os.path.join(patient_parameters.get_mri_by_uid(parent_mri_uid).get_output_patient_folder(),
+                    dest_atlas_filename = os.path.join(patient_parameters.get_mri_by_uid(parent_mri_uid).output_patient_folder,
                                                        'raw', m)
                     shutil.move(atlas_filename, dest_atlas_filename)
-                    description_filename = os.path.join(patient_parameters.get_output_folder(), 'reporting',
+                    description_filename = os.path.join(patient_parameters.output_folder, 'reporting',
                                                         'atlas_descriptions', m.split('_')[1] + '_description.csv')
-                    dest_desc_filename = os.path.join(patient_parameters.get_output_folder(), 'atlas_descriptions',
+                    dest_desc_filename = os.path.join(patient_parameters.output_folder, 'atlas_descriptions',
                                                        m.split('_')[1] + '_description.csv')
                     os.makedirs(os.path.dirname(dest_desc_filename), exist_ok=True)
                     if not os.path.exists(dest_desc_filename):
@@ -128,7 +130,7 @@ def collect_results(patient_parameters, pipeline):
                     results['Atlas'].append(data_uid)
 
         elif pip_step["task"] == "Features computation":
-            report_filename = os.path.join(patient_parameters.get_output_folder(), 'reporting',
+            report_filename = os.path.join(patient_parameters.output_folder, 'reporting',
                                            'neuro_clinical_report.json')
 
             seq_type = get_type_from_string(MRISequenceType, pip_step["input"]["sequence"])
@@ -140,7 +142,7 @@ def collect_results(patient_parameters, pipeline):
             if len(parent_mri_uid) == 0:
                 continue
             parent_mri_uid = parent_mri_uid[0]
-            dest_file = os.path.join(patient_parameters.get_mri_by_uid(parent_mri_uid).get_output_patient_folder(),
+            dest_file = os.path.join(patient_parameters.get_mri_by_uid(parent_mri_uid).output_patient_folder,
                                      os.path.basename(report_filename))
             shutil.move(report_filename, dest_file)
 

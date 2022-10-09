@@ -4,14 +4,14 @@ from PySide2.QtGui import QColor
 import os
 import logging
 
-from gui2.UtilsWidgets.CustomQGroupBox.QCollapsibleGroupBox import QCollapsibleGroupBox
+from gui2.UtilsWidgets.CustomQGroupBox.QCollapsibleWidget import QCollapsibleWidget
 from gui2.SinglePatientComponent.LayersInteractorSidePanel.AtlasLayersInteractor.AtlasSingleLayerCollapsibleGroupBox import AtlasSingleLayerCollapsibleGroupBox
 from gui2.SinglePatientComponent.LayersInteractorSidePanel.AtlasLayersInteractor.AtlasSingleLayerWidget import AtlasSingleLayerWidget
 
 from utils.software_config import SoftwareConfigResources
 
 
-class AtlasesLayersInteractor(QCollapsibleGroupBox):
+class AtlasesLayersInteractor(QCollapsibleWidget):
     """
 
     """
@@ -20,13 +20,7 @@ class AtlasesLayersInteractor(QCollapsibleGroupBox):
     atlas_color_changed = Signal(str, int, QColor)
 
     def __init__(self, parent=None):
-        super(AtlasesLayersInteractor, self).__init__("Structures", self, header_style='left')
-        self.set_header_icons(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                           '../../../Images/arrow_right_icon.png'),
-                              QSize(20, 20),
-                              os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                           '../../../Images/arrow_down_icon.png'),
-                              QSize(20, 20), side='left')
+        super(AtlasesLayersInteractor, self).__init__("Structures")
         self.parent = parent
         self.volumes_widget = {}
         self.__set_interface()
@@ -35,61 +29,71 @@ class AtlasesLayersInteractor(QCollapsibleGroupBox):
         self.__set_stylesheets()
 
     def __set_interface(self):
-        self.content_label_layout.addStretch(1)
+        self.set_icon_filenames(expand_fn=os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                       '../../../Images/arrow_down_icon.png'),
+                                collapse_fn=os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                         '../../../Images/arrow_right_icon.png'))
 
     def __set_connections(self):
         pass
 
     def __set_layout_dimensions(self):
-        self.header_pushbutton.setFixedHeight(45)
+        self.header.set_icon_size(QSize(35, 35))
+        self.header.title_label.setFixedHeight(40)
+        self.header.background_label.setFixedHeight(45)
 
     def __set_stylesheets(self):
-        self.header_pushbutton.setStyleSheet("""
-        QPushButton{background-color: rgb(214, 214, 214);
+        software_ss = SoftwareConfigResources.getInstance().stylesheet_components
+        font_color = software_ss["Color7"]
+        background_color = software_ss["Color5"]
+        pressed_background_color = software_ss["Color6"]
+
+        self.header.background_label.setStyleSheet("""
+        QLabel{
+        background-color: """ + background_color + """;
+        border: 2px solid black;
+        border-radius: 2px;
+        }""")
+
+        self.header.title_label.setStyleSheet("""
+        QLabel{
+        background-color: """ + background_color + """;
+        color: """ + font_color + """;
         font:bold;
         font-size:14px;
         padding-left:40px;
         text-align: left;
+        border: 0px;
         }""")
-        self.content_label.setStyleSheet("QLabel{background-color:rgb(248, 248, 248);}")
+
+        self.header.icon_label.setStyleSheet("""
+        QLabel{
+        background-color: """ + background_color + """;
+        color: """ + font_color + """;
+        border: 0px;
+        }""")
+
+        self.content_widget.setStyleSheet("""
+        QWidget{
+        background-color: """ + background_color + """;
+        border-width: 2px;
+        border-style: solid;
+        border-color: """ + background_color + """ black black black;
+        border-radius: 2px;
+        }""")
 
     def adjustSize(self):
-        # actual_height = 0
-        # for w in self.volumes_widget:
-        #     size = self.volumes_widget[w].sizeHint()
-        #     actual_height += size.height()
-        # self.content_label.setFixedSize(QSize(self.size().width(), actual_height))
-        items = (self.content_label_layout.itemAt(i) for i in range(self.content_label_layout.count()))
-        actual_height = 0
-        for w in items:
-            if (w.__class__ == QHBoxLayout) or (w.__class__ == QVBoxLayout):
-                max_height = 0
-                sub_items = [w.itemAt(i) for i in range(w.count())]
-                for sw in sub_items:
-                    if sw.__class__ != QSpacerItem:
-                        if sw.wid.sizeHint().height() > max_height:
-                            max_height = sw.wid.sizeHint().height()
-                actual_height += max_height
-            elif w.__class__ == QGridLayout:
-                pass
-            elif w.__class__ != QSpacerItem:
-                size = w.wid.sizeHint()
-                actual_height += size.height()
-            else:
-                pass
-        self.content_label.setFixedSize(QSize(self.size().width(), actual_height))
-        # logging.debug("Atlas Layers container set to {}.\n".format(QSize(self.size().width(), actual_height)))
+        pass
 
     def reset(self):
         """
 
         """
         for w in list(self.volumes_widget):
-            self.content_label_layout.removeWidget(self.volumes_widget[w])
+            self.content_layout.removeWidget(self.volumes_widget[w])
             self.volumes_widget[w].deleteLater()
             self.volumes_widget.pop(w)
-        self.header_pushbutton.setChecked(False)
-        self.header_pushbutton.clicked.emit()
+        self.header.collapse()
 
     def on_volume_view_toggled(self, volume_uid: str, state: bool) -> None:
         """
@@ -131,13 +135,14 @@ class AtlasesLayersInteractor(QCollapsibleGroupBox):
             self.adjustSize()
 
     def on_import_volume(self, volume_id):
-        volume_widget = AtlasSingleLayerWidget(uid=volume_id, parent=self) #AtlasSingleLayerCollapsibleGroupBox(uid=volume_id, parent=self)
+        volume_widget = AtlasSingleLayerWidget(uid=volume_id, parent=self)
         self.volumes_widget[volume_id] = volume_widget
-        self.content_label_layout.insertWidget(self.content_label_layout.count() - 1, volume_widget)
-        line_label = QLabel()
-        line_label.setFixedHeight(3)
-        line_label.setStyleSheet("QLabel{background-color: rgb(214, 214, 214);}")
-        self.content_label_layout.insertWidget(self.content_label_layout.count() - 1, line_label)
+        self.content_layout.insertWidget(self.content_layout.count(), volume_widget)
+        # line_label = QLabel()
+        # line_label.setFixedHeight(3)
+        # line_label.setStyleSheet("QLabel{background-color: rgb(214, 214, 214);}")
+        # self.content_layout.insertWidget(self.content_layout.count(), line_label)
+
         # On-the-fly signals/slots connection for the newly created QWidget
         # volume_widget.header_pushbutton.clicked.connect(self.adjustSize)
         # volume_widget.right_clicked.connect(self.on_visibility_clicked)

@@ -31,7 +31,7 @@ class PatientListingWidgetItem(QWidget):
         self.layout.setSpacing(0)
         self.layout.setContentsMargins(0, 0, 0, 0)
 
-        self.patient_uid_label = QLabel(SoftwareConfigResources.getInstance().patients_parameters[self.patient_uid].get_display_name())
+        self.patient_uid_label = QLabel(SoftwareConfigResources.getInstance().patients_parameters[self.patient_uid].display_name)
         self.patient_investigation_pushbutton = QPushButton()
         self.patient_investigation_pushbutton.setIcon(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                                          '../../Images/jumpto-icon.png')))

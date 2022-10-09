@@ -121,7 +121,7 @@ class TimestampLayerWidget(QWidget):
 
     def __init_from_parameters(self):
         timestamp_parameters = SoftwareConfigResources.getInstance().get_active_patient().get_timestamp_by_uid(self.uid)
-        self.timestamp_name_lineedit.setText(timestamp_parameters.get_display_name())
+        self.timestamp_name_lineedit.setText(timestamp_parameters.display_name)
 
     def adjustSize(self):
         """
@@ -132,7 +132,7 @@ class TimestampLayerWidget(QWidget):
     def on_name_change(self):
         new_name = self.timestamp_name_lineedit.text()
         timestamp_parameters = SoftwareConfigResources.getInstance().get_active_patient().get_timestamp_by_uid(self.uid)
-        timestamp_parameters.set_display_name(new_name)
+        timestamp_parameters.display_name = new_name
         self.timestamp_display_name_changed.emit(self.uid, new_name)
 
     def on_patient_view_toggled(self, patient_uid: str) -> None:

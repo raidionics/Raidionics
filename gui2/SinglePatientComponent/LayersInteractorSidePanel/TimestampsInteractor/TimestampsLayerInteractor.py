@@ -61,6 +61,7 @@ class TimestampsLayerInteractor(QWidget):
         self.timestamp_remove_pushbutton = QPushButton()
         self.timestamp_remove_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../Images/minus_icon.png'))))
         self.timestamp_remove_pushbutton.setToolTip("Remove current timestamp from the list.")
+        self.timestamp_remove_pushbutton.setEnabled(False)
         self.timestamp_order_layout.addStretch(1)
         self.timestamp_order_layout.addWidget(self.timestamp_add_pushbutton)
         self.timestamp_order_layout.addWidget(self.timestamp_remove_pushbutton)
@@ -74,8 +75,9 @@ class TimestampsLayerInteractor(QWidget):
         self.layout.addWidget(self.timestamp_widgets_stacked)
 
     def __set_connections(self):
-        self.timestamp_add_pushbutton.clicked.connect(self.__on_timestamp_added)
         self.timestamp_selector_combobox.currentIndexChanged.connect(self.__on_selected_timestamp_changed)
+        self.timestamp_add_pushbutton.clicked.connect(self.__on_timestamp_added)
+        self.timestamp_remove_pushbutton.clicked.connect(self.__on_timestamp_removed)
 
     def __set_layout_dimensions(self):
         self.timestamp_selector_combobox.setFixedHeight(20)
@@ -237,11 +239,18 @@ class TimestampsLayerInteractor(QWidget):
         self.timestamp_widgets_stacked.addWidget(timestamp_widget)
         self.timestamp_selector_combobox.addItem(ts_uid)
 
+        self.timestamp_remove_pushbutton.setEnabled(True)
+
     def __on_selected_timestamp_changed(self, index: int) -> None:
         """
         Whenever the user manually changes the displayed timestamp from the combobox, the proper timestamp widget
         from the stacked widget is shown.
         """
+        if index == -1:
+            # When the last timestamp has been removed, a currentIndex() change is emitted and index is -1.
+            self.reset_central_viewer.emit()
+            return
+
         ts_uid = self.timestamps_widget[list(self.timestamps_widget.keys())[index]].uid
         SoftwareConfigResources.getInstance().get_active_patient().set_active_investigation_timestamp(ts_uid)
         self.timestamp_widgets_stacked.setCurrentIndex(index)
@@ -262,6 +271,21 @@ class TimestampsLayerInteractor(QWidget):
         else:
             self.timestamp_rankup_pushbutton.setEnabled(False)
             self.timestamp_rankdown_pushbutton.setEnabled(False)
+
+    def __on_timestamp_removed(self):
+        index = self.timestamp_selector_combobox.currentIndex()
+        current_ts_id = self.timestamps_widget[list(self.timestamps_widget.keys())[index]].uid
+        images = SoftwareConfigResources.getInstance().get_active_patient().get_all_mri_volumes_for_timestamp(current_ts_id)
+        if len(images) != 0:
+            # @TODO. Prompt the user a choice to continue or cancel
+            pass
+
+        self.timestamp_widgets_stacked.removeWidget(self.timestamps_widget[current_ts_id])
+        self.timestamps_widget[current_ts_id].deleteLater()
+        self.timestamps_widget.pop(current_ts_id)
+        self.timestamp_selector_combobox.removeItem(index)
+        if len(self.timestamps_widget) <= 1:
+            self.timestamp_remove_pushbutton.setEnabled(False)
 
     def reset(self):
         for w in list(self.timestamps_widget):
@@ -302,7 +326,7 @@ class TimestampsLayerInteractor(QWidget):
     def on_mri_volume_import(self, uid):
         volume = SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_uid(uid)
         ts_uid = volume.get_timestamp_uid()
-        ts_display_name = SoftwareConfigResources.getInstance().get_active_patient().get_timestamp_by_uid(ts_uid).get_display_name()
+        ts_display_name = SoftwareConfigResources.getInstance().get_active_patient().get_timestamp_by_uid(ts_uid).display_name
         if not ts_uid in list(self.timestamps_widget.keys()):
             timestamp_widget = TimestampLayerWidget(ts_uid, self)
             self.timestamps_widget[ts_uid] = timestamp_widget

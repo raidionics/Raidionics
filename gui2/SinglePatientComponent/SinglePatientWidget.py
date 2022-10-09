@@ -145,8 +145,7 @@ class SinglePatientWidget(QWidget):
         self.layers_panel.atlas_structure_view_toggled.connect(self.center_panel.atlas_structure_view_toggled)
         self.layers_panel.atlas_structure_color_changed.connect(self.center_panel.atlas_structure_color_changed)
         self.layers_panel.atlas_structure_opacity_changed.connect(self.center_panel.atlas_structure_opacity_changed)
-        self.layers_panel.execute_folders_classification_requested.connect(self.center_panel.execute_folders_classification_requested)
-        self.layers_panel.preop_segmentation_requested.connect(self.center_panel.preop_segmentation_requested)
+        self.layers_panel.pipeline_execution_requested.connect(self.center_panel.pipeline_execution_requested)
 
         self.center_panel.process_started.connect(self.on_process_started)
         self.center_panel.process_finished.connect(self.on_process_finished)
@@ -218,12 +217,13 @@ class SinglePatientWidget(QWidget):
         self.results_panel.on_process_started()
         self.right_panel_stackedwidget.setCurrentIndex(1)
 
-    def on_process_finished(self):
+    def on_process_finished(self) -> None:
+        """
+        Triggers an update to adjust the GUI after a process has finished.
+        """
         self.results_panel.on_process_finished()
         # Hides the process tracking to display back the layers interactor for viewing purposes.
         self.right_panel_stackedwidget.setCurrentIndex(0)
-        # Will force a reset and repopulate with existing layers (i.e., annotations and atlases) for the first MRI.
-        self.layers_panel.on_patient_selected(SoftwareConfigResources.getInstance().get_active_patient_uid())
 
     def on_patient_imported(self, uid: str) -> None:
         self.results_panel.add_new_patient(uid)

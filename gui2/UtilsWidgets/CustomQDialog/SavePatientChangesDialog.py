@@ -39,7 +39,7 @@ class SavePatientChangesDialog(QDialog):
     def exec_(self) -> int:
         curr_patient = SoftwareConfigResources.getInstance().get_active_patient()
         self.destination_folder_lineedit.blockSignals(True)
-        self.destination_folder_lineedit.setText(curr_patient.get_output_folder())
+        self.destination_folder_lineedit.setText(curr_patient.output_folder)
         self.destination_folder_lineedit.blockSignals(False)
         return super().exec_()
 

@@ -81,7 +81,7 @@ class AtlasSingleLayerWidget(QWidget):
         self.customContextMenuRequested.connect(self.on_right_clicked)
         self.display_name_lineedit.textEdited.connect(self.on_name_changed)
         self.display_toggle_button.toggled.connect(self.on_visibility_toggled)
-        self.detailed_structures_collapsiblegoupbox.clicked_signal.connect(self.adjustSize)
+        # self.detailed_structures_collapsiblegoupbox.clicked_signal.connect(self.adjustSize)
         self.detailed_structures_collapsiblegoupbox.structure_view_toggled.connect(self.structure_view_toggled)
         self.detailed_structures_collapsiblegoupbox.color_value_changed.connect(self.structure_color_value_changed)
         self.detailed_structures_collapsiblegoupbox.opacity_value_changed.connect(self.structure_opacity_value_changed)
@@ -121,24 +121,24 @@ class AtlasSingleLayerWidget(QWidget):
         border-style:inset;
         }""")
 
-        self.detailed_structures_collapsiblegoupbox.header_pushbutton.setStyleSheet("""
-        QPushButton{
-        background-color: """ + background_color + """;
-        border-style: none;
-        }
-        QPushButton:pressed{
-        background-color: """ + pressed_background_color + """;
-        border-style:inset;
-        }
-        QComboBox::hover{
-        border-style: solid;
-        border-width: 1px;
-        border-color: rgba(196, 196, 196, 1);
-        }""")
+        # self.detailed_structures_collapsiblegoupbox.header_pushbutton.setStyleSheet("""
+        # QPushButton{
+        # background-color: """ + background_color + """;
+        # border-style: none;
+        # }
+        # QPushButton:pressed{
+        # background-color: """ + pressed_background_color + """;
+        # border-style:inset;
+        # }
+        # QComboBox::hover{
+        # border-style: solid;
+        # border-width: 1px;
+        # border-color: rgba(196, 196, 196, 1);
+        # }""")
 
     def __init_from_parameters(self):
         params = SoftwareConfigResources.getInstance().get_active_patient().get_atlas_by_uid(self.uid)
-        self.display_name_lineedit.setText(params.get_display_name())
+        self.display_name_lineedit.setText(params.display_name)
 
     def adjustSize(self):
         items = (self.layout.itemAt(i) for i in range(self.layout.count()))

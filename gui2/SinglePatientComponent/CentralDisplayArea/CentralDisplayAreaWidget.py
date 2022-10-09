@@ -165,7 +165,7 @@ class CentralDisplayAreaWidget(QWidget):
         if self.current_patient_parameters.get_patient_mri_volumes_number() != 0:
             self.displayed_image = self.current_patient_parameters.get_mri_by_uid(
                 self.current_patient_parameters.get_all_mri_volumes_uids()[0]).get_display_volume()
-            self.displayed_image_uid = self.current_patient_parameters.get_mri_by_uid(self.current_patient_parameters.get_all_mri_volumes_uids()[0]).get_unique_id()
+            self.displayed_image_uid = self.current_patient_parameters.get_mri_by_uid(self.current_patient_parameters.get_all_mri_volumes_uids()[0]).unique_id
             self.point_clicker_position = [int(self.displayed_image.shape[0] / 2),
                                            int(self.displayed_image.shape[1] / 2),
                                            int(self.displayed_image.shape[2] / 2)]

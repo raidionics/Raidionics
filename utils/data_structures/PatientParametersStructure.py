@@ -26,7 +26,7 @@ class PatientParameters:
     _creation_timestamp = None  # Timestamp for recording when the patient was created
     _last_editing_timestamp = None  # Timestamp for recording when the patient was last modified
     _display_name = ""  # Human-readable name for the study
-    _output_dir = ""  # Root directory (user-selected home location) for storing all patients info
+    _output_directory = ""  # Root directory (user-selected home location) for storing all patients info
     _output_folder = ""  # Complete folder location where the patient info are stored
     _patient_parameters_dict = {}  # Dictionary container for saving/loading all patient-related parameters
     _patient_parameters_dict_filename = ""  # Filepath for storing the aforementioned dictionary (*.raidionics)
@@ -62,7 +62,7 @@ class PatientParameters:
         self._creation_timestamp = None
         self._last_editing_timestamp = None
         self._display_name = ""
-        self._output_dir = ""
+        self._output_directory = ""
         self._output_folder = ""
         self._patient_parameters_dict = {}
         self._patient_parameters_dict_filename = ""
@@ -79,13 +79,13 @@ class PatientParameters:
         self._display_name = self._unique_id
         # Temporary global placeholder, until a destination folder is chosen by the user.
         if dest_location:
-            self._output_dir = dest_location
+            self._output_directory = dest_location
         else:
-            self._output_dir = os.path.join(expanduser("~"), '.raidionics')
-        os.makedirs(self._output_dir, exist_ok=True)
+            self._output_directory = os.path.join(expanduser("~"), '.raidionics')
+        os.makedirs(self._output_directory, exist_ok=True)
 
         # Temporary placeholder for the current patient files, until a destination folder is chosen by the user.
-        self._output_folder = os.path.join(self._output_dir, "patients", "temp_patient")
+        self._output_folder = os.path.join(self._output_directory, "patients", "temp_patient")
         if os.path.exists(self._output_folder):
             shutil.rmtree(self._output_folder)
         os.makedirs(self._output_folder)
@@ -112,13 +112,16 @@ class PatientParameters:
         self._patient_parameters_dict['Annotations'] = {}
         self._patient_parameters_dict['Atlases'] = {}
 
-    def get_unique_id(self) -> str:
+    @property
+    def unique_id(self) -> str:
         return self._unique_id
 
-    def get_output_directory(self) -> str:
-        return self._output_dir
+    @property
+    def output_directory(self) -> str:
+        return self._output_directory
 
-    def get_output_folder(self) -> str:
+    @property
+    def output_folder(self) -> str:
         return self._output_folder
 
     def set_output_directory(self, directory: str) -> None:
@@ -128,7 +131,7 @@ class PatientParameters:
         """
         new_output_folder = os.path.join(directory, self._display_name.strip().lower().replace(" ", '_'))
         shutil.move(src=self._output_folder, dst=new_output_folder, copy_function=shutil.copytree)
-        self._output_dir = directory
+        self._output_directory = directory
         self._output_folder = new_output_folder
         for im in self._mri_volumes:
             self._mri_volumes[im].set_output_patient_folder(self._output_folder)
@@ -137,6 +140,14 @@ class PatientParameters:
         for at in self._atlas_volumes:
             self._atlas_volumes[at].set_output_patient_folder(self._output_folder)
         logging.info("Renamed current output directory to: {}".format(directory))
+
+    @property
+    def standardized_report_filename(self) -> str:
+        return self._standardized_report_filename
+
+    @property
+    def standardized_report(self) -> dict:
+        return self._standardized_report
 
     def set_active_investigation_timestamp(self, timestamp_uid: str) -> None:
         self._active_investigation_timestamp_uid = timestamp_uid
@@ -197,10 +208,12 @@ class PatientParameters:
 
         return status
 
-    def get_display_name(self) -> str:
+    @property
+    def display_name(self) -> str:
         return self._display_name
 
-    def set_display_name(self, new_name: str, manual_change: bool = True) -> Tuple[int, str]:
+    @display_name.setter
+    def display_name(self, new_name: str, manual_change: bool = True) -> Tuple[int, str]:
         """
         Edit to the display name for the current patient, which does not alter its unique_uid.
         The use of an additional boolean parameter is needed to prevent updating the unsaved_changes state when
@@ -222,13 +235,13 @@ class PatientParameters:
         """
         # If a patient folder has been manually copied somewhere else, outside a proper raidionics home directory
         # environment, which should include patients and studies sub-folders.
-        if not os.path.exists(os.path.join(self._output_dir, "patients")) or not os.path.join(self._output_dir, "patients") in self._output_folder:
+        if not os.path.exists(os.path.join(self._output_directory, "patients")) or not os.path.join(self._output_directory, "patients") in self._output_folder:
             msg = """The patient folder is used outside of a proper Raidionics home directory.\n
             A proper home directory consists of a 'patients' and a 'studies' sub-folder."""
             return 1, msg
 
         # Removing spaces to prevent potential issues in folder name/access when performing disk IO operations
-        new_output_folder = os.path.join(self._output_dir, "patients", new_name.strip().lower().replace(" ", '_'))
+        new_output_folder = os.path.join(self._output_directory, "patients", new_name.strip().lower().replace(" ", '_'))
         if os.path.exists(new_output_folder):
             msg = """A patient with requested name already exists in the destination folder.\n
             Requested name: [{}].\n
@@ -283,7 +296,7 @@ class PatientParameters:
         try:
             self._patient_parameters_dict_filename = filename
             self._output_folder = os.path.dirname(self._patient_parameters_dict_filename)
-            self._output_dir = os.path.dirname(os.path.dirname(self._output_folder))
+            self._output_directory = os.path.dirname(os.path.dirname(self._output_folder))
             with open(self._patient_parameters_dict_filename, 'r') as infile:
                 self._patient_parameters_dict = json.load(infile)
 
@@ -479,7 +492,7 @@ class PatientParameters:
                         non_available_uid = False
 
                 self._atlas_volumes[data_uid] = AtlasVolume(uid=data_uid, input_filename=filename,
-                                                           output_patient_folder=self._mri_volumes[parent_mri_uid].get_output_patient_folder(),
+                                                           output_patient_folder=self._mri_volumes[parent_mri_uid].output_patient_folder,
                                                            parent_mri_uid=parent_mri_uid,
                                                            description_filename=description)
             else:  # Reference is MNI space then
@@ -531,12 +544,6 @@ class PatientParameters:
             json.dump(self._patient_parameters_dict, outfile, indent=4, sort_keys=True)
         self._unsaved_changes = False
 
-    def get_standardized_report_filename(self) -> str:
-        return self._standardized_report_filename
-
-    def get_standardized_report(self) -> dict:
-        return self._standardized_report
-
     def get_all_timestamps_uids(self) -> List[str]:
         return list(self._investigation_timestamps.keys())
 
@@ -552,7 +559,7 @@ class PatientParameters:
     def get_all_mri_volumes_display_names(self) -> List[str]:
         res = []
         for im in self._mri_volumes:
-            res.append(self._mri_volumes[im].get_display_name())
+            res.append(self._mri_volumes[im].display_name)
         return res
 
     def get_mri_by_uid(self, mri_uid: str) -> MRIVolume:
@@ -561,7 +568,7 @@ class PatientParameters:
     def get_mri_by_display_name(self, display_name: str) -> str:
         res = "-1"
         for im in self._mri_volumes:
-            if self._mri_volumes[im].get_display_name() == display_name:
+            if self._mri_volumes[im].display_name == display_name:
                 return im
         return res
 
@@ -661,7 +668,7 @@ class PatientParameters:
 
         for an in self._annotation_volumes:
             if self._annotation_volumes[an].get_parent_mri_uid() == mri_volume_uid:
-                res.append(self._annotation_volumes[an].get_unique_id())
+                res.append(self._annotation_volumes[an].unique_id)
         return res
 
     def get_specific_annotations_for_mri(self, mri_volume_uid: str, annotation_class: AnnotationClassType,
@@ -686,7 +693,7 @@ class PatientParameters:
             if self._annotation_volumes[an].get_parent_mri_uid() == mri_volume_uid \
                     and self._annotation_volumes[an].get_annotation_class_enum() == annotation_class \
                     and self._annotation_volumes[an].get_generation_type_enum() == generation_type:
-                res.append(self._annotation_volumes[an].get_unique_id())
+                res.append(self._annotation_volumes[an].unique_id)
         return res
 
     def get_all_annotation_volumes(self) -> dict:
@@ -716,7 +723,7 @@ class PatientParameters:
 
         for at in self._atlas_volumes:
             if self._atlas_volumes[at].get_parent_mri_uid() == mri_volume_uid:
-                res.append(self._atlas_volumes[at].get_unique_id())
+                res.append(self._atlas_volumes[at].unique_id)
         return res
 
     def get_all_atlas_volumes(self) -> dict:

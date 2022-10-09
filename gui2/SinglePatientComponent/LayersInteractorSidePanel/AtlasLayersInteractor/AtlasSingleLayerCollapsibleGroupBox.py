@@ -5,13 +5,14 @@ from PySide2.QtGui import QIcon, QPixmap, QColor
 import os
 import collections
 import logging
+from gui2.UtilsWidgets.CustomQGroupBox.QCollapsibleWidget import QCollapsibleWidget
 from gui2.UtilsWidgets.CustomQGroupBox.QCollapsibleGroupBox import QCollapsibleGroupBox
 from gui2.UtilsWidgets.QCustomIconsPushButton import QCustomIconsPushButton
 
 from utils.software_config import SoftwareConfigResources
 
 
-class AtlasSingleLayerCollapsibleGroupBox(QCollapsibleGroupBox):
+class AtlasSingleLayerCollapsibleGroupBox(QCollapsibleWidget):
     """
 
     """
@@ -21,7 +22,8 @@ class AtlasSingleLayerCollapsibleGroupBox(QCollapsibleGroupBox):
     resizeRequested = Signal()
 
     def __init__(self, uid, parent=None):
-        super(AtlasSingleLayerCollapsibleGroupBox, self).__init__(uid, parent)
+        super(AtlasSingleLayerCollapsibleGroupBox, self).__init__(uid)
+        self.uid = uid
         self.parent = parent
         self.__set_interface()
         self.__set_layout_dimensions()
@@ -30,14 +32,15 @@ class AtlasSingleLayerCollapsibleGroupBox(QCollapsibleGroupBox):
         self.__init_from_parameters()
 
     def __set_interface(self):
-        self.content_label_layout.setContentsMargins(0, 0, 20, 0)
-        self.content_label_layout.setSpacing(0)
-        self.content_label_layout.addStretch(1)
+        self.set_icon_filenames(expand_fn=os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                       '../../../Images/arrow_down_icon.png'),
+                                collapse_fn=os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                         '../../../Images/arrow_right_icon.png'))
 
     def __set_layout_dimensions(self):
-        self.header_pushbutton.setFixedHeight(20)
-        # self.header_pushbutton.setMaximumWidth(250)
-        # self.content_label.setMaximumWidth(250)
+        self.header.set_icon_size(QSize(15, 15))
+        self.header.title_label.setFixedHeight(20)
+        self.header.background_label.setFixedHeight(25)
 
     def __set_connections(self):
         pass
@@ -48,41 +51,35 @@ class AtlasSingleLayerCollapsibleGroupBox(QCollapsibleGroupBox):
         background_color = software_ss["Color5"]
         pressed_background_color = software_ss["Color6"]
 
-        self.setStyleSheet("""
-        AtlasSingleLayerCollapsibleGroupBox{
-        background-color: """ + background_color + """;        
-        }""")
-
-        self.content_label.setStyleSheet("""
+        self.header.background_label.setStyleSheet("""
         QLabel{
         background-color: """ + background_color + """;
+        border: 0px;
         }""")
 
-    # def adjustSize(self):
-    #     items = (self.layout.itemAt(i) for i in range(self.layout.count()))
-    #     actual_height = self.header_pushbutton.height()
-    #     for w in items:
-    #         if (w.__class__ == QHBoxLayout) or (w.__class__ == QVBoxLayout):
-    #             max_height = 0
-    #             sub_items = [w.itemAt(i) for i in range(w.count())]
-    #             for sw in sub_items:
-    #                 if sw.__class__ != QSpacerItem:
-    #                     if sw.wid.sizeHint().height() > max_height:
-    #                         max_height = sw.wid.sizeHint().height()
-    #             actual_height += max_height
-    #         elif w.__class__ == QGridLayout:
-    #             pass
-    #         # elif w.__class__ == QCollapsibleGroupBox:
-    #         #     size = w.wid.content_label.size()
-    #         #     actual_height += size.height()
-    #         elif w.__class__ != QSpacerItem:
-    #             size = w.wid.sizeHint()
-    #             actual_height += size.height()
-    #         else:
-    #             pass
-    #     self.setFixedSize(QSize(self.size().width(), actual_height))
-    #     logging.debug("Single atlas collapsible group box container set to {}.\n".format(QSize(self.size().width(), actual_height)))
-    #     self.resizeRequested.emit()
+        self.header.title_label.setStyleSheet("""
+        QLabel{
+        background-color: """ + background_color + """;
+        color: """ + font_color + """;
+        font:bold;
+        font-size:12px;
+        padding-left:15px;
+        text-align: left;
+        border: 0px;
+        }""")
+
+        self.header.icon_label.setStyleSheet("""
+        QLabel{
+        background-color: """ + background_color + """;
+        color: """ + font_color + """;
+        border: 0px;
+        }""")
+
+        self.content_widget.setStyleSheet("""
+        QWidget{
+        background-color: """ + background_color + """;
+        border: 0px;
+        }""")
 
     def __init_from_parameters(self):
         """
@@ -90,13 +87,14 @@ class AtlasSingleLayerCollapsibleGroupBox(QCollapsibleGroupBox):
         """
         atlas_volume_parameters = SoftwareConfigResources.getInstance().get_active_patient().get_atlas_by_uid(self.uid)
         self.title = "Detailed structures"
-        self.header_pushbutton.blockSignals(True)
-        self.header_pushbutton.setText(self.title)
-        self.header_pushbutton.blockSignals(False)
+        self.header.title_label.blockSignals(True)
+        self.header.title = self.title
+        self.header.title_label.setText(self.title)
+        self.header.title_label.blockSignals(False)
 
         #@TODO. Should be alphabetically ordered, easier to go through, so the loop should be made different.
         visible_labels = {}
-        for s in atlas_volume_parameters.get_visible_class_labels()[1:]:
+        for s in atlas_volume_parameters.visible_class_labels[1:]:
             name = atlas_volume_parameters.get_class_description().loc[atlas_volume_parameters.get_class_description()['label'] == s]['text'].values[0]
             visible_labels[name] = s
 
@@ -108,25 +106,13 @@ class AtlasSingleLayerCollapsibleGroupBox(QCollapsibleGroupBox):
             pb.visibility_toggled.connect(self.structure_view_toggled)
             pb.color_value_changed.connect(self.color_value_changed)
             pb.opacity_value_changed.connect(self.opacity_value_changed)
-            # pb = QCustomIconsPushButton(name, self.parent, icon_style='right', right_behaviour='stand-alone')
-            # pb.setText(name)
-            # pb.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-            #                                       '../../../Images/closed_eye_icon.png'))), QSize(20, 20), side='right',
-            #            checked=False)
-            # pb.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-            #                                       '../../../Images/opened_eye_icon.png'))), QSize(20, 20), side='right',
-            #            checked=True)
-            # # pb.setBaseSize(QSize(self.baseSize().width(), 20))
-            # pb.setFixedHeight(20)
-            # pb.setMaximumWidth(250)
-            self.content_label_layout.insertWidget(self.content_label_layout.count() - 1, pb)
-            self.content_label.setFixedHeight(self.content_label.height() + 20)
+            self.content_layout.insertWidget(self.content_layout.count(), pb)
 
         self.adjustSize()
 
     def toggle_all_structures(self, state):
-        items = (self.content_label_layout.itemAt(i) for i in
-                 reversed(range(self.content_label_layout.count())))
+        items = (self.content_layout.itemAt(i) for i in
+                 reversed(range(self.content_layout.count())))
         for i in items:
             try:
                 if i and i.widget():

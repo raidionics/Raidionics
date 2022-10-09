@@ -8,7 +8,7 @@ from abc import abstractmethod
 
 class Header(QWidget):
     """
-    Taken from https://github.com/aronamao/PySide2-Collapsible-Widget
+    Inspired from https://github.com/aronamao/PySide2-Collapsible-Widget
     """
     def __init__(self, name, content_widget, parent=None):
         """
@@ -23,38 +23,17 @@ class Header(QWidget):
         self.collapse_pixmap = QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                     '../../Images/shrink_arrow.png'))
         self.icon_size = QSize(20, 20)
-        # stacked = QStackedLayout(self)
-        # stacked.setStackingMode(QStackedLayout.StackAll)
-        # self._background_label = QLabel()
-        #
-        # widget = QWidget()
-        # layout = QHBoxLayout(widget)
-        #
-        # self.icon_label = QLabel()
-        # self.icon_label.setPixmap(self.collapse_pixmap.scaled(self.icon_size, aspectMode=Qt.KeepAspectRatio))
-        # layout.addWidget(self.icon_label)
-        # layout.setContentsMargins(11, 0, 11, 0)
-        #
-        # font = QFont()
-        # font.setBold(True)
-        # self._title_label = QLabel(self._title)
-        # self._title_label.setFont(font)
-        #
-        # layout.addWidget(self._title_label)
-        # layout.addItem(QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Expanding))
-        #
-        # stacked.addWidget(widget)
-        # stacked.addWidget(self._background_label)
-        # self._background_label.setMinimumHeight(layout.sizeHint().height() * 1.5)
         self._layout = QHBoxLayout(self)
+        self._layout.setSpacing(0)
+        self._layout.setContentsMargins(0, 0, 0, 0)
         self._background_label = QLabel()
 
         layout = QHBoxLayout()
 
-        self.icon_label = QLabel()
-        self.icon_label.setPixmap(self.collapse_pixmap.scaled(self.icon_size, aspectMode=Qt.KeepAspectRatio))
-        self.icon_label.setFixedSize(self.icon_size)
-        layout.addWidget(self.icon_label)
+        self._icon_label = QLabel()
+        self._icon_label.setPixmap(self.collapse_pixmap.scaled(self.icon_size, aspectMode=Qt.KeepAspectRatio))
+        self._icon_label.setFixedSize(self.icon_size)
+        layout.addWidget(self._icon_label)
         layout.setContentsMargins(11, 0, 11, 0)
 
         self._title_label = QLabel(self._title)
@@ -78,6 +57,10 @@ class Header(QWidget):
         return self._title_label
 
     @property
+    def icon_label(self) -> QLabel:
+        return self._icon_label
+
+    @property
     def title(self) -> str:
         return self._title
 
@@ -87,21 +70,21 @@ class Header(QWidget):
 
     def expand(self):
         self.content.setVisible(True)
-        self.icon_label.setPixmap(self.expand_pixmap.scaled(self.icon_size, aspectMode=Qt.KeepAspectRatio))
+        self._icon_label.setPixmap(self.expand_pixmap.scaled(self.icon_size, aspectMode=Qt.KeepAspectRatio))
 
     def collapse(self):
         self.content.setVisible(False)
-        self.icon_label.setPixmap(self.collapse_pixmap.scaled(self.icon_size, aspectMode=Qt.KeepAspectRatio))
+        self._icon_label.setPixmap(self.collapse_pixmap.scaled(self.icon_size, aspectMode=Qt.KeepAspectRatio))
 
     def set_icon_filenames(self, expand_fn, collapse_fn):
         self.expand_pixmap = QPixmap(expand_fn)
         self.collapse_pixmap = QPixmap(collapse_fn)
-        self.icon_label.setPixmap(self.collapse_pixmap.scaled(self.icon_size, aspectMode=Qt.KeepAspectRatio))
+        self._icon_label.setPixmap(self.collapse_pixmap.scaled(self.icon_size, aspectMode=Qt.KeepAspectRatio))
 
     def set_icon_size(self, size):
         self.icon_size = size
-        self.icon_label.setPixmap(self.collapse_pixmap.scaled(self.icon_size, aspectMode=Qt.KeepAspectRatio))
-        self.icon_label.setFixedSize(size)
+        self._icon_label.setPixmap(self.collapse_pixmap.scaled(self.icon_size, aspectMode=Qt.KeepAspectRatio))
+        self._icon_label.setFixedSize(size)
 
 
 class QCollapsibleWidget(QWidget):
@@ -117,6 +100,7 @@ class QCollapsibleWidget(QWidget):
         super(QCollapsibleWidget, self).__init__()
         self.layout = QVBoxLayout(self)
         self.layout.setContentsMargins(0, 0, 0, 0)
+        self.layout.setSpacing(0)
         self._content_widget = QWidget()
         self._header = Header(name, self._content_widget)
         self.layout.addWidget(self._header)
@@ -124,7 +108,6 @@ class QCollapsibleWidget(QWidget):
         self._content_widget.setLayout(self._content_layout)
         self.layout.addWidget(self._content_widget)
 
-        # assign header methods to instance attributes so they can be called outside of this class
         self.collapse = self._header.collapse
         self.expand = self._header.expand
         self.toggle = self._header.mousePressEvent
@@ -132,6 +115,10 @@ class QCollapsibleWidget(QWidget):
     @property
     def content_layout(self):
         return self._content_layout
+
+    @property
+    def content_widget(self):
+        return self._content_widget
 
     @property
     def header(self):

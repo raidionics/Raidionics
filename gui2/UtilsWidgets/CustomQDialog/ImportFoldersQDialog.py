@@ -195,7 +195,7 @@ class ImportFoldersQDialog(QDialog):
                 self.patient_imported.emit(pat_uid)
                 SoftwareConfigResources.getInstance().get_patient(pat_uid).save_patient()
                 msg = SoftwareConfigResources.getInstance().get_active_study().include_study_patient(uid=pat_uid,
-                                                                                                     folder_name=SoftwareConfigResources.getInstance().get_patient(pat_uid).get_output_folder())
+                                                                                                     folder_name=SoftwareConfigResources.getInstance().get_patient(pat_uid).output_folder)
                 self.load_progressbar.setValue(i + 1)
                 if error_msg:
                     diag = QMessageBox()
@@ -216,7 +216,7 @@ class ImportFoldersQDialog(QDialog):
                         patient_include_error_msg = "Unable to create empty patient.\nError message: {}.\n".format(
                             error_msg)
 
-                    SoftwareConfigResources.getInstance().get_patient(pat_uid).set_display_name(p.split('.')[0])
+                    SoftwareConfigResources.getInstance().get_patient(pat_uid).display_name = p.split('.')[0]
                     uid, error_msg = SoftwareConfigResources.getInstance().get_patient(pat_uid).import_data(
                         os.path.join(input_folderpath, p))
                     if error_msg:
@@ -225,7 +225,7 @@ class ImportFoldersQDialog(QDialog):
                     self.patient_imported.emit(pat_uid)
                     SoftwareConfigResources.getInstance().get_patient(pat_uid).save_patient()
                     msg = SoftwareConfigResources.getInstance().get_active_study().include_study_patient(uid=pat_uid,
-                                                                                                     folder_name=SoftwareConfigResources.getInstance().get_patient(pat_uid).get_output_folder())
+                                                                                                     folder_name=SoftwareConfigResources.getInstance().get_patient(pat_uid).output_folder)
                     self.load_progressbar.setValue(i + 1)
             elif self.target_type == 'regular':  # Case (ii)
                 collective_errors = ""
@@ -236,7 +236,7 @@ class ImportFoldersQDialog(QDialog):
                     self.patient_imported.emit(pat_uid)
                     SoftwareConfigResources.getInstance().get_patient(pat_uid).save_patient()
                     msg = SoftwareConfigResources.getInstance().get_active_study().include_study_patient(uid=pat_uid,
-                                                                                                         folder_name=SoftwareConfigResources.getInstance().get_patient(pat_uid).get_output_folder())
+                                                                                                         folder_name=SoftwareConfigResources.getInstance().get_patient(pat_uid).output_folder)
                     collective_errors = collective_errors + error_msg
                     self.load_progressbar.setValue(i + 1)
                 if collective_errors != "":
@@ -252,14 +252,14 @@ class ImportFoldersQDialog(QDialog):
                 if error_msg:
                     patient_include_error_msg = "Unable to create empty patient.\nError message: {}.\n".format(
                         error_msg)
-                SoftwareConfigResources.getInstance().get_patient(uid=pat_uid).set_display_name(dicom_holder.patient_id)
+                SoftwareConfigResources.getInstance().get_patient(uid=pat_uid).display_name = dicom_holder.patient_id
                 for study_id in dicom_holder.studies.keys():
                     for series_id in dicom_holder.studies[study_id].dicom_series.keys():
                         volume_uid, err_msg = SoftwareConfigResources.getInstance().get_patient(uid=pat_uid).import_dicom_data(dicom_holder.studies[study_id].dicom_series[series_id])
                 self.patient_imported.emit(pat_uid)
                 SoftwareConfigResources.getInstance().get_patient(pat_uid).save_patient()
                 msg = SoftwareConfigResources.getInstance().get_active_study().include_study_patient(uid=pat_uid,
-                                                                                                     folder_name=SoftwareConfigResources.getInstance().get_patient(pat_uid).get_output_folder())
+                                                                                                     folder_name=SoftwareConfigResources.getInstance().get_patient(pat_uid).output_folder)
                 self.load_progressbar.setValue(i + 1)
                 if error_msg:
                     diag = QMessageBox()
@@ -275,14 +275,14 @@ class ImportFoldersQDialog(QDialog):
                     if error_msg:
                         patient_include_error_msg = "Unable to create empty patient.\nError message: {}.\n".format(
                             error_msg)
-                    SoftwareConfigResources.getInstance().get_patient(uid=pat_uid).set_display_name(dicom_holder.patient_id)
+                    SoftwareConfigResources.getInstance().get_patient(uid=pat_uid).display_name = dicom_holder.patient_id
                     for study_id in dicom_holder.studies.keys():
                         for series_id in dicom_holder.studies[study_id].dicom_series.keys():
                             volume_uid, err_msg = SoftwareConfigResources.getInstance().get_patient(uid=pat_uid).import_dicom_data(dicom_holder.studies[study_id].dicom_series[series_id])
                     self.patient_imported.emit(pat_uid)
                     SoftwareConfigResources.getInstance().get_patient(pat_uid).save_patient()
                     msg = SoftwareConfigResources.getInstance().get_active_study().include_study_patient(uid=pat_uid,
-                                                                                                         folder_name=SoftwareConfigResources.getInstance().get_patient(pat_uid).get_output_folder())
+                                                                                                         folder_name=SoftwareConfigResources.getInstance().get_patient(pat_uid).output_folder)
                     self.load_progressbar.setValue(i + 1)
                     if error_msg:
                         diag = QMessageBox()
@@ -411,7 +411,7 @@ def import_patient_from_folder(folder_path: str) -> Tuple[dict, str]:
             patient_include_error_msg = "Unable to create empty patient.\nError message: {}.\n".format(error_msg)
             return imports, patient_include_error_msg
 
-        SoftwareConfigResources.getInstance().get_patient(pat_uid).set_display_name(os.path.basename(folder_path))
+        SoftwareConfigResources.getInstance().get_patient(pat_uid).display_name = os.path.basename(folder_path)
         mris_in_path = []
         annotations_in_path = []
         for f in files_in_path:

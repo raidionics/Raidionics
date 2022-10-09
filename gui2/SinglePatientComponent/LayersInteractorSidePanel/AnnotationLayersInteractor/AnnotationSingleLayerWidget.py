@@ -137,7 +137,7 @@ class AnnotationSingleLayerWidget(QWidget):
         ############## ADVANCED OPTIONS ################
         self.opacity_label.setFixedHeight(20)
         self.opacity_slider.setFixedHeight(20)
-        self.opacity_slider.setFixedWidth(120)
+        # self.opacity_slider.setFixedWidth(120)
         self.color_label.setFixedHeight(20)
         self.color_dialogpushbutton.setFixedHeight(15)
         self.advanced_options_collapsible.content_label.setFixedHeight(70)
@@ -310,14 +310,19 @@ class AnnotationSingleLayerWidget(QWidget):
 
         self.color_dialogpushbutton_base_ss = """ QPushButton{border-color:rgb(0, 0, 0); border-width:2px;} """
 
+        self.opacity_slider.setStyleSheet("""
+        QSlider{
+        border: 0px;
+        }""")
+
     def __init_from_parameters(self):
         params = SoftwareConfigResources.getInstance().get_active_patient().get_annotation_by_uid(self.uid)
-        self.display_name_lineedit.setText(params.get_display_name())
+        self.display_name_lineedit.setText(params.display_name)
 
         # Adding the display names of all loaded MRI volumes, and setting the index to the correct MRI parent.
         self.parent_image_combobox.blockSignals(True)
         self.parent_image_combobox.addItems(list(SoftwareConfigResources.getInstance().get_active_patient().get_all_mri_volumes_display_names()))
-        parent_mri_display_name = SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_uid(params.get_parent_mri_uid()).get_display_name()
+        parent_mri_display_name = SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_uid(params.get_parent_mri_uid()).display_name
         self.parent_image_combobox.setCurrentText(parent_mri_display_name)
         self.parent_image_combobox.blockSignals(False)
 

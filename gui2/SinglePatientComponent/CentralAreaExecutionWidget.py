@@ -91,11 +91,6 @@ class CentralAreaExecutionWidget(QLabel):
         self.run_segmentation_pushbutton.setEnabled(True)
         self.run_reporting_pushbutton.setEnabled(True)
 
-    def on_execute_folders_classification(self):
-        self.process_started.emit()
-        self.model_name = ""
-        self.pipeline_main_wrapper("folders_classification")
-
     def on_preop_segmentation(self):
         diag = TumorTypeSelectionQDialog(self)
         code = diag.exec_()
@@ -112,6 +107,26 @@ class CentralAreaExecutionWidget(QLabel):
 
         self.process_started.emit()
         self.pipeline_main_wrapper("preop_segmentation")
+
+    def on_pipeline_execution(self, pipeline_code: str) -> None:
+        self.model_name = ""
+        if pipeline_code != "folders_classification":
+            diag = TumorTypeSelectionQDialog(self)
+            code = diag.exec_()
+            if code == 0:  # Operation cancelled
+                return
+
+            if diag.tumor_type == 'High-Grade Glioma':
+                self.model_name = "MRI_HGGlioma"
+            elif diag.tumor_type == 'Low-Grade Glioma':
+                self.model_name = "MRI_LGGlioma"
+            elif diag.tumor_type == 'Metastasis':
+                self.model_name = "MRI_Metastasis"
+            elif diag.tumor_type == 'Meningioma':
+                self.model_name = "MRI_Meningioma"
+
+        self.process_started.emit()
+        self.pipeline_main_wrapper(pipeline_code)
 
     def pipeline_main_wrapper(self, task: str) -> None:
         self.run_pipeline_thread = threading.Thread(target=self.run_pipeline, args=(task, ))
@@ -131,10 +146,18 @@ class CentralAreaExecutionWidget(QLabel):
             SoftwareConfigResources.getInstance().active_patient_name]
             code, results = pipeline_main_wrapper(pipeline_task=task, model_name=self.model_name,
                                                   patient_parameters=current_patient_parameters)
-            # # @TODO. Should have an exhaustive way to process whatever inside the results dict, needed?
-            # if 'Annotation' in list(results.keys()):
-            #     for a in results['Annotation']:
-            #         self.annotation_volume_imported.emit(a)
+            # Processing the generated results to include them in the correct GUI places.
+            if 'Annotation' in list(results.keys()):
+                for a in results['Annotation']:
+                    self.annotation_volume_imported.emit(a)
+            if 'Atlas' in list(results.keys()):
+                for a in results['Atlas']:
+                    self.atlas_volume_imported.emit(a)
+            if 'Report' in list(results.keys()):
+                self.standardized_report_imported.emit()
+            if 'Classification' in list(results.keys()):
+                #@TODO. How to trigger an update here properly?
+                pass
 
             # Automatically saving the patient (with the latest results) for an easier loading afterwards.
             SoftwareConfigResources.getInstance().get_active_patient().save_patient()
@@ -150,6 +173,7 @@ class CentralAreaExecutionWidget(QLabel):
         self.process_finished.emit()
 
     def on_run_segmentation(self):
+        # self.on_pipeline_execution("preop_segmentation")
         diag = TumorTypeSelectionQDialog(self)
         code = diag.exec_()
         if code == 0:  # Operation cancelled
@@ -331,8 +355,8 @@ class CentralAreaExecutionWidget(QLabel):
                 box.exec_()
                 readiness = False
         elif task == 'rads':
-            if SoftwareConfigResources.getInstance().get_active_patient().get_standardized_report_filename() and \
-                    os.path.exists(SoftwareConfigResources.getInstance().get_active_patient().get_standardized_report_filename()):
+            if SoftwareConfigResources.getInstance().get_active_patient().standardized_report_filename and \
+                    os.path.exists(SoftwareConfigResources.getInstance().get_active_patient().standardized_report_filename):
                 box = QMessageBox(self)
                 box.setWindowTitle("Results already generated")
                 box.setText("The results for this process have already been generated for the current combination of "

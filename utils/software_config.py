@@ -156,7 +156,7 @@ class SoftwareConfigResources:
             self.patients_parameters[patient_uid] = PatientParameters(id=patient_uid,
                                                                       dest_location=self._user_home_location)
             random_name = names.get_full_name()
-            self.patients_parameters[patient_uid].set_display_name(random_name, manual_change=False)
+            self.patients_parameters[patient_uid].display_name(random_name, manual_change=False)
             if active:
                 self.set_active_patient(patient_uid)
         except Exception:
@@ -191,7 +191,7 @@ class SoftwareConfigResources:
             error_message = patient_instance.import_patient(filename)
             # To prevent the save changes dialog to pop-up straight up after loading a patient scene file.
             patient_instance.set_unsaved_changes_state(False)
-            patient_id = patient_instance.get_unique_id()
+            patient_id = patient_instance.unique_id
             if patient_id in self.patients_parameters.keys():
                 # @TODO. The random unique key number is encountered twice, have to randomize it again.
                 error_message = error_message + '\nImport patient failed, unique id already exists.\n'
@@ -313,7 +313,7 @@ class SoftwareConfigResources:
             error_message = study_instance.import_study(filename)
             # To prevent the save changes dialog to pop-up straight up after loading a patient scene file.
             study_instance.set_unsaved_changes_state(False)
-            study_id = study_instance.get_unique_id()
+            study_id = study_instance.unique_id
             if study_id in self.study_parameters.keys():
                 # @TODO. The random unique key number is encountered twice, have to randomize it again.
                 error_message = error_message + '\nImport study failed, unique id already exists.\n'
@@ -323,11 +323,11 @@ class SoftwareConfigResources:
                 self.active_study_name = study_id
 
             # After loading the study, all connected patients should also be reloaded
-            included_pat_uids = study_instance.get_included_patients_uids()
+            included_pat_uids = study_instance.included_patients_uids
             for p in included_pat_uids.keys():
                 if p not in self.patients_parameters.keys():
                     logging.info("Importing patient {} linked to study {}.".format(p, study_id))
-                    assumed_patient_filename = os.path.join(study_instance.get_output_study_directory(), 'patients',
+                    assumed_patient_filename = os.path.join(study_instance.output_study_directory, 'patients',
                                                             included_pat_uids[p],
                                                             included_pat_uids[p] + '_scene.raidionics')
                     pat_id, pat_err_mnsg = self.load_patient(filename=assumed_patient_filename, active=False)
@@ -405,9 +405,9 @@ class SoftwareConfigResources:
             Internal unique identifier for the patient who underwent a display name alteration.
         """
         for s in self.study_parameters.keys():
-            if patient_uid in self.study_parameters[s].get_included_patients_uids().keys():
+            if patient_uid in self.study_parameters[s].included_patients_uids.keys():
                 self.study_parameters[s].change_study_patient_folder(uid=patient_uid,
-                                                                     folder_name=self.patients_parameters[patient_uid].get_output_folder())
+                                                                     folder_name=self.patients_parameters[patient_uid].output_folder)
                 self.study_parameters[s].save()
 
     def get_optimal_dimensions(self):

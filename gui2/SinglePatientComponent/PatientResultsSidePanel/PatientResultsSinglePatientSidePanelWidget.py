@@ -264,7 +264,7 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
             self.__on_patient_selection(True, uid)
 
     def on_standardized_report_imported(self):
-        self.patient_results_widgets[SoftwareConfigResources.getInstance().get_active_patient().get_unique_id()].on_standardized_report_imported()
+        self.patient_results_widgets[SoftwareConfigResources.getInstance().get_active_patient().unique_id].on_standardized_report_imported()
 
     def on_import_options_clicked(self, point):
         self.options_menu.exec_(self.bottom_add_patient_pushbutton.mapToGlobal(QPoint(0, -75)))

@@ -78,7 +78,8 @@ class StudyParameters:
         # @TODO. Does it mean removing all patients of this study from the list in SinglePatientSidePanel?
         pass
 
-    def get_unique_id(self) -> str:
+    @property
+    def unique_id(self) -> str:
         return self._unique_id
 
     def has_unsaved_changes(self) -> bool:
@@ -87,10 +88,12 @@ class StudyParameters:
     def set_unsaved_changes_state(self, state: bool) -> None:
         self._unsaved_changes = state
 
-    def get_display_name(self) -> str:
+    @property
+    def display_name(self) -> str:
         return self._display_name
 
-    def set_display_name(self, new_name: str, manual_change: bool = True) -> Tuple[int, str]:
+    @display_name.setter
+    def display_name(self, new_name: str, manual_change: bool = True) -> Tuple[int, str]:
         """
         Edit to the display name for the current study, which does not alter its unique_uid.
         The use of an additional boolean parameter is needed to prevent updating the unsaved_changes state when
@@ -140,13 +143,16 @@ class StudyParameters:
         """
         pass
 
-    def get_output_study_folder(self) -> str:
+    @property
+    def output_study_folder(self) -> str:
         return self._output_study_folder
 
-    def get_output_study_directory(self) -> str:
+    @property
+    def output_study_directory(self) -> str:
         return self._output_study_directory
 
-    def get_included_patients_uids(self) -> dict:
+    @property
+    def included_patients_uids(self) -> dict:
         return self._included_patients_uids
 
     def get_total_included_patients(self) -> int:

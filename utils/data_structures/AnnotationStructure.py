@@ -106,7 +106,8 @@ class AnnotationVolume:
         self._default_affine = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]
         self._unsaved_changes = False
 
-    def get_unique_id(self) -> str:
+    @property
+    def unique_id(self) -> str:
         return self._unique_id
 
     def load_in_memory(self) -> None:
@@ -168,10 +169,12 @@ class AnnotationVolume:
             logging.debug("Unsaved changes - Annotation volume class changed to {}.".format(str(self._annotation_class)))
             self._unsaved_changes = True
 
-    def get_display_name(self) -> str:
+    @property
+    def display_name(self) -> str:
         return self._display_name
 
-    def set_display_name(self, name: str) -> None:
+    @display_name.setter
+    def display_name(self, name: str) -> None:
         self._display_name = name
         self._unsaved_changes = True
         logging.debug("Unsaved changes - Annotation volume display name changed to {}.".format(name))
@@ -183,7 +186,8 @@ class AnnotationVolume:
             self._usable_input_filepath = self._usable_input_filepath.replace(self._output_patient_folder, output_folder)
         self._output_patient_folder = output_folder
 
-    def get_output_patient_folder(self) -> str:
+    @property
+    def output_patient_folder(self) -> str:
         return self._output_patient_folder
 
     def get_display_opacity(self) -> int:

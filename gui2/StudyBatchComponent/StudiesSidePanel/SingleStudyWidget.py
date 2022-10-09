@@ -263,14 +263,14 @@ class SingleStudyWidget(QCollapsibleGroupBox):
         self.resizeRequested.emit()
 
     def __on_patient_name_modified(self):
-        code, err_msg = SoftwareConfigResources.getInstance().get_active_study().set_display_name(self.study_name_lineedit.text())
+        code, err_msg = SoftwareConfigResources.getInstance().get_active_study().display_name = self.study_name_lineedit.text()
         if code == 1:  # Operation failed
             self.study_name_lineedit.blockSignals(True)
-            self.study_name_lineedit.setText(SoftwareConfigResources.getInstance().get_active_study().get_display_name())
+            self.study_name_lineedit.setText(SoftwareConfigResources.getInstance().get_active_study().display_name)
             self.study_name_lineedit.blockSignals(False)
         else:
             self.header_pushbutton.setText(self.study_name_lineedit.text())
-            self.output_dir_lineedit.setText(SoftwareConfigResources.getInstance().get_active_study().get_output_study_folder())
+            self.output_dir_lineedit.setText(SoftwareConfigResources.getInstance().get_active_study().output_study_folder)
             self.output_dir_lineedit.setCursorPosition(0)
             self.output_dir_lineedit.home(True)
 
@@ -290,11 +290,11 @@ class SingleStudyWidget(QCollapsibleGroupBox):
 
     def populate_from_study(self, study_uid):
         study_parameters = SoftwareConfigResources.getInstance().study_parameters[study_uid]
-        self.study_name_lineedit.setText(study_parameters.get_display_name())
-        self.output_dir_lineedit.setText(study_parameters.get_output_study_folder())
+        self.study_name_lineedit.setText(study_parameters.display_name)
+        self.output_dir_lineedit.setText(study_parameters.output_study_folder)
         self.output_dir_lineedit.setCursorPosition(0)
         self.output_dir_lineedit.home(True)
-        self.title = study_parameters.get_display_name()
+        self.title = study_parameters.display_name
         self.header_pushbutton.setText(self.title)
 
     def __on_include_single_patient_folder_clicked(self) -> None:

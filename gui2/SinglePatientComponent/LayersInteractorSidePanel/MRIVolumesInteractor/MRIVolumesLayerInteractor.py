@@ -34,8 +34,8 @@ class MRIVolumesLayerInteractor(QCollapsibleWidget):
                                                          '../../../Images/arrow_right_icon.png'))
 
     def __set_layout_dimensions(self):
-        self.header.set_icon_size(QSize(20, 20))
-        self.header.title_label.setFixedHeight(45)
+        self.header.set_icon_size(QSize(35, 35))
+        self.header.title_label.setFixedHeight(40)
         self.header.background_label.setFixedHeight(45)
 
     def __set_stylesheets(self):
@@ -59,6 +59,23 @@ class MRIVolumesLayerInteractor(QCollapsibleWidget):
         font-size:14px;
         padding-left:40px;
         text-align: left;
+        border: 0px;
+        }""")
+
+        self.header.icon_label.setStyleSheet("""
+        QLabel{
+        background-color: """ + background_color + """;
+        color: """ + font_color + """;
+        border: 0px;
+        }""")
+
+        self.content_widget.setStyleSheet("""
+        QWidget{
+        background-color: """ + background_color + """;
+        border-width: 2px;
+        border-style: solid;
+        border-color: """ + background_color + """ black black black;
+        border-radius: 2px;
         }""")
 
     def adjustSize(self):
@@ -139,7 +156,7 @@ class MRIVolumesLayerInteractor(QCollapsibleWidget):
             return
 
         self.volumes_widget[volume_id] = volume_widget
-        self.content_layout.insertWidget(self.content_layout.count() - 1, volume_widget)
+        self.content_layout.insertWidget(self.content_layout.count(), volume_widget)
         volume_widget.visibility_toggled.connect(self.on_visibility_clicked)
         volume_widget.contrast_changed.connect(self.contrast_changed)
         volume_widget.display_name_changed.connect(self.volume_display_name_changed)
@@ -179,7 +196,10 @@ class MRIVolumesLayerInteractor(QCollapsibleWidget):
                     self.volumes_widget[w].set_stylesheets(selected=False)
                     self.volumes_widget[w].update_interface_from_external_toggle(False)
         else:  # Trying to undisplay an image, not possible.
+            self.volumes_widget[uid].display_toggle_radiobutton.blockSignals(True)
             self.volumes_widget[uid].display_toggle_radiobutton.setChecked(True)
+            self.volumes_widget[uid].update_interface_from_external_toggle(True)
+            self.volumes_widget[uid].display_toggle_radiobutton.blockSignals(False)
 
     def set_default_display(self) -> None:
         """

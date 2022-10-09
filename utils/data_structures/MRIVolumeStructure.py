@@ -113,7 +113,8 @@ class MRIVolume:
         self._resampled_input_volume = None
         self._display_volume = None
 
-    def get_unique_id(self) -> str:
+    @property
+    def unique_id(self) -> str:
         return self._unique_id
 
     def get_timestamp_uid(self) -> str:
@@ -125,10 +126,12 @@ class MRIVolume:
     def has_unsaved_changes(self) -> bool:
         return self._unsaved_changes
 
-    def get_display_name(self) -> str:
+    @property
+    def display_name(self) -> str:
         return self._display_name
 
-    def set_display_name(self, text: str) -> None:
+    @display_name.setter
+    def display_name(self, text: str) -> None:
         self._display_name = text
         self._unsaved_changes = True
         logging.debug("Unsaved changes - MRI volume display name changed to {}".format(self._display_name))
@@ -136,7 +139,8 @@ class MRIVolume:
     def set_output_patient_folder(self, output_folder: str) -> None:
         self._output_patient_folder = output_folder
 
-    def get_output_patient_folder(self) -> str:
+    @property
+    def output_patient_folder(self) -> str:
         return self._output_patient_folder
 
     def get_sequence_type_enum(self) -> Enum:

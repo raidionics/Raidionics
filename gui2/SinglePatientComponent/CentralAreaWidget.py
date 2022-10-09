@@ -29,8 +29,7 @@ class CentralAreaWidget(QWidget):
     standardized_report_imported = Signal()
     process_started = Signal()
     process_finished = Signal()
-    execute_folders_classification_requested = Signal()
-    preop_segmentation_requested = Signal()
+    pipeline_execution_requested = Signal(str)
 
     def __init__(self, parent=None):
         super(CentralAreaWidget, self).__init__()
@@ -93,8 +92,7 @@ class CentralAreaWidget(QWidget):
         self.execution_area_widget.process_started.connect(self.process_started)
         self.execution_area_widget.process_finished.connect(self.process_finished)
         self.volume_view_toggled.connect(self.execution_area_widget.on_volume_layer_toggled)
-        self.execute_folders_classification_requested.connect(self.execution_area_widget.on_execute_folders_classification)
-        self.preop_segmentation_requested.connect(self.execution_area_widget.on_preop_segmentation)
+        self.pipeline_execution_requested.connect(self.execution_area_widget.on_pipeline_execution)
 
         # Connections from the left patient panel
         self.patient_view_toggled.connect(self.display_area_widget.on_patient_selected)

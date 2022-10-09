@@ -7,6 +7,7 @@ import nibabel as nib
 from nibabel.processing import resample_to_output
 import traceback
 from copy import deepcopy
+from pathlib import PurePath
 
 
 class AtlasVolume:
@@ -108,7 +109,8 @@ class AtlasVolume:
     def release_from_memory(self) -> None:
         self._display_volume = None
 
-    def get_unique_id(self) -> str:
+    @property
+    def unique_id(self) -> str:
         return self._unique_id
 
     def set_unsaved_changes_state(self, state: bool) -> None:
@@ -117,10 +119,12 @@ class AtlasVolume:
     def has_unsaved_changes(self) -> bool:
         return self._unsaved_changes
 
-    def get_display_name(self) -> str:
+    @property
+    def display_name(self) -> str:
         return self._display_name
 
-    def set_display_name(self, name: str) -> None:
+    @display_name.setter
+    def display_name(self, name: str) -> None:
         self._display_name = name
         self._unsaved_changes = True
         logging.debug("Unsaved changes - Atlas volume display name changed to {}.".format(name))
@@ -184,13 +188,15 @@ class AtlasVolume:
             self._class_description_filename = self._class_description_filename.replace(self._output_patient_folder, output_folder)
         self._output_patient_folder = output_folder
 
-    def get_output_patient_folder(self) -> str:
+    @property
+    def output_patient_folder(self) -> str:
         return self._output_patient_folder
 
     def get_class_description(self) -> Union[pd.DataFrame, dict]:
         return self._class_description
 
-    def get_visible_class_labels(self) -> List:
+    @property
+    def visible_class_labels(self) -> List:
         return self._visible_class_labels
 
     def delete(self):
@@ -221,14 +227,28 @@ class AtlasVolume:
             # Parameters-filling operations
             volume_params = {}
             volume_params['display_name'] = self._display_name
-            volume_params['raw_input_filepath'] = os.path.relpath(self._raw_input_filepath, self._output_patient_folder)
+            base_patient_folder = '/'.join(self._output_patient_folder.split('/')[:-1])  # To keep the timestamp folder
+            if os.name == 'nt':
+                base_patient_folder_parts = list(PurePath(os.path.realpath(self._output_patient_folder)).parts[:-1])
+                base_patient_folder = PurePath()
+                for x in base_patient_folder_parts:
+                    base_patient_folder = base_patient_folder.joinpath(x)
+
+            volume_params['raw_input_filepath'] = os.path.relpath(self._raw_input_filepath, base_patient_folder)
             volume_params['resample_input_filepath'] = os.path.relpath(self._resampled_input_volume_filepath,
-                                                                       self._output_patient_folder)
+                                                                       base_patient_folder)
             volume_params['display_volume_filepath'] = os.path.relpath(self._display_volume_filepath,
-                                                                       self._output_patient_folder)
+                                                                       base_patient_folder)
             if self._class_description_filename:
+                base_patient_folder = '/'.join(
+                    self._output_patient_folder.split('/')[:-2])  # To reach the root patient folder
+                if os.name == 'nt':
+                    base_patient_folder_parts = list(PurePath(os.path.realpath(self._output_patient_folder)).parts[:-1])
+                    base_patient_folder = PurePath()
+                    for x in base_patient_folder_parts:
+                        base_patient_folder = base_patient_folder.joinpath(x)
                 volume_params['description_filepath'] = os.path.relpath(self._class_description_filename,
-                                                                        self._output_patient_folder)
+                                                                        base_patient_folder)
             volume_params['parent_mri_uid'] = self._parent_mri_uid
             volume_params['display_colors'] = self._class_display_color
             volume_params['display_opacities'] = self._class_display_opacity

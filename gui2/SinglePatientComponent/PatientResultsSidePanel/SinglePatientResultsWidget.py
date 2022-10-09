@@ -610,17 +610,17 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
 
     def __on_patient_name_modified(self):
         new_name = self.patient_name_lineedit.text()
-        code, msg = SoftwareConfigResources.getInstance().get_active_patient().set_display_name(new_name)
+        code, msg = SoftwareConfigResources.getInstance().get_active_patient().display_name = new_name
         if code == 0:  # Name edition was successful
             self.header_pushbutton.setText(new_name)
             self.patient_name_edited.emit(self.uid, new_name)
-            self.output_dir_lineedit.setText(SoftwareConfigResources.getInstance().get_active_patient().get_output_folder())
+            self.output_dir_lineedit.setText(SoftwareConfigResources.getInstance().get_active_patient().output_folder)
 
             # If some ongoing studies are opened, the associated folder must also be changed there
             if not SoftwareConfigResources.getInstance().is_study_list_empty():
                 SoftwareConfigResources.getInstance().propagate_patient_name_change(SoftwareConfigResources.getInstance().get_active_patient_uid())
         else:  # Requested name already exists, operation cancelled and user warned.
-            self.patient_name_lineedit.setText(SoftwareConfigResources.getInstance().get_active_patient().get_display_name())
+            self.patient_name_lineedit.setText(SoftwareConfigResources.getInstance().get_active_patient().display_name)
             diag = QErrorMessage(self)
             diag.setWindowTitle("Operation not permitted")
             diag.showMessage(msg)
@@ -665,12 +665,12 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
 
     def populate_from_patient(self, patient_uid):
         patient_parameters = SoftwareConfigResources.getInstance().patients_parameters[patient_uid]
-        self.patient_name_lineedit.setText(patient_parameters.get_display_name())
-        self.output_dir_lineedit.setText(patient_parameters.get_output_folder())
+        self.patient_name_lineedit.setText(patient_parameters.display_name)
+        self.output_dir_lineedit.setText(patient_parameters.output_folder)
         # The following is necessary for aligning the text to the left, using Qt.AlignLeft or stylesheets does not work.
         self.output_dir_lineedit.setCursorPosition(0)
         self.output_dir_lineedit.home(True)
-        self.title = patient_parameters.get_display_name()
+        self.title = patient_parameters.display_name
         self.header_pushbutton.setText(self.title)
         self.on_standardized_report_imported()
 
@@ -682,7 +682,7 @@ class SinglePatientResultsWidget(QCollapsibleGroupBox):
 
     def on_standardized_report_imported(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
-        report_json = SoftwareConfigResources.getInstance().patients_parameters[self.uid].get_standardized_report()
+        report_json = SoftwareConfigResources.getInstance().patients_parameters[self.uid].standardized_report
         if not report_json:
             # No report has been generated for the patient, skipping the rest.
             return

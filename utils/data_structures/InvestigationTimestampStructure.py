@@ -56,7 +56,8 @@ class InvestigationTimestamp:
         self._investigation_type = None
         self._unsaved_changes = False
 
-    def get_unique_id(self) -> str:
+    @property
+    def unique_id(self) -> str:
         return self._unique_id
 
     def set_unsaved_changes_state(self, state: bool) -> None:
@@ -65,10 +66,12 @@ class InvestigationTimestamp:
     def has_unsaved_changes(self) -> bool:
         return self._unsaved_changes
 
-    def get_display_name(self) -> str:
+    @property
+    def display_name(self) -> str:
         return self._display_name
 
-    def set_display_name(self, text: str) -> None:
+    @display_name.setter
+    def display_name(self, text: str) -> None:
         self._display_name = text
         self._unsaved_changes = True
         logging.debug("Unsaved changes - Investigation timestamp display name changed to {}".format(self._display_name))

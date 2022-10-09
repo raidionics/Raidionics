@@ -34,8 +34,8 @@ class AnnotationsLayersInteractor(QCollapsibleWidget):
                                                          '../../../Images/arrow_right_icon.png'))
 
     def __set_layout_dimensions(self):
-        self.header.set_icon_size(QSize(20, 20))
-        self.header.title_label.setFixedHeight(45)
+        self.header.set_icon_size(QSize(35, 35))
+        self.header.title_label.setFixedHeight(40)
         self.header.background_label.setFixedHeight(45)
 
     def __set_stylesheets(self):
@@ -59,6 +59,23 @@ class AnnotationsLayersInteractor(QCollapsibleWidget):
         font-size:14px;
         padding-left:40px;
         text-align: left;
+        border: 0px;
+        }""")
+
+        self.header.icon_label.setStyleSheet("""
+        QLabel{
+        background-color: """ + background_color + """;
+        color: """ + font_color + """;
+        border: 0px;
+        }""")
+
+        self.content_widget.setStyleSheet("""
+        QWidget{
+        background-color: """ + background_color + """;
+        border-width: 2px;
+        border-style: solid;
+        border-color: """ + background_color + """ black black black;
+        border-radius: 2px;
         }""")
 
     def adjustSize(self):
@@ -117,11 +134,11 @@ class AnnotationsLayersInteractor(QCollapsibleWidget):
     def on_import_volume(self, volume_id):
         volume_widget = AnnotationSingleLayerWidget(uid=volume_id, parent=self)
         self.volumes_widget[volume_id] = volume_widget
-        self.content_layout.insertWidget(self.content_layout.count() - 1, volume_widget)
-        line_label = QLabel()
-        line_label.setFixedHeight(3)
-        line_label.setStyleSheet("QLabel{background-color: rgb(214, 214, 214);}")
-        self.content_layout.insertWidget(self.content_layout.count() - 1, line_label)
+        self.content_layout.insertWidget(self.content_layout.count(), volume_widget)
+        # line_label = QLabel()
+        # line_label.setFixedHeight(3)
+        # line_label.setStyleSheet("QLabel{background-color: rgb(214, 214, 214);}")
+        # self.content_layout.insertWidget(self.content_layout.count(), line_label)
 
         ## On-the-fly signals/slots connection for the newly created QWidget
         volume_widget.visibility_toggled.connect(self.on_visibility_clicked)
@@ -140,7 +157,7 @@ class AnnotationsLayersInteractor(QCollapsibleWidget):
 
     def on_name_changed(self, uid, name):
         pat_params = SoftwareConfigResources.getInstance().get_active_patient()
-        pat_params.get_annotation_by_uid(uid).set_display_name(name)
+        pat_params.get_annotation_by_uid(uid).display_name = name
 
     def on_opacity_changed(self, uid, value):
         pat_params = SoftwareConfigResources.getInstance().get_active_patient()

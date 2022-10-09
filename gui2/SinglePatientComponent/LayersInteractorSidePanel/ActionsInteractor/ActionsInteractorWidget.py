@@ -11,8 +11,7 @@ class ActionsInteractorWidget(QWidget):
     """
 
     """
-    execute_folders_classification_requested = Signal()
-    preop_segmentation_requested = Signal()
+    pipeline_execution_requested = Signal(str)  # predefined pipeline code
 
     def __init__(self, parent=None):
         super(ActionsInteractorWidget, self).__init__()
@@ -53,8 +52,11 @@ class ActionsInteractorWidget(QWidget):
         self.layout.addStretch(1)
 
     def __set_connections(self):
-        self.run_folder_classification.clicked.connect(self.execute_folders_classification_requested)
-        self.run_segmentation_preop.clicked.connect(self.preop_segmentation_requested)
+        self.run_folder_classification.clicked.connect(self.on_execute_folders_classification)
+        self.run_segmentation_preop.clicked.connect(self.on_preop_segmentation_requested)
+        self.run_segmentation_postop.clicked.connect(self.on_postop_segmentation_requested)
+        self.run_rads_preop.clicked.connect(self.on_preop_reporting_requested)
+        self.run_rads_postop.clicked.connect(self.on_postop_reporting_requested)
 
     def __set_layout_dimensions(self):
         self.run_folder_classification.setFixedHeight(20)
@@ -158,3 +160,18 @@ class ActionsInteractorWidget(QWidget):
         background-color: """ + pressed_background_color + """;
         }
         """)
+
+    def on_execute_folders_classification(self):
+        self.pipeline_execution_requested.emit("folders_classification")
+
+    def on_preop_segmentation_requested(self):
+        self.pipeline_execution_requested.emit("preop_segmentation")
+
+    def on_postop_segmentation_requested(self):
+        self.pipeline_execution_requested.emit("postop_segmentation")
+
+    def on_preop_reporting_requested(self):
+        self.pipeline_execution_requested.emit("preop_reporting")
+
+    def on_postop_reporting_requested(self):
+        self.pipeline_execution_requested.emit("postop_reporting")

@@ -117,6 +117,6 @@ class StudyPatientListingWidget(QWidget):
         self.repaint()
 
     def on_study_imported(self, study_uid):
-        included_patient_uids = SoftwareConfigResources.getInstance().get_study(study_uid).get_included_patients_uids()
+        included_patient_uids = SoftwareConfigResources.getInstance().get_study(study_uid).included_patients_uids
         for pid in included_patient_uids:
             self.on_patient_imported(pid)

@@ -35,8 +35,7 @@ class SinglePatientLayersWidget(QWidget):
     atlas_structure_color_changed = Signal(str, int, QColor)
     atlas_structure_opacity_changed = Signal(str, int, int)
 
-    execute_folders_classification_requested = Signal()
-    preop_segmentation_requested = Signal()
+    pipeline_execution_requested = Signal(str)
 
     def __init__(self, parent=None):
         super(SinglePatientLayersWidget, self).__init__()
@@ -132,8 +131,7 @@ class SinglePatientLayersWidget(QWidget):
         self.timestamp_layer_widget.atlas_structure_opacity_changed.connect(self.atlas_structure_opacity_changed)
 
         # Actions-based connections
-        self.execution_actions_widget.execute_folders_classification_requested.connect(self.execute_folders_classification_requested)
-        self.execution_actions_widget.preop_segmentation_requested.connect(self.preop_segmentation_requested)
+        self.execution_actions_widget.pipeline_execution_requested.connect(self.pipeline_execution_requested)
 
         # @TODO. Can be removed, deprecated?
         self.import_data_triggered.connect(self.volumes_collapsiblegroupbox.on_import_data)

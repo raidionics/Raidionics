@@ -127,6 +127,7 @@ class MRISeriesLayerWidget(QWidget):
         self.setStyleSheet("""
         MRISeriesLayerWidget{
         background-color: """ + background_color + """;
+        border: 0px;
         }""")
 
         self.display_name_lineedit.setStyleSheet("""
@@ -176,6 +177,7 @@ class MRISeriesLayerWidget(QWidget):
         color: """ + font_color + """;
         background-color: """ + background_color + """;
         font: 12px;
+        border: 0px;
         }""")
 
         self.sequence_type_combobox.setStyleSheet("""
@@ -227,7 +229,7 @@ class MRISeriesLayerWidget(QWidget):
 
     def __init_from_parameters(self):
         mri_volume_parameters = SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_uid(self.uid)
-        self.display_name_lineedit.setText(mri_volume_parameters.get_display_name())
+        self.display_name_lineedit.setText(mri_volume_parameters.display_name)
         sequence_index = self.sequence_type_combobox.findText(mri_volume_parameters.get_sequence_type_str())
         self.sequence_type_combobox.blockSignals(True)
         self.sequence_type_combobox.setCurrentIndex(sequence_index)
@@ -271,6 +273,7 @@ class MRISeriesLayerWidget(QWidget):
         else:
             self.display_toggle_radiobutton.setIcon(self.display_toggle_untoggled_icon)
         self.contrast_adjuster_pushbutton.setEnabled(state)
+        self.set_stylesheets(state)
 
     def on_visibility_toggled(self, state):
         """
@@ -292,7 +295,7 @@ class MRISeriesLayerWidget(QWidget):
 
     def on_name_change(self, text):
         # @TODO. Should there be a check that the name is available?
-        SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_uid(self.uid).set_display_name(text)
+        SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_uid(self.uid).display_name = text
         self.display_name_changed.emit(self.uid, text)
 
     def on_sequence_type_changed(self, text) -> None:

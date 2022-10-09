@@ -42,12 +42,11 @@ def pipeline_main_wrapper(pipeline_task: str, model_name: str, patient_parameter
 
 def run_pipeline(task: str, model_name: str, patient_parameters: PatientParameters, queue: queue.Queue) -> None:
     """
-    @TODO. Should be merged with the run_rads, and simply add a new attribute for the specific use-case.
-    Call to the RADS backend for running the segmentation task. The runtime configuration file is generated
+    Call to the RADS backend for running the task pipeline. The runtime configuration file is generated
     on-the-fly at each call.\n
-    The created Annotation objects are directly stored inside the patient_parameters placeholder, and a summary of the
-    annotation unique ids is stored in the 'results' variable. The summary and an execution code (0 or 1 indicating
-    failure or success) are stored inside the queue.\n
+    The created objects (e.g., annotations, atlases, etc...) are directly stored inside the patient_parameters
+    placeholder, and a summary of the unique ids is stored in the 'results' variable.
+    The summary and an execution code (0 or 1 indicating failure or success) are stored inside the queue.\n
 
     Parameters
     ----------
@@ -63,13 +62,13 @@ def run_pipeline(task: str, model_name: str, patient_parameters: PatientParamete
         The results are stored inside the queue rather than directly returned, since the method is expected to be
         called from the wrapper.
     """
-    logging.info("Starting pipeline process for patient {} and task {}.".format(patient_parameters.get_unique_id(),
+    logging.info("Starting pipeline process for patient {} and task {}.".format(patient_parameters.unique_id,
                                                                                  task))
     rads_config_filename = ''
     pipeline_filename = ''
     results = {}  # Holder for all objects computed during the process, which have been added to the patient object
     try:
-        reporting_folder = os.path.join(patient_parameters.get_output_folder(), 'reporting')
+        reporting_folder = os.path.join(patient_parameters.output_folder, 'reporting')
         os.makedirs(reporting_folder, exist_ok=True)
 
         # Dumping the currently loaded patient MRI/annotation volumes, to be sorted/used by the backend
@@ -81,18 +80,21 @@ def run_pipeline(task: str, model_name: str, patient_parameters: PatientParamete
         rads_config.set('Default', 'caller', 'raidionics')
         rads_config.add_section('System')
         rads_config.set('System', 'gpu_id', "-1")  # Always running on CPU
-        rads_config.set('System', 'input_folder', patient_parameters.get_output_folder())
+        rads_config.set('System', 'input_folder', patient_parameters.output_folder)
         rads_config.set('System', 'output_folder', reporting_folder)
         rads_config.set('System', 'model_folder', SoftwareConfigResources.getInstance().models_path)
         pipeline = create_pipeline(model_name, patient_parameters, task)
-        pipeline_filename = os.path.join(patient_parameters.get_output_folder(), 'rads_pipeline.json')
+        pipeline_filename = os.path.join(patient_parameters.output_folder, 'rads_pipeline.json')
         with open(pipeline_filename, 'w', newline='\n') as outfile:
             json.dump(pipeline, outfile, indent=4)
         rads_config.set('System', 'pipeline_filename', pipeline_filename)
         rads_config.add_section('Runtime')
         rads_config.set('Runtime', 'reconstruction_method', 'thresholding')
         rads_config.set('Runtime', 'reconstruction_order', 'resample_first')
-        rads_config_filename = os.path.join(patient_parameters.get_output_folder(), 'rads_config.ini')
+        rads_config.add_section('Neuro')
+        rads_config.set('Neuro', 'cortical_features', 'MNI, Schaefer7, Schaefer17, Harvard-Oxford')
+        rads_config.set('Neuro', 'subcortical_features', 'BCB')
+        rads_config_filename = os.path.join(patient_parameters.output_folder, 'rads_config.ini')
         with open(rads_config_filename, 'w') as outfile:
             rads_config.write(outfile)
 
@@ -117,14 +119,14 @@ def run_pipeline(task: str, model_name: str, patient_parameters: PatientParamete
 
         results = collect_results(patient_parameters, pipeline)
     except Exception:
-        logging.error('Pipeline process for patient {}, for task {} failed with: \n{}'.format(patient_parameters.get_unique_id(),
+        logging.error('Pipeline process for patient {}, for task {} failed with: \n{}'.format(patient_parameters.unique_id,
                                                                                        task, traceback.format_exc()))
         if os.path.exists(rads_config_filename):
             os.remove(rads_config_filename)
         if os.path.exists(pipeline_filename):
             os.remove(pipeline_filename)
-        if os.path.exists(os.path.join(patient_parameters.get_output_folder(), 'reporting')):
-            shutil.rmtree(os.path.join(patient_parameters.get_output_folder(), 'reporting'))
+        if os.path.exists(os.path.join(patient_parameters.output_folder, 'reporting')):
+            shutil.rmtree(os.path.join(patient_parameters.output_folder, 'reporting'))
 
         queue.put((1, results))
 
@@ -132,8 +134,8 @@ def run_pipeline(task: str, model_name: str, patient_parameters: PatientParamete
         os.remove(rads_config_filename)
     if os.path.exists(pipeline_filename):
         os.remove(pipeline_filename)
-    if os.path.exists(os.path.join(patient_parameters.get_output_folder(), 'reporting')):
-        shutil.rmtree(os.path.join(patient_parameters.get_output_folder(), 'reporting'))
+    if os.path.exists(os.path.join(patient_parameters.output_folder, 'reporting')):
+        shutil.rmtree(os.path.join(patient_parameters.output_folder, 'reporting'))
 
     queue.put((0, results))
 
@@ -200,13 +202,13 @@ def run_segmentation(model_name: str, patient_parameters: PatientParameters, que
         The results are stored inside the queue rather than directly returned, since the method is expected to be
         called from the wrapper.
     """
-    logging.info("Starting segmentation process for patient {} using {}.".format(patient_parameters.get_unique_id(),
+    logging.info("Starting segmentation process for patient {} using {}.".format(patient_parameters.unique_id,
                                                                                  model_name))
     rads_config_filename = ''
     pipeline_filename = ''
     results = {}  # Holder for all objects computed during the process, which have been added to the patient object
     try:
-        reporting_folder = os.path.join(patient_parameters.get_output_folder(), 'reporting')
+        reporting_folder = os.path.join(patient_parameters.output_folder, 'reporting')
         os.makedirs(reporting_folder, exist_ok=True)
 
         # Dumping the currently loaded patient MRI/annotation volumes, to be sorted/used by the backend
@@ -218,18 +220,18 @@ def run_segmentation(model_name: str, patient_parameters: PatientParameters, que
         rads_config.set('Default', 'caller', 'raidionics')
         rads_config.add_section('System')
         rads_config.set('System', 'gpu_id', "-1")  # Always running on CPU
-        rads_config.set('System', 'input_folder', patient_parameters.get_output_folder())
+        rads_config.set('System', 'input_folder', patient_parameters.output_folder)
         rads_config.set('System', 'output_folder', reporting_folder)
         rads_config.set('System', 'model_folder', SoftwareConfigResources.getInstance().models_path)
         pipeline = create_pipeline(model_name, patient_parameters, 'seg') # 'postop_seg'
-        pipeline_filename = os.path.join(patient_parameters.get_output_folder(), 'rads_pipeline.json')
+        pipeline_filename = os.path.join(patient_parameters.output_folder, 'rads_pipeline.json')
         with open(pipeline_filename, 'w', newline='\n') as outfile:
             json.dump(pipeline, outfile, indent=4)
         rads_config.set('System', 'pipeline_filename', pipeline_filename)
         rads_config.add_section('Runtime')
         rads_config.set('Runtime', 'reconstruction_method', 'thresholding')
         rads_config.set('Runtime', 'reconstruction_order', 'resample_first')
-        rads_config_filename = os.path.join(patient_parameters.get_output_folder(), 'rads_config.ini')
+        rads_config_filename = os.path.join(patient_parameters.output_folder, 'rads_config.ini')
         with open(rads_config_filename, 'w') as outfile:
             rads_config.write(outfile)
 
@@ -254,14 +256,14 @@ def run_segmentation(model_name: str, patient_parameters: PatientParameters, que
 
         results = collect_results(patient_parameters, pipeline)
     except Exception:
-        logging.error('Segmentation for patient {}, using {} failed with: \n{}'.format(patient_parameters.get_unique_id(),
+        logging.error('Segmentation for patient {}, using {} failed with: \n{}'.format(patient_parameters.unique_id,
                                                                                        model_name, traceback.format_exc()))
         if os.path.exists(rads_config_filename):
             os.remove(rads_config_filename)
         if os.path.exists(pipeline_filename):
             os.remove(pipeline_filename)
-        if os.path.exists(os.path.join(patient_parameters.get_output_folder(), 'reporting')):
-            shutil.rmtree(os.path.join(patient_parameters.get_output_folder(), 'reporting'))
+        if os.path.exists(os.path.join(patient_parameters.output_folder, 'reporting')):
+            shutil.rmtree(os.path.join(patient_parameters.output_folder, 'reporting'))
 
         queue.put((1, results))
 
@@ -269,8 +271,8 @@ def run_segmentation(model_name: str, patient_parameters: PatientParameters, que
         os.remove(rads_config_filename)
     if os.path.exists(pipeline_filename):
         os.remove(pipeline_filename)
-    if os.path.exists(os.path.join(patient_parameters.get_output_folder(), 'reporting')):
-        shutil.rmtree(os.path.join(patient_parameters.get_output_folder(), 'reporting'))
+    if os.path.exists(os.path.join(patient_parameters.output_folder, 'reporting')):
+        shutil.rmtree(os.path.join(patient_parameters.output_folder, 'reporting'))
 
     queue.put((0, results))
 
@@ -336,14 +338,14 @@ def run_reporting(model_name, patient_parameters, queue):
         The results are stored inside the queue rather than directly returned, since the method is expected to be
         called from the wrapper.
     """
-    logging.info("Starting Pipeline process for patient {} using {}.".format(patient_parameters.get_unique_id(),
+    logging.info("Starting Pipeline process for patient {} using {}.".format(patient_parameters.unique_id,
                                                                              model_name))
 
     rads_config_filename = ''
     pipeline_filename = ''
     results = {}  # Holder for all objects computed during the process, which have been added to the patient object
     try:
-        reporting_folder = os.path.join(patient_parameters.get_output_folder(), 'reporting')
+        reporting_folder = os.path.join(patient_parameters.output_folder, 'reporting')
         os.makedirs(reporting_folder, exist_ok=True)
 
         # Dumping the currently loaded patient MRI/annotation volumes, to be sorted/used by the backend
@@ -351,7 +353,7 @@ def run_reporting(model_name, patient_parameters, queue):
 
         # Preparing the config/pipeline files
         pipeline = create_pipeline(model_name, patient_parameters, 'reporting')
-        pipeline_filename = os.path.join(patient_parameters.get_output_folder(), 'rads_pipeline.json')
+        pipeline_filename = os.path.join(patient_parameters.output_folder, 'rads_pipeline.json')
         with open(pipeline_filename, 'w', newline='\n') as outfile:
             json.dump(pipeline, outfile, indent=4)
 
@@ -361,7 +363,7 @@ def run_reporting(model_name, patient_parameters, queue):
         rads_config.set('Default', 'caller', 'raidionics')
         rads_config.add_section('System')
         rads_config.set('System', 'gpu_id', "-1")  # Always running on CPU
-        rads_config.set('System', 'input_folder', patient_parameters.get_output_folder())
+        rads_config.set('System', 'input_folder', patient_parameters.output_folder)
         rads_config.set('System', 'output_folder', reporting_folder)
         rads_config.set('System', 'model_folder', SoftwareConfigResources.getInstance().models_path)
         rads_config.set('System', 'pipeline_filename', pipeline_filename)
@@ -372,7 +374,7 @@ def run_reporting(model_name, patient_parameters, queue):
         rads_config.set('Neuro', 'cortical_features', 'MNI, Schaefer7, Schaefer17, Harvard-Oxford')
         rads_config.set('Neuro', 'subcortical_features', 'BCB')
         #@TODO. Include filenames for brain and tumor segmentation if existing.
-        rads_config_filename = os.path.join(patient_parameters.get_output_folder(), 'rads_config.ini')
+        rads_config_filename = os.path.join(patient_parameters.output_folder, 'rads_config.ini')
         with open(rads_config_filename, 'w') as outfile:
             rads_config.write(outfile)
 
@@ -402,15 +404,15 @@ def run_reporting(model_name, patient_parameters, queue):
         results = collect_results(patient_parameters, pipeline)
 
     except Exception:
-        logging.error('Pipeline for patient {}, using {} failed with: \n{}'.format(patient_parameters.get_unique_id(),
+        logging.error('Pipeline for patient {}, using {} failed with: \n{}'.format(patient_parameters.unique_id,
                                                                                    model_name, traceback.format_exc()))
         # Clean-up
         if os.path.exists(rads_config_filename):
             os.remove(rads_config_filename)
         if os.path.exists(pipeline_filename):
             os.remove(pipeline_filename)
-        if os.path.exists(os.path.join(patient_parameters.get_output_folder(), 'reporting')):
-            shutil.rmtree(os.path.join(patient_parameters.get_output_folder(), 'reporting'))
+        if os.path.exists(os.path.join(patient_parameters.output_folder, 'reporting')):
+            shutil.rmtree(os.path.join(patient_parameters.output_folder, 'reporting'))
         queue.put((1, results))
 
     # Clean-up
@@ -418,7 +420,7 @@ def run_reporting(model_name, patient_parameters, queue):
         os.remove(rads_config_filename)
     if os.path.exists(pipeline_filename):
         os.remove(pipeline_filename)
-    if os.path.exists(os.path.join(patient_parameters.get_output_folder(), 'reporting')):
-        shutil.rmtree(os.path.join(patient_parameters.get_output_folder(), 'reporting'))
+    if os.path.exists(os.path.join(patient_parameters.output_folder, 'reporting')):
+        shutil.rmtree(os.path.join(patient_parameters.output_folder, 'reporting'))
 
     queue.put((0, results))
