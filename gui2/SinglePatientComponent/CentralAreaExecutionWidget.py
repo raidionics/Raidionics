@@ -25,6 +25,7 @@ class CentralAreaExecutionWidget(QLabel):
     annotation_volume_imported = Signal(str)
     atlas_volume_imported = Signal(str)
     standardized_report_imported = Signal()
+    radiological_sequences_imported = Signal()
     process_started = Signal()
     process_finished = Signal()
 
@@ -156,8 +157,8 @@ class CentralAreaExecutionWidget(QLabel):
             if 'Report' in list(results.keys()):
                 self.standardized_report_imported.emit()
             if 'Classification' in list(results.keys()):
-                #@TODO. How to trigger an update here properly?
-                pass
+                # @TODO. Will have to be more generic when more than one classifier.
+                self.radiological_sequences_imported.emit()
 
             # Automatically saving the patient (with the latest results) for an easier loading afterwards.
             SoftwareConfigResources.getInstance().get_active_patient().save_patient()

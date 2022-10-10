@@ -20,6 +20,7 @@ class SinglePatientLayersWidget(QWidget):
     mri_volume_imported = Signal(str)
     annotation_volume_imported = Signal(str)
     atlas_volume_imported = Signal(str)
+    radiological_sequences_imported = Signal()
 
     import_data_triggered = Signal()
     patient_imported = Signal(str)
@@ -120,6 +121,7 @@ class SinglePatientLayersWidget(QWidget):
         self.annotation_volume_imported.connect(self.timestamp_layer_widget.on_import_annotation)
         self.atlas_volume_imported.connect(self.timestamp_layer_widget.on_import_atlas)
         self.annotation_display_state_changed.connect(self.timestamp_layer_widget.on_annotation_display_state_changed)
+        self.radiological_sequences_imported.connect(self.timestamp_layer_widget.on_radiological_sequences_imported)
         self.timestamp_layer_widget.reset_central_viewer.connect(self.reset_central_viewer)
         self.timestamp_layer_widget.volume_view_toggled.connect(self.volume_view_toggled)
         self.timestamp_layer_widget.volume_contrast_changed.connect(self.volume_contrast_changed)

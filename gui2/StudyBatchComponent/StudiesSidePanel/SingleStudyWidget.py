@@ -151,7 +151,7 @@ class SingleStudyWidget(QCollapsibleGroupBox):
         self.processing_progressbar.setMinimumWidth(100)
 
     def __set_connections(self):
-        self.study_name_lineedit.returnPressed.connect(self.__on_patient_name_modified)
+        self.study_name_lineedit.returnPressed.connect(self.__on_study_name_modified)
         self.include_single_patient_folder_pushbutton.clicked.connect(self.__on_include_single_patient_folder_clicked)
         self.include_multiple_patients_folder_pushbutton.clicked.connect(self.__on_include_multiple_patients_folder_clicked)
         self.include_single_dicom_patient_folder_pushbutton.clicked.connect(self.__on_include_single_dicom_patient_folder_clicked)
@@ -262,8 +262,8 @@ class SingleStudyWidget(QCollapsibleGroupBox):
         # logging.debug("SingleStudyWidget size set to {}.\n".format(self.content_label.size()))
         self.resizeRequested.emit()
 
-    def __on_patient_name_modified(self):
-        code, err_msg = SoftwareConfigResources.getInstance().get_active_study().display_name = self.study_name_lineedit.text()
+    def __on_study_name_modified(self):
+        code, err_msg = SoftwareConfigResources.getInstance().get_active_study().set_display_name(self.study_name_lineedit.text())
         if code == 1:  # Operation failed
             self.study_name_lineedit.blockSignals(True)
             self.study_name_lineedit.setText(SoftwareConfigResources.getInstance().get_active_study().display_name)

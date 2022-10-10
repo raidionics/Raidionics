@@ -10,6 +10,8 @@ class Header(QWidget):
     """
     Inspired from https://github.com/aronamao/PySide2-Collapsible-Widget
     """
+    toggled = Signal(bool)  # Toggle state in [True, False]
+
     def __init__(self, name, content_widget, parent=None):
         """
 
@@ -47,6 +49,7 @@ class Header(QWidget):
     def mousePressEvent(self, *args):
         """Handle mouse events, call the function to toggle groups"""
         self.expand() if not self.content.isVisible() else self.collapse()
+        self.toggled.emit(True) if self.content.isVisible() else self.toggled.emit(False)
 
     @property
     def background_label(self):
@@ -91,6 +94,9 @@ class QCollapsibleWidget(QWidget):
     """
     Class for creating a collapsible group.
     """
+
+    toggled = Signal(bool)  # Toggle state in [True, False]
+
     def __init__(self, name):
         """Container Class Constructor to initialize the object
 
@@ -112,6 +118,8 @@ class QCollapsibleWidget(QWidget):
         self.expand = self._header.expand
         self.toggle = self._header.mousePressEvent
 
+        self._header.toggled.connect(self.on_toggled)
+
     @property
     def content_layout(self):
         return self._content_layout
@@ -124,5 +132,27 @@ class QCollapsibleWidget(QWidget):
     def header(self):
         return self._header
 
+    def on_toggled(self, state):
+        self.toggled.emit(state)
+
     def set_icon_filenames(self,  expand_fn: str, collapse_fn: str) -> None:
         self._header.set_icon_filenames(expand_fn, collapse_fn)
+
+    def clear_content_layout(self):
+        items = (self.content_layout.itemAt(i) for i in reversed(range(self.content_layout.count())))
+        for i in items:
+            try:
+                if i and i.widget():  # Current item is a QWidget that can be directly removed
+                    w = i.widget()
+                    w.setParent(None)
+                    w.deleteLater()
+                else:  # Current item is possibly a layout. @TODO. Should be doing a recursive search in case of inception layouts...
+                    items2 = (i.itemAt(j) for j in reversed(range(i.count())))
+                    for ii in items2:
+                        if ii and ii.widget():
+                            w2 = ii.widget()
+                            w2.setParent(None)
+                            w2.deleteLater()
+                    self.content_layout.removeItem(i)
+            except Exception:
+                pass

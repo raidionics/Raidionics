@@ -187,3 +187,6 @@ class TimestampLayerWidget(QWidget):
 
     def on_annotation_display_state_changed(self):
         self.annotations_collapsiblegroupbox.on_annotation_display_state_changed()
+
+    def on_radiological_sequences_imported(self):
+        self.volumes_collapsiblegroupbox.on_radiological_sequences_imported()

@@ -241,7 +241,7 @@ class AtlasVolume:
                                                                        base_patient_folder)
             if self._class_description_filename:
                 base_patient_folder = '/'.join(
-                    self._output_patient_folder.split('/')[:-2])  # To reach the root patient folder
+                    self._output_patient_folder.split('/')[:-1])  # To reach the root patient folder
                 if os.name == 'nt':
                     base_patient_folder_parts = list(PurePath(os.path.realpath(self._output_patient_folder)).parts[:-1])
                     base_patient_folder = PurePath()

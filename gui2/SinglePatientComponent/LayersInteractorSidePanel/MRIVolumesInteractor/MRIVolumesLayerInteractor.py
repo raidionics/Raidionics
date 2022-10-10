@@ -213,3 +213,12 @@ class MRIVolumesLayerInteractor(QCollapsibleWidget):
             self.on_visibility_clicked(list(self.volumes_widget.keys())[0], True)
         else:
             self.reset_central_viewer.emit()
+
+    def on_radiological_sequences_imported(self):
+        for v in list(self.volumes_widget.keys()):
+            volume_widget = self.volumes_widget[v]
+            mri_volume_parameters = SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_uid(volume_widget.uid)
+            sequence_index = volume_widget.sequence_type_combobox.findText(mri_volume_parameters.get_sequence_type_str())
+            volume_widget.sequence_type_combobox.blockSignals(True)
+            volume_widget.sequence_type_combobox.setCurrentIndex(sequence_index)
+            volume_widget.sequence_type_combobox.blockSignals(False)

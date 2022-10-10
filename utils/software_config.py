@@ -156,7 +156,7 @@ class SoftwareConfigResources:
             self.patients_parameters[patient_uid] = PatientParameters(id=patient_uid,
                                                                       dest_location=self._user_home_location)
             random_name = names.get_full_name()
-            self.patients_parameters[patient_uid].display_name(random_name, manual_change=False)
+            code, error_msg = self.patients_parameters[patient_uid].set_display_name(random_name, manual_change=False)
             if active:
                 self.set_active_patient(patient_uid)
         except Exception:

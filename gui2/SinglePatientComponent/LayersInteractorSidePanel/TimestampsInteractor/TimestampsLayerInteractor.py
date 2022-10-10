@@ -368,3 +368,7 @@ class TimestampsLayerInteractor(QWidget):
         index = list(self.timestamps_widget.keys()).index(ts_uid)
         self.timestamp_selector_combobox.setItemText(index, new_display_name)
         self.update()
+
+    def on_radiological_sequences_imported(self):
+        for i in list(self.timestamps_widget.keys()):
+            self.timestamps_widget[i].on_radiological_sequences_imported()

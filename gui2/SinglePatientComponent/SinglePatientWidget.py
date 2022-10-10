@@ -152,6 +152,7 @@ class SinglePatientWidget(QWidget):
         self.center_panel.process_started.connect(self.process_progress_panel.on_process_started)
         self.center_panel.process_finished.connect(self.process_progress_panel.on_process_finished)
         self.center_panel.standardized_report_imported.connect(self.results_panel.on_standardized_report_imported)
+        self.center_panel.radiological_sequences_imported.connect(self.layers_panel.radiological_sequences_imported)
         self.center_panel.annotation_display_state_changed.connect(self.layers_panel.annotation_display_state_changed)
 
         # To sort

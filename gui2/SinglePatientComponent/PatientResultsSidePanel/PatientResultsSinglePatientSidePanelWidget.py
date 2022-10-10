@@ -125,7 +125,8 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         }""")
 
     def adjustSize(self) -> None:
-        items = (self.patient_list_scrollarea_layout.itemAt(i) for i in range(self.patient_list_scrollarea_layout.count()))
+        items = (self.patient_list_scrollarea_layout.itemAt(i) for i in
+                 range(self.patient_list_scrollarea_layout.count()))
         actual_height = 0
         for w in items:
             if (w.__class__ == QHBoxLayout) or (w.__class__ == QVBoxLayout):
@@ -144,7 +145,7 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
             else:
                 pass
         self.patient_list_scrollarea_dummy_widget.setFixedSize(QSize(self.size().width(), actual_height))
-        # logging.debug("Patient results scroll area size set to {}.\n".format(QSize(self.size().width(), actual_height)))
+        self.repaint()
 
     def on_import_data(self):
         """
@@ -171,36 +172,23 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
             SoftwareConfigResources.getInstance().set_active_patient(patient_uid=uid)
             self.__on_patient_selection(True, list(self.patient_results_widgets.keys())[0])
 
-    def add_new_patient(self, patient_name):
-        # @TODO. Have to connect signals/slots from each dynamic widget, to enforce the one active patient at all time.
+    def add_new_patient(self, patient_name: str) -> None:
+        """
+        Adding a new patient widget to the side list.
+
+        Parameters
+        ----------
+        patient_name: str
+            Internal unique identifier for the included patient.
+        """
         pat_widget = SinglePatientResultsWidget(patient_name, self)
-        pat_widget.setBaseSize(QSize(self.baseSize().width(), self.baseSize().height()))
-        # pat_widget.setMaximumSize(QSize(self.baseSize().width(), self.baseSize().height()))
-        pat_widget.setMinimumSize(QSize(self.baseSize().width(), int(self.baseSize().height() / 2)))
-        pat_widget.setStyleSheet("""SinglePatientResultsWidget{        
-        color: rgba(67, 88, 90, 1);
-        font-size:14px;
-        }""")
-        pat_widget.header_pushbutton.setFixedHeight(40)
-        pat_widget.header_pushbutton.setStyleSheet("""
-        QPushButton{
-        background-color:rgb(248, 248, 248);
-        color: rgba(67, 88, 90, 1);
-        text-align:center;
-        font:bold;
-        font-size:16px;
-        }""")
         pat_widget.populate_from_patient(patient_name)
         self.patient_results_widgets[patient_name] = pat_widget
         self.patient_list_scrollarea_layout.insertWidget(self.patient_list_scrollarea_layout.count() - 1, pat_widget)
         if len(self.patient_results_widgets) == 1:
             pat_widget.manual_header_pushbutton_clicked(True)
-        # else:
-        #     for i, wid in enumerate(list(self.patient_results_widgets.keys())):
-        #         self.patient_results_widgets[wid].manual_header_pushbutton_clicked(False)
-        #     pat_widget.manual_header_pushbutton_clicked(True)
 
-        pat_widget.clicked_signal.connect(self.__on_patient_selection)
+        pat_widget.patient_toggled.connect(self.__on_patient_selection)
         pat_widget.resizeRequested.connect(self.adjustSize)
         pat_widget.patient_name_edited.connect(self.patient_name_edited)
         self.adjustSize()
@@ -223,6 +211,12 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         self.patient_results_widgets[SoftwareConfigResources.getInstance().get_active_patient_uid()].on_process_finished()
 
     def __on_patient_selection(self, state, widget_id):
+        if not state:
+            return
+
+        if SoftwareConfigResources.getInstance().get_active_patient_uid() != None and SoftwareConfigResources.getInstance().get_active_patient_uid() == widget_id:
+            return
+
         if SoftwareConfigResources.getInstance().get_active_patient_uid() != None \
                 and SoftwareConfigResources.getInstance().get_active_patient().has_unsaved_changes():
             dialog = SavePatientChangesDialog()
@@ -239,7 +233,7 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
             if wid != widget_id:
                 self.patient_results_widgets[wid].manual_header_pushbutton_clicked(False)
                 self.patient_results_widgets[wid].set_stylesheets(selected=False)
-        self.patient_results_widgets[widget_id].header_pushbutton.setEnabled(False)
+        # self.patient_results_widgets[widget_id].header_pushbutton.setEnabled(False)
         self.patient_results_widgets[widget_id].set_stylesheets(selected=True)
         SoftwareConfigResources.getInstance().set_active_patient(widget_id)
         # When a patient is selected in the left panel, a visual update of the central/right panel is triggered

@@ -212,8 +212,7 @@ class PatientParameters:
     def display_name(self) -> str:
         return self._display_name
 
-    @display_name.setter
-    def display_name(self, new_name: str, manual_change: bool = True) -> Tuple[int, str]:
+    def set_display_name(self, new_name: str, manual_change: bool = True) -> Tuple[int, str]:
         """
         Edit to the display name for the current patient, which does not alter its unique_uid.
         The use of an additional boolean parameter is needed to prevent updating the unsaved_changes state when

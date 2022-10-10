@@ -410,7 +410,7 @@ def __create_preop_reporting_pipeline(model_name, patient_parameters):
     pip[pip_num]["input"]["sequence"] = "T1-CE"
     pip[pip_num]["target"] = "Tumor"
     pip[pip_num]["space"] = "MNI"
-    pip[pip_num]["description"] = "Tumor features computation from T0 in MNI space"
+    pip[pip_num]["description"] = "Tumor features computation from T1CE (T0) in MNI space"
 
     return pip
 

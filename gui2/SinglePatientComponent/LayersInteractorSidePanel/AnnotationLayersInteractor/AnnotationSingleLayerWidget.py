@@ -186,7 +186,7 @@ class AnnotationSingleLayerWidget(QWidget):
         }
         QPushButton:pressed{
         background-color: """ + pressed_background_color + """;
-        border-style:inset;
+        border-style: none;
         }""")
 
         self.parent_image_label.setStyleSheet("""
