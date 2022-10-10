@@ -125,6 +125,10 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         }""")
 
     def adjustSize(self) -> None:
+        """
+        @FIXME. Still necessary for triggering the sliding side bar to appear,
+        but clunky with inner collapsible expanded/collapsed not detected.
+        """
         items = (self.patient_list_scrollarea_layout.itemAt(i) for i in
                  range(self.patient_list_scrollarea_layout.count()))
         actual_height = 0
@@ -140,6 +144,7 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
             elif w.__class__ == QGridLayout:
                 pass
             elif w.__class__ != QSpacerItem:
+                # @TODO. Could force to iterate over the inner collapsible group box to check their collapse state
                 size = w.wid.sizeHint()
                 actual_height += size.height()
             else:
@@ -185,12 +190,14 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         pat_widget.populate_from_patient(patient_name)
         self.patient_results_widgets[patient_name] = pat_widget
         self.patient_list_scrollarea_layout.insertWidget(self.patient_list_scrollarea_layout.count() - 1, pat_widget)
-        if len(self.patient_results_widgets) == 1:
-            pat_widget.manual_header_pushbutton_clicked(True)
 
         pat_widget.patient_toggled.connect(self.__on_patient_selection)
         pat_widget.resizeRequested.connect(self.adjustSize)
         pat_widget.patient_name_edited.connect(self.patient_name_edited)
+
+        if len(self.patient_results_widgets) == 1:
+            pat_widget.manual_header_pushbutton_clicked(True)
+
         self.adjustSize()
 
     def on_external_patient_selection(self, patient_id):
@@ -246,13 +253,13 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
             dialog = SavePatientChangesDialog()
             code = dialog.exec_()
             if code == 1:  # Changes have been either saved or discarded
-                uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_patient()
+                uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_patient(active=False)
                 self.add_new_patient(uid)
                 # Both lines are needed to uncollapse the widget for the new patient and collapse the previous
                 self.patient_results_widgets[uid].manual_header_pushbutton_clicked(True)
                 self.__on_patient_selection(True, uid)
         else:
-            uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_patient()
+            uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_patient(active=False)
             self.add_new_patient(uid)
             self.patient_results_widgets[uid].manual_header_pushbutton_clicked(True)
             self.__on_patient_selection(True, uid)

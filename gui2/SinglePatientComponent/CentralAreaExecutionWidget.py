@@ -72,6 +72,7 @@ class CentralAreaExecutionWidget(QLabel):
         self.run_reporting_pushbutton.setStyleSheet("QPushButton{color:rgb(0, 0, 0); background-color: rgb(255, 255, 255); border-radius:10px;margin-left:5px;margin-right:5px;font:bold}"
                                                       "QPushButton:pressed{background-color: rgb(235, 235, 235);border-style:inset}"
                                                        "QPushButton:disabled{color: rgb(127, 127, 127);}")
+
     def __set_connections(self):
         self.__set_inner_connections()
         self.__set_cross_connections()
@@ -92,24 +93,10 @@ class CentralAreaExecutionWidget(QLabel):
         self.run_segmentation_pushbutton.setEnabled(True)
         self.run_reporting_pushbutton.setEnabled(True)
 
-    def on_preop_segmentation(self):
-        diag = TumorTypeSelectionQDialog(self)
-        code = diag.exec_()
-        if code == 0:  # Operation cancelled
-            return
-
-        self.model_name = "MRI_Meningioma"
-        if diag.tumor_type == 'High-Grade Glioma':
-            self.model_name = "MRI_HGGlioma"
-        elif diag.tumor_type == 'Low-Grade Glioma':
-            self.model_name = "MRI_LGGlioma"
-        elif diag.tumor_type == 'Metastasis':
-            self.model_name = "MRI_Metastasis"
-
-        self.process_started.emit()
-        self.pipeline_main_wrapper("preop_segmentation")
-
     def on_pipeline_execution(self, pipeline_code: str) -> None:
+        """
+
+        """
         self.model_name = ""
         if pipeline_code != "folders_classification":
             diag = TumorTypeSelectionQDialog(self)
@@ -130,11 +117,17 @@ class CentralAreaExecutionWidget(QLabel):
         self.pipeline_main_wrapper(pipeline_code)
 
     def pipeline_main_wrapper(self, task: str) -> None:
+        """
+
+        """
         self.run_pipeline_thread = threading.Thread(target=self.run_pipeline, args=(task, ))
         self.run_pipeline_thread.daemon = True  # using daemon thread the thread is killed gracefully if program is abruptly closed
         self.run_pipeline_thread.start()
 
     def run_pipeline(self, task: str) -> None:
+        """
+
+        """
         logging.info("Starting pipeline process for task: {}.".format(task))
 
         # Freezing buttons
@@ -174,122 +167,10 @@ class CentralAreaExecutionWidget(QLabel):
         self.process_finished.emit()
 
     def on_run_segmentation(self):
-        # self.on_pipeline_execution("preop_segmentation")
-        diag = TumorTypeSelectionQDialog(self)
-        code = diag.exec_()
-        if code == 0:  # Operation cancelled
-            return
-
-        self.model_name = "MRI_Meningioma"
-        if diag.tumor_type == 'High-Grade Glioma':
-            self.model_name = "MRI_HGGlioma"
-        elif diag.tumor_type == 'Low-Grade Glioma':
-            self.model_name = "MRI_LGGlioma"
-        elif diag.tumor_type == 'Metastasis':
-            self.model_name = "MRI_Metastasis"
-
-        # @TODO. Until the backend can perform sequence classification
-        if self.assertion_ready_to_process('segmentation', diag.tumor_type):
-            self.process_started.emit()
-            self.segmentation_main_wrapper()
-
-    def segmentation_main_wrapper(self):
-        self.run_segmentation_thread = threading.Thread(target=self.run_segmentation)
-        self.run_segmentation_thread.daemon = True  # using daemon thread the thread is killed gracefully if program is abruptly closed
-        self.run_segmentation_thread.start()
-
-    def run_segmentation(self):
-        logging.info("Starting segmentation process.")
-
-        # Freezing buttons
-        self.run_segmentation_pushbutton.setEnabled(False)
-        self.run_reporting_pushbutton.setEnabled(False)
-
-        try:
-            from utils.backend_logic import segmentation_main_wrapper
-            current_patient_parameters = SoftwareConfigResources.getInstance().patients_parameters[
-            SoftwareConfigResources.getInstance().active_patient_name]
-            code, results = segmentation_main_wrapper(model_name=self.model_name,
-                                                      patient_parameters=current_patient_parameters)
-            if 'Annotation' in list(results.keys()):
-                for a in results['Annotation']:
-                    self.annotation_volume_imported.emit(a)
-
-            # Automatically saving the patient (with the latest results) for an easier loading afterwards.
-            SoftwareConfigResources.getInstance().get_active_patient().save_patient()
-        except Exception:
-            print('{}'.format(traceback.format_exc()))
-            self.run_segmentation_pushbutton.setEnabled(True)
-            self.run_reporting_pushbutton.setEnabled(True)
-            self.process_finished.emit()
-            return
-
-        self.run_segmentation_pushbutton.setEnabled(True)
-        self.run_reporting_pushbutton.setEnabled(True)
-        self.process_finished.emit()
+        self.on_pipeline_execution("preop_segmentation")
 
     def on_run_reporting(self):
-        diag = TumorTypeSelectionQDialog(self)
-        code = diag.exec_()
-        if code == 0:  # Operation cancelled
-            return
-
-        self.model_name = "MRI_Meningioma"
-        if diag.tumor_type == 'High-Grade Glioma':
-            self.model_name = "MRI_HGGlioma_P2"
-        elif diag.tumor_type == 'Low-Grade Glioma':
-            self.model_name = "MRI_LGGlioma"
-        elif diag.tumor_type == 'Metastasis':
-            self.model_name = "MRI_Metastasis"
-
-        # @TODO. Until the backend can perform sequence classification
-        if self.assertion_ready_to_process('rads', diag.tumor_type):
-            self.process_started.emit()
-            self.reporting_main_wrapper()
-
-    def reporting_main_wrapper(self):
-        self.run_reporting_thread = threading.Thread(target=self.run_reporting)
-        self.run_reporting_thread.daemon = True  # using daemon thread the thread is killed gracefully if program is abruptly closed
-        self.run_reporting_thread.start()
-
-    def run_reporting(self):
-        """
-        Results of the standardized reporting will be stored inside a /reporting subfolder within the patient
-        output folder.
-        """
-        logging.info("Starting RADS process.")
-
-        # Freezing buttons
-        self.run_segmentation_pushbutton.setEnabled(False)
-        self.run_reporting_pushbutton.setEnabled(False)
-
-        try:
-            from utils.backend_logic import reporting_main_wrapper
-            current_patient_parameters = SoftwareConfigResources.getInstance().patients_parameters[
-            SoftwareConfigResources.getInstance().active_patient_name]
-            code, results = reporting_main_wrapper(model_name=self.model_name,
-                                                   patient_parameters=current_patient_parameters)
-            if 'Annotation' in list(results.keys()):
-                for a in results['Annotation']:
-                    self.annotation_volume_imported.emit(a)
-            if 'Atlas' in list(results.keys()):
-                for a in results['Atlas']:
-                    self.atlas_volume_imported.emit(a)
-
-            if 'Report' in list(results.keys()):
-                self.standardized_report_imported.emit()
-            # Automatically saving the patient (with the latest results) for an easier loading afterwards.
-            SoftwareConfigResources.getInstance().get_active_patient().save_patient()
-        except Exception:
-            print('{}'.format(traceback.format_exc()))
-            self.run_segmentation_pushbutton.setEnabled(True)
-            self.run_reporting_pushbutton.setEnabled(True)
-            self.process_finished.emit()
-            return
-
-        self.run_segmentation_pushbutton.setEnabled(True)
-        self.run_reporting_pushbutton.setEnabled(True)
-        self.process_finished.emit()
+        self.on_pipeline_execution("preop_reporting")
 
     def on_process_message(self, mess):
         print("Collected message: {}.\n".format(mess))

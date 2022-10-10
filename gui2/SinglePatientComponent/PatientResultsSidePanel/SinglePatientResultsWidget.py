@@ -24,7 +24,6 @@ class SinglePatientResultsWidget(QCollapsibleWidget):
         self.parent = parent
         self.setFixedWidth(self.parent.baseSize().width())
         self.content_widget.setFixedWidth(self.parent.baseSize().width())
-        # self.setBaseSize(QSize(self.width(), 500))  # Defining a base size is necessary as inner widgets depend on it.
         self.__set_interface()
         self.__set_layout_dimensions()
         self.__set_connections()
@@ -717,29 +716,6 @@ class SinglePatientResultsWidget(QCollapsibleWidget):
             diag = QErrorMessage(self)
             diag.setWindowTitle("Operation not permitted")
             diag.showMessage(msg)
-
-    # def __on_output_directory_modification_clicked(self):
-    #     input_image_filedialog = QFileDialog(self)
-    #     input_image_filedialog.setWindowFlags(Qt.WindowStaysOnTopHint)
-    #     if "PYCHARM_HOSTED" in os.environ:
-    #         input_directory = input_image_filedialog.getExistingDirectory(self, caption='Select destination directory',
-    #                                                                       directory=self.tr(self.output_dir_lineedit.text()),
-    #                                                                       options=QFileDialog.DontUseNativeDialog |
-    #                                                                               QFileDialog.ShowDirsOnly |
-    #                                                                               QFileDialog.DontResolveSymlinks)
-    #     else:
-    #         input_directory = input_image_filedialog.getExistingDirectory(self, caption='Select destination directory',
-    #                                                                       directory=self.tr(self.output_dir_lineedit.text()),
-    #                                                                       options=QFileDialog.ShowDirsOnly |
-    #                                                                               QFileDialog.DontResolveSymlinks)
-    #     if len(input_directory) == 0 or input_directory == "":
-    #         return
-    #
-    #     if len(input_directory) != 0 and input_directory != "":
-    #         self.output_dir_lineedit.setText(input_directory)
-    #         self.output_dir_lineedit.setCursorPosition(0)
-    #         self.output_dir_lineedit.home(True)
-    #         SoftwareConfigResources.getInstance().get_active_patient().set_output_directory(input_directory)
 
     def manual_header_pushbutton_clicked(self, state):
         if state:
