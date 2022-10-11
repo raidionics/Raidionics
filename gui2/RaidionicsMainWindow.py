@@ -334,6 +334,7 @@ class RaidionicsMainWindow(QMainWindow):
                       '* Glioblastoma Surgery Imaging–Reporting and Data System: Validation and Performance of the Automated Segmentation Task (https://www.mdpi.com/2072-6694/13/18/4674)\n'
                       '* Glioblastoma Surgery Imaging—Reporting and Data System: Standardized Reporting of Tumor Volume, Location, and Resectability Based on Automated Segmentations (https://www.mdpi.com/2072-6694/13/12/2854)\n'
                       '* Meningioma Segmentation in T1-Weighted MRI Leveraging Global Context and Attention Mechanisms (https://www.frontiersin.org/articles/10.3389/fradi.2021.711514/full)\n'
+                      '\n\nCurrent software version: {}'.format(SoftwareConfigResources.getInstance().software_version)
                       )
         popup.resize(popup.sizeHint())
         popup.exec_()

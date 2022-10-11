@@ -19,6 +19,7 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
     import_patient_from_dicom_requested = Signal()
     import_patient_from_data_requested = Signal()
     import_patient_from_custom_requested = Signal()
+    import_patient_from_folder_requested = Signal()
 
     def __init__(self, parent=None):
         super(PatientResultsSinglePatientSidePanelWidget, self).__init__()
@@ -56,6 +57,8 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         self.bottom_add_patient_dicom_pushbutton.setVisible(False)
         self.bottom_add_patient_files_pushbutton = QPushButton("Other Data Type (*.nii)")
         self.bottom_add_patient_files_pushbutton.setVisible(False)
+        self.bottom_add_patient_folder_pushbutton = QPushButton("Folder")
+        self.bottom_add_patient_folder_pushbutton.setVisible(False)
         self.bottom_add_patient_pushbutton = QPushButton("Import patient")
         self.bottom_add_patient_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                                             '../../Images/download_icon.png'))))
@@ -71,6 +74,8 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         self.options_menu.addAction(self.add_dicom_patient_action)
         self.add_other_data_action = QAction('Other data type (*.nii)', self)
         self.options_menu.addAction(self.add_other_data_action)
+        self.add_folder_data_action = QAction('Folder', self)
+        self.options_menu.addAction(self.add_folder_data_action)
         self.options_menu.addSeparator()
 
         self.layout.addWidget(self.patient_list_scrollarea)
@@ -79,7 +84,7 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
     def __set_layout_dimensions(self):
         self.patient_list_scrollarea.setBaseSize(QSize(self.width(), 300))
         self.bottom_add_patient_pushbutton.setFixedHeight(40)
-        self.options_menu.setFixedSize(QSize(self.width(), 115))
+        self.options_menu.setFixedSize(QSize(self.width(), 135))
 
     def __set_connections(self):
         self.bottom_add_patient_pushbutton.clicked.connect(self.on_import_options_clicked)
@@ -88,6 +93,7 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         self.add_raidionics_patient_action.triggered.connect(self.on_import_patient_from_custom_requested)
         self.add_dicom_patient_action.triggered.connect(self.on_import_patient_from_dicom_requested)
         self.add_other_data_action.triggered.connect(self.on_import_patient_from_data_requested)
+        self.add_folder_data_action.triggered.connect(self.on_import_patient_from_folder_requested)
 
     def __set_stylesheets(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
@@ -194,6 +200,7 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         pat_widget.patient_toggled.connect(self.__on_patient_selection)
         pat_widget.resizeRequested.connect(self.adjustSize)
         pat_widget.patient_name_edited.connect(self.patient_name_edited)
+        pat_widget.patient_closed.connect(self.__on_patient_closed)
 
         if len(self.patient_results_widgets) == 1:
             pat_widget.manual_header_pushbutton_clicked(True)
@@ -217,7 +224,34 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         self.bottom_add_patient_pushbutton.setEnabled(True)
         self.patient_results_widgets[SoftwareConfigResources.getInstance().get_active_patient_uid()].on_process_finished()
 
-    def __on_patient_selection(self, state, widget_id):
+    def __on_patient_closed(self, widget_id):
+        self.patient_list_scrollarea_layout.removeWidget(self.patient_results_widgets[widget_id])
+        self.patient_results_widgets[widget_id].setParent(None)
+        del self.patient_results_widgets[widget_id]
+        SoftwareConfigResources.getInstance().remove_patient(widget_id)
+
+        # A patient is to be displayed at all time
+        if len(self.patient_results_widgets) != 0:
+            self.__on_patient_selection(True, list(self.patient_results_widgets.keys())[0])
+            SoftwareConfigResources.getInstance().set_active_patient(patient_uid=list(self.patient_results_widgets.keys())[0])
+        else:
+            SoftwareConfigResources.getInstance().set_active_patient(patient_uid=None)
+
+        self.adjustSize()
+        self.repaint()
+
+    def __on_patient_selection(self, state: bool, widget_id: str) -> None:
+        """
+        A patient selection occurs either when the user manually click on a patient widget on the left-side panel,
+        or upon internal trigger in order to always display a patient at all time (when applicable).
+
+        Parameters
+        ----------
+        state: bool
+            Indicating whether the patient is selected (True) or unselected (False).
+        widget_id: str
+            Internal unique identifier for the patient, and therefore also the patient widget.
+        """
         if not state:
             return
 
@@ -268,7 +302,7 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         self.patient_results_widgets[SoftwareConfigResources.getInstance().get_active_patient().unique_id].on_standardized_report_imported()
 
     def on_import_options_clicked(self, point):
-        self.options_menu.exec_(self.bottom_add_patient_pushbutton.mapToGlobal(QPoint(0, -75)))
+        self.options_menu.exec_(self.bottom_add_patient_pushbutton.mapToGlobal(QPoint(0, -95)))
 
     def on_import_patient_from_data_requested(self):
         self.on_add_new_empty_patient()
@@ -277,6 +311,9 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
     def on_import_patient_from_dicom_requested(self):
         self.on_add_new_empty_patient()
         self.import_patient_from_dicom_requested.emit()
+
+    def on_import_patient_from_folder_requested(self):
+        self.import_patient_from_folder_requested.emit()
 
     def on_import_patient_from_custom_requested(self):
         # self.on_add_new_empty_patient()

@@ -11,7 +11,7 @@ from utils.software_config import SoftwareConfigResources
 def get_available_cloud_models_list():
     cloud_models_list = []
     cloud_models_list_url = 'https://drive.google.com/uc?id=1vRUr0VXgnDFNq7AlB5ILyBCmW_sGuciP'  # Initial v1.0/v1.1
-    if SoftwareConfigResources.getInstance().get_software_version() == "1.2":
+    if SoftwareConfigResources.getInstance().software_version == "1.2":
         cloud_models_list_url = 'https://drive.google.com/uc?id=12tFP9trt8CLS6UBfNpodlRUwfSqZJJNQ'
     try:
         cloud_models_list_filename = os.path.join(expanduser("~"), '.raidionics', 'resources/models',
@@ -42,7 +42,7 @@ def download_model(model_name):
             models_archive_path = os.path.join(expanduser('~'), '.raidionics', 'resources', 'models',
                                                '.cache', model_name + '.zip')
             os.makedirs(os.path.dirname(models_archive_path), exist_ok=True)
-            if not os.path.exists(models_archive_path) or (hashlib.md5(open(models_archive_path, 'rb').read()).hexdigest() != md5 and SoftwareConfigResources.getInstance().get_active_model_check_status()):
+            if not os.path.exists(models_archive_path) or (hashlib.md5(open(models_archive_path, 'rb').read()).hexdigest() != md5 and SoftwareConfigResources.getInstance().user_preferences.active_model_update):
                 download_state = True
 
             if download_state:

@@ -12,6 +12,7 @@ from gui2.SinglePatientComponent.CentralAreaWidget import CentralAreaWidget
 from gui2.SinglePatientComponent.LayersInteractorSidePanel.SinglePatientLayersWidget import SinglePatientLayersWidget
 from gui2.SinglePatientComponent.ProcessProgressWidget import ProcessProgressWidget
 from gui2.UtilsWidgets.CustomQDialog.ImportDataQDialog import ImportDataQDialog
+from gui2.UtilsWidgets.CustomQDialog.ImportFoldersQDialog import ImportFoldersQDialog
 from gui2.UtilsWidgets.CustomQDialog.ImportDICOMDataQDialog import ImportDICOMDataQDialog
 
 
@@ -29,6 +30,7 @@ class SinglePatientWidget(QWidget):
         self.widget_name = "single_patient_widget"
 
         self.import_data_dialog = ImportDataQDialog(self)
+        self.import_folder_dialog = ImportFoldersQDialog(self)
         self.import_dicom_dialog = ImportDICOMDataQDialog(self)
 
         self.setMinimumSize(self.parent.baseSize())
@@ -118,6 +120,8 @@ class SinglePatientWidget(QWidget):
         self.import_data_dialog.mri_volume_imported.connect(self.layers_panel.on_mri_volume_import)
         self.import_data_dialog.annotation_volume_imported.connect(self.layers_panel.on_annotation_volume_import)
         self.import_data_dialog.patient_imported.connect(self.results_panel.on_import_patient)
+        self.import_folder_dialog.patient_imported.connect(self.results_panel.on_import_patient)
+        self.import_folder_dialog.patient_imported.connect(self.layers_panel.on_import_patient)
         self.import_dicom_dialog.patient_imported.connect(self.results_panel.on_import_patient)
         self.import_dicom_dialog.mri_volume_imported.connect(self.layers_panel.on_mri_volume_import)
 
@@ -125,6 +129,7 @@ class SinglePatientWidget(QWidget):
         self.results_panel.import_patient_from_data_requested.connect(self.__on_import_file_clicked)
         self.results_panel.import_patient_from_custom_requested.connect(self.__on_import_custom_clicked)
         self.results_panel.import_patient_from_dicom_requested.connect(self.__on_import_dicom_clicked)
+        self.results_panel.import_patient_from_folder_requested.connect(self.__on_import_folder_clicked)
 
         # Connections relating patient selection (left-hand side) with data display
         self.results_panel.patient_selected.connect(self.center_panel.on_patient_selected)
@@ -196,6 +201,12 @@ class SinglePatientWidget(QWidget):
         code = self.import_dicom_dialog.exec_()
         # if code == QDialog.Accepted:
         #     self.import_data_triggered.emit()
+
+    def __on_import_folder_clicked(self) -> None:
+        self.import_folder_dialog.reset()
+        self.import_folder_dialog.set_parsing_mode("single")
+        self.import_folder_dialog.set_target_type("regular")
+        code = self.import_folder_dialog.exec_()
 
     def __on_save_clicked(self):
         SoftwareConfigResources.getInstance().patients_parameters[SoftwareConfigResources.getInstance().active_patient_name].save_patient()

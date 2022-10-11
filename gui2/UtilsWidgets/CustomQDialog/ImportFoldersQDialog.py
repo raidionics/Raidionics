@@ -1,5 +1,5 @@
 import logging
-
+import re
 from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QGridLayout, QDialog, QDialogButtonBox,\
     QComboBox, QPushButton, QScrollArea, QLineEdit, QFileDialog, QMessageBox, QProgressBar, QListView, \
     QAbstractItemView, QTreeView, QFileSystemModel
@@ -166,6 +166,8 @@ class ImportFoldersQDialog(QDialog):
         (iii) The folder contains lots of single-file volumes, one for each patient.
         (iv) The folder contains the data for only one patient, stored as a DICOM folder (single mode and dicom target type).
         (v) The folder contains sub-folders, one for each patient, stored as a DICOM folder (multiple mode and dicom target type).
+        (vi) The folder contains the data for only one patient in any format but DICOM (single mode and regular target type), but
+        has multiple subfolders covering multiple timestamps.
 
         @TODO. Potential patient import error messages should be collected, appended, and reported to the user
          at the end of the import process.
@@ -200,6 +202,23 @@ class ImportFoldersQDialog(QDialog):
                 if error_msg:
                     diag = QMessageBox()
                     diag.setText("Unable to load patient.\nError message: {}.\n".format(error_msg))
+                    diag.exec_()
+            elif len(folders_in_path) != 0 and self.parsing_mode == 'single' and self.target_type == 'regular':  # Case (vi)
+                collective_errors = ""
+                imports, error_msg = import_patient_from_timestamped_folder(folder_path=input_folderpath)
+                pat_uid = imports['Patient'][0]
+                self.patient_imported.emit(pat_uid)
+                SoftwareConfigResources.getInstance().get_patient(pat_uid).save_patient()
+                if False:
+                    #@TODO. The study inclusion should not happen here, but where the patient import was called from.
+                    msg = SoftwareConfigResources.getInstance().get_active_study().include_study_patient(uid=pat_uid,
+                                                                                                         folder_name=SoftwareConfigResources.getInstance().get_patient(
+                                                                                                             pat_uid).output_folder)
+                collective_errors = collective_errors + error_msg
+                self.load_progressbar.setValue(i + 1)
+                if collective_errors != "":
+                    diag = QMessageBox()
+                    diag.setText("Unable to load patients.\nError message: {}.\n".format(collective_errors))
                     diag.exec_()
             elif len(folders_in_path) == 0 and self.target_type == 'regular':  # Case (iii)
                 single_files_in_path = []
@@ -433,3 +452,60 @@ def import_patient_from_folder(folder_path: str) -> Tuple[dict, str]:
     SoftwareConfigResources.getInstance().get_patient(pat_uid).save_patient()
     return imports, patient_include_error_msg
 
+
+def import_patient_from_timestamped_folder(folder_path: str) -> Tuple[dict, str]:
+    patient_include_error_msg = ""
+
+    imports = {}  # Holder for all image/segmentation files loaded from the patient folder
+    pat_uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_patient()
+    imports['Patient'] = [pat_uid]
+    if error_msg:
+        patient_include_error_msg = "Unable to create empty patient.\nError message: {}.\n".format(error_msg)
+        return imports, patient_include_error_msg
+
+    code, err_msg = SoftwareConfigResources.getInstance().get_patient(pat_uid).set_display_name(os.path.basename(folder_path))
+
+    timestamp_folders = []
+    for _, dirs, _ in os.walk(folder_path):
+        for d in dirs:
+            timestamp_folders.append(d)
+        break
+
+    # What if the folders are named PreOp and PostOp?
+    ts_folders_dict = {}
+    for i in timestamp_folders:
+        if re.search(r'\d+', i):  # Skipping folders without an integer inside, otherwise assuming timestamps from 0 onwards
+            ts_folders_dict[int(re.search(r'\d+', i).group())] = i
+
+    ordered_ts_folders = dict(sorted(ts_folders_dict.items(), key=lambda item: item[0], reverse=False))
+
+    for i, ts in enumerate(list(ordered_ts_folders.keys())):
+        ts_folder = os.path.join(folder_path, ordered_ts_folders[ts])
+        ts_uid, ts_error_msg = SoftwareConfigResources.getInstance().get_patient(pat_uid).insert_investigation_timestamp(order=i)
+        files_in_path = []
+        for _, _, files in os.walk(ts_folder):
+            for f in files:
+                if '.'.join(f.split('.')[1:]) in SoftwareConfigResources.getInstance().get_accepted_image_formats():
+                    files_in_path.append(f)
+            break
+
+        mris_in_path = []
+        annotations_in_path = []
+        for f in files_in_path:
+            ft = input_file_category_disambiguation(input_filename=os.path.join(ts_folder, f))
+            if ft == "MRI":
+                mris_in_path.append(f)
+            else:
+                annotations_in_path.append(f)
+
+        # @TODO. Might try to infer from the filenames if some annotations are belonging to some MRIs.
+        # for now just processing MRIs first and annotations after.
+        files_list = mris_in_path + annotations_in_path
+        for f in files_list:
+            uid, error_msg = SoftwareConfigResources.getInstance().get_patient(pat_uid).import_data(filename=os.path.join(ts_folder, f),
+                                                                                                    investigation_ts=ts_uid)
+            if error_msg:
+                patient_include_error_msg = "Unable to load: {}.\nError message: {}.\n".format(
+                    os.path.join(ts_folder, f), error_msg)
+    SoftwareConfigResources.getInstance().get_patient(pat_uid).save_patient()
+    return imports, patient_include_error_msg

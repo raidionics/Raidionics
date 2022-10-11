@@ -3,10 +3,12 @@ import os
 from PySide2.QtWidgets import QLabel, QHBoxLayout, QVBoxLayout, QLineEdit, QListWidget, QListWidgetItem, QErrorMessage,\
     QPushButton, QFileDialog, QSpacerItem
 from PySide2.QtCore import Qt, QSize, Signal
+from PySide2.QtGui import QIcon, QPixmap
 
 from gui2.UtilsWidgets.CustomQGroupBox.QCollapsibleGroupBox import QCollapsibleGroupBox
 from gui2.UtilsWidgets.CustomQGroupBox.QCollapsibleWidget import QCollapsibleWidget
 from utils.software_config import SoftwareConfigResources
+from gui2.UtilsWidgets.CustomQDialog.SavePatientChangesDialog import SavePatientChangesDialog
 
 
 class SinglePatientResultsWidget(QCollapsibleWidget):
@@ -16,6 +18,7 @@ class SinglePatientResultsWidget(QCollapsibleWidget):
     patient_name_edited = Signal(str, str)  # Patient uid, and new visible name
     patient_toggled = Signal(bool, str)  # internal uid, and toggle state in [True, False]
     resizeRequested = Signal()
+    patient_closed = Signal(str)  # Patient internal unique identifier
 
     def __init__(self, uid, parent=None):
         super(SinglePatientResultsWidget, self).__init__(uid)
@@ -35,6 +38,16 @@ class SinglePatientResultsWidget(QCollapsibleWidget):
                                 collapse_fn=os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                            '../../Images/patient-icon.png'))
         self.header.set_icon_size(QSize(30, 30))
+        self.save_patient_pushbutton = QPushButton()
+        self.save_patient_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                                        '../../Images/floppy_disk_icon.png')).scaled(QSize(25, 25), Qt.KeepAspectRatio)))
+        self.save_patient_pushbutton.setFixedSize(QSize(25, 25))
+        self.close_patient_pushbutton = QPushButton()
+        self.close_patient_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                                        '../../Images/close_icon.png')).scaled(QSize(25, 25), Qt.KeepAspectRatio)))
+        self.close_patient_pushbutton.setFixedSize(QSize(25, 25))
+        self.header.background_layout.addWidget(self.save_patient_pushbutton)
+        self.header.background_layout.addWidget(self.close_patient_pushbutton)
         self.__set_system_part()
         self.__set_overall_part()
         self.__set_multifocality_part()
@@ -296,6 +309,8 @@ class SinglePatientResultsWidget(QCollapsibleWidget):
         self.subcorticalstructures_collapsiblegroupbox.header.background_label.setFixedHeight(40)
 
     def __set_connections(self):
+        self.save_patient_pushbutton.clicked.connect(self.__on_patient_saved)
+        self.close_patient_pushbutton.clicked.connect(self.__on_patient_closed)
         self.patient_name_lineedit.returnPressed.connect(self.__on_patient_name_modified)
         self.toggled.connect(self.__on_patient_toggled)
         # self.header_pushbutton.clicked.connect(self.__on_header_pushbutton_clicked)
@@ -336,6 +351,40 @@ class SinglePatientResultsWidget(QCollapsibleWidget):
         color: """ + software_ss["Color1"] + """;
         text-align: left;
         padding-left:40px;
+        }""")
+
+        self.save_patient_pushbutton.setStyleSheet("""
+        QPushButton{
+        background-color: """ + background_color + """;
+        color: """ + font_color + """;
+        font: 12px;
+        border-style: none;
+        }
+        QPushButton::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        }
+        QPushButton:pressed{
+        border-style:inset;
+        background-color: """ + pressed_background_color + """;
+        }""")
+
+        self.close_patient_pushbutton.setStyleSheet("""
+        QPushButton{
+        background-color: """ + background_color + """;
+        color: """ + font_color + """;
+        font: 12px;
+        border-style: none;
+        }
+        QPushButton::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        }
+        QPushButton:pressed{
+        border-style:inset;
+        background-color: """ + pressed_background_color + """;
         }""")
 
         self.default_collapsiblegroupbox.content_label.setStyleSheet("""
@@ -697,6 +746,25 @@ class SinglePatientResultsWidget(QCollapsibleWidget):
     def adjustSize(self):
         pass
 
+    def __on_patient_saved(self) -> None:
+        """
+        @TODO. Ideally the push button should only be visible when there is something to save for the patient.
+        """
+        SoftwareConfigResources.getInstance().get_patient(self.uid).save_patient()
+
+    def __on_patient_closed(self) -> None:
+        """
+
+        """
+        if SoftwareConfigResources.getInstance().get_patient(self.uid).has_unsaved_changes():
+            dialog = SavePatientChangesDialog()
+            code = dialog.exec_()
+            if code == 0:  # Operation cancelled
+                # The widget for the clicked patient must be collapsed back down, since the change has not
+                # been confirmed by the user in the end.
+                return
+        self.patient_closed.emit(self.uid)
+
     def __on_patient_toggled(self, state):
         self.patient_toggled.emit(state, self.uid)
 
@@ -736,10 +804,18 @@ class SinglePatientResultsWidget(QCollapsibleWidget):
         self.header.title_label.setText(self.title)
         self.on_standardized_report_imported()
 
-    def on_process_started(self):
+    def on_process_started(self) -> None:
+        """
+        Preventing user input in this panel while a process is ongoing.
+        """
+        self.header.setEnabled(False)
         self.patient_name_lineedit.setEnabled(False)
 
-    def on_process_finished(self):
+    def on_process_finished(self) -> None:
+        """
+        Resuming normal operation in this panel after a process has finished.
+        """
+        self.header.setEnabled(True)
         self.patient_name_lineedit.setEnabled(True)
 
     def on_standardized_report_imported(self):

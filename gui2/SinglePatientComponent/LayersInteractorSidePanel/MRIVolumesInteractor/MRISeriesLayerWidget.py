@@ -35,8 +35,6 @@ class MRISeriesLayerWidget(QWidget):
         self.setAttribute(Qt.WA_StyledBackground, True)  # Enables to set e.g. background-color for the QWidget
         self.layout = QHBoxLayout(self)
 
-        # @TODO. Have to make a custom radio button to match the desired design.
-        # self.display_toggle_radiobutton = QRadioButton()
         self.display_toggle_radiobutton = QPushButton()
         self.display_toggle_radiobutton.setCheckable(True)
         self.display_toggle_toggled_icon = QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
@@ -81,7 +79,8 @@ class MRISeriesLayerWidget(QWidget):
 
         self.contrast_adjuster_layout = QHBoxLayout()
         self.contrast_adjuster_pushbutton = QPushButton("Contrast")
-        self.contrast_adjuster_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../Images/contrast_icon.png'))))
+        self.contrast_adjuster_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                                             '../../../Images/contrast_icon.png'))))
         self.contrast_adjuster_pushbutton.setEnabled(False)
         self.contrast_adjuster = ContrastAdjustmentDialog(volume_uid=self.uid) #, parent=
         self.contrast_adjuster_layout.addWidget(self.contrast_adjuster_pushbutton)
@@ -101,7 +100,6 @@ class MRISeriesLayerWidget(QWidget):
         self.contrast_adjuster_pushbutton.setIconSize(QSize(15, 15))
         self.display_toggle_radiobutton.setFixedSize(QSize(30, 30))
         self.display_toggle_radiobutton.setIconSize(QSize(25, 25))
-
         # logging.debug("MRISeriesLayerWidget size set to {}.\n".format(self.size()))
 
     def __set_connections(self):
@@ -227,7 +225,10 @@ class MRISeriesLayerWidget(QWidget):
         background-color: """ + pressed_background_color + """;
         }""")
 
-    def __init_from_parameters(self):
+    def __init_from_parameters(self) -> None:
+        """
+        Setting up the GUI from the parameters reloaded from disk and stored in SoftwareConfigResources.
+        """
         mri_volume_parameters = SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_uid(self.uid)
         self.display_name_lineedit.setText(mri_volume_parameters.display_name)
         sequence_index = self.sequence_type_combobox.findText(mri_volume_parameters.get_sequence_type_str())

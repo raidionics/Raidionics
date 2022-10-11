@@ -93,28 +93,6 @@ class SinglePatientLayersWidget(QWidget):
         self.layout.addWidget(self.overall_scrollarea)
 
     def __set_connections(self):
-        # self.mri_volume_imported.connect(self.volumes_collapsiblegroupbox.on_mri_volume_import)
-        # self.annotation_volume_imported.connect(self.annotations_collapsiblegroupbox.on_import_volume)
-        # self.atlas_volume_imported.connect(self.atlases_collapsiblegroupbox.on_import_volume)
-        # self.patient_view_toggled.connect(self.volumes_collapsiblegroupbox.on_patient_view_toggled)
-        # self.patient_view_toggled.connect(self.annotations_collapsiblegroupbox.on_patient_view_toggled)
-        # self.patient_view_toggled.connect(self.atlases_collapsiblegroupbox.on_patient_view_toggled)
-        #
-        # self.volumes_collapsiblegroupbox.volume_view_toggled.connect(self.volume_view_toggled)
-        # self.volumes_collapsiblegroupbox.volume_view_toggled.connect(self.annotations_collapsiblegroupbox.on_volume_view_toggled)
-        # self.volumes_collapsiblegroupbox.volume_view_toggled.connect(self.atlases_collapsiblegroupbox.on_volume_view_toggled)
-        # self.volumes_collapsiblegroupbox.contrast_changed.connect(self.volume_contrast_changed)
-        # self.volumes_collapsiblegroupbox.volume_removed.connect(self.on_mri_volume_removed)
-        # self.volumes_collapsiblegroupbox.volume_display_name_changed.connect(self.annotations_collapsiblegroupbox.on_mri_volume_display_name_changed)
-        # self.annotations_collapsiblegroupbox.annotation_view_toggled.connect(self.annotation_view_toggled)
-        # self.annotations_collapsiblegroupbox.annotation_opacity_changed.connect(self.annotation_opacity_changed)
-        # self.annotations_collapsiblegroupbox.annotation_color_changed.connect(self.annotation_color_changed)
-        # # self.atlases_collapsiblegroupbox.atlas_view_toggled.connect(self.atlas_view_toggled)
-        # self.atlases_collapsiblegroupbox.atlas_structure_view_toggled.connect(self.atlas_structure_view_toggled)
-        # self.atlases_collapsiblegroupbox.atlas_color_changed.connect(self.atlas_structure_color_changed)
-        # self.atlases_collapsiblegroupbox.atlas_opacity_changed.connect(self.atlas_structure_opacity_changed)
-
-        # # Timestamp-based connections
         self.patient_imported.connect(self.timestamp_layer_widget.on_import_patient)
         self.patient_view_toggled.connect(self.timestamp_layer_widget.on_patient_view_toggled)
         self.mri_volume_imported.connect(self.timestamp_layer_widget.on_mri_volume_import)

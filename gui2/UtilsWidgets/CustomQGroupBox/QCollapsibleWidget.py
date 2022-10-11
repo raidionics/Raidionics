@@ -30,19 +30,19 @@ class Header(QWidget):
         self._layout.setContentsMargins(0, 0, 0, 0)
         self._background_label = QLabel()
 
-        layout = QHBoxLayout()
+        self._background_layout = QHBoxLayout()
 
         self._icon_label = QLabel()
         self._icon_label.setPixmap(self.collapse_pixmap.scaled(self.icon_size, aspectMode=Qt.KeepAspectRatio))
         self._icon_label.setFixedSize(self.icon_size)
-        layout.addWidget(self._icon_label)
-        layout.setContentsMargins(11, 0, 11, 0)
+        self._background_layout.addWidget(self._icon_label)
+        self._background_layout.setContentsMargins(11, 0, 11, 0)
 
         self._title_label = QLabel(self._title)
 
-        layout.addWidget(self._title_label)
-        layout.addItem(QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Expanding))
-        self._background_label.setLayout(layout)
+        self._background_layout.addWidget(self._title_label)
+        self._background_layout.addItem(QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Expanding))
+        self._background_label.setLayout(self._background_layout)
         self._layout.addWidget(self._background_label)
         self.content.setVisible(False)
 
@@ -54,6 +54,10 @@ class Header(QWidget):
     @property
     def background_label(self):
         return self._background_label
+
+    @property
+    def background_layout(self):
+        return self._background_layout
 
     @property
     def title_label(self) -> QLabel:

@@ -1,6 +1,7 @@
 import logging
 
 from utils.models_download import download_model
+from utils.software_config import SoftwareConfigResources
 
 # @TODO. Have an Enum type for the different pipeline tasks? Which are predefined anyway now.
 
@@ -49,14 +50,16 @@ def __create_segmentation_pipeline(model_name, patient_parameters):
     Brain segmentation should be performed by default, regardless of if the tumor segmentation model needs it.
     """
     pip = {}
-    pip_num_int = 1
-    pip_num = str(pip_num_int)
-    pip[pip_num] = {}
-    pip[pip_num]["task"] = 'Classification'
-    pip[pip_num]["inputs"] = {}
-    pip[pip_num]["model"] = 'MRI_Sequence_Classifier'
-    pip[pip_num]["description"] = "Classification of the MRI sequence type for all input scans"
-    download_model(model_name='MRI_Sequence_Classifier')
+    pip_num_int = 0
+    if not SoftwareConfigResources.getInstance().use_manual_sequences:
+        pip_num_int = pip_num_int + 1
+        pip_num = str(pip_num_int)
+        pip[pip_num] = {}
+        pip[pip_num]["task"] = 'Classification'
+        pip[pip_num]["inputs"] = {}
+        pip[pip_num]["model"] = 'MRI_Sequence_Classifier'
+        pip[pip_num]["description"] = "Classification of the MRI sequence type for all input scans"
+        download_model(model_name='MRI_Sequence_Classifier')
 
     pip_num_int = pip_num_int + 1
     pip_num = str(pip_num_int)
@@ -101,14 +104,15 @@ def __create_postop_segmentation_pipeline(model_name, patient_parameters):
     """
     pip = {}
     pip_num_int = 0
-    pip_num_int = pip_num_int + 1
-    pip_num = str(pip_num_int)
-    pip[pip_num] = {}
-    pip[pip_num]["task"] = 'Classification'
-    pip[pip_num]["inputs"] = {}
-    pip[pip_num]["model"] = 'MRI_Sequence_Classifier'
-    pip[pip_num]["description"] = "Classification of the MRI sequence type for all input scans"
-    download_model(model_name='MRI_Sequence_Classifier')
+    if not SoftwareConfigResources.getInstance().use_manual_sequences:
+        pip_num_int = pip_num_int + 1
+        pip_num = str(pip_num_int)
+        pip[pip_num] = {}
+        pip[pip_num]["task"] = 'Classification'
+        pip[pip_num]["inputs"] = {}
+        pip[pip_num]["model"] = 'MRI_Sequence_Classifier'
+        pip[pip_num]["description"] = "Classification of the MRI sequence type for all input scans"
+        download_model(model_name='MRI_Sequence_Classifier')
 
     pip_num_int = pip_num_int + 1
     pip_num = str(pip_num_int)
@@ -320,14 +324,16 @@ def __create_preop_reporting_pipeline(model_name, patient_parameters):
 
     """
     pip = {}
-    pip_num_int = 1
-    pip_num = str(pip_num_int)
-    pip[pip_num] = {}
-    pip[pip_num]["task"] = 'Classification'
-    pip[pip_num]["inputs"] = {}
-    pip[pip_num]["model"] = 'MRI_Sequence_Classifier'
-    pip[pip_num]["description"] = "Classification of the MRI sequence type for all input scans"
-    download_model(model_name='MRI_Sequence_Classifier')
+    pip_num_int = 0
+    if not SoftwareConfigResources.getInstance().use_manual_sequences:
+        pip_num_int = pip_num_int + 1
+        pip_num = str(pip_num_int)
+        pip[pip_num] = {}
+        pip[pip_num]["task"] = 'Classification'
+        pip[pip_num]["inputs"] = {}
+        pip[pip_num]["model"] = 'MRI_Sequence_Classifier'
+        pip[pip_num]["description"] = "Classification of the MRI sequence type for all input scans"
+        download_model(model_name='MRI_Sequence_Classifier')
 
     pip_num_int = pip_num_int + 1
     pip_num = str(pip_num_int)
@@ -421,14 +427,15 @@ def __create_postop_reporting_pipeline(model_name, patient_parameters):
     """
     pip = {}
     pip_num_int = 0
-    pip_num_int = pip_num_int + 1
-    pip_num = str(pip_num_int)
-    pip[pip_num] = {}
-    pip[pip_num]["task"] = 'Classification'
-    pip[pip_num]["inputs"] = {}
-    pip[pip_num]["model"] = 'MRI_Sequence_Classifier'
-    pip[pip_num]["description"] = "Classification of the MRI sequence type for all input scans"
-    download_model(model_name='MRI_Sequence_Classifier')
+    if not SoftwareConfigResources.getInstance().use_manual_sequences:
+        pip_num_int = pip_num_int + 1
+        pip_num = str(pip_num_int)
+        pip[pip_num] = {}
+        pip[pip_num]["task"] = 'Classification'
+        pip[pip_num]["inputs"] = {}
+        pip[pip_num]["model"] = 'MRI_Sequence_Classifier'
+        pip[pip_num]["description"] = "Classification of the MRI sequence type for all input scans"
+        download_model(model_name='MRI_Sequence_Classifier')
 
     pip_num_int = pip_num_int + 1
     pip_num = str(pip_num_int)
