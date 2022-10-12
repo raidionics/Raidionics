@@ -52,7 +52,11 @@ class RaidionicsMainWindow(QMainWindow):
         self.setWindowState(Qt.WindowState.WindowActive)  # Bring window to foreground? To check!
 
     def closeEvent(self, event):
-        if not SoftwareConfigResources.getInstance().is_patient_list_empty()\
+        """
+        @TODO. Should also add the unsaved_changes check for the active study, if applicable.
+        """
+        if not SoftwareConfigResources.getInstance().is_patient_list_empty() \
+                and SoftwareConfigResources.getInstance().get_active_patient_uid() \
                 and SoftwareConfigResources.getInstance().get_active_patient().has_unsaved_changes():
             dialog = SavePatientChangesDialog()
             code = dialog.exec_()
@@ -292,9 +296,8 @@ class RaidionicsMainWindow(QMainWindow):
 
         """
         self.__on_single_patient_clicked()
-        # Important line, otherwise the active patient is still None if loading a study right after launching Raidionics
-        SoftwareConfigResources.getInstance().set_active_patient(patient_uid=patient_uid)
         self.single_patient_widget.on_patient_selected(patient_uid)
+        SoftwareConfigResources.getInstance().set_active_patient(patient_uid=patient_uid)
 
     def __on_community_action_triggered(self):
         popup = QMessageBox()

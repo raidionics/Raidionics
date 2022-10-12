@@ -18,6 +18,7 @@ class UserPreferencesStructure:
     _user_home_location = None  # Main dump location for patients/studies on disk.
     _active_model_update = False  # True for regularly checking if new models are available, False otherwise
     _use_manual_sequences = True  # True for using the manually set sequences, False to run classification on-the-fly
+    _use_manual_annotations = False  # True to use annotation files provided by the user, False to recompute
 
     def __init__(self, preferences_filename: str) -> None:
         """
@@ -76,6 +77,14 @@ class UserPreferencesStructure:
         self._active_model_update = state
         self.save_preferences()
 
+    @property
+    def use_manual_annotations(self) -> bool:
+        return self._use_manual_annotations
+
+    @use_manual_annotations.setter
+    def use_manual_annotations(self, state) -> None:
+        self._use_manual_annotations = state
+
     def __parse_preferences(self):
         with open(self._preferences_filename, 'r') as infile:
             preferences = json.load(infile)
@@ -87,6 +96,8 @@ class UserPreferencesStructure:
         if 'Processing' in preferences.keys():
             if 'use_manual_sequences' in preferences['Processing'].keys():
                 self._use_manual_sequences = preferences['Processing']['use_manual_sequences']
+            if 'use_manual_annotations' in preferences['Processing'].keys():
+                self._use_manual_annotations = preferences['Processing']['use_manual_annotations']
 
     def save_preferences(self):
         preferences = {}
@@ -96,6 +107,7 @@ class UserPreferencesStructure:
         preferences['Models']['active_update'] = self._active_model_update
         preferences['Processing'] = {}
         preferences['Processing']['use_manual_sequences'] = self._use_manual_sequences
+        preferences['Processing']['use_manual_annotations'] = self._use_manual_annotations
 
         with open(self._preferences_filename, 'w') as outfile:
             json.dump(preferences, outfile, indent=4, sort_keys=True)

@@ -170,6 +170,10 @@ class AnnotationVolume:
             self._unsaved_changes = True
 
     @property
+    def raw_input_filepath(self) -> str:
+        return self._raw_input_filepath
+
+    @property
     def display_name(self) -> str:
         return self._display_name
 

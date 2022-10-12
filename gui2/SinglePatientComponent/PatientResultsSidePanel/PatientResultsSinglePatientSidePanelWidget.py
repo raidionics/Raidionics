@@ -16,6 +16,7 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
     """
     patient_selected = Signal(str)  # Unique internal id of the selected patient
     patient_name_edited = Signal(str, str)
+    reset_interface_requested = Signal()  # To set the default interface when the last opened patient has been closed.
     import_patient_from_dicom_requested = Signal()
     import_patient_from_data_requested = Signal()
     import_patient_from_custom_requested = Signal()
@@ -225,17 +226,26 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         self.patient_results_widgets[SoftwareConfigResources.getInstance().get_active_patient_uid()].on_process_finished()
 
     def __on_patient_closed(self, widget_id):
+        if SoftwareConfigResources.getInstance().get_active_patient().has_unsaved_changes():
+            dialog = SavePatientChangesDialog()
+            code = dialog.exec_()
+            if code == 0:  # Operation cancelled
+                return
+
         self.patient_list_scrollarea_layout.removeWidget(self.patient_results_widgets[widget_id])
         self.patient_results_widgets[widget_id].setParent(None)
         del self.patient_results_widgets[widget_id]
         SoftwareConfigResources.getInstance().remove_patient(widget_id)
 
-        # A patient is to be displayed at all time
+        # A patient is to be displayed at all time, if applicable
         if len(self.patient_results_widgets) != 0:
-            self.__on_patient_selection(True, list(self.patient_results_widgets.keys())[0])
-            SoftwareConfigResources.getInstance().set_active_patient(patient_uid=list(self.patient_results_widgets.keys())[0])
+            new_active_uid = list(self.patient_results_widgets.keys())[0]
+            SoftwareConfigResources.getInstance().set_active_patient(patient_uid=new_active_uid)
+            self.patient_results_widgets[new_active_uid].set_stylesheets(selected=True)
+            self.patient_selected.emit(new_active_uid)
         else:
             SoftwareConfigResources.getInstance().set_active_patient(patient_uid=None)
+            self.reset_interface_requested.emit()
 
         self.adjustSize()
         self.repaint()

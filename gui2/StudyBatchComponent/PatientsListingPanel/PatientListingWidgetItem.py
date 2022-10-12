@@ -19,8 +19,8 @@ class PatientListingWidgetItem(QWidget):
         super(PatientListingWidgetItem, self).__init__()
         self.parent = parent
         self.patient_uid = patient_uid
-        self.setFixedWidth(self.parent.baseSize().width())
-        self.setBaseSize(QSize(self.width(), 60))  # Defining a base size is necessary as inner widgets depend on it.
+        # self.setFixedWidth(self.parent.baseSize().width())
+        # self.setBaseSize(QSize(self.width(), 30))  # Defining a base size is necessary as inner widgets depend on it.
         self.__set_interface()
         self.__set_layout_dimensions()
         self.__set_connections()
@@ -32,6 +32,7 @@ class PatientListingWidgetItem(QWidget):
         self.layout.setContentsMargins(0, 0, 0, 0)
 
         self.patient_uid_label = QLabel(SoftwareConfigResources.getInstance().patients_parameters[self.patient_uid].display_name)
+        self.patient_uid_label.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
         self.patient_investigation_pushbutton = QPushButton()
         self.patient_investigation_pushbutton.setIcon(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                                          '../../Images/jumpto-icon.png')))
@@ -41,15 +42,15 @@ class PatientListingWidgetItem(QWidget):
                                                                   '../../Images/trash-bin_icon.png')))
         self.patient_remove_pushbutton.setToolTip("Press to remove the patient from the study (but retained on disk).")
         # self.patient_remove_pushbutton.setEnabled(False)
-        self.layout.addWidget(self.patient_uid_label)
-        self.layout.addWidget(self.patient_investigation_pushbutton)
         self.layout.addWidget(self.patient_remove_pushbutton)
+        self.layout.addWidget(self.patient_investigation_pushbutton)
+        self.layout.addWidget(self.patient_uid_label)
 
     def __set_layout_dimensions(self):
         self.patient_uid_label.setFixedHeight(30)
-        self.patient_investigation_pushbutton.setIconSize(QSize(28, 28))
+        self.patient_investigation_pushbutton.setIconSize(QSize(25, 25))
         self.patient_investigation_pushbutton.setFixedSize(QSize(30, 30))
-        self.patient_remove_pushbutton.setIconSize(QSize(28, 28))
+        self.patient_remove_pushbutton.setIconSize(QSize(25, 25))
         self.patient_remove_pushbutton.setFixedSize(QSize(30, 30))
 
     def __set_connections(self):
@@ -70,6 +71,15 @@ class PatientListingWidgetItem(QWidget):
         border-width: 1px;
         }""")
 
+        self.patient_uid_label.setStyleSheet("""
+        QLabel{
+        background-color: """ + background_color + """;
+        padding-left: 10px;
+        color: """ + font_color + """;
+        font-size: 14px;
+        font-style: bold;
+        }""")
+
         self.patient_investigation_pushbutton.setStyleSheet("""
         QPushButton{
         background-color: """ + background_color + """;
@@ -87,12 +97,21 @@ class PatientListingWidgetItem(QWidget):
         background-color: """ + pressed_background_color + """;
         }""")
 
-        self.patient_uid_label.setStyleSheet("""
-        QLabel{
-        color: """ + software_ss["Color7"] + """;
-        text-align:left;
-        font:normal;
-        font-size:13px;
+        self.patient_remove_pushbutton.setStyleSheet("""
+        QPushButton{
+        background-color: """ + background_color + """;
+        color: """ + font_color + """;
+        font: 12px;
+        border-style: none;
+        }
+        QPushButton::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        }
+        QPushButton:pressed{
+        border-style:inset;
+        background-color: """ + pressed_background_color + """;
         }""")
 
     def __on_patient_investigation_clicked(self):

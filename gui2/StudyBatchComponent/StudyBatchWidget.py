@@ -7,6 +7,7 @@ import threading
 from utils.software_config import SoftwareConfigResources
 from gui2.StudyBatchComponent.StudiesSidePanel.StudiesSidePanelWidget import StudiesSidePanelWidget
 from gui2.StudyBatchComponent.PatientsListingPanel.StudyPatientListingWidget import StudyPatientListingWidget
+from gui2.StudyBatchComponent.PatientsSummaryPanel.StudyPatientsContentSummaryPanelWidget import StudyPatientsContentSummaryPanelWidget
 from gui2.UtilsWidgets.CustomQDialog.ImportDataQDialog import ImportDataQDialog
 from gui2.UtilsWidgets.CustomQDialog.ImportFoldersQDialog import ImportFoldersQDialog
 from gui2.UtilsWidgets.CustomQDialog.ImportDICOMDataQDialog import ImportDICOMDataQDialog
@@ -57,10 +58,8 @@ class StudyBatchWidget(QWidget):
         self.center_panel_layout.setContentsMargins(0, 0, 0, 0)
         self.studies_panel = StudiesSidePanelWidget(self)
         self.patient_listing_panel = StudyPatientListingWidget(self)
-        # self.layers_panel = SinglePatientLayersWidget(self)
-        # self.process_progress_panel = ProcessProgressWidget(self)
-        # self.right_panel_stackedwidget.addWidget(self.layers_panel)
-        # self.right_panel_stackedwidget.addWidget(self.process_progress_panel)
+        self.patients_summary_panel = StudyPatientsContentSummaryPanelWidget(self)
+        self.right_panel_stackedwidget.insertWidget(0, self.patients_summary_panel)
         self.center_panel_layout.addWidget(self.studies_panel)
         self.center_panel_layout.addWidget(self.patient_listing_panel)
         self.center_panel_layout.addWidget(self.right_panel_stackedwidget)
@@ -84,7 +83,7 @@ class StudyBatchWidget(QWidget):
 
         self.top_logo_panel_label_save_pushbutton = QPushButton("Save")
         self.top_logo_panel_label_save_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/download_icon_black.png'))))
-        self.top_logo_panel_layout.addWidget(self.top_logo_panel_label_save_pushbutton)
+        # self.top_logo_panel_layout.addWidget(self.top_logo_panel_label_save_pushbutton)
 
         self.top_logo_panel_layout.addStretch(1)
 
@@ -107,7 +106,6 @@ class StudyBatchWidget(QWidget):
         self.setStyleSheet("QWidget{font:11px;}")
 
     def __set_connections(self):
-        self.top_logo_panel_label_save_pushbutton.clicked.connect(self.__on_save_clicked)
         self.__set_cross_connections()
 
     def __set_cross_connections(self):
@@ -118,6 +116,7 @@ class StudyBatchWidget(QWidget):
         self.studies_panel.patient_imported.connect(self.patient_listing_panel.on_patient_imported)
         self.studies_panel.batch_segmentation_requested.connect(self.on_batch_segmentation_wrapper)
         self.studies_panel.batch_rads_requested.connect(self.on_batch_rads_wrapper)
+        self.studies_panel.patients_import_finished.connect(self.patients_summary_panel.on_patients_import)
         self.study_imported.connect(self.studies_panel.on_study_imported)
 
         self.patient_listing_panel.patient_selected.connect(self.patient_selected)
@@ -132,11 +131,6 @@ class StudyBatchWidget(QWidget):
 
     def get_widget_name(self):
         return self.widget_name
-
-    def __on_save_clicked(self):
-        # @TODO. The Save button should be enabled/disabled on-the-fly in the future.
-        if not SoftwareConfigResources.getInstance().is_study_list_empty():
-            SoftwareConfigResources.getInstance().get_active_study().save()
 
     def on_process_started(self):
         # Not sure what is generic enough to be here, has to depend on whether segm or RADS, single patient update...
@@ -163,7 +157,7 @@ class StudyBatchWidget(QWidget):
         run_segmentation_thread.start()
 
     def on_batch_segmentation(self, study_uid, model_name):
-        from utils.backend_logic import segmentation_main_wrapper
+        from utils.backend_logic import pipeline_main_wrapper
         self.on_process_started()
         study = SoftwareConfigResources.getInstance().study_parameters[study_uid]
         patients_uid = study.included_patients_uids
@@ -174,7 +168,8 @@ class StudyBatchWidget(QWidget):
             # And also should disable the run segmentation/reporting buttons from the single mode view.
 
             # SoftwareConfigResources.getInstance().set_active_patient(u)
-            code, results = segmentation_main_wrapper(model_name=model_name,
+            code, results = pipeline_main_wrapper(pipeline_task='preop_segmentation',
+                                                  model_name=model_name,
                                                       patient_parameters=SoftwareConfigResources.getInstance().patients_parameters[u])
             # if 'Annotation' in list(results.keys()):
             #     for a in results['Annotation']:

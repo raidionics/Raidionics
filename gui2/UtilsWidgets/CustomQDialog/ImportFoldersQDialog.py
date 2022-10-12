@@ -17,12 +17,9 @@ class ImportFoldersQDialog(QDialog):
     """
     Loading class dedicated to the batch/study mode, with specific extra operations tailored for it.
     """
-    # The str is the unique id for the mri volume, belonging to the active patient
-    mri_volume_imported = Signal(str)
-    # The str is the unique id for the annotation volume, belonging to the active patient
-    annotation_volume_imported = Signal(str)
-    # The str is the unique id for the included patient, the active patient remains the same
-    patient_imported = Signal(str)
+    mri_volume_imported = Signal(str)  # Radiological volume internal unique identifier
+    annotation_volume_imported = Signal(str)  # Annotation volume internal unique identifier
+    patient_imported = Signal(str)  # Patient internal unique identifier
 
     def __init__(self, filter=None, parent=None):
         super().__init__(parent)
@@ -30,10 +27,19 @@ class ImportFoldersQDialog(QDialog):
         self.current_folder = "~"  # Keep in memory the last open directory, to easily open multiple files in a row
         self.parsing_mode = "single"  # single if the folder is a single patient, or multiple if the folder contains images for multiple patients.
         self.target_type = 'regular'  # dicom for DICOM root folders, regular otherwise
+        self._operation_mode = 'study'  # Operation mode to chose from ['study', 'patient']
         self.__set_interface()
         self.__set_layout_dimensions()
         self.__set_connections()
         self.__set_stylesheets()
+
+    @property
+    def operation_mode(self) -> str:
+        return self._operation_mode
+
+    @operation_mode.setter
+    def operation_mode(self, mode) -> None:
+        self._operation_mode = mode
 
     def __set_interface(self):
         self.base_layout = QVBoxLayout(self)
@@ -167,7 +173,8 @@ class ImportFoldersQDialog(QDialog):
         (iv) The folder contains the data for only one patient, stored as a DICOM folder (single mode and dicom target type).
         (v) The folder contains sub-folders, one for each patient, stored as a DICOM folder (multiple mode and dicom target type).
         (vi) The folder contains the data for only one patient in any format but DICOM (single mode and regular target type), but
-        has multiple subfolders covering multiple timestamps.
+        has multiple subfolders covering multiple timestamps (similar to (i) with timestamps).
+        (vii) Similar to (ii) with timestamp sub-folders.
 
         @TODO. Potential patient import error messages should be collected, appended, and reported to the user
          at the end of the import process.
@@ -196,8 +203,9 @@ class ImportFoldersQDialog(QDialog):
                 pat_uid = imports['Patient'][0]
                 self.patient_imported.emit(pat_uid)
                 SoftwareConfigResources.getInstance().get_patient(pat_uid).save_patient()
-                msg = SoftwareConfigResources.getInstance().get_active_study().include_study_patient(uid=pat_uid,
-                                                                                                     folder_name=SoftwareConfigResources.getInstance().get_patient(pat_uid).output_folder)
+                if self.operation_mode == 'study':
+                    msg = SoftwareConfigResources.getInstance().get_active_study().include_study_patient(uid=pat_uid,
+                                                                                                         folder_name=SoftwareConfigResources.getInstance().get_patient(pat_uid).output_folder)
                 self.load_progressbar.setValue(i + 1)
                 if error_msg:
                     diag = QMessageBox()
@@ -209,8 +217,7 @@ class ImportFoldersQDialog(QDialog):
                 pat_uid = imports['Patient'][0]
                 self.patient_imported.emit(pat_uid)
                 SoftwareConfigResources.getInstance().get_patient(pat_uid).save_patient()
-                if False:
-                    #@TODO. The study inclusion should not happen here, but where the patient import was called from.
+                if self.operation_mode == 'study':
                     msg = SoftwareConfigResources.getInstance().get_active_study().include_study_patient(uid=pat_uid,
                                                                                                          folder_name=SoftwareConfigResources.getInstance().get_patient(
                                                                                                              pat_uid).output_folder)
@@ -230,7 +237,7 @@ class ImportFoldersQDialog(QDialog):
 
                 self.load_progressbar.setMaximum(len(single_files_in_path))
                 for p in single_files_in_path:
-                    pat_uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_patient()
+                    pat_uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_patient(active=False)
                     if error_msg:
                         patient_include_error_msg = "Unable to create empty patient.\nError message: {}.\n".format(
                             error_msg)
@@ -243,19 +250,29 @@ class ImportFoldersQDialog(QDialog):
                             os.path.join(input_folderpath, p), error_msg)
                     self.patient_imported.emit(pat_uid)
                     SoftwareConfigResources.getInstance().get_patient(pat_uid).save_patient()
-                    msg = SoftwareConfigResources.getInstance().get_active_study().include_study_patient(uid=pat_uid,
-                                                                                                     folder_name=SoftwareConfigResources.getInstance().get_patient(pat_uid).output_folder)
+                    if self.operation_mode == 'study':
+                        msg = SoftwareConfigResources.getInstance().get_active_study().include_study_patient(uid=pat_uid,
+                                                                                                             folder_name=SoftwareConfigResources.getInstance().get_patient(pat_uid).output_folder)
                     self.load_progressbar.setValue(i + 1)
-            elif self.target_type == 'regular':  # Case (ii)
+            elif self.target_type == 'regular':  # Case (ii) and (vii)
                 collective_errors = ""
                 self.load_progressbar.setMaximum(len(folders_in_path))
                 for patient in folders_in_path:
-                    imports, error_msg = import_patient_from_folder(folder_path=os.path.join(input_folderpath, patient))
+                    tmp_dirs = []
+                    for _, dirs, _ in os.walk(os.path.join(input_folderpath, patient)):
+                        for d in dirs:
+                            tmp_dirs.append(d)
+                        break
+                    if len(tmp_dirs) == 0:
+                        imports, error_msg = import_patient_from_folder(folder_path=os.path.join(input_folderpath, patient))
+                    else:
+                        imports, error_msg = import_patient_from_timestamped_folder(folder_path=os.path.join(input_folderpath, patient))
                     pat_uid = imports['Patient'][0]
                     self.patient_imported.emit(pat_uid)
                     SoftwareConfigResources.getInstance().get_patient(pat_uid).save_patient()
-                    msg = SoftwareConfigResources.getInstance().get_active_study().include_study_patient(uid=pat_uid,
-                                                                                                         folder_name=SoftwareConfigResources.getInstance().get_patient(pat_uid).output_folder)
+                    if self.operation_mode == 'study':
+                        msg = SoftwareConfigResources.getInstance().get_active_study().include_study_patient(uid=pat_uid,
+                                                                                                             folder_name=SoftwareConfigResources.getInstance().get_patient(pat_uid).output_folder)
                     collective_errors = collective_errors + error_msg
                     self.load_progressbar.setValue(i + 1)
                 if collective_errors != "":
@@ -267,7 +284,7 @@ class ImportFoldersQDialog(QDialog):
                 error_msg = dicom_holder.parse_dicom_folder()
                 # if error_msg is not None:
                 #     diag = QMessageBox.warning(self, "DICOM parsing warnings", error_msg)
-                pat_uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_patient()
+                pat_uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_patient(active=False)
                 if error_msg:
                     patient_include_error_msg = "Unable to create empty patient.\nError message: {}.\n".format(
                         error_msg)
@@ -277,8 +294,9 @@ class ImportFoldersQDialog(QDialog):
                         volume_uid, err_msg = SoftwareConfigResources.getInstance().get_patient(uid=pat_uid).import_dicom_data(dicom_holder.studies[study_id].dicom_series[series_id])
                 self.patient_imported.emit(pat_uid)
                 SoftwareConfigResources.getInstance().get_patient(pat_uid).save_patient()
-                msg = SoftwareConfigResources.getInstance().get_active_study().include_study_patient(uid=pat_uid,
-                                                                                                     folder_name=SoftwareConfigResources.getInstance().get_patient(pat_uid).output_folder)
+                if self.operation_mode == 'study':
+                    msg = SoftwareConfigResources.getInstance().get_active_study().include_study_patient(uid=pat_uid,
+                                                                                                         folder_name=SoftwareConfigResources.getInstance().get_patient(pat_uid).output_folder)
                 self.load_progressbar.setValue(i + 1)
                 if error_msg:
                     diag = QMessageBox()
@@ -290,7 +308,7 @@ class ImportFoldersQDialog(QDialog):
                     error_msg = dicom_holder.parse_dicom_folder()
                     # if error_msg is not None:
                     #     diag = QMessageBox.warning(self, "DICOM parsing warnings", error_msg)
-                    pat_uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_patient()
+                    pat_uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_patient(active=False)
                     if error_msg:
                         patient_include_error_msg = "Unable to create empty patient.\nError message: {}.\n".format(
                             error_msg)
@@ -300,8 +318,9 @@ class ImportFoldersQDialog(QDialog):
                             volume_uid, err_msg = SoftwareConfigResources.getInstance().get_patient(uid=pat_uid).import_dicom_data(dicom_holder.studies[study_id].dicom_series[series_id])
                     self.patient_imported.emit(pat_uid)
                     SoftwareConfigResources.getInstance().get_patient(pat_uid).save_patient()
-                    msg = SoftwareConfigResources.getInstance().get_active_study().include_study_patient(uid=pat_uid,
-                                                                                                         folder_name=SoftwareConfigResources.getInstance().get_patient(pat_uid).output_folder)
+                    if self.operation_mode == 'study':
+                        msg = SoftwareConfigResources.getInstance().get_active_study().include_study_patient(uid=pat_uid,
+                                                                                                             folder_name=SoftwareConfigResources.getInstance().get_patient(pat_uid).output_folder)
                     self.load_progressbar.setValue(i + 1)
                     if error_msg:
                         diag = QMessageBox()
@@ -424,13 +443,13 @@ def import_patient_from_folder(folder_path: str) -> Tuple[dict, str]:
             patient_include_error_msg = "Unable to open patient.\nError message: {}.\n".format(error_msg)
             return imports, patient_include_error_msg
     else:
-        pat_uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_patient()
+        pat_uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_patient(active=False)
         imports['Patient'] = [pat_uid]
         if error_msg:
             patient_include_error_msg = "Unable to create empty patient.\nError message: {}.\n".format(error_msg)
             return imports, patient_include_error_msg
 
-        SoftwareConfigResources.getInstance().get_patient(pat_uid).display_name = os.path.basename(folder_path)
+        SoftwareConfigResources.getInstance().get_patient(pat_uid).set_display_name(os.path.basename(folder_path))
         mris_in_path = []
         annotations_in_path = []
         for f in files_in_path:
@@ -457,7 +476,7 @@ def import_patient_from_timestamped_folder(folder_path: str) -> Tuple[dict, str]
     patient_include_error_msg = ""
 
     imports = {}  # Holder for all image/segmentation files loaded from the patient folder
-    pat_uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_patient()
+    pat_uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_patient(active=False)
     imports['Patient'] = [pat_uid]
     if error_msg:
         patient_include_error_msg = "Unable to create empty patient.\nError message: {}.\n".format(error_msg)

@@ -1,30 +1,36 @@
 import logging
 import os
 from PySide2.QtWidgets import QLabel, QHBoxLayout, QVBoxLayout, QLineEdit, QPushButton, QProgressBar, QGroupBox, \
-    QFileDialog
+    QFileDialog, QDialog
 from PySide2.QtCore import Qt, QSize, Signal
+from PySide2.QtGui import QIcon, QPixmap
 
 from gui2.UtilsWidgets.CustomQGroupBox.QCollapsibleGroupBox import QCollapsibleGroupBox
+from gui2.UtilsWidgets.CustomQGroupBox.QCollapsibleWidget import QCollapsibleWidget
 from gui2.UtilsWidgets.CustomQDialog.ImportFoldersQDialog import ImportFoldersQDialog
 from gui2.UtilsWidgets.CustomQDialog.TumorTypeSelectionQDialog import TumorTypeSelectionQDialog
+from gui2.UtilsWidgets.CustomQDialog.SavePatientChangesDialog import SavePatientChangesDialog
 from utils.software_config import SoftwareConfigResources
 
 
-class SingleStudyWidget(QCollapsibleGroupBox):
+class SingleStudyWidget(QCollapsibleWidget):
     """
 
     """
+    study_toggled = Signal(bool, str)  # internal uid, and toggle state in [True, False]
+    study_closed = Signal(str)  # Study internal unique identifier
     mri_volume_imported = Signal(str)
     annotation_volume_imported = Signal(str)
     patient_imported = Signal(str)
     batch_segmentation_requested = Signal(str, str)  # Unique id of the current study instance, and model name
     batch_rads_requested = Signal(str, str)  # Unique id of the current study instance, and model name
     patient_import_started = Signal(str)
-    patient_import_finished = Signal(str)
+    patients_import_finished = Signal()
     resizeRequested = Signal()
 
     def __init__(self, uid, parent=None):
-        super(SingleStudyWidget, self).__init__(uid, parent, header_style='left')
+        super(SingleStudyWidget, self).__init__(uid)
+        self.uid = uid
         self.title = uid
         self.parent = parent
         self.import_data_dialog = ImportFoldersQDialog(self)
@@ -35,18 +41,26 @@ class SingleStudyWidget(QCollapsibleGroupBox):
         self.set_stylesheets(selected=False)
 
     def __set_interface(self):
-        self.set_header_icons(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                           '../../Images/study_icon.png'),
-                              QSize(30, 30),
-                              os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                           '../../Images/study_icon.png'),
-                              QSize(30, 30), side='left')
+        self.set_icon_filenames(expand_fn=os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                       '../../Images/study_icon.png'),
+                                collapse_fn=os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                         '../../Images/study_icon.png'))
+        self.header.set_icon_size(QSize(30, 30))
+        self.save_study_pushbutton = QPushButton()
+        self.save_study_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                                        '../../Images/floppy_disk_icon.png')).scaled(QSize(25, 25), Qt.KeepAspectRatio)))
+        self.save_study_pushbutton.setFixedSize(QSize(25, 25))
+        self.close_study_pushbutton = QPushButton()
+        self.close_study_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                                        '../../Images/close_icon.png')).scaled(QSize(25, 25), Qt.KeepAspectRatio)))
+        self.close_study_pushbutton.setFixedSize(QSize(25, 25))
+        self.header.background_layout.addWidget(self.save_study_pushbutton)
+        self.header.background_layout.addWidget(self.close_study_pushbutton)
         self.__set_system_part()
         self.__set_patient_inclusion_part()
         self.__set_batch_processing_part()
         self.__set_progress_part()
-        # self.content_label_layout.addWidget(self.collapsible_view)
-        self.content_label_layout.addStretch(1)
+        self.content_layout.addStretch(1)
 
     def __set_system_part(self):
         self.study_name_label = QLabel("Name ")
@@ -56,7 +70,7 @@ class SingleStudyWidget(QCollapsibleGroupBox):
         self.study_name_layout.setContentsMargins(20, 0, 20, 0)
         self.study_name_layout.addWidget(self.study_name_label)
         self.study_name_layout.addWidget(self.study_name_lineedit)
-        self.content_label_layout.addLayout(self.study_name_layout)
+        self.content_layout.addLayout(self.study_name_layout)
 
         self.output_dir_label = QLabel("Location ")
         self.output_dir_lineedit = QLineEdit()
@@ -67,7 +81,7 @@ class SingleStudyWidget(QCollapsibleGroupBox):
         self.output_dir_layout.setContentsMargins(20, 0, 20, 0)
         self.output_dir_layout.addWidget(self.output_dir_label)
         self.output_dir_layout.addWidget(self.output_dir_lineedit)
-        self.content_label_layout.addLayout(self.output_dir_layout)
+        self.content_layout.addLayout(self.output_dir_layout)
 
     def __set_patient_inclusion_part(self):
         self.patient_inclusion_groupbox = QGroupBox()
@@ -104,7 +118,7 @@ class SingleStudyWidget(QCollapsibleGroupBox):
         self.patient_inclusion_layout.addWidget(self.patient_inclusion_progressbar)
         self.patient_inclusion_layout.addStretch(1)
         self.patient_inclusion_groupbox.setLayout(self.patient_inclusion_layout)
-        self.content_label_layout.addWidget(self.patient_inclusion_groupbox)
+        self.content_layout.addWidget(self.patient_inclusion_groupbox)
 
     def __set_batch_processing_part(self):
         self.batch_processing_groupbox = QGroupBox()
@@ -116,7 +130,7 @@ class SingleStudyWidget(QCollapsibleGroupBox):
         self.batch_processing_layout.addWidget(self.batch_processing_segmentation_button)
         self.batch_processing_layout.addWidget(self.batch_processing_rads_button)
         self.batch_processing_groupbox.setLayout(self.batch_processing_layout)
-        self.content_label_layout.addWidget(self.batch_processing_groupbox)
+        self.content_layout.addWidget(self.batch_processing_groupbox)
 
     def __set_progress_part(self):
         self.processing_layout = QVBoxLayout()
@@ -131,9 +145,12 @@ class SingleStudyWidget(QCollapsibleGroupBox):
         self.processing_progressbar = QProgressBar()
         self.processing_progressbar.setVisible(False)
         self.processing_layout.addWidget(self.processing_progressbar)
-        self.content_label_layout.addLayout(self.processing_layout)
+        self.content_layout.addLayout(self.processing_layout)
 
     def __set_layout_dimensions(self):
+        self.header.background_label.setFixedHeight(40)
+        self.header.icon_label.setFixedHeight(40)
+        self.header.title_label.setFixedHeight(40)
         self.study_name_label.setFixedHeight(20)
         self.study_name_lineedit.setFixedHeight(20)
         self.output_dir_label.setFixedHeight(20)
@@ -151,6 +168,10 @@ class SingleStudyWidget(QCollapsibleGroupBox):
         self.processing_progressbar.setMinimumWidth(100)
 
     def __set_connections(self):
+        self.toggled.connect(self.__on_study_toggled)
+        self.save_study_pushbutton.clicked.connect(self.__on_study_saved)
+        self.close_study_pushbutton.clicked.connect(self.__on_study_closed)
+
         self.study_name_lineedit.returnPressed.connect(self.__on_study_name_modified)
         self.include_single_patient_folder_pushbutton.clicked.connect(self.__on_include_single_patient_folder_clicked)
         self.include_multiple_patients_folder_pushbutton.clicked.connect(self.__on_include_multiple_patients_folder_clicked)
@@ -175,27 +196,57 @@ class SingleStudyWidget(QCollapsibleGroupBox):
             pressed_background_color = software_ss["Color4"]
             font_style = 'bold'
 
-        self.content_label.setStyleSheet("""
-        QLabel{
-        background-color: """ + software_ss["Color2"] + """;
+        self.content_widget.setStyleSheet("""
+        QWidget{
+        background-color: """ + background_color + """;
         }""")
 
-        self.header_pushbutton.setStyleSheet("""
+        self.header.background_label.setStyleSheet("""
+        QLabel{
+        background-color: """ + background_color + """;
+        }""")
+
+        self.header.title_label.setStyleSheet("""
+        QLabel{
+        font:""" + font_style + """;
+        font-size: 16px;
+        color: """ + software_ss["Color1"] + """;
+        text-align: left;
+        padding-left:40px;
+        }""")
+
+        self.save_study_pushbutton.setStyleSheet("""
         QPushButton{
         background-color: """ + background_color + """;
-        font:""" + font_style + """;
-        font-size: 16px;
-        color: """ + software_ss["Color1"] + """;
-        text-align: left;
-        padding-left:40px;
+        color: """ + font_color + """;
+        font: 12px;
+        border-style: none;
         }
-        QPushButton:checked{
+        QPushButton::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        }
+        QPushButton:pressed{
+        border-style:inset;
+        background-color: """ + pressed_background_color + """;
+        }""")
+
+        self.close_study_pushbutton.setStyleSheet("""
+        QPushButton{
         background-color: """ + background_color + """;
-        font:""" + font_style + """;
-        font-size: 16px;
-        color: """ + software_ss["Color1"] + """;
-        text-align: left;
-        padding-left:40px;
+        color: """ + font_color + """;
+        font: 12px;
+        border-style: none;
+        }
+        QPushButton::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        }
+        QPushButton:pressed{
+        border-style:inset;
+        background-color: """ + pressed_background_color + """;
         }""")
 
         self.study_name_label.setStyleSheet("""
@@ -256,11 +307,32 @@ class SingleStudyWidget(QCollapsibleGroupBox):
         }""")
 
     def adjustSize(self):
-        actual_height = self.default_collapsiblegroupbox.sizeHint().height()
-        self.content_label.setFixedSize(QSize(self.size().width(), actual_height))
-        # self.setFixedSize(QSize(self.size().width(), actual_height))
-        # logging.debug("SingleStudyWidget size set to {}.\n".format(self.content_label.size()))
+        # actual_height = self.default_collapsiblegroupbox.sizeHint().height()
+        # self.content_label.setFixedSize(QSize(self.size().width(), actual_height))
+        # # self.setFixedSize(QSize(self.size().width(), actual_height))
+        # # logging.debug("SingleStudyWidget size set to {}.\n".format(self.content_label.size()))
         self.resizeRequested.emit()
+
+    def __on_study_toggled(self, state):
+        self.study_toggled.emit(state, self.uid)
+
+    def __on_study_saved(self) -> None:
+        """
+        """
+        SoftwareConfigResources.getInstance().get_patient(self.uid).save_patient()
+
+    def __on_study_closed(self) -> None:
+        """
+
+        """
+        if SoftwareConfigResources.getInstance().get_study(self.uid).has_unsaved_changes():
+            dialog = SavePatientChangesDialog()
+            code = dialog.exec_()
+            if code == 0:  # Operation cancelled
+                # The widget for the clicked patient must be collapsed back down, since the change has not
+                # been confirmed by the user in the end.
+                return
+        self.study_closed.emit(self.uid)
 
     def __on_study_name_modified(self):
         code, err_msg = SoftwareConfigResources.getInstance().get_active_study().set_display_name(self.study_name_lineedit.text())
@@ -275,18 +347,11 @@ class SingleStudyWidget(QCollapsibleGroupBox):
             self.output_dir_lineedit.home(True)
 
     def manual_header_pushbutton_clicked(self, state):
-        # @TODO. Has to be a better way to trigger the state change in QCollapsibleGroupBox directly from
-        # the side panel widget, rather than calling this method.
-        self.header_pushbutton.setChecked(state)
-        self.collapsed = state
-        self.content_label.setVisible(state)
-        # self.on_header_pushbutton_clicked(state)
-        # An active patient is mandatory at all time, unselecting an active patient is not possible
         if state:
-            self.header_pushbutton.setEnabled(False)
+            self.header.expand()
         else:
-            self.header_pushbutton.setEnabled(True)
-        self.repaint()  # Not sure if the repaint is actually needed.
+            self.header.collapse()
+        self.set_stylesheets(True)
 
     def populate_from_study(self, study_uid):
         study_parameters = SoftwareConfigResources.getInstance().study_parameters[study_uid]
@@ -295,7 +360,8 @@ class SingleStudyWidget(QCollapsibleGroupBox):
         self.output_dir_lineedit.setCursorPosition(0)
         self.output_dir_lineedit.home(True)
         self.title = study_parameters.display_name
-        self.header_pushbutton.setText(self.title)
+        self.header.title = self.title
+        self.header.title_label.setText(self.title)
 
     def __on_include_single_patient_folder_clicked(self) -> None:
         """
@@ -304,27 +370,31 @@ class SingleStudyWidget(QCollapsibleGroupBox):
         self.import_data_dialog.reset()
         self.import_data_dialog.set_parsing_mode('single')
         code = self.import_data_dialog.exec_()
-        # if code == QDialog.Accepted:
-        #     self.import_data_triggered.emit()
+        if code == QDialog.Accepted:
+            self.patients_import_finished.emit()
 
     def __on_include_multiple_patients_folder_clicked(self):
         self.import_data_dialog.reset()
         self.import_data_dialog.set_parsing_mode('multiple')
         code = self.import_data_dialog.exec_()
+        if code == QDialog.Accepted:
+            self.patients_import_finished.emit()
 
     def __on_include_single_dicom_patient_folder_clicked(self):
         self.import_data_dialog.reset()
         self.import_data_dialog.set_parsing_mode('single')
         self.import_data_dialog.set_target_type('dicom')
         code = self.import_data_dialog.exec_()
-        # if code == QDialog.Accepted:
+        if code == QDialog.Accepted:
+            self.patients_import_finished.emit()
 
     def __on_include_multiple_dicom_patients_folder_clicked(self):
         self.import_data_dialog.reset()
         self.import_data_dialog.set_parsing_mode('multiple')
         self.import_data_dialog.set_target_type('dicom')
         code = self.import_data_dialog.exec_()
-        # if code == QDialog.Accepted:
+        if code == QDialog.Accepted:
+            self.patients_import_finished.emit()
 
     def __on_run_segmentation(self):
         diag = TumorTypeSelectionQDialog(self)
@@ -375,6 +445,7 @@ class SingleStudyWidget(QCollapsibleGroupBox):
         self.batch_processing_segmentation_button.setEnabled(True)
         self.batch_processing_rads_button.setEnabled(True)
         self.patient_inclusion_progressbar.setVisible(False)
+        self.patients_import_finished.emit()
 
     def on_processing_started(self):
         nb_patients = SoftwareConfigResources.getInstance().study_parameters[self.uid].get_total_included_patients()

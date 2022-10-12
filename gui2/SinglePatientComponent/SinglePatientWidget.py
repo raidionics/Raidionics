@@ -31,6 +31,7 @@ class SinglePatientWidget(QWidget):
 
         self.import_data_dialog = ImportDataQDialog(self)
         self.import_folder_dialog = ImportFoldersQDialog(self)
+        self.import_folder_dialog.operation_mode = 'patient'
         self.import_dicom_dialog = ImportDICOMDataQDialog(self)
 
         self.setMinimumSize(self.parent.baseSize())
@@ -130,6 +131,8 @@ class SinglePatientWidget(QWidget):
         self.results_panel.import_patient_from_custom_requested.connect(self.__on_import_custom_clicked)
         self.results_panel.import_patient_from_dicom_requested.connect(self.__on_import_dicom_clicked)
         self.results_panel.import_patient_from_folder_requested.connect(self.__on_import_folder_clicked)
+        self.results_panel.reset_interface_requested.connect(self.center_panel.reset_central_viewer)
+        self.results_panel.reset_interface_requested.connect(self.layers_panel.on_reset_interface)
 
         # Connections relating patient selection (left-hand side) with data display
         self.results_panel.patient_selected.connect(self.center_panel.on_patient_selected)

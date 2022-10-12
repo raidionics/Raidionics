@@ -192,3 +192,12 @@ class SinglePatientLayersWidget(QWidget):
 
     def on_import_patient(self, patient_uid: str) -> None:
         self.patient_imported.emit(patient_uid)
+
+    def on_reset_interface(self) -> None:
+        """
+        Sets all inner widgets to their default states.
+        """
+        self.timestamp_layer_widget.reset()
+        self.volumes_collapsiblegroupbox.reset()
+        self.annotations_collapsiblegroupbox.reset()
+        self.atlases_collapsiblegroupbox.reset()

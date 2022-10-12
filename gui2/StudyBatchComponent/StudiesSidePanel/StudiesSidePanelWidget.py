@@ -20,6 +20,8 @@ class StudiesSidePanelWidget(QWidget):
     patient_imported = Signal(str)
     batch_segmentation_requested = Signal(str, str)
     batch_rads_requested = Signal(str, str)
+    reset_interface_requested = Signal()
+    patients_import_finished = Signal()
 
     def __init__(self, parent=None):
         super(StudiesSidePanelWidget, self).__init__()
@@ -161,40 +163,34 @@ class StudiesSidePanelWidget(QWidget):
             self.__on_study_selection(True, list(self.single_study_widgets.keys())[0])
 
     def add_new_study(self, study_name):
-        pat_widget = SingleStudyWidget(study_name, self)
-        pat_widget.setBaseSize(QSize(self.baseSize().width(), self.baseSize().height()))
+        study_widget = SingleStudyWidget(study_name, self)
+        # pat_widget.setBaseSize(QSize(self.baseSize().width(), self.baseSize().height()))
         # pat_widget.setMaximumSize(QSize(self.baseSize().width(), self.baseSize().height()))
-        pat_widget.setMinimumSize(QSize(self.baseSize().width(), int(self.baseSize().height() / 2)))
-        pat_widget.setStyleSheet("""SingleStudyWidget{        
-        color: rgba(67, 88, 90, 1);
-        font-size:14px;
-        }""")
-        pat_widget.header_pushbutton.setFixedHeight(40)
-        pat_widget.header_pushbutton.setStyleSheet("""
-        QPushButton{
-        background-color:rgb(248, 248, 248);
-        color: rgba(67, 88, 90, 1);
-        text-align:center;
-        font:bold;
-        font-size:16px;
-        }""")
-        pat_widget.populate_from_study(study_name)
-        self.single_study_widgets[study_name] = pat_widget
-        self.study_list_scrollarea_layout.insertWidget(self.study_list_scrollarea_layout.count() - 1, pat_widget)
+        # pat_widget.setMinimumSize(QSize(self.baseSize().width(), int(self.baseSize().height() / 2)))
+        study_widget.populate_from_study(study_name)
+        self.single_study_widgets[study_name] = study_widget
+        self.study_list_scrollarea_layout.insertWidget(self.study_list_scrollarea_layout.count() - 1, study_widget)
         if len(self.single_study_widgets) == 1:
-            pat_widget.manual_header_pushbutton_clicked(True)
-
-        pat_widget.clicked_signal.connect(self.__on_study_selection)
-        pat_widget.resizeRequested.connect(self.adjustSize)
-        pat_widget.mri_volume_imported.connect(self.mri_volume_imported)
-        pat_widget.annotation_volume_imported.connect(self.annotation_volume_imported)
-        pat_widget.patient_imported.connect(self.patient_imported)
-        pat_widget.batch_segmentation_requested.connect(self.on_batch_segmentation_requested)
-        pat_widget.batch_rads_requested.connect(self.on_batch_rads_requested)
+            study_widget.manual_header_pushbutton_clicked(True)
+        study_widget.study_closed.connect(self.__on_study_closed)
+        study_widget.study_toggled.connect(self.__on_study_selection)
+        study_widget.resizeRequested.connect(self.adjustSize)
+        study_widget.mri_volume_imported.connect(self.mri_volume_imported)
+        study_widget.annotation_volume_imported.connect(self.annotation_volume_imported)
+        study_widget.patient_imported.connect(self.patient_imported)
+        study_widget.batch_segmentation_requested.connect(self.on_batch_segmentation_requested)
+        study_widget.batch_rads_requested.connect(self.on_batch_rads_requested)
+        study_widget.patients_import_finished.connect(self.patients_import_finished)
         self.adjustSize()
 
     def __on_study_selection(self, state, widget_id):
-        if SoftwareConfigResources.getInstance().get_active_study().has_unsaved_changes():
+        if not state:
+            return
+
+        if SoftwareConfigResources.getInstance().get_active_study_uid() != None and SoftwareConfigResources.getInstance().get_active_study_uid() == widget_id:
+            return
+
+        if SoftwareConfigResources.getInstance().get_active_study_uid() and SoftwareConfigResources.getInstance().get_active_study().has_unsaved_changes():
             dialog = SavePatientChangesDialog()
             code = dialog.exec_()
             if code == 0:  # Operation cancelled
@@ -204,7 +200,7 @@ class StudiesSidePanelWidget(QWidget):
         for i, wid in enumerate(list(self.single_study_widgets.keys())):
             if wid != widget_id:
                 self.single_study_widgets[wid].manual_header_pushbutton_clicked(False)
-        self.single_study_widgets[widget_id].header_pushbutton.setEnabled(False)
+                self.single_study_widgets[wid].set_stylesheets(selected=False)
         self.single_study_widgets[widget_id].set_stylesheets(selected=True)
         SoftwareConfigResources.getInstance().set_active_study(widget_id)
         # When a study is selected in the left panel, a visual update of the central/right panel is triggered
@@ -217,16 +213,35 @@ class StudiesSidePanelWidget(QWidget):
             dialog = SavePatientChangesDialog()
             code = dialog.exec_()
             if code == 1:  # Changes have been either saved or discarded
-                uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_study()
+                uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_study(active=False)
                 self.add_new_study(uid)
                 # Both lines are needed to uncollapse the widget for the new study and collapse the previous
                 self.single_study_widgets[uid].manual_header_pushbutton_clicked(True)
                 self.__on_study_selection(True, uid)
         else:
-            uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_study()
+            uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_study(active=False)
             self.add_new_study(uid)
             self.single_study_widgets[uid].manual_header_pushbutton_clicked(True)
             self.__on_study_selection(True, uid)
+
+    def __on_study_closed(self, widget_id):
+        self.study_list_scrollarea_layout.removeWidget(self.single_study_widgets[widget_id])
+        self.single_study_widgets[widget_id].setParent(None)
+        del self.single_study_widgets[widget_id]
+        SoftwareConfigResources.getInstance().remove_study(widget_id)
+
+        # A study is to be displayed at all time, if applicable
+        if len(self.single_study_widgets) != 0:
+            new_study_id = list(self.single_study_widgets.keys())[0]
+            SoftwareConfigResources.getInstance().set_active_study(study_uid=new_study_id)
+            self.single_study_widgets[new_study_id].set_stylesheets(selected=True)
+            self.study_selected.emit(new_study_id)
+        else:
+            SoftwareConfigResources.getInstance().set_active_study(study_uid=None)
+            self.reset_interface_requested.emit()
+
+        self.adjustSize()
+        self.repaint()
 
     def on_import_options_clicked(self, point):
         """

@@ -231,7 +231,7 @@ class SoftwareConfigResources:
         """
         del self.patients_parameters[uid]
 
-    def add_new_empty_study(self) -> Union[str, Any]:
+    def add_new_empty_study(self, active: bool = True) -> Union[str, Any]:
         """
 
         """
@@ -249,7 +249,8 @@ class SoftwareConfigResources:
                                                                dest_location=self.user_preferences.user_home_location)
             # random_name = names.get_full_name()
             # self.study_parameters[study_uid].set_visible_name(random_name, manual_change=False)
-            self.set_active_study(study_uid)
+            if active:
+                self.set_active_study(study_uid)
         except Exception:
             error_message = "Error while trying to create a new empty study: \n"
             error_message = error_message + traceback.format_exc()
@@ -336,22 +337,37 @@ class SoftwareConfigResources:
                 return error_message
 
             logging.debug("Active study uid changed from {} to {}.".format(self.active_study_name, study_uid))
-            # NB: At the very first call, there is no previously active patient, hence the need for an if statement
-            if self.active_study_name:
+            # Offloading from memory the previous study, then loading the new active study (unless None)
+            if self.active_study_name and self.active_study_name in list(self.study_parameters.keys()):
                 self.study_parameters[self.active_study_name].release_from_memory()
             self.active_study_name = study_uid
-            self.study_parameters[self.active_study_name].load_in_memory()
+            if self.active_study_name:
+                self.study_parameters[self.active_study_name].load_in_memory()
         except Exception:
             error_message = "Setting {} as active study failed, with {}.\n".format(os.path.basename(study_uid),
                                                                                    str(traceback.format_exc()))
             logging.error(error_message)
         return error_message
 
+    def remove_study(self, uid: str) -> None:
+        """
+        Removing the study from memory, the study is still kept on disk.
+
+        Parameters
+        ----------
+        uid: str
+            Internal unique identifier for the study to remove.
+        """
+        del self.study_parameters[uid]
+
     def is_study_list_empty(self):
         if len(self.study_parameters.keys()) == 0:
             return True
         else:
             return False
+
+    def get_active_study_uid(self) -> str:
+        return self.active_study_name
 
     def get_active_study(self) -> str:
         return self.study_parameters[self.active_study_name]

@@ -136,6 +136,10 @@ class MRIVolume:
         self._unsaved_changes = True
         logging.debug("Unsaved changes - MRI volume display name changed to {}".format(self._display_name))
 
+    @property
+    def raw_input_filepath(self) -> str:
+        return self._raw_input_filepath
+
     def set_output_patient_folder(self, output_folder: str) -> None:
         self._output_patient_folder = output_folder
 

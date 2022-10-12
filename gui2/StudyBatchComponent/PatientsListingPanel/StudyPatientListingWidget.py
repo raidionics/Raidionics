@@ -14,7 +14,7 @@ class StudyPatientListingWidget(QWidget):
     def __init__(self, parent=None):
         super(StudyPatientListingWidget, self).__init__()
         self.parent = parent
-        self.setFixedWidth((375 / SoftwareConfigResources.getInstance().get_optimal_dimensions().width()) * self.parent.baseSize().width())
+        self.setFixedWidth((305 / SoftwareConfigResources.getInstance().get_optimal_dimensions().width()) * self.parent.baseSize().width())
         self.setBaseSize(QSize(self.width(), 500))  # Defining a base size is necessary as inner widgets depend on it.
         self.__set_interface()
         self.__set_layout_dimensions()
@@ -43,17 +43,17 @@ class StudyPatientListingWidget(QWidget):
 
     def __set_interface_listing_header(self):
         self.header_layout = QHBoxLayout()
-        self.header_patient_label = QLabel("Patient")
-        self.header_check_label = QLabel("Visualize")
-        self.header_layout.addWidget(self.header_patient_label)
-        self.header_layout.addWidget(self.header_check_label)
+        self.header_label = QLabel("Included patients")
+        self.header_label.setAlignment(Qt.AlignCenter)
+        # self.header_layout.addStretch(1)
+        self.header_layout.addWidget(self.header_label)
+        # self.header_layout.addStretch(1)
         self.patients_list_scrollarea_layout.insertLayout(self.patients_list_scrollarea_layout.count() - 1,
                                                           self.header_layout)
 
     def __set_layout_dimensions(self):
         self.patients_list_scrollarea.setBaseSize(QSize(self.width(), 300))
-        self.header_patient_label.setFixedHeight(30)
-        self.header_check_label.setFixedHeight(30)
+        self.header_label.setFixedHeight(30)
 
     def __set_connections(self):
         pass
@@ -68,6 +68,16 @@ class StudyPatientListingWidget(QWidget):
         self.setStyleSheet("""
         StudyPatientListingWidget{
         background-color: """ + background_color + """;
+        }""")
+
+        self.header_label.setStyleSheet("""
+        QLabel{
+        font-size: 16px;
+        font-style: bold;
+        border: 2px;
+        border-style: solid;
+        border-color: """ + background_color + """ """ + background_color + """ black """ + background_color + """;
+        border-radius: 2px;
         }""")
 
     def adjustSize(self) -> None:
