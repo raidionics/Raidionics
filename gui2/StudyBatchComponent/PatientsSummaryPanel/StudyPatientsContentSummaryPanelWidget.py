@@ -118,3 +118,21 @@ class StudyPatientsContentSummaryPanelWidget(QWidget):
             patient_items.append(patient_item)
 
         self.content_tree_widget.insertTopLevelItems(0, patient_items)
+
+    def postprocessing_update(self) -> None:
+        """
+        After running a pipeline, the content of each patient might have changed, e.g., with new annotations and the
+        tree view must be updated.
+        """
+        #@TODO. Lazy approach to redraw from scratch, must be properly done.
+        self.on_patients_import()
+
+        # Better approach by iterating over the tree widget and populating on-the-fly with the missing elements.
+        # root = self.content_tree_widget.invisibleRootItem()
+        # patient_count = root.childCount()
+        # for p in range(patient_count):
+        #     patient_item = root.child(p)
+        #     # The patients are listed by display name.
+        #     patient = SoftwareConfigResources.getInstance().get_patient_by_display_name(patient_item.text(0))
+        #     if patient:
+        #         pass

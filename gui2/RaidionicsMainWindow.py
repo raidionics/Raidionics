@@ -205,6 +205,8 @@ class RaidionicsMainWindow(QMainWindow):
         self.batch_study_widget.standard_report_imported.connect(self.single_patient_widget.on_standard_report_imported)
         self.batch_study_widget.patient_imported.connect(self.single_patient_widget.on_patient_imported)
         self.batch_study_widget.patient_selected.connect(self.__on_patient_selected)
+        self.batch_study_widget.processing_started.connect(self.single_patient_widget.on_batch_process_started)
+        self.batch_study_widget.processing_finished.connect(self.single_patient_widget.on_batch_process_finished)
 
     def __set_menubar_connections(self):
         self.single_use_action.triggered.connect(self.__on_single_patient_clicked)

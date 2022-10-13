@@ -220,6 +220,12 @@ class SoftwareConfigResources:
     def get_patient(self, uid: str):
         return self.patients_parameters[uid]
 
+    def get_patient_by_display_name(self, display_name: str) -> Union[PatientParameters, None]:
+        for uid in list(self.patients_parameters.keys()):
+            if self.patients_parameters[uid].display_name == display_name:
+                return self.patients_parameters[uid]
+        return None
+
     def remove_patient(self, uid: str) -> None:
         """
         Removing the patient from memory, the patient is still kept on disk.

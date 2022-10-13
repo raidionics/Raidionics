@@ -74,9 +74,10 @@ class SinglePatientWidget(QWidget):
         self.top_logo_panel_label_import_file_pushbutton.setEnabled(False)
         self.top_logo_panel_layout.addWidget(self.top_logo_panel_label_import_file_pushbutton)
 
-        self.top_logo_panel_label_import_dicom_pushbutton = QPushButton("DICOM")
-        self.top_logo_panel_label_import_dicom_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/upload_icon.png'))))
-        self.top_logo_panel_label_import_dicom_pushbutton.setToolTip("Import DICOM elements for the current patient.")
+        self.top_logo_panel_label_import_dicom_pushbutton = QPushButton()
+        self.top_logo_panel_label_import_dicom_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                                                             '../Images/database_icon.png')).scaled(QSize(30, 30), Qt.KeepAspectRatio)))
+        self.top_logo_panel_label_import_dicom_pushbutton.setToolTip("DICOM explorer.")
         self.top_logo_panel_label_import_dicom_pushbutton.setEnabled(False)
         self.top_logo_panel_layout.addWidget(self.top_logo_panel_label_import_dicom_pushbutton)
 
@@ -84,7 +85,7 @@ class SinglePatientWidget(QWidget):
         self.top_logo_panel_label_save_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/download_icon_black.png'))))
         self.top_logo_panel_label_save_pushbutton.setToolTip("Save the latest modifications for the current patient.")
         self.top_logo_panel_label_save_pushbutton.setEnabled(False)
-        self.top_logo_panel_layout.addWidget(self.top_logo_panel_label_save_pushbutton)
+        # self.top_logo_panel_layout.addWidget(self.top_logo_panel_label_save_pushbutton)
 
         self.top_logo_panel_layout.addStretch(1)
 
@@ -98,8 +99,7 @@ class SinglePatientWidget(QWidget):
         self.top_logo_panel_label.setFixedSize(QSize(150, 30))
         self.top_logo_panel_label_import_file_pushbutton.setFixedSize(QSize(70, 20))
         self.top_logo_panel_label_import_file_pushbutton.setIconSize(QSize(30, 30))
-        self.top_logo_panel_label_import_dicom_pushbutton.setFixedSize(QSize(70, 20))
-        self.top_logo_panel_label_import_dicom_pushbutton.setIconSize(QSize(30, 30))
+        self.top_logo_panel_label_import_dicom_pushbutton.setFixedSize(QSize(30, 30))
         self.top_logo_panel_label_save_pushbutton.setFixedSize(QSize(70, 20))
         self.top_logo_panel_label_save_pushbutton.setIconSize(QSize(30, 30))
 
@@ -239,6 +239,23 @@ class SinglePatientWidget(QWidget):
         self.results_panel.on_process_finished()
         # Hides the process tracking to display back the layers interactor for viewing purposes.
         self.right_panel_stackedwidget.setCurrentIndex(0)
+
+    def on_batch_process_started(self) -> None:
+        """
+        Freezing some components of the single patient widget when a batch/study process has started to avoid
+        side-effects for patients included in the study.
+        """
+        self.results_panel.on_batch_process_started()
+        self.center_panel.on_batch_process_started()
+        self.layers_panel.on_batch_process_started()
+
+    def on_batch_process_finished(self) -> None:
+        """
+        Resuming normal operation of the single patient widget when a batch/study process has finished.
+        """
+        self.results_panel.on_batch_process_finished()
+        self.center_panel.on_batch_process_finished()
+        self.layers_panel.on_batch_process_finished()
 
     def on_patient_imported(self, uid: str) -> None:
         self.results_panel.add_new_patient(uid)

@@ -804,6 +804,22 @@ class SinglePatientResultsWidget(QCollapsibleWidget):
         self.header.title_label.setText(self.title)
         self.on_standardized_report_imported()
 
+    def on_batch_process_started(self) -> None:
+        """
+        Preventing user input in this panel while a process is ongoing.
+        """
+        self.save_patient_pushbutton.setEnabled(False)
+        self.close_patient_pushbutton.setEnabled(False)
+        self.patient_name_lineedit.setEnabled(False)
+
+    def on_batch_process_finished(self) -> None:
+        """
+        Resuming normal operation in this panel after a process has finished.
+        """
+        self.save_patient_pushbutton.setEnabled(True)
+        self.close_patient_pushbutton.setEnabled(True)
+        self.patient_name_lineedit.setEnabled(True)
+
     def on_process_started(self) -> None:
         """
         Preventing user input in this panel while a process is ongoing.

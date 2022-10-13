@@ -161,6 +161,12 @@ class ActionsInteractorWidget(QWidget):
         }
         """)
 
+    def on_process_started(self) -> None:
+        self.setEnabled(False)
+
+    def on_process_finished(self) -> None:
+        self.setEnabled(True)
+
     def on_execute_folders_classification(self):
         self.pipeline_execution_requested.emit("folders_classification")
 

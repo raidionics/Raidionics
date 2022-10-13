@@ -20,6 +20,7 @@ class StudiesSidePanelWidget(QWidget):
     patient_imported = Signal(str)
     batch_segmentation_requested = Signal(str, str)
     batch_rads_requested = Signal(str, str)
+    batch_pipeline_execution_requested = Signal(str, str, str)
     reset_interface_requested = Signal()
     patients_import_finished = Signal()
 
@@ -180,6 +181,7 @@ class StudiesSidePanelWidget(QWidget):
         study_widget.patient_imported.connect(self.patient_imported)
         study_widget.batch_segmentation_requested.connect(self.on_batch_segmentation_requested)
         study_widget.batch_rads_requested.connect(self.on_batch_rads_requested)
+        study_widget.batch_pipeline_execution_requested.connect(self.on_batch_pipeline_execution_requested)
         study_widget.patients_import_finished.connect(self.patients_import_finished)
         self.adjustSize()
 
@@ -264,6 +266,10 @@ class StudiesSidePanelWidget(QWidget):
         if len(self.single_study_widgets) == 1:
             self.single_study_widgets[study_uid].manual_header_pushbutton_clicked(True)
             self.__on_study_selection(True, study_uid)
+
+    def on_batch_pipeline_execution_requested(self, study_id, pipeline_task, model_name):
+        self.bottom_add_study_pushbutton.setEnabled(False)
+        self.batch_pipeline_execution_requested.emit(study_id, pipeline_task, model_name)
 
     def on_batch_segmentation_requested(self, study_id, model_name):
         self.bottom_add_study_pushbutton.setEnabled(False)

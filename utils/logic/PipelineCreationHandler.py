@@ -1,9 +1,42 @@
 import logging
+from aenum import Enum, unique
 
 from utils.models_download import download_model
 from utils.software_config import SoftwareConfigResources
 
-# @TODO. Have an Enum type for the different pipeline tasks? Which are predefined anyway now.
+
+@unique
+class PipelineTaskType(Enum):
+    """
+
+    """
+    _init_ = 'value string'
+
+    MRISeqClass = 0, 'MRI sequence classification'
+    NeuroPreopSeg = 1, 'Preoperative segmentation'
+    NeuroPreopRep = 2, 'Preoperative reporting'
+    NeuroPostopSeg = 3, 'Postoperative segmentation'
+    NeuroPostopRep = 4, 'Postoperative reporting'
+
+    def __str__(self):
+        return self.string
+
+
+@unique
+class ModelNameType(Enum):
+    """
+
+    """
+    _init_ = 'value string'
+
+    HGGlioma = 0, 'MRI_HGGLioma'
+    LGGlioma = 1, 'MRI_LGGlioma'
+    Meningioma = 2, 'MRI_Meningioma'
+    Metastasis = 3, 'MRI_Metastase'
+    MRISeqClass = 4, 'MRI_Sequence_Classifier'
+
+    def __str__(self):
+        return self.string
 
 
 def create_pipeline(model_name: str, patient_parameters, task: str) -> dict:
@@ -51,7 +84,7 @@ def __create_segmentation_pipeline(model_name, patient_parameters):
     """
     pip = {}
     pip_num_int = 0
-    if not SoftwareConfigResources.getInstance().use_manual_sequences:
+    if not SoftwareConfigResources.getInstance().user_preferences.use_manual_sequences:
         pip_num_int = pip_num_int + 1
         pip_num = str(pip_num_int)
         pip[pip_num] = {}
@@ -104,7 +137,7 @@ def __create_postop_segmentation_pipeline(model_name, patient_parameters):
     """
     pip = {}
     pip_num_int = 0
-    if not SoftwareConfigResources.getInstance().use_manual_sequences:
+    if not SoftwareConfigResources.getInstance().user_preferences.use_manual_sequences:
         pip_num_int = pip_num_int + 1
         pip_num = str(pip_num_int)
         pip[pip_num] = {}
@@ -325,7 +358,7 @@ def __create_preop_reporting_pipeline(model_name, patient_parameters):
     """
     pip = {}
     pip_num_int = 0
-    if not SoftwareConfigResources.getInstance().use_manual_sequences:
+    if not SoftwareConfigResources.getInstance().user_preferences.use_manual_sequences:
         pip_num_int = pip_num_int + 1
         pip_num = str(pip_num_int)
         pip[pip_num] = {}
@@ -427,7 +460,7 @@ def __create_postop_reporting_pipeline(model_name, patient_parameters):
     """
     pip = {}
     pip_num_int = 0
-    if not SoftwareConfigResources.getInstance().use_manual_sequences:
+    if not SoftwareConfigResources.getInstance().user_preferences.use_manual_sequences:
         pip_num_int = pip_num_int + 1
         pip_num = str(pip_num_int)
         pip[pip_num] = {}

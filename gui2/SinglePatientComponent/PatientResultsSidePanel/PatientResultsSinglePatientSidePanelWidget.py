@@ -225,7 +225,24 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         self.bottom_add_patient_pushbutton.setEnabled(True)
         self.patient_results_widgets[SoftwareConfigResources.getInstance().get_active_patient_uid()].on_process_finished()
 
-    def __on_patient_closed(self, widget_id):
+    def on_batch_process_started(self) -> None:
+        self.bottom_add_patient_pushbutton.setEnabled(False)
+        study_patients_uids = SoftwareConfigResources.getInstance().get_active_study().included_patients_uids
+        for uid in study_patients_uids:
+            self.patient_results_widgets[uid].on_batch_process_started()
+
+    def on_batch_process_finished(self) -> None:
+        self.bottom_add_patient_pushbutton.setEnabled(True)
+        study_patients_uids = SoftwareConfigResources.getInstance().get_active_study().included_patients_uids
+        for uid in study_patients_uids:
+            self.patient_results_widgets[uid].on_batch_process_finished()
+
+    def __on_patient_closed(self, widget_id: str) -> None:
+        """
+
+        """
+        # @TODO. Should check if the patient is part of an opened study before closing it.
+
         if SoftwareConfigResources.getInstance().get_active_patient().has_unsaved_changes():
             dialog = SavePatientChangesDialog()
             code = dialog.exec_()

@@ -372,3 +372,15 @@ class TimestampsLayerInteractor(QWidget):
     def on_radiological_sequences_imported(self):
         for i in list(self.timestamps_widget.keys()):
             self.timestamps_widget[i].on_radiological_sequences_imported()
+
+    def on_process_started(self) -> None:
+        self.timestamp_add_pushbutton.setEnabled(False)
+        self.timestamp_remove_pushbutton.setEnabled(False)
+        self.timestamp_rankup_pushbutton.setEnabled(False)
+        self.timestamp_rankdown_pushbutton.setEnabled(False)
+
+    def on_process_finished(self) -> None:
+        self.timestamp_add_pushbutton.setEnabled(True)
+        self.timestamp_remove_pushbutton.setEnabled(True)
+        self.timestamp_rankup_pushbutton.setEnabled(True)
+        self.timestamp_rankdown_pushbutton.setEnabled(True)

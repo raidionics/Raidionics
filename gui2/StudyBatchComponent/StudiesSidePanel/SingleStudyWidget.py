@@ -1,7 +1,10 @@
 import logging
 import os
+import time
+import numpy as np
+
 from PySide2.QtWidgets import QLabel, QHBoxLayout, QVBoxLayout, QLineEdit, QPushButton, QProgressBar, QGroupBox, \
-    QFileDialog, QDialog
+    QFileDialog, QDialog, QComboBox, QMessageBox
 from PySide2.QtCore import Qt, QSize, Signal
 from PySide2.QtGui import QIcon, QPixmap
 
@@ -24,6 +27,7 @@ class SingleStudyWidget(QCollapsibleWidget):
     patient_imported = Signal(str)
     batch_segmentation_requested = Signal(str, str)  # Unique id of the current study instance, and model name
     batch_rads_requested = Signal(str, str)  # Unique id of the current study instance, and model name
+    batch_pipeline_execution_requested = Signal(str, str, str)  # Unique id of the current study instance, pipeline task, and model name
     patient_import_started = Signal(str)
     patients_import_finished = Signal()
     resizeRequested = Signal()
@@ -90,29 +94,50 @@ class SingleStudyWidget(QCollapsibleWidget):
         self.patient_inclusion_layout.setSpacing(0)
         self.patient_inclusion_layout.setContentsMargins(20, 0, 20, 0)
         self.patient_inclusion_layout.addStretch(1)
-        self.patient_folder_inclusion_layout = QHBoxLayout()
-        self.include_single_patient_folder_pushbutton = QPushButton("Single")
+        self.single_patient_inclusion_layout = QHBoxLayout()
+        self.single_patient_inclusion_layout.setSpacing(5)
+        self.single_patient_inclusion_layout.setContentsMargins(50, 0, 0, 0)
+        self.include_single_patient_label = QLabel("Single")
+        self.include_single_patient_folder_pushbutton = QPushButton()
+        self.include_single_patient_folder_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                                                               '../../Images/folder_simple_icon.png')).scaled(QSize(30, 30),
+                                                                                                                                         Qt.KeepAspectRatio)))
         self.include_single_patient_folder_pushbutton.setToolTip("For inclusion of a (few) patients, each with a specific folder")
-        self.include_multiple_patients_folder_pushbutton = QPushButton("Cohort")
-        self.include_multiple_patients_folder_pushbutton.setToolTip("For including a large number of patients, all contained within a same top-folder.")
-        self.patient_folder_inclusion_layout.addWidget(self.include_single_patient_folder_pushbutton)
-        self.patient_folder_inclusion_layout.addWidget(self.include_multiple_patients_folder_pushbutton)
-        self.patient_folder_inclusion_layout.addStretch(1)
-        self.patient_inclusion_layout.addLayout(self.patient_folder_inclusion_layout)
-        self.patient_folder_dicom_inclusion_layout = QHBoxLayout()
-        self.include_single_dicom_patient_folder_pushbutton = QPushButton("Single DICOM")
+        self.include_single_dicom_patient_folder_pushbutton = QPushButton()
+        self.include_single_dicom_patient_folder_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                                                               '../../Images/database_icon.png')).scaled(QSize(30, 30),
+                                                                                                                                         Qt.KeepAspectRatio)))
         self.include_single_dicom_patient_folder_pushbutton.setToolTip("For inclusion of a (few) patients, each from"
                                                                        " a raw DICOM folder")
-        # self.include_single_dicom_patient_folder_pushbutton.setEnabled(False)
-        self.include_multiple_dicom_patients_folder_pushbutton = QPushButton("Cohort DICOM")
+
+        self.single_patient_inclusion_layout.addWidget(self.include_single_patient_label)
+        self.single_patient_inclusion_layout.addWidget(self.include_single_patient_folder_pushbutton)
+        self.single_patient_inclusion_layout.addWidget(self.include_single_dicom_patient_folder_pushbutton)
+        self.single_patient_inclusion_layout.addStretch(1)
+        self.patient_inclusion_layout.addLayout(self.single_patient_inclusion_layout)
+
+        self.cohort_patients_inclusion_layout = QHBoxLayout()
+        self.cohort_patients_inclusion_layout.setSpacing(5)
+        self.cohort_patients_inclusion_layout.setContentsMargins(45, 0, 0, 0)
+        self.include_cohort_patients_label = QLabel("Cohort")
+        self.include_multiple_patients_folder_pushbutton = QPushButton()
+        self.include_multiple_patients_folder_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                            '../../Images/folder_simple_icon.png')).scaled(QSize(30, 30),
+                                                                                           Qt.KeepAspectRatio)))
+        self.include_multiple_patients_folder_pushbutton.setToolTip("For including a large number of patients, all contained within a same top-folder.")
+        self.include_multiple_dicom_patients_folder_pushbutton = QPushButton()
+        self.include_multiple_dicom_patients_folder_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                                                               '../../Images/database_icon.png')).scaled(QSize(30, 30),
+                                                                                                                                         Qt.KeepAspectRatio)))
         self.include_multiple_dicom_patients_folder_pushbutton.setToolTip("For including a large number of patients,"
                                                                           " all contained inside their respective DICOM"
                                                                           " folder, within a same top-folder.")
-        # self.include_multiple_dicom_patients_folder_pushbutton.setEnabled(False)
-        self.patient_folder_dicom_inclusion_layout.addWidget(self.include_single_dicom_patient_folder_pushbutton)
-        self.patient_folder_dicom_inclusion_layout.addWidget(self.include_multiple_dicom_patients_folder_pushbutton)
-        self.patient_folder_dicom_inclusion_layout.addStretch(1)
-        self.patient_inclusion_layout.addLayout(self.patient_folder_dicom_inclusion_layout)
+        self.cohort_patients_inclusion_layout.addWidget(self.include_cohort_patients_label)
+        self.cohort_patients_inclusion_layout.addWidget(self.include_multiple_patients_folder_pushbutton)
+        self.cohort_patients_inclusion_layout.addWidget(self.include_multiple_dicom_patients_folder_pushbutton)
+        self.cohort_patients_inclusion_layout.addStretch(1)
+        self.patient_inclusion_layout.addLayout(self.cohort_patients_inclusion_layout)
+
         self.patient_inclusion_progressbar = QProgressBar()
         self.patient_inclusion_progressbar.setVisible(False)
         self.patient_inclusion_layout.addWidget(self.patient_inclusion_progressbar)
@@ -124,11 +149,17 @@ class SingleStudyWidget(QCollapsibleWidget):
         self.batch_processing_groupbox = QGroupBox()
         self.batch_processing_groupbox.setTitle("Processing")
         self.batch_processing_layout = QHBoxLayout()
-        # @TODO. Push buttons should be disabled as long as the study does not contain any patient
-        self.batch_processing_segmentation_button = QPushButton("Segmentation")
-        self.batch_processing_rads_button = QPushButton("Reporting")
-        self.batch_processing_layout.addWidget(self.batch_processing_segmentation_button)
-        self.batch_processing_layout.addWidget(self.batch_processing_rads_button)
+        self.batch_processing_layout.setSpacing(5)
+        self.batch_processing_layout.setContentsMargins(0, 0, 0, 0)
+        self.batch_processing_combobox = QComboBox()
+        self.batch_processing_combobox.addItems(["folders_classification", "preop_segmentation", "preop_reporting"])
+        self.batch_processing_run_pushbutton = QPushButton()
+        self.batch_processing_run_pushbutton.setToolTip("Execute the selected process.")
+        self.batch_processing_run_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                                                '../../Images/play_icon.png')).scaled(QSize(30, 30),
+                                                                                                                      Qt.KeepAspectRatio)))
+        self.batch_processing_layout.addWidget(self.batch_processing_combobox)
+        self.batch_processing_layout.addWidget(self.batch_processing_run_pushbutton)
         self.batch_processing_groupbox.setLayout(self.batch_processing_layout)
         self.content_layout.addWidget(self.batch_processing_groupbox)
 
@@ -156,11 +187,15 @@ class SingleStudyWidget(QCollapsibleWidget):
         self.output_dir_label.setFixedHeight(20)
         self.output_dir_lineedit.setFixedHeight(20)
 
-        self.include_single_patient_folder_pushbutton.setFixedHeight(20)
-        self.include_multiple_patients_folder_pushbutton.setFixedHeight(20)
+        self.include_single_patient_label.setFixedHeight(30)
+        self.include_cohort_patients_label.setFixedHeight(30)
+        self.include_single_patient_folder_pushbutton.setFixedSize(QSize(30, 30))
+        self.include_multiple_patients_folder_pushbutton.setFixedSize(QSize(30, 30))
+        self.include_single_dicom_patient_folder_pushbutton.setFixedSize(QSize(30, 30))
+        self.include_multiple_dicom_patients_folder_pushbutton.setFixedSize(QSize(30, 30))
 
-        self.batch_processing_segmentation_button.setFixedHeight(20)
-        self.batch_processing_rads_button.setFixedHeight(20)
+        self.batch_processing_combobox.setFixedHeight(30)
+        self.batch_processing_run_pushbutton.setFixedSize(QSize(30, 30))
 
         self.processing_layout_text_display_header_label.setFixedHeight(20)
         self.processing_layout_text_display_label.setFixedHeight(20)
@@ -181,9 +216,7 @@ class SingleStudyWidget(QCollapsibleWidget):
         self.import_data_dialog.mri_volume_imported.connect(self.mri_volume_imported)
         self.import_data_dialog.annotation_volume_imported.connect(self.annotation_volume_imported)
         self.import_data_dialog.patient_imported.connect(self.patient_imported)
-
-        self.batch_processing_segmentation_button.clicked.connect(self.__on_run_segmentation)
-        self.batch_processing_rads_button.clicked.connect(self.__on_run_rads)
+        self.batch_processing_run_pushbutton.clicked.connect(self.__on_run_pipeline)
 
     def set_stylesheets(self, selected: bool) -> None:
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
@@ -256,12 +289,20 @@ class SingleStudyWidget(QCollapsibleWidget):
         font:semibold;
         font-size:14px;
         }""")
+
         self.study_name_lineedit.setStyleSheet("""
         QLineEdit{
-        color: rgba(0, 0, 0, 1);
-        font:bold;
-        font-size:14px;
+        color: """ + font_color + """;
+        font: 14px;
+        background-color: """ + background_color + """;
+        border-style: none;
+        }
+        QLineEdit::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
         }""")
+
         self.output_dir_label.setStyleSheet("""
         QLabel{
         color: """ + software_ss["Color7"] + """;
@@ -269,25 +310,100 @@ class SingleStudyWidget(QCollapsibleWidget):
         font:semibold;
         font-size:14px;
         }""")
+
         self.output_dir_lineedit.setStyleSheet("""
         QLineEdit{
-        color: rgba(0, 0, 0, 1);
-        font:semibold;
-        font-size:14px;
+        color: """ + font_color + """;
+        font: 14px;
+        background-color: """ + background_color + """;
+        border-style: none;
+        }
+        QLineEdit::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
         }""")
 
         self.patient_inclusion_groupbox.setStyleSheet("""
         QGroupBox{
         color: """ + software_ss["Color7"] + """;
         font:normal;
-        font-size:13px;
+        font-size:15px;
+        }""")
+
+        self.include_single_patient_folder_pushbutton.setStyleSheet("""
+        QPushButton{
+        background-color: """ + background_color + """;
+        color: """ + font_color + """;
+        font: 12px;
+        border-style: none;
+        }
+        QPushButton::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        }
+        QPushButton:pressed{
+        border-style:inset;
+        background-color: """ + pressed_background_color + """;
+        }""")
+
+        self.include_multiple_patients_folder_pushbutton.setStyleSheet("""
+        QPushButton{
+        background-color: """ + background_color + """;
+        color: """ + font_color + """;
+        font: 12px;
+        border-style: none;
+        }
+        QPushButton::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        }
+        QPushButton:pressed{
+        border-style:inset;
+        background-color: """ + pressed_background_color + """;
+        }""")
+
+        self.include_single_dicom_patient_folder_pushbutton.setStyleSheet("""
+        QPushButton{
+        background-color: """ + background_color + """;
+        color: """ + font_color + """;
+        font: 12px;
+        border-style: none;
+        }
+        QPushButton::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        }
+        QPushButton:pressed{
+        border-style:inset;
+        background-color: """ + pressed_background_color + """;
+        }""")
+
+        self.include_multiple_dicom_patients_folder_pushbutton.setStyleSheet("""
+        QPushButton{
+        background-color: """ + background_color + """;
+        color: """ + font_color + """;
+        font: 12px;
+        border-style: none;
+        }
+        QPushButton::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        }
+        QPushButton:pressed{
+        border-style:inset;
+        background-color: """ + pressed_background_color + """;
         }""")
 
         self.batch_processing_groupbox.setStyleSheet("""
         QGroupBox{
         color: """ + software_ss["Color7"] + """;
         font:normal;
-        font-size:13px;
+        font-size:15px;
         }""")
 
         self.processing_layout_text_display_header_label.setStyleSheet("""
@@ -306,6 +422,52 @@ class SingleStudyWidget(QCollapsibleWidget):
         font-size:13px;
         }""")
 
+        self.batch_processing_combobox.setStyleSheet("""
+        QComboBox{
+        color: """ + font_color + """;
+        background-color: """ + background_color + """;
+        font: bold;
+        font-size: 12px;
+        border-style:1px;
+        border-radius: 3px;
+        }
+        QComboBox::drop-down{
+        subcontrol-origin: padding;
+        subcontrol-position: top right;
+        width: 15px;
+        border-left-width: 1px;
+        border-left-color: darkgray;
+        border-left-style: none;
+        border-top-right-radius: 1px; /* same radius as the QComboBox */
+        border-bottom-right-radius: 1px;
+        }
+        QComboBox::down-arrow{
+        image: url(""" + os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../Images/combobox-arrow-icon-10x7.png') + """)
+        }
+        QComboBox::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        }
+        """)
+
+        self.batch_processing_run_pushbutton.setStyleSheet("""
+        QPushButton{
+        background-color: """ + background_color + """;
+        color: """ + font_color + """;
+        font: 12px;
+        border-style: none;
+        }
+        QPushButton::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        }
+        QPushButton:pressed{
+        border-style:inset;
+        background-color: """ + pressed_background_color + """;
+        }""")
+
     def adjustSize(self):
         # actual_height = self.default_collapsiblegroupbox.sizeHint().height()
         # self.content_label.setFixedSize(QSize(self.size().width(), actual_height))
@@ -319,7 +481,7 @@ class SingleStudyWidget(QCollapsibleWidget):
     def __on_study_saved(self) -> None:
         """
         """
-        SoftwareConfigResources.getInstance().get_patient(self.uid).save_patient()
+        SoftwareConfigResources.getInstance().get_study(self.uid).save()
 
     def __on_study_closed(self) -> None:
         """
@@ -396,6 +558,36 @@ class SingleStudyWidget(QCollapsibleWidget):
         if code == QDialog.Accepted:
             self.patients_import_finished.emit()
 
+    def __on_run_pipeline(self) -> None:
+        if len(SoftwareConfigResources.getInstance().get_active_study().included_patients_uids) == 0:
+            code = QMessageBox.warning(self, "Empty study.",
+                                       "Populate the study with some patients before running the process.",
+                                       QMessageBox.Ok | QMessageBox.Ok)
+            if code == QMessageBox.StandardButton.Ok:  # Deletion accepted
+                pass
+            return
+
+        pipeline_task = self.batch_processing_combobox.currentText()
+        self.model_name = ""
+        if pipeline_task != "folders_classification":
+            diag = TumorTypeSelectionQDialog(self)
+            code = diag.exec_()
+
+            if code == 0:  # Operation was cancelled by the user
+                return
+
+            if diag.tumor_type == 'High-Grade Glioma':
+                self.model_name = "MRI_HGGlioma"
+            elif diag.tumor_type == 'Low-Grade Glioma':
+                self.model_name = "MRI_LGGlioma"
+            elif diag.tumor_type == 'Metastasis':
+                self.model_name = "MRI_Metastasis"
+            elif diag.tumor_type == 'Meningioma':
+                self.model_name = "MRI_Meningioma"
+
+        self.on_processing_started()
+        self.batch_pipeline_execution_requested.emit(self.uid, pipeline_task, self.model_name)
+
     def __on_run_segmentation(self):
         diag = TumorTypeSelectionQDialog(self)
         code = diag.exec_()
@@ -456,14 +648,41 @@ class SingleStudyWidget(QCollapsibleWidget):
         self.processing_progressbar.setVisible(True)
         self.processing_layout_text_display_header_label.setVisible(True)
         self.processing_layout_text_display_label.setVisible(True)
-        self.processing_layout_text_display_label.setText("1/{}".format(nb_patients))
+        self.processing_layout_text_display_label.setText("1/{} (eta ...)".format(nb_patients))
+
+        self.batch_processing_run_pushbutton.setEnabled(False)
+        self.include_single_patient_folder_pushbutton.setEnabled(False)
+        self.include_multiple_patients_folder_pushbutton.setEnabled(False)
+        self.include_single_dicom_patient_folder_pushbutton.setEnabled(False)
+        self.include_multiple_dicom_patients_folder_pushbutton.setEnabled(False)
+        self.adjustSize()
+        self.update()
+        self.processing_start_time = time.time()
 
     def on_processing_advanced(self):
+        elapsed_time = time.time() - self.processing_start_time
+        elapsed_time_per_patient = elapsed_time / (self.processing_progressbar.value() + 1)
+        remaining_time = elapsed_time_per_patient * (self.processing_progressbar.maximum() - self.processing_progressbar.value() + 1)
+        hours_left = np.floor(remaining_time / 3600)
+        minutes_left = np.floor((remaining_time - (hours_left * 3600)) / 60)
         self.processing_progressbar.setValue(self.processing_progressbar.value() + 1)
-        self.processing_layout_text_display_label.setText("{}/{}".format(self.processing_progressbar.value() + 1,
-                                                                         SoftwareConfigResources.getInstance().study_parameters[self.uid].get_total_included_patients()))
+        self.processing_layout_text_display_label.setText("{}/{} (eta {}h{}m)".format(self.processing_progressbar.value() + 1,
+                                                                         SoftwareConfigResources.getInstance().study_parameters[self.uid].get_total_included_patients(),
+                                                                                  int(hours_left), int(minutes_left)))
 
-    def on_processing_finished(self):
+    def on_processing_finished(self) -> None:
+        """
+
+        """
         self.processing_progressbar.setVisible(False)
         self.processing_layout_text_display_header_label.setVisible(False)
         self.processing_layout_text_display_label.setVisible(False)
+
+        self.batch_processing_run_pushbutton.setEnabled(True)
+        self.include_single_patient_folder_pushbutton.setEnabled(True)
+        self.include_multiple_patients_folder_pushbutton.setEnabled(True)
+        self.include_single_dicom_patient_folder_pushbutton.setEnabled(True)
+        self.include_multiple_dicom_patients_folder_pushbutton.setEnabled(True)
+
+        self.adjustSize()
+        self.update()

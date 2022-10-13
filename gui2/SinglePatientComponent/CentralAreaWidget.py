@@ -134,3 +134,9 @@ class CentralAreaWidget(QWidget):
 
     def on_atlas_layer_toggled(self, uid, state):
         self.atlas_view_toggled.emit(uid, state)
+
+    def on_batch_process_started(self) -> None:
+        self.execution_area_widget.on_process_started()
+
+    def on_batch_process_finished(self) -> None:
+        self.execution_area_widget.on_process_finished()

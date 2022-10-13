@@ -87,6 +87,14 @@ class CentralAreaExecutionWidget(QLabel):
     def get_widget_name(self):
         return self.widget_name
 
+    def on_process_started(self) -> None:
+        self.run_segmentation_pushbutton.setEnabled(False)
+        self.run_reporting_pushbutton.setEnabled(False)
+
+    def on_process_finished(self) -> None:
+        self.run_segmentation_pushbutton.setEnabled(True)
+        self.run_reporting_pushbutton.setEnabled(True)
+
     def on_volume_layer_toggled(self, uid, state):
         # @TODO. Saving the current uid for the displayed image, which will be used as input for the processes?
         self.selected_mri_uid = uid
@@ -131,8 +139,7 @@ class CentralAreaExecutionWidget(QLabel):
         logging.info("Starting pipeline process for task: {}.".format(task))
 
         # Freezing buttons
-        self.run_segmentation_pushbutton.setEnabled(False)
-        self.run_reporting_pushbutton.setEnabled(False)
+        self.on_process_started()
 
         try:
             from utils.backend_logic import pipeline_main_wrapper
@@ -157,13 +164,11 @@ class CentralAreaExecutionWidget(QLabel):
             SoftwareConfigResources.getInstance().get_active_patient().save_patient()
         except Exception:
             print('{}'.format(traceback.format_exc()))
-            self.run_segmentation_pushbutton.setEnabled(True)
-            self.run_reporting_pushbutton.setEnabled(True)
+            self.on_process_finished()
             self.process_finished.emit()
             return
 
-        self.run_segmentation_pushbutton.setEnabled(True)
-        self.run_reporting_pushbutton.setEnabled(True)
+        self.on_process_finished()
         self.process_finished.emit()
 
     def on_run_segmentation(self):

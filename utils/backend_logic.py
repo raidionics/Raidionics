@@ -99,7 +99,7 @@ def run_pipeline(task: str, model_name: str, patient_parameters: PatientParamete
         with open(rads_config_filename, 'w') as outfile:
             rads_config.write(outfile)
 
-        if SoftwareConfigResources.getInstance().use_manual_sequences:
+        if SoftwareConfigResources.getInstance().user_preferences.use_manual_sequences:
             generate_sequences_file(patient_parameters, patient_parameters.output_folder)
 
         #mp.set_start_method('spawn', force=True)

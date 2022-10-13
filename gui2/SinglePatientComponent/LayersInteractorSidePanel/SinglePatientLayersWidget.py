@@ -201,3 +201,11 @@ class SinglePatientLayersWidget(QWidget):
         self.volumes_collapsiblegroupbox.reset()
         self.annotations_collapsiblegroupbox.reset()
         self.atlases_collapsiblegroupbox.reset()
+
+    def on_batch_process_started(self) -> None:
+        self.execution_actions_widget.on_process_started()
+        self.timestamp_layer_widget.on_process_started()
+
+    def on_batch_process_finished(self) -> None:
+        self.execution_actions_widget.on_process_finished()
+        self.timestamp_layer_widget.on_process_finished()

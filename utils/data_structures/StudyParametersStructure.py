@@ -128,7 +128,8 @@ class StudyParameters:
                 os.rename(src=self._study_parameters_filename, dst=new_study_parameters_filename)
             self._study_parameters_filename = new_study_parameters_filename
 
-            shutil.move(src=self._output_study_folder, dst=new_output_folder, copy_function=shutil.copytree)
+            if os.path.exists(self._output_study_folder):
+                shutil.move(src=self._output_study_folder, dst=new_output_folder, copy_function=shutil.copytree)
             self._output_study_folder = new_output_folder
 
             logging.info("Renamed current study destination folder to: {}".format(self._output_study_folder))
@@ -218,6 +219,7 @@ class StudyParameters:
         return error_message
 
     def save(self) -> None:
+        os.makedirs(self._output_study_folder, exist_ok=True)
         # Saving the study-specific parameters.
         self._last_editing_timestamp = datetime.datetime.now(tz=dateutil.tz.gettz(name='Europe/Oslo'))
         self._study_parameters_filename = os.path.join(self._output_study_folder, self._display_name.strip().lower().replace(" ", "_") + '_study.sraidionics')
@@ -240,7 +242,7 @@ class StudyParameters:
         self._output_study_directory = dest_location
         self._output_study_folder = os.path.join(dest_location,
                                                  "studies", self._display_name.strip().lower().replace(" ", '_'))
-        # @TODO. How to deal with existing folder locations, if any?
-        os.makedirs(self._output_study_folder, exist_ok=True)
+
+        # Setting up the output directory, but not saving until the user chooses to
         logging.info("Output study directory set to: {}".format(self._output_study_folder))
         self.__init_json_config()
