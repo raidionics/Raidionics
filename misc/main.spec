@@ -20,7 +20,7 @@ print("PLATFORM:", sys.platform)
 # fix hidden imports
 hidden_imports = loadtxt(cwd + "/misc/requirements.txt", comments="#", delimiter=",", unpack=False, dtype=str)
 hidden_imports = [x.split("=")[0] for x in hidden_imports] + ["medpy", "sklearn", "scikit-learn",
- "statsmodels", "gevent", "distutils", "PySide6", "gdown", "raidionicsrads", "raidionicsseg"]
+ "statsmodels", "gevent", "distutils", "pyside6", "PySide6", "gdown", "raidionicsrads", "raidionicsseg"]
 hidden_imports = [x.lower() for x in hidden_imports]
 
 # copy dependencies and images, remove if folder already exists
