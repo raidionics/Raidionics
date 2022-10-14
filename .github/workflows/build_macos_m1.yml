@@ -33,7 +33,7 @@ jobs:
 
     - name: Build software
       run: |
-        pip install pyinstaller
+        pip3 install pyinstaller
         mkdir tmp_dependencies
         pyinstaller --noconfirm --clean misc/main.spec
 
