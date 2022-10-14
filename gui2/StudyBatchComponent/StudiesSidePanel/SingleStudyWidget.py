@@ -577,7 +577,7 @@ class SingleStudyWidget(QCollapsibleWidget):
                 return
 
             if diag.tumor_type == 'High-Grade Glioma':
-                self.model_name = "MRI_HGGlioma"
+                self.model_name = "MRI_HGGlioma_P2"
             elif diag.tumor_type == 'Low-Grade Glioma':
                 self.model_name = "MRI_LGGlioma"
             elif diag.tumor_type == 'Metastasis':
