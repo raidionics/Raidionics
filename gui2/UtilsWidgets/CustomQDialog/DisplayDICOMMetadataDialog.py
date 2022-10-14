@@ -1,6 +1,6 @@
-from PySide2.QtWidgets import QDialog, QVBoxLayout, QTableWidget, QTableWidgetItem
-from PySide2.QtCore import Qt, Signal, QSize
-from PySide2.QtGui import QIcon
+from PySide6.QtWidgets import QDialog, QVBoxLayout, QTableWidget, QTableWidgetItem
+from PySide6.QtCore import Qt, Signal, QSize
+from PySide6.QtGui import QIcon
 import os
 import datetime
 

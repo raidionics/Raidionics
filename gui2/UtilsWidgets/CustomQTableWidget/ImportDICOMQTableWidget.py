@@ -1,5 +1,5 @@
-from PySide2.QtWidgets import QAction
-from PySide2.QtCore import Qt, Signal
+from PySide6.QtGui import QAction
+from PySide6.QtCore import Qt, Signal
 
 from gui2.UtilsWidgets.CustomQTableWidget.ContextMenuQTableWidget import ContextMenuQTableWidget
 

@@ -6,7 +6,7 @@ from os.path import expanduser
 import numpy as np
 from typing import Union, Any
 import names
-from PySide2.QtCore import QSize
+from PySide6.QtCore import QSize
 import logging
 import json
 

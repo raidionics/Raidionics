@@ -1,5 +1,5 @@
-from PySide2.QtWidgets import QApplication, QHBoxLayout, QVBoxLayout, QSpacerItem, QGridLayout
-from PySide2.QtCore import QSize, Signal
+from PySide6.QtWidgets import QApplication, QHBoxLayout, QVBoxLayout, QSpacerItem, QGridLayout
+from PySide6.QtCore import QSize, Signal
 import os
 import logging
 

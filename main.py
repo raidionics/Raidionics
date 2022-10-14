@@ -3,9 +3,9 @@ import traceback
 import os
 import platform
 from pathlib import PurePath
-import PySide2
+import PySide6
 import sys
-from PySide2.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication
 from gui2.RaidionicsMainWindow import RaidionicsMainWindow
 import logging
 
@@ -18,7 +18,7 @@ os.environ['LANG'] = "en_US.UTF-8"
 os.environ['QT_MAC_WANTS_LAYER'] = '1'
 
 # relevant for PySide, Qt stuff. See issue here: https://www.programmersought.com/article/8605863159/
-dirname = os.path.dirname(PySide2.__file__)
+dirname = os.path.dirname(PySide6.__file__)
 plugin_path = os.path.join(dirname, 'plugins', 'platforms')
 os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = plugin_path
 

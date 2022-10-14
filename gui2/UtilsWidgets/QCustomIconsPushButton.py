@@ -1,6 +1,6 @@
-from PySide2.QtWidgets import QLabel, QHBoxLayout, QPushButton
-from PySide2.QtCore import QSize, Qt, Signal
-from PySide2.QtGui import QIcon
+from PySide6.QtWidgets import QLabel, QHBoxLayout, QPushButton
+from PySide6.QtCore import QSize, Qt, Signal
+from PySide6.QtGui import QIcon
 
 
 class QCustomIconsPushButton(QPushButton):

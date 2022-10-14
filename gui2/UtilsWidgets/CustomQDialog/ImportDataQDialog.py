@@ -1,10 +1,10 @@
 import logging
 import traceback
 
-from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QGridLayout, QDialog, QDialogButtonBox,\
+from PySide6.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QGridLayout, QDialog, QDialogButtonBox,\
     QComboBox, QPushButton, QScrollArea, QLineEdit, QFileDialog, QMessageBox, QProgressBar
-from PySide2.QtCore import Qt, QSize, Signal
-from PySide2.QtGui import QIcon, QMouseEvent
+from PySide6.QtCore import Qt, QSize, Signal
+from PySide6.QtGui import QIcon, QMouseEvent
 import os
 
 from utils.software_config import SoftwareConfigResources
@@ -140,12 +140,12 @@ class ImportDataQDialog(QDialog):
         # # @FIXME. The QFileDialog ignores the director parameter
         if "PYCHARM_HOSTED" in os.environ:
             input_filepaths, filters = input_image_filedialog.getOpenFileNames(self, caption='Select input file(s)',
-                                                                               directory=self.tr(self.current_folder),
+                                                                               dir=self.tr(self.current_folder),
                                                                                filter=self.filter,
                                                                                options=QFileDialog.DontUseNativeDialog)
         else:
             input_filepaths, filters = input_image_filedialog.getOpenFileNames(self, caption='Select input file(s)',
-                                                                               directory=self.tr(self.current_folder),
+                                                                               dir=self.tr(self.current_folder),
                                                                                filter=self.filter,
                                                                                )  # , options=QFileDialog.DontUseNativeDialog
         if len(input_filepaths) != 0 and input_filepaths[0] != "":

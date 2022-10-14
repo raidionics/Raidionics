@@ -1,6 +1,6 @@
-from PySide2.QtWidgets import QHBoxLayout, QVBoxLayout, QGridLayout, QSpacerItem, QLabel
-from PySide2.QtCore import QSize, Signal
-from PySide2.QtGui import QColor
+from PySide6.QtWidgets import QHBoxLayout, QVBoxLayout, QGridLayout, QSpacerItem, QLabel
+from PySide6.QtCore import QSize, Signal
+from PySide6.QtGui import QColor
 import os
 import logging
 

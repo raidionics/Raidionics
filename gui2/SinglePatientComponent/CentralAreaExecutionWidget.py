@@ -1,7 +1,7 @@
 import time
-from PySide2.QtWidgets import QWidget, QHBoxLayout, QPushButton, QLabel, QMessageBox
-from PySide2.QtCore import Signal, QCoreApplication, QSize
-from PySide2.QtGui import QIcon, QPixmap
+from PySide6.QtWidgets import QWidget, QHBoxLayout, QPushButton, QLabel, QMessageBox
+from PySide6.QtCore import Signal, QCoreApplication, QSize
+from PySide6.QtGui import QIcon, QPixmap
 import logging
 import traceback
 import sys

@@ -1,8 +1,8 @@
-from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QGridLayout, QDialog, QDialogButtonBox,\
+from PySide6.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QGridLayout, QDialog, QDialogButtonBox,\
     QComboBox, QPushButton, QScrollArea, QLineEdit, QFileDialog, QMessageBox, QSpinBox, QCheckBox, QStackedWidget
-from PySide2.QtCore import Qt, QSize, Signal
-from PySide2.QtGui import QIcon, QMouseEvent
-from PySide2.QtWebEngineWidgets import QWebEngineView
+from PySide6.QtCore import Qt, QSize, Signal
+from PySide6.QtGui import QIcon, QMouseEvent
+from PySide6.QtWebEngineWidgets import QWebEngineView
 import os
 
 from utils.software_config import SoftwareConfigResources

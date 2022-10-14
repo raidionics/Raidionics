@@ -1,6 +1,6 @@
 import traceback
-from PySide2.QtWidgets import QWidget, QLabel, QGridLayout, QPushButton
-from PySide2.QtCore import QSize, Signal
+from PySide6.QtWidgets import QWidget, QLabel, QGridLayout, QPushButton
+from PySide6.QtCore import QSize, Signal
 import numpy as np
 import logging
 

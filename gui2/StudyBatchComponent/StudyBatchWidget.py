@@ -1,6 +1,6 @@
-from PySide2.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QPushButton, QStackedWidget
-from PySide2.QtGui import QIcon, QPixmap
-from PySide2.QtCore import Qt, QSize, Signal
+from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QPushButton, QStackedWidget
+from PySide6.QtGui import QIcon, QPixmap
+from PySide6.QtCore import Qt, QSize, Signal
 import logging
 import os
 import threading

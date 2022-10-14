@@ -1,14 +1,14 @@
-from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QScrollArea, QPushButton, QSizePolicy,\
+from PySide6.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QScrollArea, QPushButton, QSizePolicy,\
     QGridLayout, QSpacerItem, QStackedLayout
-from PySide2.QtGui import Qt, QIcon, QPixmap, QFont
-from PySide2.QtCore import QSize, Signal
+from PySide6.QtGui import Qt, QIcon, QPixmap, QFont
+from PySide6.QtCore import QSize, Signal
 import os
 from abc import abstractmethod
 
 
 class Header(QWidget):
     """
-    Inspired from https://github.com/aronamao/PySide2-Collapsible-Widget
+    Inspired from https://github.com/aronamao/PySide6-Collapsible-Widget
     """
     toggled = Signal(bool)  # Toggle state in [True, False]
 

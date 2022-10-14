@@ -1,7 +1,7 @@
-from PySide2.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QDialog, QDialogButtonBox, \
+from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QDialog, QDialogButtonBox, \
     QPushButton, QScrollArea, QFileDialog, QSplitter, QTableWidget, QTableWidgetItem,\
     QProgressBar, QMessageBox
-from PySide2.QtCore import Qt, Signal
+from PySide6.QtCore import Qt, Signal
 import os
 
 from utils.software_config import SoftwareConfigResources
@@ -168,13 +168,13 @@ class ImportDICOMDataQDialog(QDialog):
         input_image_filedialog.setWindowFlags(Qt.WindowStaysOnTopHint)
         if "PYCHARM_HOSTED" in os.environ:
             input_directory = input_image_filedialog.getExistingDirectory(self, caption='Select input directory',
-                                                                          directory=self.tr(self.current_folder),
+                                                                          dir=self.tr(self.current_folder),
                                                                           options=QFileDialog.DontUseNativeDialog |
                                                                                   QFileDialog.ShowDirsOnly |
                                                                                   QFileDialog.DontResolveSymlinks)
         else:
             input_directory = input_image_filedialog.getExistingDirectory(self, caption='Select input directory',
-                                                                          directory=self.tr(self.current_folder),
+                                                                          dir=self.tr(self.current_folder),
                                                                           options=QFileDialog.ShowDirsOnly |
                                                                                   QFileDialog.DontResolveSymlinks)
         if input_directory == '':

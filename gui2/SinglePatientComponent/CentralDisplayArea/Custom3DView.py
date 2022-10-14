@@ -1,5 +1,5 @@
-from PySide2.QtDataVisualization import QtDataVisualization
-from PySide2.QtCore import Qt, Signal, QPoint, QSize
+from PySide6.QtDataVisualization import QtDataVisualization
+from PySide6.QtCore import Qt, Signal, QPoint, QSize
 
 import logging
 

@@ -1,6 +1,6 @@
-from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QScrollArea, QMenu, QTableWidget, QAction
-from PySide2.QtGui import QIcon, QPixmap
-from PySide2.QtCore import Qt, QSize, Signal, QEvent
+from PySide6.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QScrollArea, QMenu, QTableWidget
+from PySide6.QtGui import QIcon, QPixmap, QAction
+from PySide6.QtCore import Qt, QSize, Signal, QEvent
 
 from gui2.UtilsWidgets.QCustomIconsPushButton import QCustomIconsPushButton
 

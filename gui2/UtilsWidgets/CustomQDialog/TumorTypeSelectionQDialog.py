@@ -1,4 +1,4 @@
-from PySide2.QtWidgets import QDialog, QGridLayout, QLabel, QComboBox, QDialogButtonBox
+from PySide6.QtWidgets import QDialog, QGridLayout, QLabel, QComboBox, QDialogButtonBox
 
 
 class TumorTypeSelectionQDialog(QDialog):

@@ -1,9 +1,9 @@
 import logging
 import os
-from PySide2.QtWidgets import QLabel, QHBoxLayout, QVBoxLayout, QLineEdit, QListWidget, QListWidgetItem, QErrorMessage,\
+from PySide6.QtWidgets import QLabel, QHBoxLayout, QVBoxLayout, QLineEdit, QListWidget, QListWidgetItem, QErrorMessage,\
     QPushButton, QFileDialog, QSpacerItem
-from PySide2.QtCore import Qt, QSize, Signal
-from PySide2.QtGui import QIcon, QPixmap
+from PySide6.QtCore import Qt, QSize, Signal
+from PySide6.QtGui import QIcon, QPixmap
 
 from gui2.UtilsWidgets.CustomQGroupBox.QCollapsibleGroupBox import QCollapsibleGroupBox
 from gui2.UtilsWidgets.CustomQGroupBox.QCollapsibleWidget import QCollapsibleWidget

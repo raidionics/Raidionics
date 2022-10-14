@@ -1,10 +1,10 @@
 import logging
 import re
-from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QGridLayout, QDialog, QDialogButtonBox,\
+from PySide6.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QGridLayout, QDialog, QDialogButtonBox,\
     QComboBox, QPushButton, QScrollArea, QLineEdit, QFileDialog, QMessageBox, QProgressBar, QListView, \
     QAbstractItemView, QTreeView, QFileSystemModel
-from PySide2.QtCore import Qt, QSize, Signal
-from PySide2.QtGui import QIcon, QMouseEvent
+from PySide6.QtCore import Qt, QSize, Signal
+from PySide6.QtGui import QIcon, QMouseEvent
 import os
 from typing import Tuple
 
@@ -143,13 +143,13 @@ class ImportFoldersQDialog(QDialog):
 
         if "PYCHARM_HOSTED" in os.environ:
             input_directory = input_image_filedialog.getExistingDirectory(self, caption='Select input directory',
-                                                                          directory=self.tr(self.current_folder),
+                                                                          dir=self.tr(self.current_folder),
                                                                           options=QFileDialog.DontUseNativeDialog |
                                                                                   QFileDialog.ShowDirsOnly |
                                                                                   QFileDialog.DontResolveSymlinks)
         else:
             input_directory = input_image_filedialog.getExistingDirectory(self, caption='Select input directory',
-                                                                          directory=self.tr(self.current_folder),
+                                                                          dir=self.tr(self.current_folder),
                                                                           options=QFileDialog.ShowDirsOnly |
                                                                                   QFileDialog.DontResolveSymlinks)
         found_files = []
