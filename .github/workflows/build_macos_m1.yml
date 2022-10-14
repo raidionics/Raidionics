@@ -34,7 +34,10 @@ jobs:
         python3 -m pip install --upgrade pip
         pip3 install matplotlib
         pip3 install -e git+https://github.com/dbouget/raidionics_rads_lib.git@m1_test#egg=raidionicsrads
-        pip3 install -r misc/requirements.txt
+        pip3 install gdown==4.4.0
+        pip3 install names==0.3.0
+        pip3 install PySide6
+        pip3 install plotly
         deactivate
 
     - name: Build software
