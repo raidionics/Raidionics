@@ -29,22 +29,20 @@ jobs:
     - name: Install dependencies
       run: |
         cd ${{github.workspace}}
-        cd tmp
-        source venv/bin/activate
+        source tmp/venv/bin/activate
         python3 -m pip install --upgrade pip
         pip3 install matplotlib
         pip3 install -e git+https://github.com/dbouget/raidionics_rads_lib.git@m1_test#egg=raidionicsrads
-        pip3 install -r ../misc/requirements.txt
+        pip3 install -r misc/requirements.txt
         deactivate
 
     - name: Build software
       run: |
         cd ${{github.workspace}}
-        cd tmp
-        source venv/bin/activate
+        source tmp/venv/bin/activate
         pip3 install pyinstaller
         mkdir tmp_dependencies
-        pyinstaller --noconfirm --clean ../misc/main.spec
+        pyinstaller --noconfirm --clean misc/main.spec
 
     - name: Make installer
       run: |
