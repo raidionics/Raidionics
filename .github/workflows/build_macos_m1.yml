@@ -24,15 +24,18 @@ jobs:
         python3 -m virtualenv -p python3 venv --clear
         source venv/bin/activate
         python3 -m pip install wheel setuptools
+        deactivate
+
     - name: Install dependencies
       run: |
         cd ${{github.workspace}}
         cd tmp
         source venv/bin/activate
         python3 -m pip install --upgrade pip
-        pip3 install matplotlib==3.3.4
+        pip3 install matplotlib
         pip3 install -e git+https://github.com/dbouget/raidionics_rads_lib.git@m1_test#egg=raidionicsrads
         pip3 install -r misc/requirements.txt
+        deactivate
 
     - name: Build software
       run: |
