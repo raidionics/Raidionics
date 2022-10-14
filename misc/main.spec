@@ -20,7 +20,7 @@ print("PLATFORM:", sys.platform)
 # fix hidden imports
 hidden_imports = loadtxt(cwd + "/misc/requirements.txt", comments="#", delimiter=",", unpack=False, dtype=str)
 hidden_imports = [x.split("=")[0] for x in hidden_imports] + ["medpy", "sklearn", "scikit-learn",
- "statsmodels", "gevent", "distutils", "pyside6", "PySide6", "gdown", "raidionicsrads", "raidionicsseg"]
+ "statsmodels", "gevent", "distutils", "PySide6", "gdown", "raidionicsrads", "raidionicsseg"]
 hidden_imports = [x.lower() for x in hidden_imports]
 
 # copy dependencies and images, remove if folder already exists
@@ -37,7 +37,7 @@ a = Analysis([cwd + '/main.py'],
              hiddenimports=hidden_imports,
              hookspath=[cwd + "/misc/hooks/"],
              runtime_hooks=[],
-             excludes=[],
+             excludes=['PySide6.QtQml'],
              win_no_prefer_redirects=False,
              win_private_assemblies=False,
              cipher=block_cipher,
