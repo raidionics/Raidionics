@@ -47,7 +47,7 @@ jobs:
 
     - name: Make installer
       run: |
-        git clone https://github.com/andreped/quickpkg.git
+        git clone https://github.com/scriptingosx/quickpkg.git
         quickpkg/quickpkg dist/Raidionics.app --output Raidionics-1.2.0-macOS.pkg
         cp -r Raidionics-1.2.0-macOS.pkg dist/Raidionics-1.2.0-macOS.pkg
 
