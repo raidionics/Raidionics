@@ -1,12 +1,8 @@
 name: Build macOS M1
 
 on:
-  push:
-    branches:
-      - '*'
-  pull_request:
-    branches:
-      - '*'
+  # Allows to run the workflow manually from the Actions tab
+  workflow_dispatch:
 
 jobs:
   build:
