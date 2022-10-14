@@ -47,7 +47,7 @@ jobs:
         source venv/bin/activate
         pip3 install pyinstaller
         mkdir tmp_dependencies
-        pyinstaller --noconfirm --clean misc/main.spec
+        pyinstaller --noconfirm --clean ../misc/main.spec
 
     - name: Make installer
       run: |
