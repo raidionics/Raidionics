@@ -36,6 +36,13 @@ jobs:
         pip3 install -r misc/requirements.txt
         deactivate
 
+    - name: Install cmake
+      run: |
+        brew update
+        brew install cmake ninja
+        ninja --version
+        cmake --version
+
     - name: Build ANTs
       run: |
         cd ${{github.workspace}}
