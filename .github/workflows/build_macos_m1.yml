@@ -36,25 +36,25 @@ jobs:
         pip3 install -r misc/requirements.txt
         deactivate
 
-    - name: Install cmake
-      run: |
-        brew update
-        brew install cmake ninja
-        ninja --version
-        cmake --version
+#    - name: Install cmake
+#      run: |
+#        brew update
+#        brew install cmake ninja
+#        ninja --version
+#        cmake --version
 
-    - name: Build ANTs
-      run: |
-        cd ${{github.workspace}}
-        mkdir ANTs
-        cd ANTs
-        git clone https://github.com/ANTsX/ANTs.git source
-        mkdir build
-        cd build
-        cmake -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/ANTs/install ../source
-        make -j4
-        cd ANTS-build
-        make install
+#    - name: Build ANTs
+#      run: |
+#        cd ${{github.workspace}}
+#        mkdir ANTs
+#        cd ANTs
+#        git clone https://github.com/ANTsX/ANTs.git source
+#        mkdir build
+#        cd build
+#        cmake -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/ANTs/install ../source
+#        make -j4
+#        cd ANTS-build
+#        make install
 
     - name: Build software
       run: |
