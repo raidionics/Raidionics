@@ -80,6 +80,7 @@ def run_pipeline(task: str, model_name: str, patient_parameters: PatientParamete
         rads_config.set('Default', 'task', 'neuro_diagnosis')
         rads_config.set('Default', 'caller', 'raidionics')
         rads_config.add_section('System')
+        rads_config.set('System', 'ants_root', os.path.join(os.path.dirname(os.path.realpath(__file__)), '../ANTs'))  # Hard-coded for M1
         rads_config.set('System', 'gpu_id', "-1")  # Always running on CPU
         rads_config.set('System', 'input_folder', patient_parameters.output_folder)
         rads_config.set('System', 'output_folder', reporting_folder)

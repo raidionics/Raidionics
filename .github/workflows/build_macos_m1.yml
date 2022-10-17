@@ -55,6 +55,7 @@ jobs:
         make -j4
         cd ANTS-build
         make install
+        cp -R ${{github.workspace}}/ANTs/source/Scripts ${{github.workspace}}/ANTs/install/
 
     - name: Build software
       run: |
