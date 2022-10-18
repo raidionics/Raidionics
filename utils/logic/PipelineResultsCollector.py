@@ -149,4 +149,15 @@ def collect_results(patient_parameters, pipeline):
             if os.path.exists(dest_file):  # Should always exist
                 error_msg = patient_parameters.import_standardized_report(dest_file)
                 results['Report'].append(dest_file)
+        elif pip_step["task"] == "Surgical reporting":
+            # @TODO. Should have a list of reports inside a patient (like in the backend)
+            # Then load the report json and include the new report in the patient list of reports.
+            report_filename = os.path.join(patient_parameters.output_folder, 'reporting',
+                                           'neuro_surgical_report.json')
+            dest_file = os.path.join(patient_parameters.output_folder, os.path.basename(report_filename))
+            shutil.move(report_filename, dest_file)
+
+            if os.path.exists(dest_file):  # Should always exist
+                error_msg = patient_parameters.import_report(dest_file)
+                results['Report'].append(dest_file)
     return results

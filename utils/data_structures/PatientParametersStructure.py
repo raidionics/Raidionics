@@ -286,6 +286,17 @@ class PatientParameters:
             error_message = "Failed to load standardized report from {}".format(filename)
         return error_message
 
+    def import_report(self, filename: str) -> Any:
+        error_message = None
+        try:
+            pass
+            # self._standardized_report_filename = filename
+            # with open(self._standardized_report_filename, 'r') as infile:
+            #     self._standardized_report = json.load(infile)
+        except Exception:
+            error_message = "Failed to load report from {}".format(filename)
+        return error_message
+
     def import_patient(self, filename: str) -> Any:
         """
         Method for reloading/importing a previously investigated patient, for which a Raidionics scene has been

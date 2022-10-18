@@ -672,5 +672,10 @@ def __create_postop_reporting_pipeline(model_name, patient_parameters):
     pip[pip_num]["description"] = "Tumor segmentation in T1-CE (T1)"
     # download_model(model_name='MRI_Tumor_Postop')
 
-    #@TODO. Needs to include the reporting part
+    pip_num_int = pip_num_int + 1
+    pip_num = str(pip_num_int)
+    pip[pip_num] = {}
+    pip[pip_num]["task"] = "Surgical reporting"
+    pip[pip_num]["description"] = "Postoperative report computing."
+
     return pip
