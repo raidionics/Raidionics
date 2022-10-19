@@ -18,6 +18,7 @@ from utils.data_structures.MRIVolumeStructure import MRIVolume, MRISequenceType
 from utils.data_structures.AnnotationStructure import AnnotationVolume, AnnotationClassType, AnnotationGenerationType
 from utils.data_structures.AtlasStructure import AtlasVolume
 from utils.data_structures.InvestigationTimestampStructure import InvestigationTimestamp, InvestigationType
+from utils.data_structures.ReportingStructure import ReportingStructure
 from utils.utilities import input_file_category_disambiguation
 
 
@@ -36,6 +37,7 @@ class PatientParameters:
     _annotation_volumes = {}  # All Annotation instances loaded for the current patient.
     _atlas_volumes = {}  # All Atlas instances loaded for the current patient.
     _investigation_timestamps = {}  # All investigation timestamps for the current patient.
+    _reportings = {}  # All standardized reports computed for the current patient
     _active_investigation_timestamp_uid = None  # Convenience for now, to know into which TS to load the imported data
     _unsaved_changes = False  # Documenting any change, for suggesting saving when swapping between patients
 
@@ -72,6 +74,7 @@ class PatientParameters:
         self._annotation_volumes = {}
         self._atlas_volumes = {}
         self._investigation_timestamps = {}
+        self._reportings = {}
         self._active_investigation_timestamp_uid = None
         self._unsaved_changes = False
 
@@ -111,6 +114,8 @@ class PatientParameters:
         self._patient_parameters_dict['Volumes'] = {}
         self._patient_parameters_dict['Annotations'] = {}
         self._patient_parameters_dict['Atlases'] = {}
+        self._patient_parameters_dict['Timestamps'] = {}
+        self._patient_parameters_dict['Reports'] = {}
 
     @property
     def unique_id(self) -> str:
@@ -139,6 +144,8 @@ class PatientParameters:
             self._annotation_volumes[an].set_output_patient_folder(self._output_folder)
         for at in self._atlas_volumes:
             self._atlas_volumes[at].set_output_patient_folder(self._output_folder)
+        for rp in self._reportings:
+            self._reportings[rp].set_output_patient_folder(self._output_folder)
         logging.info("Renamed current output directory to: {}".format(directory))
 
     @property
@@ -267,6 +274,9 @@ class PatientParameters:
             for i, disp in enumerate(list(self._atlas_volumes.keys())):
                 self._atlas_volumes[disp].set_output_patient_folder(new_output_folder)
 
+            for i, disp in enumerate(list(self._reportings.keys())):
+                self._reportings[disp].set_output_patient_folder(new_output_folder)
+
             shutil.move(src=self._output_folder, dst=new_output_folder, copy_function=shutil.copytree)
             self._output_folder = new_output_folder
             logging.info("Renamed current output folder to: {}".format(self._output_folder))
@@ -286,13 +296,21 @@ class PatientParameters:
             error_message = "Failed to load standardized report from {}".format(filename)
         return error_message
 
-    def import_report(self, filename: str) -> Any:
+    def import_report(self, filename: str) -> Union[None, str]:
+        """
+        Import a report of any kind for the current patient.
+        """
         error_message = None
         try:
-            pass
-            # self._standardized_report_filename = filename
-            # with open(self._standardized_report_filename, 'r') as infile:
-            #     self._standardized_report = json.load(infile)
+            # Generating a unique id for the report
+            base_data_uid = os.path.basename(filename).strip().split('.')[0]
+            non_available_uid = True
+            while non_available_uid:
+                data_uid = str(np.random.randint(0, 10000)) + '_' + base_data_uid
+                if data_uid not in list(self._atlas_volumes.keys()):
+                    non_available_uid = False
+            report = ReportingStructure(uid=data_uid, report_filename=filename, output_folder=self.output_folder)
+            self._reportings[data_uid] = report
         except Exception:
             error_message = "Failed to load report from {}".format(filename)
         return error_message
@@ -549,10 +567,20 @@ class PatientParameters:
         for i, disp in enumerate(list(self._atlas_volumes.keys())):
             self._patient_parameters_dict['Atlases'][disp] = self._atlas_volumes[disp].save()
 
+        for i, disp in enumerate(list(self._reportings.keys())):
+            self._patient_parameters_dict['Reportings'][disp] = self._reportings[disp].save()
+
         # Saving the json file last, as it must be populated from the previous dumps beforehand
         with open(self._patient_parameters_dict_filename, 'w') as outfile:
             json.dump(self._patient_parameters_dict, outfile, indent=4, sort_keys=True)
         self._unsaved_changes = False
+
+    @property
+    def reportings(self) -> dict:
+        return self._reportings
+
+    def get_reporting(self, uid: str) -> ReportingStructure:
+        return self._reportings[uid]
 
     def get_all_timestamps_uids(self) -> List[str]:
         return list(self._investigation_timestamps.keys())
