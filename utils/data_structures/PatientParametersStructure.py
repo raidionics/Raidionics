@@ -296,24 +296,26 @@ class PatientParameters:
             error_message = "Failed to load standardized report from {}".format(filename)
         return error_message
 
-    def import_report(self, filename: str) -> Union[None, str]:
+    def import_report(self, filename: str) -> Tuple[str, Union[None, str]]:
         """
         Import a report of any kind for the current patient.
         """
         error_message = None
+        report_uid = ""
         try:
             # Generating a unique id for the report
-            base_data_uid = os.path.basename(filename).strip().split('.')[0]
+            base_report_uid = os.path.basename(filename).strip().split('.')[0]
             non_available_uid = True
             while non_available_uid:
-                data_uid = str(np.random.randint(0, 10000)) + '_' + base_data_uid
-                if data_uid not in list(self._atlas_volumes.keys()):
+                report_uid = str(np.random.randint(0, 10000)) + '_' + base_report_uid
+                if report_uid not in list(self._atlas_volumes.keys()):
                     non_available_uid = False
-            report = ReportingStructure(uid=data_uid, report_filename=filename, output_folder=self.output_folder)
-            self._reportings[data_uid] = report
+            report = ReportingStructure(uid=report_uid, report_filename=filename,
+                                        output_patient_folder=self.output_folder)
+            self._reportings[report_uid] = report
         except Exception:
-            error_message = "Failed to load report from {}".format(filename)
-        return error_message
+            error_message = "Failed to load report from {} with {}".format(filename, traceback.format_exc())
+        return report_uid, error_message
 
     def import_patient(self, filename: str) -> Any:
         """
@@ -397,10 +399,21 @@ class PatientParameters:
                     else:
                         error_message = "Import atlas failed, for volume {}.\n".format(volume_id) + str(traceback.format_exc())
 
-            if self._patient_parameters_dict["Parameters"]["Reporting"]["report_filename"] != "":
-                self._standardized_report_filename = os.path.join(self._output_folder, self._patient_parameters_dict["Parameters"]["Reporting"]["report_filename"])
-                with open(self._standardized_report_filename, 'r') as infile:
-                    self._standardized_report = json.load(infile)
+            for report_id in list(self._patient_parameters_dict['Reports'].keys()):
+                try:
+                    report = ReportingStructure(uid=report_id,
+                                               report_filename=os.path.join(self._output_folder, self._patient_parameters_dict['Reports'][report_id]['report_filename']),
+                                               output_patient_folder=self._output_folder,
+                                               reload_params=self._patient_parameters_dict['Reports'][report_id])
+                    self._reportings[report_id] = report
+                except Exception:
+                    logging.error(str(traceback.format_exc()))
+                    if error_message:
+                        error_message = error_message + "\nImport atlas failed, for volume {}.\n".format(
+                            volume_id) + str(traceback.format_exc())
+                    else:
+                        error_message = "Import atlas failed, for volume {}.\n".format(volume_id) + str(
+                            traceback.format_exc())
 
         except Exception:
             error_message = "Import patient failed, from {}.\n".format(os.path.basename(filename)) + str(traceback.format_exc())
@@ -554,6 +567,7 @@ class PatientParameters:
         self._patient_parameters_dict['Volumes'] = {}
         self._patient_parameters_dict['Annotations'] = {}
         self._patient_parameters_dict['Atlases'] = {}
+        self._patient_parameters_dict['Reports'] = {}
 
         for i, disp in enumerate(list(self._investigation_timestamps.keys())):
             self._patient_parameters_dict['Timestamps'][disp] = self._investigation_timestamps[disp].save()
@@ -568,7 +582,7 @@ class PatientParameters:
             self._patient_parameters_dict['Atlases'][disp] = self._atlas_volumes[disp].save()
 
         for i, disp in enumerate(list(self._reportings.keys())):
-            self._patient_parameters_dict['Reportings'][disp] = self._reportings[disp].save()
+            self._patient_parameters_dict['Reports'][disp] = self._reportings[disp].save()
 
         # Saving the json file last, as it must be populated from the previous dumps beforehand
         with open(self._patient_parameters_dict_filename, 'w') as outfile:

@@ -24,7 +24,7 @@ class CentralAreaExecutionWidget(QLabel):
     """
     annotation_volume_imported = Signal(str)
     atlas_volume_imported = Signal(str)
-    standardized_report_imported = Signal()
+    standardized_report_imported = Signal(str)
     radiological_sequences_imported = Signal()
     process_started = Signal()
     process_finished = Signal()
@@ -155,7 +155,8 @@ class CentralAreaExecutionWidget(QLabel):
                 for a in results['Atlas']:
                     self.atlas_volume_imported.emit(a)
             if 'Report' in list(results.keys()):
-                self.standardized_report_imported.emit()
+                for r in results['Report']:
+                    self.standardized_report_imported.emit(r)
             if 'Classification' in list(results.keys()):
                 # @TODO. Will have to be more generic when more than one classifier.
                 self.radiological_sequences_imported.emit()

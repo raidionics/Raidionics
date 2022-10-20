@@ -148,17 +148,20 @@ def collect_results(patient_parameters, pipeline):
                 shutil.move(report_filename, dest_file)
 
                 if os.path.exists(dest_file):  # Should always exist
-                    error_msg = patient_parameters.import_standardized_report(dest_file)
-                    error_msg = patient_parameters.import_report(dest_file)
-                    results['Report'].append(dest_file)
+                    # error_msg = patient_parameters.import_standardized_report(dest_file)
+                    report_uid, error_msg = patient_parameters.import_report(dest_file)
+                    patient_parameters.reportings[report_uid].set_reporting_type("Tumor characteristics")
+                    patient_parameters.reportings[report_uid].parent_mri_uid = parent_mri_uid
+                    results['Report'].append(report_uid)
             elif pip_step["task"] == "Surgical reporting":
                 report_filename = os.path.join(patient_parameters.output_folder, 'reporting', 'neuro_surgical_report.json')
                 dest_file = os.path.join(patient_parameters.output_folder, os.path.basename(report_filename))
                 shutil.move(report_filename, dest_file)
 
                 if os.path.exists(dest_file):  # Should always exist
-                    error_msg = patient_parameters.import_report(dest_file)
-                    results['Report'].append(dest_file)
+                    report_uid, error_msg = patient_parameters.import_report(dest_file)
+                    patient_parameters.reportings[report_uid].set_reporting_type("Surgical")
+                    results['Report'].append(report_uid)
         except Exception:
             logging.error("Could not collect results for step {}.\n Received: {}".format(pipeline[step]["description"],
                                                                                          traceback.format_exc()))

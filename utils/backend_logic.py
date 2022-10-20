@@ -101,6 +101,7 @@ def run_pipeline(task: str, model_name: str, patient_parameters: PatientParamete
 
         if SoftwareConfigResources.getInstance().user_preferences.use_manual_sequences:
             generate_sequences_file(patient_parameters, patient_parameters.output_folder)
+        generate_annotation_files(patient_parameters, patient_parameters.output_folder)
 
         #mp.set_start_method('spawn', force=True)
         with mp.Pool(processes=1, maxtasksperchild=1) as p:  # , initializer=initializer)
@@ -176,3 +177,10 @@ def generate_sequences_file(patient_parameters: PatientParameters, output_folder
                         patient_parameters.get_mri_by_uid(volume_uid).get_sequence_type_str()])
     df = pd.DataFrame(classes, columns=['File', 'MRI sequence'])
     df.to_csv(sequences_filename, index=False)
+
+
+def generate_annotation_files(patient_parameters: PatientParameters, output_folder: str) -> None:
+    """
+
+    """
+    pass
