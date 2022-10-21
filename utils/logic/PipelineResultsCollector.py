@@ -50,8 +50,9 @@ def collect_results(patient_parameters, pipeline):
                                             os.path.basename(patient_parameters.get_mri_by_uid(
                                                 parent_mri_uid).get_usable_input_filepath()).split('.')[
                                                 0] + '_annotation-' + anno_str + '.nii.gz')
-                    dest_file = os.path.join(patient_parameters.get_mri_by_uid(parent_mri_uid).output_patient_folder,
-                                             'raw', os.path.basename(seg_file))
+                    dest_file = os.path.join(patient_parameters.output_folder,
+                                             "T" + str(pip_step["inputs"]["0"]["timestamp"]), 'raw',
+                                             os.path.basename(seg_file))
                     shutil.move(seg_file, dest_file)
                     data_uid, error_msg = patient_parameters.import_data(dest_file,
                                                                          investigation_ts='T' + str(pip_step["inputs"]["0"]["timestamp"]),
@@ -82,7 +83,8 @@ def collect_results(patient_parameters, pipeline):
 
                     for m in cortical_masks:
                         atlas_filename = os.path.join(cortical_folder, m)
-                        dest_atlas_filename = os.path.join(patient_parameters.get_mri_by_uid(parent_mri_uid).output_patient_folder,
+                        dest_atlas_filename = os.path.join(patient_parameters.output_folder,
+                                                           patient_parameters.get_mri_by_uid(parent_mri_uid).get_timestamp_uid(),
                                                            'raw', m)
                         shutil.move(atlas_filename, dest_atlas_filename)
                         description_filename = os.path.join(patient_parameters.output_folder, 'reporting',
@@ -113,7 +115,8 @@ def collect_results(patient_parameters, pipeline):
 
                     for m in subcortical_masks:
                         atlas_filename = os.path.join(subcortical_folder, m)
-                        dest_atlas_filename = os.path.join(patient_parameters.get_mri_by_uid(parent_mri_uid).output_patient_folder,
+                        dest_atlas_filename = os.path.join(patient_parameters.output_folder,
+                                                           patient_parameters.get_mri_by_uid(parent_mri_uid).get_timestamp_uid(),
                                                            'raw', m)
                         shutil.move(atlas_filename, dest_atlas_filename)
                         description_filename = os.path.join(patient_parameters.output_folder, 'reporting',
@@ -143,13 +146,15 @@ def collect_results(patient_parameters, pipeline):
                 if len(parent_mri_uid) == 0:
                     continue
                 parent_mri_uid = parent_mri_uid[0]
-                dest_file = os.path.join(patient_parameters.get_mri_by_uid(parent_mri_uid).output_patient_folder,
+                dest_file = os.path.join(patient_parameters.output_folder,
+                                         "T" + str(pip_step["input"]["timestamp"]),
                                          os.path.basename(report_filename))
                 shutil.move(report_filename, dest_file)
 
                 if os.path.exists(dest_file):  # Should always exist
                     # error_msg = patient_parameters.import_standardized_report(dest_file)
-                    report_uid, error_msg = patient_parameters.import_report(dest_file)
+                    report_uid, error_msg = patient_parameters.import_report(dest_file,
+                                                                             "T" + str(pip_step["input"]["timestamp"]))
                     patient_parameters.reportings[report_uid].set_reporting_type("Tumor characteristics")
                     patient_parameters.reportings[report_uid].parent_mri_uid = parent_mri_uid
                     results['Report'].append(report_uid)
@@ -159,7 +164,7 @@ def collect_results(patient_parameters, pipeline):
                 shutil.move(report_filename, dest_file)
 
                 if os.path.exists(dest_file):  # Should always exist
-                    report_uid, error_msg = patient_parameters.import_report(dest_file)
+                    report_uid, error_msg = patient_parameters.import_report(dest_file, None)
                     patient_parameters.reportings[report_uid].set_reporting_type("Surgical")
                     results['Report'].append(report_uid)
         except Exception:

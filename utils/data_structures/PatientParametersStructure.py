@@ -296,7 +296,7 @@ class PatientParameters:
             error_message = "Failed to load standardized report from {}".format(filename)
         return error_message
 
-    def import_report(self, filename: str) -> Tuple[str, Union[None, str]]:
+    def import_report(self, filename: str, inv_ts_uid: str) -> Tuple[str, Union[None, str]]:
         """
         Import a report of any kind for the current patient.
         """
@@ -308,10 +308,10 @@ class PatientParameters:
             non_available_uid = True
             while non_available_uid:
                 report_uid = str(np.random.randint(0, 10000)) + '_' + base_report_uid
-                if report_uid not in list(self._atlas_volumes.keys()):
+                if report_uid not in list(self._reportings.keys()):
                     non_available_uid = False
             report = ReportingStructure(uid=report_uid, report_filename=filename,
-                                        output_patient_folder=self.output_folder)
+                                        output_patient_folder=self.output_folder, inv_ts_uid=inv_ts_uid)
             self._reportings[report_uid] = report
         except Exception:
             error_message = "Failed to load report from {} with {}".format(filename, traceback.format_exc())
@@ -374,6 +374,7 @@ class PatientParameters:
                                                          input_filename=self._patient_parameters_dict['Annotations'][volume_id]['raw_input_filepath'],
                                                          output_patient_folder=self._output_folder,
                                                          parent_mri_uid=self._patient_parameters_dict['Annotations'][volume_id]['parent_mri_uid'],
+                                                         inv_ts_uid=self._patient_parameters_dict['Annotations'][volume_id]['investigation_timestamp_uid'],
                                                          reload_params=self._patient_parameters_dict['Annotations'][volume_id])
                     self._annotation_volumes[volume_id] = annotation_volume
                 except Exception:
@@ -388,6 +389,7 @@ class PatientParameters:
                     atlas_volume = AtlasVolume(uid=volume_id,
                                                input_filename=self._patient_parameters_dict['Atlases'][volume_id]['raw_input_filepath'],
                                                output_patient_folder=self._output_folder,
+                                               inv_ts_uid=self._patient_parameters_dict['Atlases'][volume_id]['investigation_timestamp_uid'],
                                                parent_mri_uid=self._patient_parameters_dict['Atlases'][volume_id]['parent_mri_uid'],
                                                description_filename=os.path.join(self._output_folder, self._patient_parameters_dict['Atlases'][volume_id]['description_filepath']),
                                                reload_params=self._patient_parameters_dict['Atlases'][volume_id])
@@ -402,9 +404,10 @@ class PatientParameters:
             for report_id in list(self._patient_parameters_dict['Reports'].keys()):
                 try:
                     report = ReportingStructure(uid=report_id,
-                                               report_filename=os.path.join(self._output_folder, self._patient_parameters_dict['Reports'][report_id]['report_filename']),
-                                               output_patient_folder=self._output_folder,
-                                               reload_params=self._patient_parameters_dict['Reports'][report_id])
+                                                report_filename=os.path.join(self._output_folder, self._patient_parameters_dict['Reports'][report_id]['report_filename']),
+                                                output_patient_folder=self._output_folder,
+                                                inv_ts_uid=self._patient_parameters_dict['Reports'][report_id]['investigation_timestamp_uid'],
+                                                reload_params=self._patient_parameters_dict['Reports'][report_id])
                     self._reportings[report_id] = report
                 except Exception:
                     logging.error(str(traceback.format_exc()))
@@ -458,7 +461,7 @@ class PatientParameters:
 
                 self._mri_volumes[data_uid] = MRIVolume(uid=data_uid, inv_ts_uid=investigation_ts,
                                                         input_filename=filename,
-                                                        output_patient_folder=os.path.join(self._output_folder, investigation_ts))
+                                                        output_patient_folder=self._output_folder)
             else:
                 if len(self._mri_volumes) != 0:
                     # @TODO. Not optimal to set a default parent MRI, forces a manual update after, must be improved.
@@ -472,8 +475,9 @@ class PatientParameters:
                             non_available_uid = False
 
                     self._annotation_volumes[data_uid] = AnnotationVolume(uid=data_uid, input_filename=filename,
-                                                                         output_patient_folder=os.path.join(self._output_folder, investigation_ts),
-                                                                         parent_mri_uid=default_parent_mri_uid)
+                                                                          output_patient_folder=self._output_folder,
+                                                                          parent_mri_uid=default_parent_mri_uid,
+                                                                          inv_ts_uid=investigation_ts)
                 else:
                     error_message = "No MRI volume has been imported yet. Mandatory for importing an annotation."
                     logging.error(error_message)
@@ -533,9 +537,10 @@ class PatientParameters:
                         non_available_uid = False
 
                 self._atlas_volumes[data_uid] = AtlasVolume(uid=data_uid, input_filename=filename,
-                                                           output_patient_folder=self._mri_volumes[parent_mri_uid].output_patient_folder,
-                                                           parent_mri_uid=parent_mri_uid,
-                                                           description_filename=description)
+                                                            output_patient_folder=self._output_folder,
+                                                            inv_ts_uid=self._mri_volumes[parent_mri_uid].get_timestamp_uid(),
+                                                            parent_mri_uid=parent_mri_uid,
+                                                            description_filename=description)
             else:  # Reference is MNI space then
                 pass
         except Exception as e:
@@ -723,8 +728,8 @@ class PatientParameters:
                 res.append(self._annotation_volumes[an].unique_id)
         return res
 
-    def get_specific_annotations_for_mri(self, mri_volume_uid: str, annotation_class: AnnotationClassType,
-                                         generation_type: AnnotationGenerationType) -> List[str]:
+    def get_specific_annotations_for_mri(self, mri_volume_uid: str, annotation_class: AnnotationClassType = None,
+                                         generation_type: AnnotationGenerationType = None) -> List[str]:
         """
         Convenience method for checking if an automatic segmentation of the requested class is linked to
         the specific MRI volume.

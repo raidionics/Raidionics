@@ -84,6 +84,7 @@ class UserPreferencesStructure:
     @use_manual_annotations.setter
     def use_manual_annotations(self, state) -> None:
         self._use_manual_annotations = state
+        self.save_preferences()
 
     def __parse_preferences(self):
         with open(self._preferences_filename, 'r') as infile:

@@ -132,6 +132,7 @@ class SoftwareSettingsDialog(QDialog):
         self.home_directory_lineedit.textChanged.connect(self.__on_home_dir_changed)
         self.model_update_checkbox.stateChanged.connect(self.__on_active_model_status_changed)
         self.processing_options_use_sequences_checkbox.stateChanged.connect(self.__on_use_sequences_status_changed)
+        self.processing_options_use_annotations_checkbox.stateChanged.connect(self.__on_use_manual_annotations_status_changed)
         self.exit_accept_pushbutton.clicked.connect(self.__on_exit_accept_clicked)
         self.exit_cancel_pushbutton.clicked.connect(self.__on_exit_cancel_clicked)
 
@@ -213,6 +214,9 @@ class SoftwareSettingsDialog(QDialog):
 
     def __on_use_sequences_status_changed(self, status):
         SoftwareConfigResources.getInstance().user_preferences.use_manual_sequences = status
+
+    def __on_use_manual_annotations_status_changed(self, status):
+        SoftwareConfigResources.getInstance().user_preferences.use_manual_annotations = status
 
     def __on_exit_accept_clicked(self):
         """

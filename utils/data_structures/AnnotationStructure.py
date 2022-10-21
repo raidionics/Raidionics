@@ -56,6 +56,7 @@ class AnnotationVolume:
     _raw_input_filepath = ""  # Folder location containing the raw annotation file
     _usable_input_filepath = ""  # Usable volume filepath, e.g., after conversion from nrrd to nifti (or other)
     _output_patient_folder = ""  # Destination folder containing the patient's results
+    _timestamp_uid = None  # Internal unique identifier to the investigation timestamp, for saving on disk purposes.
     _annotation_class = AnnotationClassType.Tumor  # Type of annotation
     _resampled_input_volume = None  # np.ndarray with the resampled raw values, expressed in default space
     _resampled_input_volume_filepath = None  # Filepath for storing the aforementioned volume
@@ -69,13 +70,13 @@ class AnnotationVolume:
     _default_affine = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]  # Affine matrix for dumping resampled files
     _unsaved_changes = False  # Documenting any change, for suggesting saving when swapping between patients
 
-    def __init__(self, uid: str, input_filename: str, output_patient_folder: str,
+    def __init__(self, uid: str, input_filename: str, output_patient_folder: str, inv_ts_uid: str,
                  parent_mri_uid: str, reload_params: {} = None) -> None:
         self.__reset()
         self._unique_id = uid
         self._raw_input_filepath = input_filename
         self._output_patient_folder = output_patient_folder
-        os.makedirs(output_patient_folder, exist_ok=True)
+        self._timestamp_uid = inv_ts_uid
         self._display_name = uid
         self._parent_mri_uid = parent_mri_uid
 
@@ -93,6 +94,7 @@ class AnnotationVolume:
         self._raw_input_filepath = ""
         self._usable_input_filepath = ""
         self._output_patient_folder = ""
+        self._timestamp_uid = None
         self._annotation_class = AnnotationClassType.Tumor
         self._resampled_input_volume = None
         self._resampled_input_volume_filepath = None
@@ -172,6 +174,10 @@ class AnnotationVolume:
     @property
     def raw_input_filepath(self) -> str:
         return self._raw_input_filepath
+
+    @property
+    def usable_input_filepath(self) -> str:
+        return self._usable_input_filepath
 
     @property
     def display_name(self) -> str:
@@ -257,24 +263,26 @@ class AnnotationVolume:
         try:
             # Disk operations
             if not self._display_volume is None:
-                self._display_volume_filepath = os.path.join(self._output_patient_folder, 'display',
-                                                             self._unique_id + '_display.nii.gz')
-                nib.save(nib.Nifti1Image(self._display_volume, affine=self._default_affine), self._display_volume_filepath)
+                self._display_volume_filepath = os.path.join(self._output_patient_folder, self._timestamp_uid,
+                                                             'display', self._unique_id + '_display.nii.gz')
+                nib.save(nib.Nifti1Image(self._display_volume, affine=self._default_affine),
+                         self._display_volume_filepath)
 
             if not self._resampled_input_volume is None:
-                self._resampled_input_volume_filepath = os.path.join(self._output_patient_folder, 'display',
-                                                                     self._unique_id + '_resampled.nii.gz')
+                self._resampled_input_volume_filepath = os.path.join(self._output_patient_folder, self._timestamp_uid,
+                                                                     'display', self._unique_id + '_resampled.nii.gz')
                 nib.save(nib.Nifti1Image(self._resampled_input_volume, affine=self._default_affine),
                          self._resampled_input_volume_filepath)
 
             # Parameters-filling operations
             volume_params = {}
-            base_patient_folder = '/'.join(self._output_patient_folder.split('/')[:-1])  # To keep the timestamp folder
-            if os.name == 'nt':
-                base_patient_folder_parts = list(PurePath(os.path.realpath(self._output_patient_folder)).parts[:-1])
-                base_patient_folder = PurePath()
-                for x in base_patient_folder_parts:
-                    base_patient_folder = base_patient_folder.joinpath(x)
+            base_patient_folder = self._output_patient_folder
+            # base_patient_folder = '/'.join(self._output_patient_folder.split('/')[:-1])  # To keep the timestamp folder
+            # if os.name == 'nt':
+            #     base_patient_folder_parts = list(PurePath(os.path.realpath(self._output_patient_folder)).parts[:-1])
+            #     base_patient_folder = PurePath()
+            #     for x in base_patient_folder_parts:
+            #         base_patient_folder = base_patient_folder.joinpath(x)
 
             volume_params['display_name'] = self._display_name
             if self._output_patient_folder in self._raw_input_filepath:
@@ -295,6 +303,7 @@ class AnnotationVolume:
             volume_params['annotation_class'] = str(self._annotation_class)
             volume_params['generation_type'] = str(self._generation_type)
             volume_params['parent_mri_uid'] = self._parent_mri_uid
+            volume_params['investigation_timestamp_uid'] = self._timestamp_uid
             volume_params['display_name'] = self._display_name
             volume_params['display_color'] = self._display_color
             volume_params['display_opacity'] = self._display_opacity
@@ -304,8 +313,14 @@ class AnnotationVolume:
             logging.error("AnnotationStructure saving failed with:\n {}".format(traceback.format_exc()))
 
     def __init_from_scratch(self) -> None:
+        os.makedirs(self.output_patient_folder, exist_ok=True)
+        os.makedirs(os.path.join(self.output_patient_folder, self._timestamp_uid), exist_ok=True)
+        os.makedirs(os.path.join(self.output_patient_folder, self._timestamp_uid, 'raw'), exist_ok=True)
+        os.makedirs(os.path.join(self.output_patient_folder, self._timestamp_uid, 'display'), exist_ok=True)
+
         self._usable_input_filepath = input_file_type_conversion(input_filename=self._raw_input_filepath,
                                                                  output_folder=os.path.join(self._output_patient_folder,
+                                                                                            self._timestamp_uid,
                                                                                             'raw'))
         self.__generate_display_volume()
 
@@ -342,6 +357,7 @@ class AnnotationVolume:
         self.set_annotation_class_type(anno_type=parameters['annotation_class'], manual=False)
         self.set_generation_type(generation_type=parameters['generation_type'], manual=False)
         self._parent_mri_uid = parameters['parent_mri_uid']
+        self._timestamp_uid = parameters['investigation_timestamp_uid']
         self._display_name = parameters['display_name']
         self._display_color = parameters['display_color']
         self._display_opacity = parameters['display_opacity']

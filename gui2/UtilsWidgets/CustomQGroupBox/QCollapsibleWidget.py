@@ -115,6 +115,8 @@ class QCollapsibleWidget(QWidget):
         self._header = Header(name, self._content_widget)
         self.layout.addWidget(self._header)
         self._content_layout = QVBoxLayout()
+        self._content_layout.setContentsMargins(0, 0, 0, 0)
+        self._content_layout.setSpacing(0)
         self._content_widget.setLayout(self._content_layout)
         self.layout.addWidget(self._content_widget)
 

@@ -38,13 +38,16 @@ class ReportingStructure:
     _parent_mri_uid = None
     _report_task = None
     _output_patient_folder = ""
+    _timestamp_uid = None  # Internal unique identifier to the investigation timestamp, for saving on disk purposes.
     _unsaved_changes = False
 
-    def __init__(self, uid: str, report_filename: str, output_patient_folder: str, reload_params: dict = None) -> None:
+    def __init__(self, uid: str, report_filename: str, output_patient_folder: str, inv_ts_uid: str,
+                 reload_params: dict = None) -> None:
         self.__reset()
         self._unique_id = uid
         self._report_filename = report_filename
         self._output_patient_folder = output_patient_folder
+        self._timestamp_uid = inv_ts_uid
         with open(self._report_filename, 'r') as infile:
             self._report_content = json.load(infile)
 
@@ -65,6 +68,7 @@ class ReportingStructure:
         self._unsaved_changes = False
         self._parent_mri_uid = None
         self._report_task = None
+        self._timestamp_uid = None
 
     @property
     def unique_id(self) -> str:
@@ -124,6 +128,8 @@ class ReportingStructure:
         """
 
         """
+        self._timestamp_uid = params['investigation_timestamp_uid']
+
         if 'parent_mri_uid' in list(params.keys()):
             self._parent_mri_uid = params['parent_mri_uid']
 
@@ -140,6 +146,7 @@ class ReportingStructure:
             report_params['unique_id'] = self._unique_id
             report_params['parent_mri_uid'] = self._parent_mri_uid
             report_params['task'] = str(self._report_task)
+            report_params['investigation_timestamp_uid'] = self._timestamp_uid
 
             base_patient_folder = '/'.join(self._output_patient_folder.split('/'))
             if os.name == 'nt':
