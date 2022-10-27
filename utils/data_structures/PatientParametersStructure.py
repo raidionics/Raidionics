@@ -465,7 +465,8 @@ class PatientParameters:
             else:
                 if len(self._mri_volumes) != 0:
                     # @TODO. Not optimal to set a default parent MRI, forces a manual update after, must be improved.
-                    default_parent_mri_uid = list(self._mri_volumes.keys())[0]
+                    # Should at least take the first MRI series for the correct timestamp.
+                    default_parent_mri_uid = self.get_all_mri_volumes_for_timestamp(investigation_ts)[0] # list(self._mri_volumes.keys())[0]
                     # Generating a unique id for the annotation volume
                     base_data_uid = os.path.basename(filename).strip().split('.')[0]
                     non_available_uid = True
@@ -482,7 +483,7 @@ class PatientParameters:
                     error_message = "No MRI volume has been imported yet. Mandatory for importing an annotation."
                     logging.error(error_message)
         except Exception as e:
-            error_message = e
+            error_message = traceback.format_exc()
             logging.error(str(traceback.format_exc()))
 
         logging.info("New data file imported: {}".format(data_uid))
@@ -501,20 +502,38 @@ class PatientParameters:
             Placeholder from SimpleITK containing the reader and metadata for the current MRI Series
         inv_ts: str
             Internal unique identifier for the investigation timestamp to which this MRI Series belongs to.
-        """
-        ori_filename = os.path.join(self._output_folder, dicom_series.get_unique_readable_name() + '.nii.gz')
-        filename_taken = os.path.exists(ori_filename)
-        while filename_taken:
-            trail = str(np.random.randint(0, 100000))
-            ori_filename = os.path.join(self._output_folder, dicom_series.get_unique_readable_name() + '_' +
-                                        str(trail) + '.nii.gz')
-            filename_taken = os.path.exists(ori_filename)
 
-        sitk.WriteImage(dicom_series.volume, ori_filename)
-        logging.info("Converted DICOM import to {}".format(ori_filename))
-        uid, error_msg = self.import_data(ori_filename, type="MRI")
-        if error_msg is None:
+        Returns
+        -------
+        data_uid, error_message: Union[str, Any]
+            data_uid, error_message: The internal unique id of the newly created object, and the potential error message
+        """
+        uid = None
+        error_msg = None
+        ori_filename = None
+        try:
+            ori_filename = os.path.join(self._output_folder, dicom_series.get_unique_readable_name() + '.nii.gz')
+            filename_taken = os.path.exists(ori_filename)
+            while filename_taken:
+                trail = str(np.random.randint(0, 100000))
+                ori_filename = os.path.join(self._output_folder, dicom_series.get_unique_readable_name() + '_' +
+                                            str(trail) + '.nii.gz')
+                filename_taken = os.path.exists(ori_filename)
+
+            sitk.WriteImage(dicom_series.volume, ori_filename)
+            logging.info("Converted DICOM import to {}".format(ori_filename))
+            uid, error_msg = self.import_data(ori_filename, type="MRI")
             self._mri_volumes[uid].set_dicom_metadata(dicom_series.dicom_tags)
+
+            # Removing the temporary MRI Series placeholder.
+            self._mri_volumes[uid].set_usable_filepath_as_raw()
+            if ori_filename and os.path.exists(ori_filename):
+                os.remove(ori_filename)
+        except Exception:
+            if ori_filename and os.path.exists(ori_filename):
+                os.remove(ori_filename)
+            logging.error("Import DICOM data failed with\n {}".format(traceback.format_exc()))
+            error_msg = error_msg + traceback.format_exc() if error_msg else traceback.format_exc()
         return uid, error_msg
 
     def import_atlas_structures(self, filename: str, parent_mri_uid: str, description: str = None,
@@ -606,6 +625,21 @@ class PatientParameters:
 
     def get_timestamp_by_uid(self, uid: str) -> InvestigationTimestamp:
         return self._investigation_timestamps[uid]
+
+    @property
+    def mri_volumes(self) -> dict:
+        return self._mri_volumes
+
+    def get_dicom_id(self) -> Union[None, str]:
+        """
+        When loading MRI series from DICOM, the patient DICOM ID can be retrieved.
+        """
+        res = None
+        for im in list(self._mri_volumes.keys()):
+            if self._mri_volumes[im].get_dicom_metadata() and '0010|0020' in self._mri_volumes[im].get_dicom_metadata().keys():
+                res = self._mri_volumes[im].get_dicom_metadata()['0010|0020'].strip()
+                return res
+        return res
 
     def get_all_mri_volumes_uids(self) -> List[str]:
         return list(self._mri_volumes.keys())

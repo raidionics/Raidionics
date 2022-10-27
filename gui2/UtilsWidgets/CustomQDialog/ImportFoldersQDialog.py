@@ -1,5 +1,7 @@
 import logging
 import re
+import traceback
+
 from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QGridLayout, QDialog, QDialogButtonBox,\
     QComboBox, QPushButton, QScrollArea, QLineEdit, QFileDialog, QMessageBox, QProgressBar, QListView, \
     QAbstractItemView, QTreeView, QFileSystemModel
@@ -189,122 +191,99 @@ class ImportFoldersQDialog(QDialog):
         self.load_progressbar.setValue(0)
 
         for i, w in enumerate(widgets):
-            input_folderpath = w.wid.filepath_lineedit.text()
-            folders_in_path = []
+            try:
+                input_folderpath = w.wid.filepath_lineedit.text()
+                folders_in_path = []
 
-            for _, dirs, _ in os.walk(input_folderpath):
-                for d in dirs:
-                    folders_in_path.append(d)
-                break
-
-            # Checking for the proper use-case based on the type of folder architecture
-            if len(folders_in_path) == 0 and self.parsing_mode == 'single' and self.target_type == 'regular':  # Case (i)
-                imports, error_msg = import_patient_from_folder(folder_path=input_folderpath)
-                pat_uid = imports['Patient'][0]
-                self.patient_imported.emit(pat_uid)
-                SoftwareConfigResources.getInstance().get_patient(pat_uid).save_patient()
-                if self.operation_mode == 'study':
-                    msg = SoftwareConfigResources.getInstance().get_active_study().include_study_patient(uid=pat_uid,
-                                                                                                         folder_name=SoftwareConfigResources.getInstance().get_patient(pat_uid).output_folder)
-                self.load_progressbar.setValue(i + 1)
-                if error_msg:
-                    diag = QMessageBox()
-                    diag.setText("Unable to load patient.\nError message: {}.\n".format(error_msg))
-                    diag.exec_()
-            elif len(folders_in_path) != 0 and self.parsing_mode == 'single' and self.target_type == 'regular':  # Case (vi)
-                collective_errors = ""
-                imports, error_msg = import_patient_from_timestamped_folder(folder_path=input_folderpath)
-                pat_uid = imports['Patient'][0]
-                self.patient_imported.emit(pat_uid)
-                SoftwareConfigResources.getInstance().get_patient(pat_uid).save_patient()
-                if self.operation_mode == 'study':
-                    msg = SoftwareConfigResources.getInstance().get_active_study().include_study_patient(uid=pat_uid,
-                                                                                                         folder_name=SoftwareConfigResources.getInstance().get_patient(
-                                                                                                             pat_uid).output_folder)
-                collective_errors = collective_errors + error_msg
-                self.load_progressbar.setValue(i + 1)
-                if collective_errors != "":
-                    diag = QMessageBox()
-                    diag.setText("Unable to load patients.\nError message: {}.\n".format(collective_errors))
-                    diag.exec_()
-            elif len(folders_in_path) == 0 and self.target_type == 'regular':  # Case (iii)
-                single_files_in_path = []
-                for _, _, files in os.walk(input_folderpath):
-                    for f in files:
-                        if '.'.join(f.split('.')[1:]) in SoftwareConfigResources.getInstance().get_accepted_image_formats():
-                            single_files_in_path.append(f)
+                for _, dirs, _ in os.walk(input_folderpath):
+                    for d in dirs:
+                        folders_in_path.append(d)
                     break
 
-                self.load_progressbar.setMaximum(len(single_files_in_path))
-                for p in single_files_in_path:
-                    pat_uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_patient(active=False)
-                    if error_msg:
-                        patient_include_error_msg = "Unable to create empty patient.\nError message: {}.\n".format(
-                            error_msg)
-
-                    SoftwareConfigResources.getInstance().get_patient(pat_uid).display_name = p.split('.')[0]
-                    uid, error_msg = SoftwareConfigResources.getInstance().get_patient(pat_uid).import_data(
-                        os.path.join(input_folderpath, p))
-                    if error_msg:
-                        patient_include_error_msg = "Unable to load {}.\nError message: {}.\n".format(
-                            os.path.join(input_folderpath, p), error_msg)
-                    self.patient_imported.emit(pat_uid)
-                    SoftwareConfigResources.getInstance().get_patient(pat_uid).save_patient()
-                    if self.operation_mode == 'study':
-                        msg = SoftwareConfigResources.getInstance().get_active_study().include_study_patient(uid=pat_uid,
-                                                                                                             folder_name=SoftwareConfigResources.getInstance().get_patient(pat_uid).output_folder)
-                    self.load_progressbar.setValue(i + 1)
-            elif self.target_type == 'regular':  # Case (ii) and (vii)
-                collective_errors = ""
-                self.load_progressbar.setMaximum(len(folders_in_path))
-                for patient in folders_in_path:
-                    tmp_dirs = []
-                    for _, dirs, _ in os.walk(os.path.join(input_folderpath, patient)):
-                        for d in dirs:
-                            tmp_dirs.append(d)
-                        break
-                    if len(tmp_dirs) == 0:
-                        imports, error_msg = import_patient_from_folder(folder_path=os.path.join(input_folderpath, patient))
-                    else:
-                        imports, error_msg = import_patient_from_timestamped_folder(folder_path=os.path.join(input_folderpath, patient))
+                # Checking for the proper use-case based on the type of folder architecture
+                if len(folders_in_path) == 0 and self.parsing_mode == 'single' and self.target_type == 'regular':  # Case (i)
+                    imports, error_msg = import_patient_from_folder(folder_path=input_folderpath)
                     pat_uid = imports['Patient'][0]
                     self.patient_imported.emit(pat_uid)
                     SoftwareConfigResources.getInstance().get_patient(pat_uid).save_patient()
                     if self.operation_mode == 'study':
                         msg = SoftwareConfigResources.getInstance().get_active_study().include_study_patient(uid=pat_uid,
                                                                                                              folder_name=SoftwareConfigResources.getInstance().get_patient(pat_uid).output_folder)
+                    self.load_progressbar.setValue(i + 1)
+                    if error_msg:
+                        diag = QMessageBox()
+                        diag.setText("Unable to load patient.\nError message: {}.\n".format(error_msg))
+                        diag.exec_()
+                elif len(folders_in_path) != 0 and self.parsing_mode == 'single' and self.target_type == 'regular':  # Case (vi)
+                    collective_errors = ""
+                    imports, error_msg = import_patient_from_timestamped_folder(folder_path=input_folderpath)
+                    pat_uid = imports['Patient'][0]
+                    self.patient_imported.emit(pat_uid)
+                    SoftwareConfigResources.getInstance().get_patient(pat_uid).save_patient()
+                    if self.operation_mode == 'study':
+                        msg = SoftwareConfigResources.getInstance().get_active_study().include_study_patient(uid=pat_uid,
+                                                                                                             folder_name=SoftwareConfigResources.getInstance().get_patient(
+                                                                                                                 pat_uid).output_folder)
                     collective_errors = collective_errors + error_msg
                     self.load_progressbar.setValue(i + 1)
-                if collective_errors != "":
-                    diag = QMessageBox()
-                    diag.setText("Unable to load patients.\nError message: {}.\n".format(collective_errors))
-                    diag.exec_()
-            elif self.target_type == 'dicom' and self.parsing_mode == 'single':  # Case (iv)
-                dicom_holder = PatientDICOM(input_folderpath)
-                error_msg = dicom_holder.parse_dicom_folder()
-                # if error_msg is not None:
-                #     diag = QMessageBox.warning(self, "DICOM parsing warnings", error_msg)
-                pat_uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_patient(active=False)
-                if error_msg:
-                    patient_include_error_msg = "Unable to create empty patient.\nError message: {}.\n".format(
-                        error_msg)
-                SoftwareConfigResources.getInstance().get_patient(uid=pat_uid).display_name = dicom_holder.patient_id
-                for study_id in dicom_holder.studies.keys():
-                    for series_id in dicom_holder.studies[study_id].dicom_series.keys():
-                        volume_uid, err_msg = SoftwareConfigResources.getInstance().get_patient(uid=pat_uid).import_dicom_data(dicom_holder.studies[study_id].dicom_series[series_id])
-                self.patient_imported.emit(pat_uid)
-                SoftwareConfigResources.getInstance().get_patient(pat_uid).save_patient()
-                if self.operation_mode == 'study':
-                    msg = SoftwareConfigResources.getInstance().get_active_study().include_study_patient(uid=pat_uid,
-                                                                                                         folder_name=SoftwareConfigResources.getInstance().get_patient(pat_uid).output_folder)
-                self.load_progressbar.setValue(i + 1)
-                if error_msg:
-                    diag = QMessageBox()
-                    diag.setText("Unable to load patient.\nError message: {}.\n".format(error_msg))
-                    diag.exec_()
-            elif self.target_type == 'dicom' and self.parsing_mode == 'multiple':  # Case (v)
-                for patient in folders_in_path:
-                    dicom_holder = PatientDICOM(os.path.join(input_folderpath, patient))
+                    if collective_errors != "":
+                        diag = QMessageBox()
+                        diag.setText("Unable to load patients.\nError message: {}.\n".format(collective_errors))
+                        diag.exec_()
+                elif len(folders_in_path) == 0 and self.target_type == 'regular':  # Case (iii)
+                    single_files_in_path = []
+                    for _, _, files in os.walk(input_folderpath):
+                        for f in files:
+                            if '.'.join(f.split('.')[1:]) in SoftwareConfigResources.getInstance().get_accepted_image_formats():
+                                single_files_in_path.append(f)
+                        break
+
+                    self.load_progressbar.setMaximum(len(single_files_in_path))
+                    for p in single_files_in_path:
+                        pat_uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_patient(active=False)
+                        if error_msg:
+                            patient_include_error_msg = "Unable to create empty patient.\nError message: {}.\n".format(
+                                error_msg)
+
+                        SoftwareConfigResources.getInstance().get_patient(pat_uid).display_name = p.split('.')[0]
+                        uid, error_msg = SoftwareConfigResources.getInstance().get_patient(pat_uid).import_data(
+                            os.path.join(input_folderpath, p))
+                        if error_msg:
+                            patient_include_error_msg = "Unable to load {}.\nError message: {}.\n".format(
+                                os.path.join(input_folderpath, p), error_msg)
+                        self.patient_imported.emit(pat_uid)
+                        SoftwareConfigResources.getInstance().get_patient(pat_uid).save_patient()
+                        if self.operation_mode == 'study':
+                            msg = SoftwareConfigResources.getInstance().get_active_study().include_study_patient(uid=pat_uid,
+                                                                                                                 folder_name=SoftwareConfigResources.getInstance().get_patient(pat_uid).output_folder)
+                        self.load_progressbar.setValue(i + 1)
+                elif self.target_type == 'regular':  # Case (ii) and (vii)
+                    collective_errors = ""
+                    self.load_progressbar.setMaximum(len(folders_in_path))
+                    for patient in folders_in_path:
+                        tmp_dirs = []
+                        for _, dirs, _ in os.walk(os.path.join(input_folderpath, patient)):
+                            for d in dirs:
+                                tmp_dirs.append(d)
+                            break
+                        if len(tmp_dirs) == 0:
+                            imports, error_msg = import_patient_from_folder(folder_path=os.path.join(input_folderpath, patient))
+                        else:
+                            imports, error_msg = import_patient_from_timestamped_folder(folder_path=os.path.join(input_folderpath, patient))
+                        pat_uid = imports['Patient'][0]
+                        self.patient_imported.emit(pat_uid)
+                        SoftwareConfigResources.getInstance().get_patient(pat_uid).save_patient()
+                        if self.operation_mode == 'study':
+                            msg = SoftwareConfigResources.getInstance().get_active_study().include_study_patient(uid=pat_uid,
+                                                                                                                 folder_name=SoftwareConfigResources.getInstance().get_patient(pat_uid).output_folder)
+                        collective_errors = collective_errors + error_msg
+                        self.load_progressbar.setValue(i + 1)
+                    if collective_errors != "":
+                        diag = QMessageBox()
+                        diag.setText("Unable to load patients.\nError message: {}.\n".format(collective_errors))
+                        diag.exec_()
+                elif self.target_type == 'dicom' and self.parsing_mode == 'single':  # Case (iv)
+                    dicom_holder = PatientDICOM(input_folderpath)
                     error_msg = dicom_holder.parse_dicom_folder()
                     # if error_msg is not None:
                     #     diag = QMessageBox.warning(self, "DICOM parsing warnings", error_msg)
@@ -312,7 +291,7 @@ class ImportFoldersQDialog(QDialog):
                     if error_msg:
                         patient_include_error_msg = "Unable to create empty patient.\nError message: {}.\n".format(
                             error_msg)
-                    SoftwareConfigResources.getInstance().get_patient(uid=pat_uid).display_name = dicom_holder.patient_id
+                    SoftwareConfigResources.getInstance().get_patient(uid=pat_uid).set_display_name(dicom_holder.patient_id)
                     for study_id in dicom_holder.studies.keys():
                         for series_id in dicom_holder.studies[study_id].dicom_series.keys():
                             volume_uid, err_msg = SoftwareConfigResources.getInstance().get_patient(uid=pat_uid).import_dicom_data(dicom_holder.studies[study_id].dicom_series[series_id])
@@ -326,6 +305,33 @@ class ImportFoldersQDialog(QDialog):
                         diag = QMessageBox()
                         diag.setText("Unable to load patient.\nError message: {}.\n".format(error_msg))
                         diag.exec_()
+                elif self.target_type == 'dicom' and self.parsing_mode == 'multiple':  # Case (v)
+                    for patient in folders_in_path:
+                        dicom_holder = PatientDICOM(os.path.join(input_folderpath, patient))
+                        error_msg = dicom_holder.parse_dicom_folder()
+                        # if error_msg is not None:
+                        #     diag = QMessageBox.warning(self, "DICOM parsing warnings", error_msg)
+                        pat_uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_patient(active=False)
+                        if error_msg:
+                            patient_include_error_msg = "Unable to create empty patient.\nError message: {}.\n".format(
+                                error_msg)
+                        SoftwareConfigResources.getInstance().get_patient(uid=pat_uid).set_display_name(dicom_holder.patient_id)
+                        for study_id in dicom_holder.studies.keys():
+                            for series_id in dicom_holder.studies[study_id].dicom_series.keys():
+                                volume_uid, err_msg = SoftwareConfigResources.getInstance().get_patient(uid=pat_uid).import_dicom_data(dicom_holder.studies[study_id].dicom_series[series_id])
+                        self.patient_imported.emit(pat_uid)
+                        SoftwareConfigResources.getInstance().get_patient(pat_uid).save_patient()
+                        if self.operation_mode == 'study':
+                            msg = SoftwareConfigResources.getInstance().get_active_study().include_study_patient(uid=pat_uid,
+                                                                                                                 folder_name=SoftwareConfigResources.getInstance().get_patient(pat_uid).output_folder)
+                        self.load_progressbar.setValue(i + 1)
+                        if error_msg:
+                            diag = QMessageBox()
+                            diag.setText("Unable to load patient.\nError message: {}.\n".format(error_msg))
+                            diag.exec_()
+            except Exception as e:
+                logging.error("Folder import failed for {} with: \n {}".format(w.wid.filepath_lineedit.text(),
+                                                                               traceback.format_exc()))
         self.load_progressbar.setVisible(False)
         self.accept()
 

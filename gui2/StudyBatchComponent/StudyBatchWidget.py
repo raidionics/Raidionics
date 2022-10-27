@@ -27,11 +27,12 @@ class StudyBatchWidget(QWidget):
     mri_volume_imported = Signal(str)
     annotation_volume_imported = Signal(str)
     atlas_volume_imported = Signal(str)
-    standard_report_imported = Signal()
     study_imported = Signal(str)  # uid of the imported study
     processing_started = Signal()
     processing_advanced = Signal()
     processing_finished = Signal()
+    patient_report_imported = Signal(str, str)  # Patient unique identifier, report unique identifier
+    patient_radiological_sequences_imported = Signal(str)  # Patient unique identifier
 
     def __init__(self, parent=None):
         super(StudyBatchWidget, self).__init__()
@@ -115,7 +116,6 @@ class StudyBatchWidget(QWidget):
         self.studies_panel.patient_imported.connect(self.patient_imported)
         self.studies_panel.import_study_from_file_requested.connect(self.__on_import_custom_clicked)
         self.studies_panel.patient_imported.connect(self.patient_listing_panel.on_patient_imported)
-        self.studies_panel.batch_segmentation_requested.connect(self.on_batch_segmentation_wrapper)
         self.studies_panel.batch_pipeline_execution_requested.connect(self.on_batch_pipeline_execution_wrapper)
         self.studies_panel.patients_import_finished.connect(self.patients_summary_panel.on_patients_import)
         self.study_imported.connect(self.studies_panel.on_study_imported)
@@ -155,31 +155,6 @@ class StudyBatchWidget(QWidget):
         for pat_uid in SoftwareConfigResources.getInstance().get_study(study_uid).included_patients_uids.keys():
             self.patient_imported.emit(pat_uid)
 
-    def on_batch_segmentation_wrapper(self, study_uid, model_name):
-        run_segmentation_thread = threading.Thread(target=self.on_batch_segmentation, args=(study_uid, model_name,))
-        run_segmentation_thread.daemon = True  # using daemon thread the thread is killed gracefully if program is abruptly closed
-        run_segmentation_thread.start()
-
-    def on_batch_segmentation(self, study_uid, model_name):
-        from utils.backend_logic import pipeline_main_wrapper
-        self.on_process_started()
-        study = SoftwareConfigResources.getInstance().study_parameters[study_uid]
-        patients_uid = study.included_patients_uids
-        for u in patients_uid:
-            # @TODO. Have to change the global behaviour about the active patient, otherwise needs to manually set it
-            # to the currently iterated patient. Should be an active display patient, and an active process patient to
-            # avoid side effects, the same patient potentially being both at the same time.
-            # And also should disable the run segmentation/reporting buttons from the single mode view.
-
-            code, results = pipeline_main_wrapper(pipeline_task='preop_segmentation',
-                                                  model_name=model_name,
-                                                  patient_parameters=SoftwareConfigResources.getInstance().patients_parameters[u])
-
-            # Automatically saving the patient (with the latest results) for an easier loading afterwards.
-            SoftwareConfigResources.getInstance().patients_parameters[u].save_patient()
-            self.processing_advanced.emit()
-        self.on_process_finished()
-
     def on_batch_pipeline_execution_wrapper(self, study_uid: str, pipeline_task: str, model_name: str) -> None:
         run_segmentation_thread = threading.Thread(target=self.on_batch_pipeline_execution, args=(study_uid,
                                                                                                   pipeline_task,
@@ -196,6 +171,14 @@ class StudyBatchWidget(QWidget):
             code, results = pipeline_main_wrapper(pipeline_task=pipeline_task,
                                                   model_name=model_name,
                                                   patient_parameters=SoftwareConfigResources.getInstance().patients_parameters[u])
+            # Not iterating over the image results as the redrawing will be done when the active patient is changed.
+            if 'Report' in list(results.keys()):
+                for r in results['Report']:
+                    self.patient_report_imported.emit(u, r)
+            if 'Classification' in list(results.keys()):
+                # @TODO. Will have to be more generic when more than one classifier.
+                # @TODO2. Not connected all the way.
+                self.patient_radiological_sequences_imported.emit(u)
 
             # Automatically saving the patient (with the latest results) for an easier loading afterwards.
             SoftwareConfigResources.getInstance().patients_parameters[u].save_patient()

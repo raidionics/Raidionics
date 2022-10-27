@@ -23,6 +23,8 @@ class SinglePatientWidget(QWidget):
     patient_name_edited = Signal(str, str)
     import_data_triggered = Signal()
     import_patient_triggered = Signal()
+    patient_report_imported = Signal(str, str)
+    patient_radiological_sequences_imported = Signal(str)
 
     def __init__(self, parent=None):
         super(SinglePatientWidget, self).__init__()
@@ -68,16 +70,17 @@ class SinglePatientWidget(QWidget):
     def __top_logo_options_panel_interface(self):
         self.top_logo_panel_layout = QHBoxLayout()
         self.top_logo_panel_layout.setSpacing(5)
+        self.top_logo_panel_layout.setContentsMargins(10, 0, 0, 0)
         self.top_logo_panel_label_import_file_pushbutton = QPushButton("Data")
         self.top_logo_panel_label_import_file_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/upload_icon.png'))))
         self.top_logo_panel_label_import_file_pushbutton.setToolTip("Import single file(s) for the current patient.")
         self.top_logo_panel_label_import_file_pushbutton.setEnabled(False)
-        self.top_logo_panel_layout.addWidget(self.top_logo_panel_label_import_file_pushbutton)
+        # self.top_logo_panel_layout.addWidget(self.top_logo_panel_label_import_file_pushbutton)
 
         self.top_logo_panel_label_import_dicom_pushbutton = QPushButton()
         self.top_logo_panel_label_import_dicom_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                                                              '../Images/database_icon.png')).scaled(QSize(30, 30), Qt.KeepAspectRatio)))
-        self.top_logo_panel_label_import_dicom_pushbutton.setToolTip("DICOM explorer.")
+        self.top_logo_panel_label_import_dicom_pushbutton.setToolTip("DICOM explorer")
         self.top_logo_panel_label_import_dicom_pushbutton.setEnabled(False)
         self.top_logo_panel_layout.addWidget(self.top_logo_panel_label_import_dicom_pushbutton)
 
@@ -125,11 +128,12 @@ class SinglePatientWidget(QWidget):
         self.import_folder_dialog.patient_imported.connect(self.layers_panel.on_import_patient)
         self.import_dicom_dialog.patient_imported.connect(self.results_panel.on_import_patient)
         self.import_dicom_dialog.mri_volume_imported.connect(self.layers_panel.on_mri_volume_import)
+        self.layers_panel.import_data_requested.connect(self.__on_import_file_clicked)
 
         # Connections relating patient selection (left-hand side) with data import
         self.results_panel.import_patient_from_data_requested.connect(self.__on_import_file_clicked)
         self.results_panel.import_patient_from_custom_requested.connect(self.__on_import_custom_clicked)
-        self.results_panel.import_patient_from_dicom_requested.connect(self.__on_import_dicom_clicked)
+        self.results_panel.import_patient_from_dicom_requested.connect(self.__on_import_patient_dicom_clicked)
         self.results_panel.import_patient_from_folder_requested.connect(self.__on_import_folder_clicked)
         self.results_panel.reset_interface_requested.connect(self.center_panel.reset_central_viewer)
         self.results_panel.reset_interface_requested.connect(self.layers_panel.on_reset_interface)
@@ -162,6 +166,9 @@ class SinglePatientWidget(QWidget):
         self.center_panel.standardized_report_imported.connect(self.results_panel.on_standardized_report_imported)
         self.center_panel.radiological_sequences_imported.connect(self.layers_panel.radiological_sequences_imported)
         self.center_panel.annotation_display_state_changed.connect(self.layers_panel.annotation_display_state_changed)
+
+        # External data import (from study mode)
+        self.patient_report_imported.connect(self.results_panel.on_patient_report_imported)
 
         # To sort
         self.center_panel.mri_volume_imported.connect(self.layers_panel.on_mri_volume_import)
@@ -197,10 +204,20 @@ class SinglePatientWidget(QWidget):
 
     def __on_import_dicom_clicked(self) -> None:
         """
+        The dialog is executed and tables are populated to show the current patient.
+        """
+        # self.import_dicom_dialog.reset()
+        patient_dicom_id = SoftwareConfigResources.getInstance().get_active_patient().get_dicom_id()
+        if patient_dicom_id:
+            self.import_dicom_dialog.set_fixed_patient(patient_dicom_id)
+        code = self.import_dicom_dialog.exec_()
+        # if code == QDialog.Accepted:
+        #     self.import_data_triggered.emit()
+
+    def __on_import_patient_dicom_clicked(self) -> None:
+        """
 
         """
-        # @Behaviour. Do we reset the loader in case of DICOMs, might be worth to keep stuff in memory?
-        # self.import_dicom_dialog.reset()
         code = self.import_dicom_dialog.exec_()
         # if code == QDialog.Accepted:
         #     self.import_data_triggered.emit()
@@ -269,5 +286,3 @@ class SinglePatientWidget(QWidget):
     def on_atlas_volume_imported(self, uid: str) -> None:
         self.layers_panel.on_atlas_volume_import(uid)
 
-    def on_standard_report_imported(self) -> None:
-        pass

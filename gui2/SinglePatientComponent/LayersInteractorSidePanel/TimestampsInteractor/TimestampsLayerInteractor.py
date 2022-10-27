@@ -13,6 +13,7 @@ class TimestampsLayerInteractor(QWidget):
 
     """
     reset_central_viewer = Signal()
+    import_data_requested = Signal()
     patient_imported = Signal(str)
     patient_view_toggled = Signal(str)
     volume_view_toggled = Signal(str, bool)
@@ -47,6 +48,11 @@ class TimestampsLayerInteractor(QWidget):
 
         self.timestamp_order_layout = QHBoxLayout()
         self.timestamp_selector_combobox = QComboBox()
+        self.import_data_pushbutton = QPushButton()
+        self.import_data_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../Images/load_file_icon.png'))))
+        self.import_data_pushbutton.setToolTip("Import single file(s) for the current investigation timestamp.")
+        self.import_data_pushbutton.setEnabled(False)
+        self.import_data_pushbutton.setVisible(False)
         self.timestamp_rankup_pushbutton = QPushButton()
         self.timestamp_rankup_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../Images/arrow_circle_up.png'))))
         self.timestamp_rankup_pushbutton.setToolTip("Move the timestamp one rank up the order list.")
@@ -57,11 +63,13 @@ class TimestampsLayerInteractor(QWidget):
         self.timestamp_rankdown_pushbutton.setEnabled(False)
         self.timestamp_add_pushbutton = QPushButton()
         self.timestamp_add_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../Images/plus_icon.png'))))
-        self.timestamp_add_pushbutton.setToolTip("Add a new timestamp to the list.")
+        self.timestamp_add_pushbutton.setToolTip("Add a new investigation timestamp.")
         self.timestamp_remove_pushbutton = QPushButton()
         self.timestamp_remove_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../Images/minus_icon.png'))))
-        self.timestamp_remove_pushbutton.setToolTip("Remove current timestamp from the list.")
+        self.timestamp_remove_pushbutton.setToolTip("Remove the current investigation timestamp.")
         self.timestamp_remove_pushbutton.setEnabled(False)
+        self.timestamp_order_layout.addStretch(1)
+        self.timestamp_order_layout.addWidget(self.import_data_pushbutton)
         self.timestamp_order_layout.addStretch(1)
         self.timestamp_order_layout.addWidget(self.timestamp_add_pushbutton)
         self.timestamp_order_layout.addWidget(self.timestamp_remove_pushbutton)
@@ -75,12 +83,15 @@ class TimestampsLayerInteractor(QWidget):
         self.layout.addWidget(self.timestamp_widgets_stacked)
 
     def __set_connections(self):
+        self.import_data_pushbutton.clicked.connect(self.import_data_requested)
         self.timestamp_selector_combobox.currentIndexChanged.connect(self.__on_selected_timestamp_changed)
         self.timestamp_add_pushbutton.clicked.connect(self.__on_timestamp_added)
         self.timestamp_remove_pushbutton.clicked.connect(self.__on_timestamp_removed)
 
     def __set_layout_dimensions(self):
         self.timestamp_selector_combobox.setFixedHeight(20)
+        self.import_data_pushbutton.setFixedSize(QSize(20, 20))
+        self.import_data_pushbutton.setIconSize(QSize(20, 20))
         self.timestamp_rankup_pushbutton.setFixedSize(QSize(20, 20))
         self.timestamp_rankup_pushbutton.setIconSize(QSize(20, 20))
         self.timestamp_rankdown_pushbutton.setFixedSize(QSize(20, 20))
@@ -100,6 +111,22 @@ class TimestampsLayerInteractor(QWidget):
         TimestampsLayerInteractor{
         background-color: """ + background_color + """;
         }""")
+
+        self.import_data_pushbutton.setStyleSheet("""
+        QPushButton{
+        background-color: """ + background_color + """;
+        border-style: none;
+        }
+        QPushButton::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        }
+        QPushButton:pressed{
+        border-style:inset;
+        background-color: """ + pressed_background_color + """;
+        }
+        """)
 
         self.timestamp_add_pushbutton.setStyleSheet("""
         QPushButton{
@@ -284,7 +311,7 @@ class TimestampsLayerInteractor(QWidget):
         self.timestamps_widget[current_ts_id].deleteLater()
         self.timestamps_widget.pop(current_ts_id)
         self.timestamp_selector_combobox.removeItem(index)
-        if len(self.timestamps_widget) <= 1:
+        if len(self.timestamps_widget) < 1:
             self.timestamp_remove_pushbutton.setEnabled(False)
 
     def reset(self):
@@ -295,6 +322,8 @@ class TimestampsLayerInteractor(QWidget):
         self.timestamp_selector_combobox.blockSignals(True)
         self.timestamp_selector_combobox.clear()
         self.timestamp_selector_combobox.blockSignals(False)
+        self.import_data_pushbutton.setEnabled(False)
+        self.import_data_pushbutton.setVisible(False)
 
     def on_patient_view_toggled(self, patient_uid: str) -> None:
         """
@@ -313,6 +342,8 @@ class TimestampsLayerInteractor(QWidget):
         # Forcing to display the first image for the given timestamp
         if len(self.timestamps_widget.keys()) > 0:
             self.timestamps_widget[list(self.timestamps_widget.keys())[0]].on_patient_view_toggled(SoftwareConfigResources.getInstance().get_active_patient_uid())
+        self.import_data_pushbutton.setEnabled(True)
+        self.import_data_pushbutton.setVisible(True)
 
     def on_import_patient(self, patient_uid: str) -> None:
         self.reset()
@@ -322,6 +353,8 @@ class TimestampsLayerInteractor(QWidget):
         # Forcing to display the first image for the given timestamp
         if len(self.timestamps_widget.keys()) > 0:
             self.timestamps_widget[list(self.timestamps_widget.keys())[0]].on_patient_view_toggled(SoftwareConfigResources.getInstance().get_active_patient_uid())
+        self.import_data_pushbutton.setEnabled(True)
+        self.import_data_pushbutton.setVisible(True)
 
     def on_mri_volume_import(self, uid):
         volume = SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_uid(uid)
@@ -374,12 +407,14 @@ class TimestampsLayerInteractor(QWidget):
             self.timestamps_widget[i].on_radiological_sequences_imported()
 
     def on_process_started(self) -> None:
+        self.import_data_pushbutton.setEnabled(False)
         self.timestamp_add_pushbutton.setEnabled(False)
         self.timestamp_remove_pushbutton.setEnabled(False)
         self.timestamp_rankup_pushbutton.setEnabled(False)
         self.timestamp_rankdown_pushbutton.setEnabled(False)
 
     def on_process_finished(self) -> None:
+        self.import_data_pushbutton.setEnabled(True)
         self.timestamp_add_pushbutton.setEnabled(True)
         self.timestamp_remove_pushbutton.setEnabled(True)
         self.timestamp_rankup_pushbutton.setEnabled(True)

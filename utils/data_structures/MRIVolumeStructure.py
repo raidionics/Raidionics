@@ -139,6 +139,13 @@ class MRIVolume:
     def raw_input_filepath(self) -> str:
         return self._raw_input_filepath
 
+    def set_usable_filepath_as_raw(self) -> None:
+        """
+        In case of DICOM MRI Series loading, the raw input filepath is a temporary conversion as nifti format of
+        the raw DICOM content, which is deleted upon creation completion, and as such the filepath should be adjusted.
+        """
+        self._raw_input_filepath = self._usable_input_filepath
+
     def set_output_patient_folder(self, output_folder: str) -> None:
         self._output_patient_folder = output_folder
 

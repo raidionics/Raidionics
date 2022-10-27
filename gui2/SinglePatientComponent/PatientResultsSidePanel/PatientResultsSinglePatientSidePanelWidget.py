@@ -214,7 +214,6 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         """
         self.__on_patient_selection(True, patient_id)
         self.patient_results_widgets[patient_id].manual_header_pushbutton_clicked(True)
-        self.patient_results_widgets[patient_id].on_standardized_report_imported()  # Might not be the best way, should be a more generic on_patient_selection
         self.adjustSize()  # To trigger a proper redrawing after the previous call
 
     def on_process_started(self):
@@ -327,6 +326,9 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
 
     def on_standardized_report_imported(self, report_uid):
         self.patient_results_widgets[SoftwareConfigResources.getInstance().get_active_patient().unique_id].on_standardized_report_imported(report_uid)
+
+    def on_patient_report_imported(self, patient_uid: str, report_uid: str) -> None:
+        self.patient_results_widgets[patient_uid].on_standardized_report_imported(report_uid)
 
     def on_import_options_clicked(self, point):
         self.options_menu.exec_(self.bottom_add_patient_pushbutton.mapToGlobal(QPoint(0, -95)))

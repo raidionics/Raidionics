@@ -25,8 +25,6 @@ class SingleStudyWidget(QCollapsibleWidget):
     mri_volume_imported = Signal(str)
     annotation_volume_imported = Signal(str)
     patient_imported = Signal(str)
-    batch_segmentation_requested = Signal(str, str)  # Unique id of the current study instance, and model name
-    batch_rads_requested = Signal(str, str)  # Unique id of the current study instance, and model name
     batch_pipeline_execution_requested = Signal(str, str, str)  # Unique id of the current study instance, pipeline task, and model name
     patient_import_started = Signal(str)
     patients_import_finished = Signal()
@@ -480,12 +478,14 @@ class SingleStudyWidget(QCollapsibleWidget):
 
     def __on_study_saved(self) -> None:
         """
+        Save the study on disk.
         """
         SoftwareConfigResources.getInstance().get_study(self.uid).save()
 
     def __on_study_closed(self) -> None:
         """
-
+        Remove the current study from the list of opened studies, after asking to save it on disk if changes have been
+        registered (if applicable).
         """
         if SoftwareConfigResources.getInstance().get_study(self.uid).has_unsaved_changes():
             dialog = SavePatientChangesDialog()
@@ -496,14 +496,19 @@ class SingleStudyWidget(QCollapsibleWidget):
                 return
         self.study_closed.emit(self.uid)
 
-    def __on_study_name_modified(self):
+    def __on_study_name_modified(self) -> None:
+        """
+        Internal update of the visible study name after user manual editing, the folder name on disk for the study
+        is also updated with the new requested name (if available).
+        """
         code, err_msg = SoftwareConfigResources.getInstance().get_active_study().set_display_name(self.study_name_lineedit.text())
         if code == 1:  # Operation failed
             self.study_name_lineedit.blockSignals(True)
             self.study_name_lineedit.setText(SoftwareConfigResources.getInstance().get_active_study().display_name)
             self.study_name_lineedit.blockSignals(False)
         else:
-            self.header_pushbutton.setText(self.study_name_lineedit.text())
+            self.header.title_label.setText(self.study_name_lineedit.text())
+            self.header.title = self.study_name_lineedit.text()
             self.output_dir_lineedit.setText(SoftwareConfigResources.getInstance().get_active_study().output_study_folder)
             self.output_dir_lineedit.setCursorPosition(0)
             self.output_dir_lineedit.home(True)
@@ -543,6 +548,11 @@ class SingleStudyWidget(QCollapsibleWidget):
             self.patients_import_finished.emit()
 
     def __on_include_single_dicom_patient_folder_clicked(self):
+        """
+        @TODO. Have to emit a signal to notify the DICOMQDialog, accessible from the single patient mode, that it
+        should update with the DICOM infos. Might even be smarter to do it inside the folder dialog, to send the
+        dicom_reader through the signal in order to avoid parsing twice the DICOM folder content?
+        """
         self.import_data_dialog.reset()
         self.import_data_dialog.set_parsing_mode('single')
         self.import_data_dialog.set_target_type('dicom')
@@ -587,42 +597,6 @@ class SingleStudyWidget(QCollapsibleWidget):
 
         self.on_processing_started()
         self.batch_pipeline_execution_requested.emit(self.uid, pipeline_task, self.model_name)
-
-    def __on_run_segmentation(self):
-        diag = TumorTypeSelectionQDialog(self)
-        code = diag.exec_()
-
-        if code == 0:  # Operation was cancelled by the user
-            return
-
-        self.model_name = "MRI_Meningioma"
-        if diag.tumor_type == 'High-Grade Glioma':
-            self.model_name = "MRI_HGGlioma_P2"
-        elif diag.tumor_type == 'Low-Grade Glioma':
-            self.model_name = "MRI_LGGlioma"
-        elif diag.tumor_type == 'Metastasis':
-            self.model_name = "MRI_Metastasis"
-
-        self.on_processing_started()
-        self.batch_segmentation_requested.emit(self.uid, self.model_name)
-
-    def __on_run_rads(self):
-        diag = TumorTypeSelectionQDialog(self)
-        code = diag.exec_()
-
-        if code == 0:  # Operation was cancelled by the user
-            return
-
-        self.model_name = "MRI_Meningioma"
-        if diag.tumor_type == 'High-Grade Glioma':
-            self.model_name = "MRI_HGGlioma_P2"
-        elif diag.tumor_type == 'Low-Grade Glioma':
-            self.model_name = "MRI_LGGlioma"
-        elif diag.tumor_type == 'Metastasis':
-            self.model_name = "MRI_Metastasis"
-
-        self.on_processing_started()
-        self.batch_rads_requested.emit(self.uid, self.model_name)
 
     def on_patients_loading_started(self):
         self.include_single_patient_folder_pushbutton.setEnabled(False)

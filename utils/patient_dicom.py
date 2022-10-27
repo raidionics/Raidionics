@@ -10,6 +10,8 @@ class PatientDICOM:
     def __init__(self, dicom_folder):
         self.dicom_folder = dicom_folder
         self.patient_id = None
+        self.gender = ""
+        self.birth_date = ""
         self.studies = {}
 
     def parse_dicom_folder(self):
