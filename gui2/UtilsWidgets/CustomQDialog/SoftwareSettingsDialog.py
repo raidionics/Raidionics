@@ -10,7 +10,7 @@ from utils.software_config import SoftwareConfigResources
 
 class SoftwareSettingsDialog(QDialog):
 
-    def __init__(self, volume_uid, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Settings")
         self.__set_interface()
@@ -161,7 +161,7 @@ class SoftwareSettingsDialog(QDialog):
 
         self.default_options_pushbutton.setStyleSheet("""
         QPushButton{
-        background-color: """ + background_color + """;
+        background-color: """ + pressed_background_color + """;
         color: """ + font_color + """;
         font: 12px;
         border-style: none;
@@ -203,13 +203,16 @@ class SoftwareSettingsDialog(QDialog):
         background-color: """ + pressed_background_color + """;
         }""")
 
-    def __on_home_dir_changed(self, directory):
+    def __on_home_dir_changed(self, directory: str) -> None:
         """
         The user manually selected another location for storing patients/studies.
         """
         SoftwareConfigResources.getInstance().user_preferences.user_home_location = directory
 
-    def __on_active_model_status_changed(self, status):
+    def __on_active_model_status_changed(self, status: bool) -> None:
+        """
+
+        """
         SoftwareConfigResources.getInstance().user_preferences.active_model_update = status
 
     def __on_use_sequences_status_changed(self, status):
@@ -230,9 +233,27 @@ class SoftwareSettingsDialog(QDialog):
 
     def __on_display_default_options(self):
         self.options_stackedwidget.setCurrentIndex(0)
+        software_ss = SoftwareConfigResources.getInstance().stylesheet_components
+        self.default_options_pushbutton.setStyleSheet(self.default_options_pushbutton.styleSheet() + """
+        QPushButton{
+        background-color: """ + software_ss["Color6"] + """;
+        }""")
+        self.processing_options_pushbutton.setStyleSheet(self.processing_options_pushbutton.styleSheet() + """
+        QPushButton{
+        background-color: """ + software_ss["Color5"] + """;
+        }""")
 
     def __on_display_processing_options(self):
         self.options_stackedwidget.setCurrentIndex(1)
+        software_ss = SoftwareConfigResources.getInstance().stylesheet_components
+        self.processing_options_pushbutton.setStyleSheet(self.processing_options_pushbutton.styleSheet() + """
+        QPushButton{
+        background-color: """ + software_ss["Color6"] + """;
+        }""")
+        self.default_options_pushbutton.setStyleSheet(self.default_options_pushbutton.styleSheet() + """
+        QPushButton{
+        background-color: """ + software_ss["Color5"] + """;
+        }""")
 
 
 class CustomLineEdit(QLineEdit):

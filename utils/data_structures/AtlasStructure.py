@@ -46,8 +46,6 @@ class AtlasVolume:
         self._class_description_filename = description_filename
         self._parent_mri_uid = parent_mri_uid
 
-        self._display_name = uid
-
         if reload_params:
             self.__reload_from_disk(reload_params)
         else:
@@ -86,6 +84,17 @@ class AtlasVolume:
             return
 
         self._class_description = pd.read_csv(self._class_description_filename)
+        self._display_name = self._unique_id
+        if "Schaefer7" in self._unique_id:
+            self._display_name = "Schaefer 7"
+        elif "Schaefer17" in self._unique_id:
+            self._display_name = "Schaefer 17"
+        elif "Harvard" in self._unique_id:
+            self._display_name = "Harvard-Oxford"
+        elif "BCB" in self._unique_id:
+            self._display_name = "BCB group"
+        elif "MNI" in self._unique_id:
+            self._display_name = "MNI group"
 
     def __reload_from_disk(self, parameters: dict) -> None:
         """

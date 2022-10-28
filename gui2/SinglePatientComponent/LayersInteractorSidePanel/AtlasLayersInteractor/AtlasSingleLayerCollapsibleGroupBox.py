@@ -204,7 +204,23 @@ class SingleLineAtlasStructureWidget(QWidget):
         border-style: none;
         }""")
 
-        self.color_dialog_pushbutton_base_ss = """ QPushButton{border-color:rgb(0, 0, 0); border-width:2px;} """
+        self.color_dialog_pushbutton_base_ss = """
+        QPushButton{
+        border-width: 0px;
+        }
+        QPushButton::hover{
+        border-style: solid;
+        border-width: 2px;
+        border-color: rgba(196, 196, 196, 1);
+        }
+        QPushButton::pressed{
+        border-style: inset;
+        }"""
+
+        self.color_dialog.setStyleSheet("""
+        QColorDialog{
+        border-width: 0px;
+        }""")
 
     def __init_from_parameters(self):
         try:

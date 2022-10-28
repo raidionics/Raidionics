@@ -32,12 +32,12 @@ class ReportingStructure:
     here, and the corresponding report display widget would query directly class attributes, rather than going through
     the content of the dict.
     """
-    _unique_id = None
-    _report_filename = None
-    _report_content = {}
-    _parent_mri_uid = None
-    _report_task = None
-    _output_patient_folder = ""
+    _unique_id = None  # Internal unique identifier for the report
+    _report_filename = None  # Location on disk where the report is stored.
+    _report_content = {}  # Stored elements, inside a dict, of the aforementioned file content
+    _parent_mri_uid = None  # If applicable, MRI volume instance unique identifier on which the report content is based
+    _report_task = None  # Generic tag describing the focus of the report, from ReportingType
+    _output_patient_folder = ""  # Global output directory for the current patient.
     _timestamp_uid = None  # Internal unique identifier to the investigation timestamp, for saving on disk purposes.
     _unsaved_changes = False
 

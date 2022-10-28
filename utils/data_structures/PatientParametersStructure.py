@@ -31,15 +31,13 @@ class PatientParameters:
     _output_folder = ""  # Complete folder location where the patient info are stored
     _patient_parameters_dict = {}  # Dictionary container for saving/loading all patient-related parameters
     _patient_parameters_dict_filename = ""  # Filepath for storing the aforementioned dictionary (*.raidionics)
-    _standardized_report = {}  # Dictionary container for storing of the RADS results
-    _standardized_report_filename = None  # Filepath for storing the aforementioned object (*.json)
     _mri_volumes = {}  # All MRI volume instances loaded for the current patient.
     _annotation_volumes = {}  # All Annotation instances loaded for the current patient.
     _atlas_volumes = {}  # All Atlas instances loaded for the current patient.
     _investigation_timestamps = {}  # All investigation timestamps for the current patient.
-    _reportings = {}  # All standardized reports computed for the current patient
-    _active_investigation_timestamp_uid = None  # Convenience for now, to know into which TS to load the imported data
-    _unsaved_changes = False  # Documenting any change, for suggesting saving when swapping between patients
+    _reportings = {}  # All standardized reports computed for the current patient.
+    _active_investigation_timestamp_uid = None  # Convenience for now, to know into which TS to load the imported data.
+    _unsaved_changes = False  # Documenting any change, for suggesting saving when swapping between patients.
 
     def __init__(self, id: str = "-1", dest_location: str = None, patient_filename: str = None):
         """
@@ -68,8 +66,6 @@ class PatientParameters:
         self._output_folder = ""
         self._patient_parameters_dict = {}
         self._patient_parameters_dict_filename = ""
-        self._standardized_report = {}
-        self._standardized_report_filename = None
         self._mri_volumes = {}
         self._annotation_volumes = {}
         self._atlas_volumes = {}
@@ -95,8 +91,6 @@ class PatientParameters:
         logging.info("Output patient directory set to: {}".format(self._output_folder))
 
         self.__init_json_config()
-        self._standardized_report_filename = None
-        self._standardized_report = None
         self._creation_timestamp = datetime.datetime.now(tz=dateutil.tz.gettz(name='Europe/Oslo'))
 
     def __init_json_config(self):
@@ -147,14 +141,6 @@ class PatientParameters:
         for rp in self._reportings:
             self._reportings[rp].set_output_patient_folder(self._output_folder)
         logging.info("Renamed current output directory to: {}".format(directory))
-
-    @property
-    def standardized_report_filename(self) -> str:
-        return self._standardized_report_filename
-
-    @property
-    def standardized_report(self) -> dict:
-        return self._standardized_report
 
     def set_active_investigation_timestamp(self, timestamp_uid: str) -> None:
         self._active_investigation_timestamp_uid = timestamp_uid
@@ -261,9 +247,6 @@ class PatientParameters:
             if os.path.exists(self._patient_parameters_dict_filename):
                 os.rename(src=self._patient_parameters_dict_filename, dst=new_patient_parameters_dict_filename)
             self._patient_parameters_dict_filename = new_patient_parameters_dict_filename
-            if self._standardized_report_filename and os.path.exists(self._standardized_report_filename):
-                self._standardized_report_filename = self._standardized_report_filename.replace(self._output_folder,
-                                                                                                new_output_folder)
 
             for i, disp in enumerate(list(self._mri_volumes.keys())):
                 self._mri_volumes[disp].set_output_patient_folder(new_output_folder)
@@ -284,17 +267,6 @@ class PatientParameters:
                 self._unsaved_changes = True
                 logging.debug("Unsaved changes - Patient object display name edited to {}.".format(new_name))
             return 0, ""
-
-    def import_standardized_report(self, filename: str) -> Any:
-        # @TODO. Have also return a report_uid, and have a special container for all reports.
-        error_message = None
-        try:
-            self._standardized_report_filename = filename
-            with open(self._standardized_report_filename, 'r') as infile:
-                self._standardized_report = json.load(infile)
-        except Exception:
-            error_message = "Failed to load standardized report from {}".format(filename)
-        return error_message
 
     def import_report(self, filename: str, inv_ts_uid: str) -> Tuple[str, Union[None, str]]:
         """
@@ -582,10 +554,6 @@ class PatientParameters:
         self._patient_parameters_dict['Parameters']['Default']['display_name'] = self._display_name
         self._patient_parameters_dict['Parameters']['Default']['creation_timestamp'] = self._creation_timestamp.strftime("%d/%m/%Y, %H:%M:%S")
         self._patient_parameters_dict['Parameters']['Default']['last_editing_timestamp'] = self._last_editing_timestamp.strftime("%d/%m/%Y, %H:%M:%S")
-        if self._standardized_report_filename and os.path.exists(self._standardized_report_filename):
-            self._patient_parameters_dict['Parameters']['Reporting']['report_filename'] = os.path.relpath(self._standardized_report_filename, self._output_folder)
-        else:
-            self._patient_parameters_dict['Parameters']['Reporting']['report_filename'] = ""
 
         self._patient_parameters_dict['Timestamps'] = {}
         self._patient_parameters_dict['Volumes'] = {}
@@ -786,6 +754,10 @@ class PatientParameters:
                     and self._annotation_volumes[an].get_generation_type_enum() == generation_type:
                 res.append(self._annotation_volumes[an].unique_id)
         return res
+
+    @property
+    def annotation_volumes(self) -> dict:
+        return self._annotation_volumes
 
     def get_all_annotation_volumes(self) -> dict:
         return self._annotation_volumes

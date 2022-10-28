@@ -43,7 +43,7 @@ class TimestampsLayerInteractor(QWidget):
     def __set_interface(self):
         self.setAttribute(Qt.WA_StyledBackground, True)  # Enables to set e.g. background-color for the QWidget
         self.layout = QVBoxLayout(self)
-        self.layout.setContentsMargins(10, 5, 10, 5)
+        self.layout.setContentsMargins(0, 5, 0, 5)
         self.layout.setSpacing(5)
 
         self.timestamp_order_layout = QHBoxLayout()

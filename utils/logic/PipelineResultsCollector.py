@@ -152,7 +152,6 @@ def collect_results(patient_parameters, pipeline):
                 shutil.move(report_filename, dest_file)
 
                 if os.path.exists(dest_file):  # Should always exist
-                    # error_msg = patient_parameters.import_standardized_report(dest_file)
                     report_uid, error_msg = patient_parameters.import_report(dest_file,
                                                                              "T" + str(pip_step["input"]["timestamp"]))
                     patient_parameters.reportings[report_uid].set_reporting_type("Tumor characteristics")

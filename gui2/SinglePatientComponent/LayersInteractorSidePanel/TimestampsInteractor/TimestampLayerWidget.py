@@ -48,6 +48,7 @@ class TimestampLayerWidget(QWidget):
     def __set_interface(self):
         self.setAttribute(Qt.WA_StyledBackground, True)  # Enables to set e.g. background-color for the QWidget
         self.layout = QVBoxLayout(self)
+        self.layout.setContentsMargins(10, 0, 15, 0)
 
         # @TODO. Must include a push up/down the timestamp (to adjust their ordering).
         self.timestamp_name_lineedit = QLineEdit()

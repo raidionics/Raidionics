@@ -22,10 +22,13 @@ from utils.logic.PipelineResultsCollector import collect_results
 
 def pipeline_main_wrapper(pipeline_task: str, model_name: str, patient_parameters: PatientParameters) -> Any:
     """
-    Wrapper to launch the run_segmentation method inside its own thread, in order to avoid GUI freeze.
+    Wrapper to launch the run_pipeline method inside its own thread, in order to avoid GUI freeze.
 
     Parameters
     ----------
+    pipeline_task: str
+        Tag describing the generic purpose of the pipeline, which should match an existing tag inside
+         PipelineCreationHandler.py, to generate properly the list of tasks making the pipeline.
     model_name : str
         The name of the segmentation model to use.
     patient_parameters: PatientParameters
@@ -174,7 +177,16 @@ def run_pipeline_wrapper(params: Tuple[str]) -> None:
 
 def generate_sequences_file(patient_parameters: PatientParameters, output_folder: str) -> None:
     """
+    Generating a temporary file with the manually set sequences for all MRI series input, for use as input in the
+    backend, rather than running the sequence classification model. The choice is left to the user to decide whether
+    to run the classifier or not through the Settings > Preferences panel.
 
+    Parameters
+    ----------
+    patient_parameters: PatientParameters
+        Internal patient parameters structure which will be parsed to save on disk only the MRI sequences.
+    output_folder: str
+        Destination path where the sequences will be saved, as a csv filetype.
     """
     sequences_filename = os.path.join(output_folder, "mri_sequences.csv")
     classes = []
@@ -189,7 +201,14 @@ def generate_surrogate_folder(patient_parameters: PatientParameters, output_fold
     """
     Generating a temporary input folder for the backend, containing only the necessary files.
     When manual annotations exist, the choice is left to the user to ship them to the backend for re-use, or to
-    generate them from scratch.
+    generate them from scratch (through the Settings > Preferences panel).
+
+    Parameters
+    ----------
+    patient_parameters: PatientParameters
+        Internal patient parameters structure which will be parsed to save on disk only the necessary files.
+    output_folder: str
+        Destination path where the surrogate folder should be stored.
     """
     surrogate_folder = os.path.join(output_folder, 'pipeline_input')
     try:

@@ -59,11 +59,11 @@ class ActionsInteractorWidget(QWidget):
         self.run_rads_postop.clicked.connect(self.on_postop_reporting_requested)
 
     def __set_layout_dimensions(self):
-        self.run_folder_classification.setFixedHeight(20)
-        self.run_segmentation_preop.setFixedHeight(20)
-        self.run_segmentation_postop.setFixedHeight(20)
-        self.run_rads_preop.setFixedHeight(20)
-        self.run_rads_postop.setFixedHeight(20)
+        self.run_folder_classification.setFixedHeight(25)
+        self.run_segmentation_preop.setFixedHeight(25)
+        self.run_segmentation_postop.setFixedHeight(25)
+        self.run_rads_preop.setFixedHeight(25)
+        self.run_rads_postop.setFixedHeight(25)
 
     def __set_stylesheets(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components

@@ -8,7 +8,7 @@ from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QGridLa
 from PySide2.QtCore import Qt, QSize, Signal
 from PySide2.QtGui import QIcon, QMouseEvent
 import os
-from typing import Tuple
+from typing import Tuple, List
 
 from utils.software_config import SoftwareConfigResources
 from utils.utilities import input_file_category_disambiguation
@@ -182,17 +182,16 @@ class ImportFoldersQDialog(QDialog):
          at the end of the import process.
         """
         widgets = (self.import_scrollarea_layout.itemAt(i) for i in range(self.import_scrollarea_layout.count() - 1))
-
+        input_folderpaths = [w.wid.filepath_lineedit.text() for w in widgets]
         self.load_progressbar.reset()
         self.load_progressbar.setMinimum(0)
-        # @TODO. Would have to iterate over the full content to check the total amount of patient to include?
-        self.load_progressbar.setMaximum(self.import_scrollarea_layout.count() - 1)
+        total_iter = precompute_total_elements_to_add(input_folderpaths, self.parsing_mode, self.target_type)
+        self.load_progressbar.setMaximum(total_iter)
         self.load_progressbar.setVisible(True)
         self.load_progressbar.setValue(0)
 
-        for i, w in enumerate(widgets):
+        for input_folderpath in input_folderpaths:
             try:
-                input_folderpath = w.wid.filepath_lineedit.text()
                 folders_in_path = []
 
                 for _, dirs, _ in os.walk(input_folderpath):
@@ -209,7 +208,7 @@ class ImportFoldersQDialog(QDialog):
                     if self.operation_mode == 'study':
                         msg = SoftwareConfigResources.getInstance().get_active_study().include_study_patient(uid=pat_uid,
                                                                                                              folder_name=SoftwareConfigResources.getInstance().get_patient(pat_uid).output_folder)
-                    self.load_progressbar.setValue(i + 1)
+                    self.load_progressbar.setValue(self.load_progressbar.value() + 1)
                     if error_msg:
                         diag = QMessageBox()
                         diag.setText("Unable to load patient.\nError message: {}.\n".format(error_msg))
@@ -225,7 +224,7 @@ class ImportFoldersQDialog(QDialog):
                                                                                                              folder_name=SoftwareConfigResources.getInstance().get_patient(
                                                                                                                  pat_uid).output_folder)
                     collective_errors = collective_errors + error_msg
-                    self.load_progressbar.setValue(i + 1)
+                    self.load_progressbar.setValue(self.load_progressbar.value() + 1)
                     if collective_errors != "":
                         diag = QMessageBox()
                         diag.setText("Unable to load patients.\nError message: {}.\n".format(collective_errors))
@@ -256,7 +255,7 @@ class ImportFoldersQDialog(QDialog):
                         if self.operation_mode == 'study':
                             msg = SoftwareConfigResources.getInstance().get_active_study().include_study_patient(uid=pat_uid,
                                                                                                                  folder_name=SoftwareConfigResources.getInstance().get_patient(pat_uid).output_folder)
-                        self.load_progressbar.setValue(i + 1)
+                        self.load_progressbar.setValue(self.load_progressbar.value() + 1)
                 elif self.target_type == 'regular':  # Case (ii) and (vii)
                     collective_errors = ""
                     self.load_progressbar.setMaximum(len(folders_in_path))
@@ -277,7 +276,7 @@ class ImportFoldersQDialog(QDialog):
                             msg = SoftwareConfigResources.getInstance().get_active_study().include_study_patient(uid=pat_uid,
                                                                                                                  folder_name=SoftwareConfigResources.getInstance().get_patient(pat_uid).output_folder)
                         collective_errors = collective_errors + error_msg
-                        self.load_progressbar.setValue(i + 1)
+                        self.load_progressbar.setValue(self.load_progressbar.value() + 1)
                     if collective_errors != "":
                         diag = QMessageBox()
                         diag.setText("Unable to load patients.\nError message: {}.\n".format(collective_errors))
@@ -300,7 +299,7 @@ class ImportFoldersQDialog(QDialog):
                     if self.operation_mode == 'study':
                         msg = SoftwareConfigResources.getInstance().get_active_study().include_study_patient(uid=pat_uid,
                                                                                                              folder_name=SoftwareConfigResources.getInstance().get_patient(pat_uid).output_folder)
-                    self.load_progressbar.setValue(i + 1)
+                    self.load_progressbar.setValue(self.load_progressbar.value() + 1)
                     if error_msg:
                         diag = QMessageBox()
                         diag.setText("Unable to load patient.\nError message: {}.\n".format(error_msg))
@@ -324,13 +323,13 @@ class ImportFoldersQDialog(QDialog):
                         if self.operation_mode == 'study':
                             msg = SoftwareConfigResources.getInstance().get_active_study().include_study_patient(uid=pat_uid,
                                                                                                                  folder_name=SoftwareConfigResources.getInstance().get_patient(pat_uid).output_folder)
-                        self.load_progressbar.setValue(i + 1)
+                        self.load_progressbar.setValue(self.load_progressbar.value() + 1)
                         if error_msg:
                             diag = QMessageBox()
                             diag.setText("Unable to load patient.\nError message: {}.\n".format(error_msg))
                             diag.exec_()
             except Exception as e:
-                logging.error("Folder import failed for {} with: \n {}".format(w.wid.filepath_lineedit.text(),
+                logging.error("Folder import failed for {} with: \n {}".format(input_folderpath,
                                                                                traceback.format_exc()))
         self.load_progressbar.setVisible(False)
         self.accept()
@@ -534,3 +533,43 @@ def import_patient_from_timestamped_folder(folder_path: str) -> Tuple[dict, str]
                     os.path.join(ts_folder, f), error_msg)
     SoftwareConfigResources.getInstance().get_patient(pat_uid).save_patient()
     return imports, patient_include_error_msg
+
+
+def precompute_total_elements_to_add(selected_folderpaths: List[str], parsing_mode: str, target_type: str) -> int:
+    """
+
+    """
+    total_elements = 0
+
+    for input_folderpath in selected_folderpaths:
+        try:
+            folders_in_path = []
+
+            for _, dirs, _ in os.walk(input_folderpath):
+                for d in dirs:
+                    folders_in_path.append(d)
+                break
+
+            # Checking for the proper use-case based on the type of folder architecture
+            if len(folders_in_path) == 0 and parsing_mode == 'single' and target_type == 'regular':  # Case (i)
+                total_elements = total_elements + 1
+            elif len(folders_in_path) != 0 and parsing_mode == 'single' and target_type == 'regular':  # Case (vi)
+                total_elements = total_elements + 1
+            elif len(folders_in_path) == 0 and target_type == 'regular':  # Case (iii)
+                single_files_in_path = []
+                for _, _, files in os.walk(input_folderpath):
+                    for f in files:
+                        if '.'.join(f.split('.')[1:]) in SoftwareConfigResources.getInstance().get_accepted_image_formats():
+                            single_files_in_path.append(f)
+                    break
+                total_elements = total_elements + len(single_files_in_path)
+            elif target_type == 'regular':  # Case (ii) and (vii)
+                total_elements = total_elements + len(folders_in_path)
+            elif target_type == 'dicom' and parsing_mode == 'single':  # Case (iv)
+                total_elements = total_elements + 1
+            elif target_type == 'dicom' and parsing_mode == 'multiple':  # Case (v)
+                total_elements = total_elements + len(folders_in_path)
+        except Exception as e:
+            logging.error("Folder patients to import count failed with: \n {}".format(traceback.format_exc()))
+
+    return total_elements
