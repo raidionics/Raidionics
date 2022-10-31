@@ -97,8 +97,10 @@ def run_pipeline(task: str, model_name: str, patient_parameters: PatientParamete
         rads_config.set('Runtime', 'reconstruction_method', 'thresholding')
         rads_config.set('Runtime', 'reconstruction_order', 'resample_first')
         rads_config.add_section('Neuro')
-        rads_config.set('Neuro', 'cortical_features', 'MNI, Schaefer7, Schaefer17, Harvard-Oxford')
-        rads_config.set('Neuro', 'subcortical_features', 'BCB')
+        if SoftwareConfigResources.getInstance().user_preferences.compute_cortical_structures:
+            rads_config.set('Neuro', 'cortical_features', 'MNI, Schaefer7, Schaefer17, Harvard-Oxford')
+        if SoftwareConfigResources.getInstance().user_preferences.compute_subcortical_structures:
+            rads_config.set('Neuro', 'subcortical_features', 'BCB')
         rads_config_filename = os.path.join(patient_parameters.output_folder, 'rads_config.ini')
         with open(rads_config_filename, 'w') as outfile:
             rads_config.write(outfile)

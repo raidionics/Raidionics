@@ -1,5 +1,5 @@
 from PySide2.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QScrollArea, QPushButton, QLabel, QSpacerItem,\
-    QGridLayout, QMenu, QAction
+    QGridLayout, QMenu, QAction, QMessageBox
 from PySide2.QtCore import QSize, Qt, Signal, QPoint
 from PySide2.QtGui import QIcon, QPixmap
 import os
@@ -240,7 +240,15 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         """
 
         """
-        # @TODO. Should check if the patient is part of an opened study before closing it.
+        if SoftwareConfigResources.getInstance().is_patient_in_studies(widget_id):
+            code = QMessageBox.warning(self, "Patient closing warning.",
+                                       "The patient is included in an opened study. Closing the patient will remove it from the study.",
+                                       QMessageBox.Ok | QMessageBox.Cancel, QMessageBox.Ok)
+            if code == QMessageBox.StandardButton.Cancel:  # Deletion canceled
+                return
+            else:  # Deletion accepted
+                # @TODO. Must send a signal to notify the study panel to delete the patient with widget_id and redraw.
+                pass
 
         if SoftwareConfigResources.getInstance().get_active_patient().has_unsaved_changes():
             dialog = SavePatientChangesDialog()

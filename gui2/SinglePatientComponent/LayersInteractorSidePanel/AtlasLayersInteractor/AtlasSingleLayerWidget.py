@@ -61,6 +61,7 @@ class AtlasSingleLayerWidget(QWidget):
         # self.icon_label.setPixmap(pix)
         self.display_name_lineedit = QLineEdit()
         self.display_name_lineedit.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)
+        self.display_name_lineedit.setReadOnly(True)
         # self.name_layout.addWidget(self.icon_label)
         self.name_layout.addWidget(self.display_name_lineedit)
         self.manual_grid_layout.addLayout(self.name_layout)

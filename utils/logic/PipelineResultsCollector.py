@@ -50,6 +50,8 @@ def collect_results(patient_parameters, pipeline):
                                             os.path.basename(patient_parameters.get_mri_by_uid(
                                                 parent_mri_uid).get_usable_input_filepath()).split('.')[
                                                 0] + '_annotation-' + anno_str + '.nii.gz')
+                    # @TODO. Should have a generic way to deal with the ts folder, in case the display name is changed.
+                    # dest_ts_dir = patient_parameters.get_timestamp_by_order(order=pip_step["inputs"]["0"]["timestamp"]).
                     dest_file = os.path.join(patient_parameters.output_folder,
                                              "T" + str(pip_step["inputs"]["0"]["timestamp"]), 'raw',
                                              os.path.basename(seg_file))

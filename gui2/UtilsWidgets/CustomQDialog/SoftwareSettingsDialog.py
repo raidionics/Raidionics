@@ -79,6 +79,7 @@ class SoftwareSettingsDialog(QDialog):
         self.model_update_checkbox.setChecked(SoftwareConfigResources.getInstance().user_preferences.active_model_update)
         self.model_update_layout.addWidget(self.model_update_header_label)
         self.model_update_layout.addWidget(self.model_update_checkbox)
+        self.model_update_layout.addStretch(1)
         self.default_options_base_layout.addLayout(self.model_update_layout)
         self.default_options_base_layout.addStretch(1)
         self.default_options_widget.setLayout(self.default_options_base_layout)
@@ -94,21 +95,44 @@ class SoftwareSettingsDialog(QDialog):
         self.processing_options_base_layout.addWidget(self.processing_options_label)
 
         self.processing_options_use_sequences_layout = QHBoxLayout()
-        self.processing_options_use_sequences_header_label = QLabel("Use sequences ")
-        self.processing_options_use_sequences_header_label.setToolTip("Tick the box in order to use the manually set sequence type.\n")
+        self.processing_options_use_sequences_header_label = QLabel("Use MRI sequences")
+        self.processing_options_use_sequences_header_label.setToolTip("Tick the box in order to use the manually set sequence type. If left unticked, a sequence classifier will be used on all loaded MRI scans.\n")
         self.processing_options_use_sequences_checkbox = QCheckBox()
         self.processing_options_use_sequences_checkbox.setChecked(SoftwareConfigResources.getInstance().user_preferences.use_manual_sequences)
         self.processing_options_use_sequences_layout.addWidget(self.processing_options_use_sequences_header_label)
         self.processing_options_use_sequences_layout.addWidget(self.processing_options_use_sequences_checkbox)
+        self.processing_options_use_sequences_layout.addStretch(1)
         self.processing_options_base_layout.addLayout(self.processing_options_use_sequences_layout)
         self.processing_options_use_annotations_layout = QHBoxLayout()
-        self.processing_options_use_annotations_header_label = QLabel("Use manual annotations ")
-        self.processing_options_use_annotations_header_label.setToolTip("Tick the box in order to use the provided manual annotations.\n")
+        self.processing_options_use_annotations_header_label = QLabel("Use manual annotations")
+        self.processing_options_use_annotations_header_label.setToolTip("Tick the box in order to use the loaded manual annotations during pipeline processing. If left unticked, segmentation models will be used to generate automatic annotations.\n")
         self.processing_options_use_annotations_checkbox = QCheckBox()
         self.processing_options_use_annotations_checkbox.setChecked(SoftwareConfigResources.getInstance().user_preferences.use_manual_annotations)
         self.processing_options_use_annotations_layout.addWidget(self.processing_options_use_annotations_header_label)
         self.processing_options_use_annotations_layout.addWidget(self.processing_options_use_annotations_checkbox)
+        self.processing_options_use_annotations_layout.addStretch(1)
         self.processing_options_base_layout.addLayout(self.processing_options_use_annotations_layout)
+        self.separating_line = QLabel()
+        self.separating_line.setFixedHeight(2)
+        self.processing_options_base_layout.addWidget(self.separating_line)
+        self.processing_options_compute_corticalstructures_layout = QHBoxLayout()
+        self.processing_options_compute_corticalstructures_label = QLabel("Report cortical structures")
+        self.processing_options_compute_corticalstructures_label.setToolTip("Tick the box in order to include cortical structures related features in the standardized report.\n")
+        self.processing_options_compute_corticalstructures_checkbox = QCheckBox()
+        self.processing_options_compute_corticalstructures_checkbox.setChecked(SoftwareConfigResources.getInstance().user_preferences.compute_cortical_structures)
+        self.processing_options_compute_corticalstructures_layout.addWidget(self.processing_options_compute_corticalstructures_label)
+        self.processing_options_compute_corticalstructures_layout.addWidget(self.processing_options_compute_corticalstructures_checkbox)
+        self.processing_options_compute_corticalstructures_layout.addStretch(1)
+        self.processing_options_base_layout.addLayout(self.processing_options_compute_corticalstructures_layout)
+        self.processing_options_compute_subcorticalstructures_layout = QHBoxLayout()
+        self.processing_options_compute_subcorticalstructures_label = QLabel("Report subcortical structures")
+        self.processing_options_compute_subcorticalstructures_label.setToolTip("Tick the box in order to include subcortical structures related features in the standardized report.\n")
+        self.processing_options_compute_subcorticalstructures_checkbox = QCheckBox()
+        self.processing_options_compute_subcorticalstructures_checkbox.setChecked(SoftwareConfigResources.getInstance().user_preferences.compute_subcortical_structures)
+        self.processing_options_compute_subcorticalstructures_layout.addWidget(self.processing_options_compute_subcorticalstructures_label)
+        self.processing_options_compute_subcorticalstructures_layout.addWidget(self.processing_options_compute_subcorticalstructures_checkbox)
+        self.processing_options_compute_subcorticalstructures_layout.addStretch(1)
+        self.processing_options_base_layout.addLayout(self.processing_options_compute_subcorticalstructures_layout)
         self.processing_options_base_layout.addStretch(1)
         self.processing_options_widget.setLayout(self.processing_options_base_layout)
         self.options_stackedwidget.addWidget(self.processing_options_widget)
@@ -133,6 +157,8 @@ class SoftwareSettingsDialog(QDialog):
         self.model_update_checkbox.stateChanged.connect(self.__on_active_model_status_changed)
         self.processing_options_use_sequences_checkbox.stateChanged.connect(self.__on_use_sequences_status_changed)
         self.processing_options_use_annotations_checkbox.stateChanged.connect(self.__on_use_manual_annotations_status_changed)
+        self.processing_options_compute_corticalstructures_checkbox.stateChanged.connect(self.__on_compute_corticalstructures_status_changed)
+        self.processing_options_compute_subcorticalstructures_checkbox.stateChanged.connect(self.__on_compute_subcorticalstructures_status_changed)
         self.exit_accept_pushbutton.clicked.connect(self.__on_exit_accept_clicked)
         self.exit_cancel_pushbutton.clicked.connect(self.__on_exit_cancel_clicked)
 
@@ -203,6 +229,11 @@ class SoftwareSettingsDialog(QDialog):
         background-color: """ + pressed_background_color + """;
         }""")
 
+        self.separating_line.setStyleSheet("""
+        QLabel{
+        background-color: rgb(15, 15, 15);
+        }""")
+
     def __on_home_dir_changed(self, directory: str) -> None:
         """
         The user manually selected another location for storing patients/studies.
@@ -220,6 +251,12 @@ class SoftwareSettingsDialog(QDialog):
 
     def __on_use_manual_annotations_status_changed(self, status):
         SoftwareConfigResources.getInstance().user_preferences.use_manual_annotations = status
+
+    def __on_compute_corticalstructures_status_changed(self, state):
+        SoftwareConfigResources.getInstance().user_preferences.compute_cortical_structures = state
+
+    def __on_compute_subcorticalstructures_status_changed(self, state):
+        SoftwareConfigResources.getInstance().user_preferences.compute_subcortical_structures = state
 
     def __on_exit_accept_clicked(self):
         """

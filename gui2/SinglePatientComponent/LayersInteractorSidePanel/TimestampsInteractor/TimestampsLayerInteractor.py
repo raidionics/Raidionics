@@ -276,6 +276,7 @@ class TimestampsLayerInteractor(QWidget):
         if index == -1:
             # When the last timestamp has been removed, a currentIndex() change is emitted and index is -1.
             self.reset_central_viewer.emit()
+            self.timestamp_remove_pushbutton.setEnabled(False)
             return
 
         ts_uid = self.timestamps_widget[list(self.timestamps_widget.keys())[index]].uid
@@ -284,6 +285,9 @@ class TimestampsLayerInteractor(QWidget):
 
         # Forcing to display the first image for the given timestamp
         self.timestamps_widget[list(self.timestamps_widget.keys())[index]].on_timestamp_view_toggled()
+
+        if len(self.timestamps_widget) > 0:
+            self.timestamp_remove_pushbutton.setEnabled(True)
 
         if len(self.timestamps_widget) > 1 and index > 0:
             self.timestamp_rankup_pushbutton.setEnabled(True)
@@ -384,14 +388,14 @@ class TimestampsLayerInteractor(QWidget):
         volume = SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_uid(annotation.get_parent_mri_uid())
         timestamp = SoftwareConfigResources.getInstance().get_active_patient().get_timestamp_by_uid(volume.get_timestamp_uid())
 
-        self.timestamps_widget[list(self.timestamps_widget.keys())[timestamp.get_order()]].on_annotation_volume_import(uid)
+        self.timestamps_widget[list(self.timestamps_widget.keys())[timestamp.order]].on_annotation_volume_import(uid)
 
     def on_import_atlas(self, uid):
         atlas = SoftwareConfigResources.getInstance().get_active_patient().get_atlas_by_uid(uid)
         volume = SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_uid(atlas.get_parent_mri_uid())
         timestamp = SoftwareConfigResources.getInstance().get_active_patient().get_timestamp_by_uid(volume.get_timestamp_uid())
 
-        self.timestamps_widget[list(self.timestamps_widget.keys())[timestamp.get_order()]].on_atlas_volume_import(uid)
+        self.timestamps_widget[list(self.timestamps_widget.keys())[timestamp.order]].on_atlas_volume_import(uid)
 
     def on_annotation_display_state_changed(self):
         index = self.timestamp_selector_combobox.currentIndex()

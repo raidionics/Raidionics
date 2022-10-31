@@ -30,7 +30,9 @@ class InvestigationTimestamp:
     """
     _unique_id = ""  # Internal unique identifier for the timestamp
     _order = None  # If multiple timestamps for the current patient, order of the current timestamp
+    _output_patient_folder = None  # Overall patient directory where results are stored
     _display_name = None  # Visible name for the current timestamp
+    _folder_name = None  # Similar as above without spaces
     _datetime = None  # If applicable date and time for the current timestamp
     _investigation_type = None  # From the InvestigationType
     _unsaved_changes = False  # Documenting any change, for suggesting saving when swapping between patients
@@ -51,7 +53,9 @@ class InvestigationTimestamp:
     def __reset(self):
         self._unique_id = None
         self._order = None
+        self._output_patient_folder = None
         self._display_name = None
+        self._folder_name = None
         self._datetime = None
         self._investigation_type = None
         self._unsaved_changes = False
@@ -67,12 +71,18 @@ class InvestigationTimestamp:
         return self._unsaved_changes
 
     @property
+    def folder_name(self) -> str:
+        return self._folder_name
+
+    @property
     def display_name(self) -> str:
         return self._display_name
 
     @display_name.setter
     def display_name(self, text: str) -> None:
         self._display_name = text
+        # @TODO. Should we check that the folder name does not already exist?
+        self._folder_name = self._display_name.strip().replace(" ", "")
         self._unsaved_changes = True
         logging.debug("Unsaved changes - Investigation timestamp display name changed to {}".format(self._display_name))
 
@@ -82,7 +92,8 @@ class InvestigationTimestamp:
     def get_datetime(self) -> datetime:
         return self._datetime
 
-    def get_order(self) -> int:
+    @property
+    def order(self) -> int:
         return self._order
 
     def save(self) -> dict:
@@ -92,6 +103,7 @@ class InvestigationTimestamp:
         try:
             timestamp_params = {}
             timestamp_params['display_name'] = self._display_name
+            timestamp_params['folder_name'] = self._folder_name
             timestamp_params['order'] = self._order
             timestamp_params['datetime'] = self._datetime.strftime("%d/%m/%Y, %H:%M:%S") if self._datetime else None
             self._unsaved_changes = False
@@ -100,7 +112,7 @@ class InvestigationTimestamp:
             logging.error("InvestigationTimestampStructure saving failed with:\n {}".format(traceback.format_exc()))
 
     def __init_from_scratch(self) -> None:
-        pass
+        self._folder_name = self._display_name.strip().replace(" ", "")
 
     def __reload_from_disk(self, parameters: dict) -> None:
         try:

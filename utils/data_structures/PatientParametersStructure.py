@@ -594,6 +594,12 @@ class PatientParameters:
     def get_timestamp_by_uid(self, uid: str) -> InvestigationTimestamp:
         return self._investigation_timestamps[uid]
 
+    def get_timestamp_by_order(self, order: int) -> Union[None, InvestigationTimestamp]:
+        for ts in self._investigation_timestamps:
+            if self._investigation_timestamps[ts].order == order:
+                return self._investigation_timestamps[ts]
+        return None
+
     @property
     def mri_volumes(self) -> dict:
         return self._mri_volumes
@@ -698,7 +704,7 @@ class PatientParameters:
         res = []
         inv_ts_uid = None
         for ts in list(self._investigation_timestamps.keys()):
-            if self._investigation_timestamps[ts].get_order() == timestamp_order:
+            if self._investigation_timestamps[ts].order == timestamp_order:
                 inv_ts_uid = ts
         if not inv_ts_uid:
             return res
