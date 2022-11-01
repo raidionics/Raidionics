@@ -79,13 +79,20 @@ def run_pipeline(task: str, model_name: str, patient_parameters: PatientParamete
         # Dumping the currently loaded patient MRI/annotation volumes, to be sorted/used by the backend
         patient_parameters.save_patient()
 
+        # Generating a temporary folder containing only the mandatory elements for the pipeline to run, rather than
+        # linking the raw patient folder.
+        surrogate_folder_path = generate_surrogate_folder(patient_parameters, patient_parameters.output_folder)
+
+        if SoftwareConfigResources.getInstance().user_preferences.use_manual_sequences:
+            generate_sequences_file(patient_parameters, surrogate_folder_path)
+
         rads_config = configparser.ConfigParser()
         rads_config.add_section('Default')
         rads_config.set('Default', 'task', 'neuro_diagnosis')
-        rads_config.set('Default', 'caller', 'raidionics')
+        rads_config.set('Default', 'caller', '')
         rads_config.add_section('System')
         rads_config.set('System', 'gpu_id', "-1")  # Always running on CPU
-        rads_config.set('System', 'input_folder', patient_parameters.output_folder)
+        rads_config.set('System', 'input_folder', surrogate_folder_path)
         rads_config.set('System', 'output_folder', reporting_folder)
         rads_config.set('System', 'model_folder', SoftwareConfigResources.getInstance().models_path)
         pipeline = create_pipeline(model_name, patient_parameters, task)
@@ -104,11 +111,6 @@ def run_pipeline(task: str, model_name: str, patient_parameters: PatientParamete
         rads_config_filename = os.path.join(patient_parameters.output_folder, 'rads_config.ini')
         with open(rads_config_filename, 'w') as outfile:
             rads_config.write(outfile)
-
-        if SoftwareConfigResources.getInstance().user_preferences.use_manual_sequences:
-            generate_sequences_file(patient_parameters, patient_parameters.output_folder)
-
-        generate_surrogate_folder(patient_parameters, patient_parameters.output_folder)
 
         #mp.set_start_method('spawn', force=True)
         with mp.Pool(processes=1, maxtasksperchild=1) as p:  # , initializer=initializer)
@@ -199,7 +201,7 @@ def generate_sequences_file(patient_parameters: PatientParameters, output_folder
     df.to_csv(sequences_filename, index=False)
 
 
-def generate_surrogate_folder(patient_parameters: PatientParameters, output_folder: str) -> None:
+def generate_surrogate_folder(patient_parameters: PatientParameters, output_folder: str) -> str:
     """
     Generating a temporary input folder for the backend, containing only the necessary files.
     When manual annotations exist, the choice is left to the user to ship them to the backend for re-use, or to
@@ -217,11 +219,14 @@ def generate_surrogate_folder(patient_parameters: PatientParameters, output_fold
         os.makedirs(surrogate_folder)
         use_manual_files = SoftwareConfigResources.getInstance().user_preferences.use_manual_annotations
         for ts in patient_parameters.get_all_timestamps_uids():
-            os.makedirs(os.path.join(surrogate_folder, ts))
+            ts_object = patient_parameters.get_timestamp_by_uid(ts)
+            os.makedirs(os.path.join(surrogate_folder, "T" + str(ts_object.order)))
         for im in patient_parameters.get_all_mri_volumes_uids():
-            ts = patient_parameters.get_mri_by_uid(im).get_timestamp_uid()
+            ts = patient_parameters.get_mri_by_uid(im).timestamp_uid
+            ts_object = patient_parameters.get_timestamp_by_uid(ts)
             shutil.copyfile(src=patient_parameters.get_mri_by_uid(im).get_usable_input_filepath(),
-                            dst=os.path.join(surrogate_folder, ts, os.path.basename(patient_parameters.get_mri_by_uid(im).get_usable_input_filepath())))
+                            dst=os.path.join(surrogate_folder, "T" + str(ts_object.order),
+                                             os.path.basename(patient_parameters.get_mri_by_uid(im).get_usable_input_filepath())))
             annotation_classes = [c for c in AnnotationClassType]
             for c in annotation_classes:
                 annos = patient_parameters.get_specific_annotations_for_mri(mri_volume_uid=im,
@@ -230,7 +235,7 @@ def generate_surrogate_folder(patient_parameters: PatientParameters, output_fold
                 if use_manual_files:
                     for anno in annos:
                         shutil.copyfile(src=patient_parameters.get_annotation_by_uid(anno).usable_input_filepath,
-                                        dst=os.path.join(surrogate_folder, ts, os.path.basename(
+                                        dst=os.path.join(surrogate_folder, "T" + str(ts_object.order), os.path.basename(
                                             patient_parameters.get_mri_by_uid(im).get_usable_input_filepath()[:-7] + '-annotation_' + str(c) + '.nii.gz')))
                 elif len(annos) == 0:
                     annos = patient_parameters.get_specific_annotations_for_mri(mri_volume_uid=im,
@@ -238,8 +243,10 @@ def generate_surrogate_folder(patient_parameters: PatientParameters, output_fold
                                                                                 annotation_class=c)
                     for anno in annos:
                         shutil.copyfile(src=patient_parameters.get_annotation_by_uid(anno).usable_input_filepath,
-                                        dst=os.path.join(surrogate_folder, ts, os.path.basename(
+                                        dst=os.path.join(surrogate_folder, "T" + str(ts_object.order), os.path.basename(
                                             patient_parameters.get_mri_by_uid(im).get_usable_input_filepath()[:-7] + '-annotation_' + str(c) + '.nii.gz')))
 
     except Exception:
         logging.error('Pipeline surrogate folder creation failed with: \n{}'.format(traceback.format_exc()))
+
+    return surrogate_folder

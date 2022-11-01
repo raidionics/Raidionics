@@ -132,8 +132,9 @@ class TimestampLayerWidget(QWidget):
 
     def on_name_change(self):
         new_name = self.timestamp_name_lineedit.text()
-        timestamp_parameters = SoftwareConfigResources.getInstance().get_active_patient().get_timestamp_by_uid(self.uid)
-        timestamp_parameters.display_name = new_name
+        # timestamp_parameters = SoftwareConfigResources.getInstance().get_active_patient().get_timestamp_by_uid(self.uid)
+        # timestamp_parameters.display_name = new_name
+        SoftwareConfigResources.getInstance().get_active_patient().set_new_timestamp_display_name(self.uid, new_name)
         self.timestamp_display_name_changed.emit(self.uid, new_name)
 
     def on_patient_view_toggled(self, patient_uid: str) -> None:

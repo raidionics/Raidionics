@@ -183,6 +183,8 @@ class PatientParameters:
         modifications are simply related to reading from disk and not real modifications.
         """
         self._unsaved_changes = state
+        for ts in self._investigation_timestamps:
+            self._investigation_timestamps[ts].set_unsaved_changes_state(state)
         for im in self._mri_volumes:
             self._mri_volumes[im].set_unsaved_changes_state(state)
         for an in self._annotation_volumes:
@@ -192,6 +194,8 @@ class PatientParameters:
 
     def has_unsaved_changes(self) -> bool:
         status = self._unsaved_changes
+        for ts in self._investigation_timestamps:
+            status = status | self._investigation_timestamps[ts].has_unsaved_changes()
         for im in self._mri_volumes:
             status = status | self._mri_volumes[im].has_unsaved_changes()
         for an in self._annotation_volumes:
@@ -248,6 +252,9 @@ class PatientParameters:
                 os.rename(src=self._patient_parameters_dict_filename, dst=new_patient_parameters_dict_filename)
             self._patient_parameters_dict_filename = new_patient_parameters_dict_filename
 
+            for i, disp in enumerate(list(self._investigation_timestamps.keys())):
+                self._investigation_timestamps[disp].output_patient_folder = new_output_folder
+
             for i, disp in enumerate(list(self._mri_volumes.keys())):
                 self._mri_volumes[disp].set_output_patient_folder(new_output_folder)
 
@@ -258,7 +265,7 @@ class PatientParameters:
                 self._atlas_volumes[disp].set_output_patient_folder(new_output_folder)
 
             for i, disp in enumerate(list(self._reportings.keys())):
-                self._reportings[disp].set_output_patient_folder(new_output_folder)
+                self._reportings[disp].output_patient_folder = new_output_folder
 
             shutil.move(src=self._output_folder, dst=new_output_folder, copy_function=shutil.copytree)
             self._output_folder = new_output_folder
@@ -314,7 +321,9 @@ class PatientParameters:
                 try:
                     timestamp = InvestigationTimestamp(uid=ts_id,
                                                        order=self._patient_parameters_dict['Timestamps'][ts_id]['order'],
-                                                       inv_time=self._patient_parameters_dict['Timestamps'][ts_id]['datetime'])
+                                                       output_patient_folder=self._output_folder,
+                                                       inv_time=self._patient_parameters_dict['Timestamps'][ts_id]['datetime'],
+                                                       reload_params=self._patient_parameters_dict['Timestamps'][ts_id])
                     self._investigation_timestamps[ts_id] = timestamp
                 except Exception:
                     logging.error(str(traceback.format_exc()))
@@ -395,7 +404,8 @@ class PatientParameters:
             logging.error(error_message)
         return error_message
 
-    def import_data(self, filename: str, investigation_ts: str = None, type: str = "MRI") -> Union[str, Any]:
+    def import_data(self, filename: str, investigation_ts: str = None, investigation_ts_folder_name: str = None,
+                    type: str = "MRI") -> Union[str, Any]:
         """
         Defining how stand-alone MRI volumes or annotation volumes are loaded into the system for the current patient.
 
@@ -414,7 +424,8 @@ class PatientParameters:
             if not investigation_ts:
                 if len(self._investigation_timestamps) == 0:
                     investigation_ts = 'T0'
-                    curr_ts = InvestigationTimestamp(investigation_ts, order=0)
+                    curr_ts = InvestigationTimestamp(investigation_ts, order=0,
+                                                     output_patient_folder=self._output_folder)
                     self._investigation_timestamps[investigation_ts] = curr_ts
                 elif self._active_investigation_timestamp_uid:
                     investigation_ts = self._active_investigation_timestamp_uid
@@ -450,7 +461,8 @@ class PatientParameters:
                     self._annotation_volumes[data_uid] = AnnotationVolume(uid=data_uid, input_filename=filename,
                                                                           output_patient_folder=self._output_folder,
                                                                           parent_mri_uid=default_parent_mri_uid,
-                                                                          inv_ts_uid=investigation_ts)
+                                                                          inv_ts_uid=investigation_ts,
+                                                                          inv_ts_folder_name=investigation_ts_folder_name)
                 else:
                     error_message = "No MRI volume has been imported yet. Mandatory for importing an annotation."
                     logging.error(error_message)
@@ -508,17 +520,13 @@ class PatientParameters:
             error_msg = error_msg + traceback.format_exc() if error_msg else traceback.format_exc()
         return uid, error_msg
 
-    def import_atlas_structures(self, filename: str, parent_mri_uid: str, description: str = None,
-                                reference: str = 'Patient') -> Union[str, Any]:
+    def import_atlas_structures(self, filename: str, parent_mri_uid: str, investigation_ts_folder_name: str = None,
+                                description: str = None, reference: str = 'Patient') -> Union[str, Any]:
         data_uid = None
         error_message = None
 
         try:
             if reference == 'Patient':
-                # image_nib = nib.load(filename)
-                # resampled_input_ni = resample_to_output(image_nib, order=0)
-                # image_res = resampled_input_ni.get_data()[:].astype('uint8')
-
                 # Generating a unique id for the atlas volume
                 base_data_uid = os.path.basename(filename).strip().split('.')[0]
                 non_available_uid = True
@@ -529,8 +537,9 @@ class PatientParameters:
 
                 self._atlas_volumes[data_uid] = AtlasVolume(uid=data_uid, input_filename=filename,
                                                             output_patient_folder=self._output_folder,
-                                                            inv_ts_uid=self._mri_volumes[parent_mri_uid].get_timestamp_uid(),
+                                                            inv_ts_uid=self._mri_volumes[parent_mri_uid].timestamp_uid,
                                                             parent_mri_uid=parent_mri_uid,
+                                                            inv_ts_folder_name=investigation_ts_folder_name,
                                                             description_filename=description)
             else:  # Reference is MNI space then
                 pass
@@ -561,6 +570,7 @@ class PatientParameters:
         self._patient_parameters_dict['Atlases'] = {}
         self._patient_parameters_dict['Reports'] = {}
 
+        # @TODO. Should the timestamp folder_name be going down here before saving each element?
         for i, disp in enumerate(list(self._investigation_timestamps.keys())):
             self._patient_parameters_dict['Timestamps'][disp] = self._investigation_timestamps[disp].save()
 
@@ -599,6 +609,28 @@ class PatientParameters:
             if self._investigation_timestamps[ts].order == order:
                 return self._investigation_timestamps[ts]
         return None
+
+    def set_new_timestamp_display_name(self, ts_uid: str, display_name: str) -> None:
+        """
+        Manual request from the user to change the display name (and folder name) for the selected investigation
+        timestamp. The information about timestamp folder name must also be updated in all necessary places.
+
+        Parameters
+        ----------
+        ts_uid: str
+            Internal unique identifier for the investigation timestamp to modify
+        display_name: str
+            New display name to use to represent the investigation timestamp.
+        """
+        try:
+            self._investigation_timestamps[ts_uid].display_name = display_name
+            for im in list(self._mri_volumes.keys()):
+                self._mri_volumes[im].timestamp_folder_name = self._investigation_timestamps[ts_uid].folder_name
+            for im in list(self._annotation_volumes.keys()):
+                self._annotation_volumes[im].timestamp_folder_name = self._investigation_timestamps[ts_uid].folder_name
+        except Exception as e:
+            logging.error("[PatientParametersStructure] Changing the timestamp display name to {} failed"
+                          " with:\n {}".format(display_name, traceback.format_exc()))
 
     @property
     def mri_volumes(self) -> dict:
@@ -680,7 +712,7 @@ class PatientParameters:
         res = []
 
         for im in self._mri_volumes:
-            if self._mri_volumes[im].get_timestamp_uid() == timestamp_uid:
+            if self._mri_volumes[im].timestamp_uid == timestamp_uid:
                 res.append(im)
         return res
 
@@ -711,7 +743,7 @@ class PatientParameters:
 
         for im in self._mri_volumes:
             if self._mri_volumes[im].get_sequence_type_enum() == sequence_type \
-                    and self._mri_volumes[im].get_timestamp_uid() == inv_ts_uid:
+                    and self._mri_volumes[im].timestamp_uid == inv_ts_uid:
                 res.append(im)
         return res
 
@@ -878,7 +910,7 @@ class PatientParameters:
         investigation_uid = None
         try:
             investigation_uid = 'T' + str(order)
-            curr_ts = InvestigationTimestamp(investigation_uid, order=order)
+            curr_ts = InvestigationTimestamp(investigation_uid, order=order, output_patient_folder=self._output_folder)
             self._investigation_timestamps[investigation_uid] = curr_ts
         except Exception as e:
             logging.error("Inserting a new investigation timestamp failed with: {}".format(traceback.format_exc()))

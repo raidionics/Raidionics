@@ -1,4 +1,5 @@
 import datetime
+import shutil
 import traceback
 import dateutil.tz
 from aenum import Enum, unique
@@ -37,10 +38,12 @@ class InvestigationTimestamp:
     _investigation_type = None  # From the InvestigationType
     _unsaved_changes = False  # Documenting any change, for suggesting saving when swapping between patients
 
-    def __init__(self, uid: str, order: int, inv_time: str = None, reload_params: dict = None) -> None:
+    def __init__(self, uid: str, order: int, output_patient_folder: str, inv_time: str = None,
+                 reload_params: dict = None) -> None:
         self.__reset()
         self._unique_id = uid
         self._order = order
+        self._output_patient_folder = output_patient_folder
         if inv_time:
             self._datetime = datetime.datetime.strptime(inv_time, "%d/%m/%Y, %H:%M:%S")
         self._display_name = uid
@@ -81,10 +84,17 @@ class InvestigationTimestamp:
     @display_name.setter
     def display_name(self, text: str) -> None:
         self._display_name = text
-        # @TODO. Should we check that the folder name does not already exist?
-        self._folder_name = self._display_name.strip().replace(" ", "")
+        new_folder_name = self._display_name.strip().replace(" ", "")
+        if os.path.exists(os.path.join(self._output_patient_folder, new_folder_name)):
+            # @TODO. Should return an error message, but then should be made into a set_display_name method....
+            return
+        if os.path.exists(os.path.join(self._output_patient_folder, self._folder_name)):
+            shutil.move(src=os.path.join(self._output_patient_folder, self._folder_name),
+                        dst=os.path.join(self._output_patient_folder, new_folder_name))
+            self._folder_name = new_folder_name
         self._unsaved_changes = True
         logging.debug("Unsaved changes - Investigation timestamp display name changed to {}".format(self._display_name))
+        logging.debug("Unsaved changes - Investigation timestamp folder name changed to {}".format(self._folder_name))
 
     def set_datetime(self, inv_time: str) -> None:
         self._datetime = datetime.datetime.strptime(inv_time, "%d/%m/%Y, %H:%M:%S")
@@ -95,6 +105,14 @@ class InvestigationTimestamp:
     @property
     def order(self) -> int:
         return self._order
+
+    @property
+    def output_patient_folder(self) -> str:
+        return self._output_patient_folder
+
+    @output_patient_folder.setter
+    def output_patient_folder(self, folder: str) -> None:
+        self._output_patient_folder = folder
 
     def save(self) -> dict:
         """
@@ -118,6 +136,11 @@ class InvestigationTimestamp:
         try:
             self._display_name = parameters['display_name']
             self._order = int(parameters['order'])
+
+            if 'folder_name' in list(parameters.keys()):
+                self._folder_name = parameters['folder_name']
+            else:
+                self._folder_name = self._display_name.strip().replace(" ", "")
             if 'datetime' in list(parameters.keys()) and \
                     datetime.datetime.strptime(parameters['datetime'], "%d/%m/%Y, %H:%M:%S"):
                 self._datetime = datetime.datetime.strptime(parameters['datetime'], "%d/%m/%Y, %H:%M:%S")

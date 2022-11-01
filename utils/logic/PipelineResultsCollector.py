@@ -5,6 +5,7 @@ import traceback
 
 import pandas as pd
 
+from utils.software_config import SoftwareConfigResources
 from utils.data_structures.MRIVolumeStructure import MRISequenceType
 from utils.utilities import get_type_from_string
 
@@ -50,14 +51,13 @@ def collect_results(patient_parameters, pipeline):
                                             os.path.basename(patient_parameters.get_mri_by_uid(
                                                 parent_mri_uid).get_usable_input_filepath()).split('.')[
                                                 0] + '_annotation-' + anno_str + '.nii.gz')
-                    # @TODO. Should have a generic way to deal with the ts folder, in case the display name is changed.
-                    # dest_ts_dir = patient_parameters.get_timestamp_by_order(order=pip_step["inputs"]["0"]["timestamp"]).
-                    dest_file = os.path.join(patient_parameters.output_folder,
-                                             "T" + str(pip_step["inputs"]["0"]["timestamp"]), 'raw',
+                    dest_ts = patient_parameters.get_timestamp_by_order(order=pip_step["inputs"]["0"]["timestamp"])
+                    dest_file = os.path.join(patient_parameters.output_folder, dest_ts.folder_name, 'raw',
                                              os.path.basename(seg_file))
                     shutil.move(seg_file, dest_file)
                     data_uid, error_msg = patient_parameters.import_data(dest_file,
-                                                                         investigation_ts='T' + str(pip_step["inputs"]["0"]["timestamp"]),
+                                                                         investigation_ts=dest_ts.unique_id,
+                                                                         investigation_ts_folder_name=dest_ts.folder_name,
                                                                          type='Annotation')
                     patient_parameters.get_annotation_by_uid(data_uid).set_annotation_class_type(anno_str)
                     patient_parameters.get_annotation_by_uid(data_uid).set_generation_type("Automatic")
@@ -70,71 +70,73 @@ def collect_results(patient_parameters, pipeline):
                         continue
                     parent_mri_uid = patient_parameters.get_all_mri_volumes_for_sequence_type_and_timestamp(sequence_type=seq_type,
                                                                                                             timestamp_order=pip_step["moving"]["timestamp"])
+                    dest_ts_object = patient_parameters.get_timestamp_by_order(order=pip_step["moving"]["timestamp"])
                     if len(parent_mri_uid) == 0:
                         continue
                     parent_mri_uid = parent_mri_uid[0]
 
                     # Collecting the atlas cortical structures
-                    cortical_folder = os.path.join(patient_parameters.output_folder, 'reporting',
-                                                   'T' + str(pip_step["moving"]["timestamp"]), 'Cortical-structures')
-                    cortical_masks = []
-                    for _, _, files in os.walk(cortical_folder):
-                        for f in files:
-                            cortical_masks.append(f)
-                        break
+                    if SoftwareConfigResources.getInstance().user_preferences.compute_cortical_structures:
+                        cortical_folder = os.path.join(patient_parameters.output_folder, 'reporting',
+                                                       'T' + str(pip_step["moving"]["timestamp"]), 'Cortical-structures')
+                        cortical_masks = []
+                        for _, _, files in os.walk(cortical_folder):
+                            for f in files:
+                                cortical_masks.append(f)
+                            break
 
-                    for m in cortical_masks:
-                        atlas_filename = os.path.join(cortical_folder, m)
-                        dest_atlas_filename = os.path.join(patient_parameters.output_folder,
-                                                           patient_parameters.get_mri_by_uid(parent_mri_uid).get_timestamp_uid(),
-                                                           'raw', m)
-                        shutil.move(atlas_filename, dest_atlas_filename)
-                        description_filename = os.path.join(patient_parameters.output_folder, 'reporting',
-                                                            'atlas_descriptions', m.split('_')[1] + '_description.csv')
-                        dest_desc_filename = os.path.join(patient_parameters.output_folder, 'atlas_descriptions',
-                                                           m.split('_')[1] + '_description.csv')
-                        os.makedirs(os.path.dirname(dest_desc_filename), exist_ok=True)
-                        if not os.path.exists(dest_desc_filename):
-                            shutil.move(description_filename, dest_desc_filename)
-                        data_uid, error_msg = patient_parameters.import_atlas_structures(dest_atlas_filename,
-                                                                                         parent_mri_uid=parent_mri_uid,
-                                                                                         description=dest_desc_filename,
-                                                                                         reference='Patient')
+                        for m in cortical_masks:
+                            atlas_filename = os.path.join(cortical_folder, m)
+                            dest_atlas_filename = os.path.join(patient_parameters.output_folder, dest_ts_object.folder_name,
+                                                               'raw', m)
+                            shutil.move(atlas_filename, dest_atlas_filename)
+                            description_filename = os.path.join(patient_parameters.output_folder, 'reporting',
+                                                                'atlas_descriptions', m.split('_')[1] + '_description.csv')
+                            dest_desc_filename = os.path.join(patient_parameters.output_folder, 'atlas_descriptions',
+                                                               m.split('_')[1] + '_description.csv')
+                            os.makedirs(os.path.dirname(dest_desc_filename), exist_ok=True)
+                            if not os.path.exists(dest_desc_filename):
+                                shutil.move(description_filename, dest_desc_filename)
+                            data_uid, error_msg = patient_parameters.import_atlas_structures(dest_atlas_filename,
+                                                                                             parent_mri_uid=parent_mri_uid,
+                                                                                             investigation_ts_folder_name=dest_ts_object.folder_name,
+                                                                                             description=dest_desc_filename,
+                                                                                             reference='Patient')
 
-                        results['Atlas'].append(data_uid)
+                            results['Atlas'].append(data_uid)
 
                     # Collecting the atlas subcortical structures
-                    subcortical_folder = os.path.join(patient_parameters.output_folder, 'reporting',
-                                                   'T' + str(pip_step["moving"]["timestamp"]), 'Subcortical-structures')
+                    if SoftwareConfigResources.getInstance().user_preferences.compute_subcortical_structures:
+                        subcortical_folder = os.path.join(patient_parameters.output_folder, 'reporting',
+                                                       'T' + str(pip_step["moving"]["timestamp"]), 'Subcortical-structures')
 
-                    subcortical_masks = ['MNI_BCB_atlas.nii.gz']  # @TODO. Hardcoded for now, have to improve the RADS backend here.
-                    # subcortical_masks = []
-                    # for _, _, files in os.walk(subcortical_folder):
-                    #     for f in files:
-                    #         if '_mask' in f:
-                    #             subcortical_masks.append(f)
-                    #     break
+                        subcortical_masks = ['MNI_BCB_atlas.nii.gz']  # @TODO. Hardcoded for now, have to improve the RADS backend here.
+                        # subcortical_masks = []
+                        # for _, _, files in os.walk(subcortical_folder):
+                        #     for f in files:
+                        #         if '_mask' in f:
+                        #             subcortical_masks.append(f)
+                        #     break
 
-                    for m in subcortical_masks:
-                        atlas_filename = os.path.join(subcortical_folder, m)
-                        dest_atlas_filename = os.path.join(patient_parameters.output_folder,
-                                                           patient_parameters.get_mri_by_uid(parent_mri_uid).get_timestamp_uid(),
-                                                           'raw', m)
-                        shutil.move(atlas_filename, dest_atlas_filename)
-                        description_filename = os.path.join(patient_parameters.output_folder, 'reporting',
-                                                            'atlas_descriptions', m.split('_')[1] + '_description.csv')
-                        dest_desc_filename = os.path.join(patient_parameters.output_folder, 'atlas_descriptions',
-                                                           m.split('_')[1] + '_description.csv')
-                        os.makedirs(os.path.dirname(dest_desc_filename), exist_ok=True)
-                        if not os.path.exists(dest_desc_filename):
-                            shutil.move(description_filename, dest_desc_filename)
-                        data_uid, error_msg = patient_parameters.import_atlas_structures(dest_atlas_filename,
-                                                                                         parent_mri_uid=parent_mri_uid,
-                                                                                         description=dest_desc_filename,
-                                                                                         reference='Patient')
+                        for m in subcortical_masks:
+                            atlas_filename = os.path.join(subcortical_folder, m)
+                            dest_atlas_filename = os.path.join(patient_parameters.output_folder, dest_ts_object.folder_name,
+                                                               'raw', m)
+                            shutil.move(atlas_filename, dest_atlas_filename)
+                            description_filename = os.path.join(patient_parameters.output_folder, 'reporting',
+                                                                'atlas_descriptions', m.split('_')[1] + '_description.csv')
+                            dest_desc_filename = os.path.join(patient_parameters.output_folder, 'atlas_descriptions',
+                                                               m.split('_')[1] + '_description.csv')
+                            os.makedirs(os.path.dirname(dest_desc_filename), exist_ok=True)
+                            if not os.path.exists(dest_desc_filename):
+                                shutil.move(description_filename, dest_desc_filename)
+                            data_uid, error_msg = patient_parameters.import_atlas_structures(dest_atlas_filename,
+                                                                                             parent_mri_uid=parent_mri_uid,
+                                                                                             investigation_ts_folder_name=dest_ts_object.folder_name,
+                                                                                             description=dest_desc_filename,
+                                                                                             reference='Patient')
 
-                        results['Atlas'].append(data_uid)
-
+                            results['Atlas'].append(data_uid)
             elif pip_step["task"] == "Features computation":
                 report_filename = os.path.join(patient_parameters.output_folder, 'reporting',
                                                'neuro_clinical_report.json')
@@ -148,14 +150,13 @@ def collect_results(patient_parameters, pipeline):
                 if len(parent_mri_uid) == 0:
                     continue
                 parent_mri_uid = parent_mri_uid[0]
-                dest_file = os.path.join(patient_parameters.output_folder,
-                                         "T" + str(pip_step["input"]["timestamp"]),
+                dest_ts_object = patient_parameters.get_timestamp_by_order(order=pip_step["input"]["timestamp"])
+                dest_file = os.path.join(patient_parameters.output_folder, dest_ts_object.folder_name,
                                          os.path.basename(report_filename))
                 shutil.move(report_filename, dest_file)
 
                 if os.path.exists(dest_file):  # Should always exist
-                    report_uid, error_msg = patient_parameters.import_report(dest_file,
-                                                                             "T" + str(pip_step["input"]["timestamp"]))
+                    report_uid, error_msg = patient_parameters.import_report(dest_file, dest_ts_object.unique_id)
                     patient_parameters.reportings[report_uid].set_reporting_type("Tumor characteristics")
                     patient_parameters.reportings[report_uid].parent_mri_uid = parent_mri_uid
                     results['Report'].append(report_uid)

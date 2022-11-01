@@ -238,7 +238,7 @@ class TimestampsLayerInteractor(QWidget):
             timestamp_widget.atlas_structure_color_changed.connect(self.atlas_structure_color_changed)
             timestamp_widget.atlas_structure_opacity_changed.connect(self.atlas_structure_opacity_changed)
             self.timestamp_widgets_stacked.addWidget(timestamp_widget)
-            self.timestamp_selector_combobox.addItem(ts_uid)
+            self.timestamp_selector_combobox.addItem(patient.get_timestamp_by_uid(ts_uid).display_name)
 
     def __on_timestamp_added(self):
         if not SoftwareConfigResources.getInstance().get_active_patient_uid():
@@ -264,7 +264,7 @@ class TimestampsLayerInteractor(QWidget):
         timestamp_widget.atlas_structure_color_changed.connect(self.atlas_structure_color_changed)
         timestamp_widget.atlas_structure_opacity_changed.connect(self.atlas_structure_opacity_changed)
         self.timestamp_widgets_stacked.addWidget(timestamp_widget)
-        self.timestamp_selector_combobox.addItem(ts_uid)
+        self.timestamp_selector_combobox.addItem(SoftwareConfigResources.getInstance().get_active_patient().get_timestamp_by_uid(ts_uid).display_name)
 
         self.timestamp_remove_pushbutton.setEnabled(True)
 
@@ -362,7 +362,7 @@ class TimestampsLayerInteractor(QWidget):
 
     def on_mri_volume_import(self, uid):
         volume = SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_uid(uid)
-        ts_uid = volume.get_timestamp_uid()
+        ts_uid = volume.timestamp_uid
         ts_display_name = SoftwareConfigResources.getInstance().get_active_patient().get_timestamp_by_uid(ts_uid).display_name
         if not ts_uid in list(self.timestamps_widget.keys()):
             timestamp_widget = TimestampLayerWidget(ts_uid, self)
@@ -370,6 +370,8 @@ class TimestampsLayerInteractor(QWidget):
             self.timestamp_selector_combobox.addItem(ts_display_name)
             self.patient_imported.connect(timestamp_widget.on_import_patient)
             self.patient_view_toggled.connect(timestamp_widget.on_patient_view_toggled)
+            timestamp_widget.reset_central_viewer.connect(self.reset_central_viewer)
+            timestamp_widget.timestamp_display_name_changed.connect(self.on_timestamp_display_name_changed)
             timestamp_widget.volume_view_toggled.connect(self.volume_view_toggled)
             timestamp_widget.volume_contrast_changed.connect(self.volume_contrast_changed)
             timestamp_widget.annotation_view_toggled.connect(self.annotation_view_toggled)
@@ -386,14 +388,14 @@ class TimestampsLayerInteractor(QWidget):
     def on_import_annotation(self, uid):
         annotation = SoftwareConfigResources.getInstance().get_active_patient().get_annotation_by_uid(uid)
         volume = SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_uid(annotation.get_parent_mri_uid())
-        timestamp = SoftwareConfigResources.getInstance().get_active_patient().get_timestamp_by_uid(volume.get_timestamp_uid())
+        timestamp = SoftwareConfigResources.getInstance().get_active_patient().get_timestamp_by_uid(volume.timestamp_uid)
 
         self.timestamps_widget[list(self.timestamps_widget.keys())[timestamp.order]].on_annotation_volume_import(uid)
 
     def on_import_atlas(self, uid):
         atlas = SoftwareConfigResources.getInstance().get_active_patient().get_atlas_by_uid(uid)
         volume = SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_uid(atlas.get_parent_mri_uid())
-        timestamp = SoftwareConfigResources.getInstance().get_active_patient().get_timestamp_by_uid(volume.get_timestamp_uid())
+        timestamp = SoftwareConfigResources.getInstance().get_active_patient().get_timestamp_by_uid(volume.timestamp_uid)
 
         self.timestamps_widget[list(self.timestamps_widget.keys())[timestamp.order]].on_atlas_volume_import(uid)
 
