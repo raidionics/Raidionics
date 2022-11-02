@@ -39,15 +39,19 @@ class ReportingStructure:
     _report_task = None  # Generic tag describing the focus of the report, from ReportingType
     _output_patient_folder = ""  # Global output directory for the current patient.
     _timestamp_uid = None  # Internal unique identifier to the investigation timestamp, for saving on disk purposes.
+    _timestamp_folder_name = ""  # Folder name for the aforementioned timestamp (based off its display name)
     _unsaved_changes = False
 
     def __init__(self, uid: str, report_filename: str, output_patient_folder: str, inv_ts_uid: str,
-                 reload_params: dict = None) -> None:
+                 inv_ts_folder_name: str = None, reload_params: dict = None) -> None:
         self.__reset()
         self._unique_id = uid
         self._report_filename = report_filename
         self._output_patient_folder = output_patient_folder
         self._timestamp_uid = inv_ts_uid
+        if inv_ts_folder_name:
+            self._timestamp_folder_name = inv_ts_folder_name
+
         with open(self._report_filename, 'r') as infile:
             self._report_content = json.load(infile)
 
@@ -75,6 +79,26 @@ class ReportingStructure:
         return self._unique_id
 
     @property
+    def timestamp_uid(self) -> str:
+        return self._timestamp_uid
+
+    @property
+    def timestamp_folder_name(self) -> str:
+        return self._timestamp_folder_name
+
+    @timestamp_folder_name.setter
+    def timestamp_folder_name(self, folder_name: str) -> None:
+        self._timestamp_folder_name = folder_name
+        if self._report_filename:
+            if os.name == 'nt':
+                # @TODO. Windows use-case to do.
+                pass
+            else:
+                rel_path = '/'.join(os.path.relpath(self._report_filename,
+                                                    self._output_patient_folder).split('/')[1:])
+                self._report_filename = os.path.join(self._output_patient_folder, self._timestamp_folder_name, rel_path)
+
+    @property
     def report_filename(self) -> str:
         return self._report_filename
 
@@ -88,6 +112,8 @@ class ReportingStructure:
 
     @output_patient_folder.setter
     def output_patient_folder(self, output_folder: str) -> None:
+        if self._report_filename:
+            self._report_filename = self._report_filename.replace(self._output_patient_folder, output_folder)
         self._output_patient_folder = output_folder
 
     @property
@@ -129,6 +155,8 @@ class ReportingStructure:
 
         """
         self._timestamp_uid = params['investigation_timestamp_uid']
+        if self._timestamp_uid:
+            self._timestamp_folder_name = params['report_filename'].split('/')[0]
 
         if 'parent_mri_uid' in list(params.keys()):
             self._parent_mri_uid = params['parent_mri_uid']

@@ -624,10 +624,14 @@ class PatientParameters:
         """
         try:
             self._investigation_timestamps[ts_uid].display_name = display_name
-            for im in list(self._mri_volumes.keys()):
+            for im in list(self.get_all_mri_volumes_for_timestamp(timestamp_uid=ts_uid)):
                 self._mri_volumes[im].timestamp_folder_name = self._investigation_timestamps[ts_uid].folder_name
-            for im in list(self._annotation_volumes.keys()):
+            for im in list(self.get_all_annotation_uids_for_timestamp(timestamp_uid=ts_uid)):
                 self._annotation_volumes[im].timestamp_folder_name = self._investigation_timestamps[ts_uid].folder_name
+            for im in list(self.get_all_atlas_uids_for_timestamp(timestamp_uid=ts_uid)):
+                self._atlas_volumes[im].timestamp_folder_name = self._investigation_timestamps[ts_uid].folder_name
+            for im in list(self.get_all_reporting_uids_for_timestamp(timestamp_uid=ts_uid)):
+                self._reportings[im].timestamp_folder_name = self._investigation_timestamps[ts_uid].folder_name
         except Exception as e:
             logging.error("[PatientParametersStructure] Changing the timestamp display name to {} failed"
                           " with:\n {}".format(display_name, traceback.format_exc()))
@@ -806,6 +810,26 @@ class PatientParameters:
     def get_annotation_by_uid(self, annotation_uid: str) -> AnnotationVolume:
         return self._annotation_volumes[annotation_uid]
 
+    def get_all_annotation_uids_for_timestamp(self, timestamp_uid: str) -> List[str]:
+        """
+        Convenience method for collecting all annotations for a specific investigation timestamp.
+
+        Parameters
+        ----------
+        timestamp_uid: str
+            Internal unique ID of the timestamp.
+        Returns
+        -------
+        List[str]
+            A list of unique identifiers for each annotation object associated with the given input parameters.
+        """
+        res = []
+
+        for im in list(self._annotation_volumes.keys()):
+            if self._annotation_volumes[im].timestamp_uid == timestamp_uid:
+                res.append(im)
+        return res
+
     def get_all_atlases_for_mri(self, mri_volume_uid: str) -> List[str]:
         """
         Convenience method for collecting all atlas objects linked to a specific MRI volume.
@@ -835,6 +859,26 @@ class PatientParameters:
 
     def get_atlas_by_uid(self, atlas_uid: str) -> AtlasVolume:
         return self._atlas_volumes[atlas_uid]
+
+    def get_all_atlas_uids_for_timestamp(self, timestamp_uid: str) -> List[str]:
+        """
+        Convenience method for collecting all atlases for a specific investigation timestamp.
+
+        Parameters
+        ----------
+        timestamp_uid: str
+            Internal unique ID of the timestamp.
+        Returns
+        -------
+        List[str]
+            A list of unique identifiers for each atlas object associated with the given input parameters.
+        """
+        res = []
+
+        for im in list(self._atlas_volumes.keys()):
+            if self._atlas_volumes[im].timestamp_uid == timestamp_uid:
+                res.append(im)
+        return res
 
     def remove_mri_volume(self, volume_uid: str) -> Tuple[dict, Union[None, str]]:
         """
@@ -917,3 +961,23 @@ class PatientParameters:
             error_code = 1
 
         return investigation_uid, error_code
+
+    def get_all_reporting_uids_for_timestamp(self, timestamp_uid: str) -> List[str]:
+        """
+        Convenience method for collecting all reportings for a specific investigation timestamp.
+
+        Parameters
+        ----------
+        timestamp_uid: str
+            Internal unique ID of the timestamp.
+        Returns
+        -------
+        List[str]
+            A list of unique identifiers for each reproting object associated with the given input parameters.
+        """
+        res = []
+
+        for im in list(self._reportings.keys()):
+            if self._reportings[im].timestamp_uid and self._reportings[im].timestamp_uid == timestamp_uid:
+                res.append(im)
+        return res

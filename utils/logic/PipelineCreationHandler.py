@@ -207,7 +207,7 @@ def __create_postop_segmentation_pipeline(model_name, patient_parameters):
     pip[pip_num]["fixed"] = {}
     pip[pip_num]["fixed"]["timestamp"] = 1
     pip[pip_num]["fixed"]["sequence"] = "T1-CE"
-    pip[pip_num]["description"] = "Registration from T1-CE (T0) to T1CE (T1)"
+    pip[pip_num]["description"] = "Registration from T1CE (T0) to T1CE (T1)"
 
     pip_num_int = pip_num_int + 1
     pip_num = str(pip_num_int)
@@ -220,7 +220,7 @@ def __create_postop_segmentation_pipeline(model_name, patient_parameters):
     pip[pip_num]["fixed"]["timestamp"] = 1
     pip[pip_num]["fixed"]["sequence"] = "T1-CE"
     pip[pip_num]["direction"] = "forward"
-    pip[pip_num]["description"] = "Apply registration from T1-CE (T0) to T1CE (T1)"
+    pip[pip_num]["description"] = "Apply registration from T1CE (T0) to T1CE (T1)"
 
     pip_num_int = pip_num_int + 1
     pip_num = str(pip_num_int)
@@ -248,7 +248,7 @@ def __create_postop_segmentation_pipeline(model_name, patient_parameters):
     pip[pip_num]["fixed"] = {}
     pip[pip_num]["fixed"]["timestamp"] = 1
     pip[pip_num]["fixed"]["sequence"] = "T1-CE"
-    pip[pip_num]["description"] = "Registration from FLAIR (T1) to T1-CE (T1)"
+    pip[pip_num]["description"] = "Registration from FLAIR (T1) to T1CE (T1)"
 
     pip_num_int = pip_num_int + 1
     pip_num = str(pip_num_int)
@@ -261,7 +261,7 @@ def __create_postop_segmentation_pipeline(model_name, patient_parameters):
     pip[pip_num]["fixed"]["timestamp"] = 1
     pip[pip_num]["fixed"]["sequence"] = "T1-CE"
     pip[pip_num]["direction"] = "forward"
-    pip[pip_num]["description"] = "Apply registration from FLAIR (T1) to T1-CE (T1)"
+    pip[pip_num]["description"] = "Apply registration from FLAIR (T1) to T1CE (T1)"
 
     pip_num_int = pip_num_int + 1
     pip_num = str(pip_num_int)
@@ -277,7 +277,7 @@ def __create_postop_segmentation_pipeline(model_name, patient_parameters):
     pip[pip_num]["inputs"]["0"]["space"]["sequence"] = "T1-w"
     pip[pip_num]["target"] = ["Brain"]
     pip[pip_num]["model"] = "MRI_Brain"
-    pip[pip_num]["description"] = "Brain segmentation in T1-w (T1)"
+    pip[pip_num]["description"] = "Brain segmentation in T1w (T1)"
 
     pip_num_int = pip_num_int + 1
     pip_num = str(pip_num_int)
@@ -289,7 +289,7 @@ def __create_postop_segmentation_pipeline(model_name, patient_parameters):
     pip[pip_num]["fixed"] = {}
     pip[pip_num]["fixed"]["timestamp"] = 1
     pip[pip_num]["fixed"]["sequence"] = "T1-CE"
-    pip[pip_num]["description"] = "Registration from T1-w (T1) to T1-CE (T1)"
+    pip[pip_num]["description"] = "Registration from T1w (T1) to T1CE (T1)"
 
     pip_num_int = pip_num_int + 1
     pip_num = str(pip_num_int)
@@ -302,7 +302,7 @@ def __create_postop_segmentation_pipeline(model_name, patient_parameters):
     pip[pip_num]["fixed"]["timestamp"] = 1
     pip[pip_num]["fixed"]["sequence"] = "T1-CE"
     pip[pip_num]["direction"] = "forward"
-    pip[pip_num]["description"] = "Apply registration from T1-w (T1) to T1-CE (T1)"
+    pip[pip_num]["description"] = "Apply registration from T1w (T1) to T1CE (T1)"
 
     pip_num_int = pip_num_int + 1
     pip_num = str(pip_num_int)
@@ -346,7 +346,7 @@ def __create_postop_segmentation_pipeline(model_name, patient_parameters):
     pip[pip_num]["inputs"]["4"]["space"]["sequence"] = "T1-CE"
     pip[pip_num]["target"] = ["Tumor"]
     pip[pip_num]["model"] = "MRI_Tumor_Postop"
-    pip[pip_num]["description"] = "Tumor segmentation in T1-CE (T1)"
+    pip[pip_num]["description"] = "Tumor segmentation in T1CE (T1)"
     # download_model(model_name='MRI_Tumor_Postop')
 
     return pip
@@ -530,7 +530,7 @@ def __create_postop_reporting_pipeline(model_name, patient_parameters):
     pip[pip_num]["fixed"] = {}
     pip[pip_num]["fixed"]["timestamp"] = 1
     pip[pip_num]["fixed"]["sequence"] = "T1-CE"
-    pip[pip_num]["description"] = "Registration from T1-CE (T0) to T1CE (T1)"
+    pip[pip_num]["description"] = "Registration from T1CE (T0) to T1CE (T1)"
 
     pip_num_int = pip_num_int + 1
     pip_num = str(pip_num_int)
@@ -543,7 +543,7 @@ def __create_postop_reporting_pipeline(model_name, patient_parameters):
     pip[pip_num]["fixed"]["timestamp"] = 1
     pip[pip_num]["fixed"]["sequence"] = "T1-CE"
     pip[pip_num]["direction"] = "forward"
-    pip[pip_num]["description"] = "Apply registration from T1-CE (T0) to T1CE (T1)"
+    pip[pip_num]["description"] = "Apply registration from T1CE (T0) to T1CE (T1)"
 
     pip_num_int = pip_num_int + 1
     pip_num = str(pip_num_int)
@@ -571,7 +571,7 @@ def __create_postop_reporting_pipeline(model_name, patient_parameters):
     pip[pip_num]["fixed"] = {}
     pip[pip_num]["fixed"]["timestamp"] = 1
     pip[pip_num]["fixed"]["sequence"] = "T1-CE"
-    pip[pip_num]["description"] = "Registration from FLAIR (T1) to T1-CE (T1)"
+    pip[pip_num]["description"] = "Registration from FLAIR (T1) to T1CE (T1)"
 
     pip_num_int = pip_num_int + 1
     pip_num = str(pip_num_int)
@@ -584,7 +584,7 @@ def __create_postop_reporting_pipeline(model_name, patient_parameters):
     pip[pip_num]["fixed"]["timestamp"] = 1
     pip[pip_num]["fixed"]["sequence"] = "T1-CE"
     pip[pip_num]["direction"] = "forward"
-    pip[pip_num]["description"] = "Apply registration from FLAIR (T1) to T1-CE (T1)"
+    pip[pip_num]["description"] = "Apply registration from FLAIR (T1) to T1CE (T1)"
 
     pip_num_int = pip_num_int + 1
     pip_num = str(pip_num_int)
@@ -600,7 +600,7 @@ def __create_postop_reporting_pipeline(model_name, patient_parameters):
     pip[pip_num]["inputs"]["0"]["space"]["sequence"] = "T1-w"
     pip[pip_num]["target"] = ["Brain"]
     pip[pip_num]["model"] = "MRI_Brain"
-    pip[pip_num]["description"] = "Brain segmentation in T1-w (T1)"
+    pip[pip_num]["description"] = "Brain segmentation in T1w (T1)"
 
     pip_num_int = pip_num_int + 1
     pip_num = str(pip_num_int)
@@ -612,7 +612,7 @@ def __create_postop_reporting_pipeline(model_name, patient_parameters):
     pip[pip_num]["fixed"] = {}
     pip[pip_num]["fixed"]["timestamp"] = 1
     pip[pip_num]["fixed"]["sequence"] = "T1-CE"
-    pip[pip_num]["description"] = "Registration from T1-w (T1) to T1-CE (T1)"
+    pip[pip_num]["description"] = "Registration from T1w (T1) to T1CE (T1)"
 
     pip_num_int = pip_num_int + 1
     pip_num = str(pip_num_int)
@@ -625,7 +625,7 @@ def __create_postop_reporting_pipeline(model_name, patient_parameters):
     pip[pip_num]["fixed"]["timestamp"] = 1
     pip[pip_num]["fixed"]["sequence"] = "T1-CE"
     pip[pip_num]["direction"] = "forward"
-    pip[pip_num]["description"] = "Apply registration from T1-w (T1) to T1-CE (T1)"
+    pip[pip_num]["description"] = "Apply registration from T1w (T1) to T1CE (T1)"
 
     pip_num_int = pip_num_int + 1
     pip_num = str(pip_num_int)
@@ -669,7 +669,7 @@ def __create_postop_reporting_pipeline(model_name, patient_parameters):
     pip[pip_num]["inputs"]["4"]["space"]["sequence"] = "T1-CE"
     pip[pip_num]["target"] = ["Tumor"]
     pip[pip_num]["model"] = "MRI_Tumor_Postop"
-    pip[pip_num]["description"] = "Tumor segmentation in T1-CE (T1)"
+    pip[pip_num]["description"] = "Tumor segmentation in T1CE (T1)"
     # download_model(model_name='MRI_Tumor_Postop')
 
     pip_num_int = pip_num_int + 1

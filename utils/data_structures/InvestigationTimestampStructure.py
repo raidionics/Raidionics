@@ -83,6 +83,9 @@ class InvestigationTimestamp:
 
     @display_name.setter
     def display_name(self, text: str) -> None:
+        logging.debug(
+            "Unsaved changes - Investigation timestamp display name changed from {} to {}".format(self._display_name,
+                                                                                                  text))
         self._display_name = text
         new_folder_name = self._display_name.strip().replace(" ", "")
         if os.path.exists(os.path.join(self._output_patient_folder, new_folder_name)):
@@ -91,10 +94,11 @@ class InvestigationTimestamp:
         if os.path.exists(os.path.join(self._output_patient_folder, self._folder_name)):
             shutil.move(src=os.path.join(self._output_patient_folder, self._folder_name),
                         dst=os.path.join(self._output_patient_folder, new_folder_name))
-            self._folder_name = new_folder_name
+        logging.debug(
+            "Unsaved changes - Investigation timestamp folder name changed from {} to {}".format(self._folder_name,
+                                                                                                 new_folder_name))
+        self._folder_name = new_folder_name
         self._unsaved_changes = True
-        logging.debug("Unsaved changes - Investigation timestamp display name changed to {}".format(self._display_name))
-        logging.debug("Unsaved changes - Investigation timestamp folder name changed to {}".format(self._folder_name))
 
     def set_datetime(self, inv_time: str) -> None:
         self._datetime = datetime.datetime.strptime(inv_time, "%d/%m/%Y, %H:%M:%S")
@@ -141,8 +145,7 @@ class InvestigationTimestamp:
                 self._folder_name = parameters['folder_name']
             else:
                 self._folder_name = self._display_name.strip().replace(" ", "")
-            if 'datetime' in list(parameters.keys()) and \
-                    datetime.datetime.strptime(parameters['datetime'], "%d/%m/%Y, %H:%M:%S"):
+            if 'datetime' in list(parameters.keys()) and parameters['datetime']:
                 self._datetime = datetime.datetime.strptime(parameters['datetime'], "%d/%m/%Y, %H:%M:%S")
         except Exception:
             logging.error("InvestigationTimestampStructure reloading from disk failed with:\n {}".format(traceback.format_exc()))

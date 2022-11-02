@@ -1,5 +1,5 @@
 from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QLineEdit, QComboBox, QGridLayout, QPushButton,\
-    QRadioButton, QMenu, QAction, QSlider, QColorDialog, QVBoxLayout, QSpacerItem, QSizePolicy
+    QRadioButton, QMenu, QAction, QSlider, QColorDialog, QVBoxLayout, QSpacerItem, QSizePolicy, QMessageBox
 from PySide2.QtCore import Qt, QSize, Signal
 from PySide2.QtGui import QPixmap, QIcon, QColor
 import os
@@ -433,6 +433,17 @@ class AnnotationSingleLayerWidget(QWidget):
         params.set_annotation_class_type(self.annotation_type_combobox.currentText())
 
     def __on_parent_mri_changed(self, index: int) -> None:
+        code = QMessageBox.warning(self, "Parent MRI change warning.",
+                                   "Are you sure you want to proceed with the change of parent MRI?",
+                                   QMessageBox.Ok | QMessageBox.Cancel, QMessageBox.Ok)
+        if code == QMessageBox.StandardButton.Cancel:  # Change canceled
+            self.parent_image_combobox.blockSignals(True)
+            parent_mri_display_name = SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_uid(
+                SoftwareConfigResources.getInstance().get_active_patient().get_annotation_by_uid(self.uid).get_parent_mri_uid()).display_name
+            self.parent_image_combobox.setCurrentText(parent_mri_display_name)
+            self.parent_image_combobox.blockSignals(False)
+            return
+
         params = SoftwareConfigResources.getInstance().get_active_patient().get_annotation_by_uid(self.uid)
         old_mri_parent = params.get_parent_mri_uid()
         mri_display_name = self.parent_image_combobox.currentText()

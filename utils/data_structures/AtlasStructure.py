@@ -115,6 +115,7 @@ class AtlasVolume:
         self._display_name = parameters['display_name']
         self._parent_mri_uid = parameters['parent_mri_uid']
         self._timestamp_uid = parameters['investigation_timestamp_uid']
+        self._timestamp_folder_name = parameters['display_volume_filepath'].split('/')[0]
         if 'display_colors' in parameters.keys():
             self._class_display_color = {int(k): v for k, v in parameters['display_colors'].items()}
         if 'display_opacities' in parameters.keys():
@@ -205,8 +206,19 @@ class AtlasVolume:
         if self._raw_input_filepath and self._output_patient_folder in self._raw_input_filepath:
             self._raw_input_filepath = self._raw_input_filepath.replace(self._output_patient_folder, output_folder)
         if self._class_description_filename and self._output_patient_folder in self._class_description_filename:
-            self._class_description_filename = self._class_description_filename.replace(self._output_patient_folder, output_folder)
+            self._class_description_filename = self._class_description_filename.replace(self._output_patient_folder,
+                                                                                        output_folder)
+        if self._resampled_input_volume_filepath:
+            self._resampled_input_volume_filepath = self._resampled_input_volume_filepath.replace(self._output_patient_folder,
+                                                                                                  output_folder)
+        if self._display_volume_filepath:
+            self._display_volume_filepath = self._display_volume_filepath.replace(self._output_patient_folder,
+                                                                                  output_folder)
         self._output_patient_folder = output_folder
+
+    @property
+    def timestamp_uid(self) -> str:
+        return self._timestamp_uid
 
     @property
     def output_patient_folder(self) -> str:
@@ -228,6 +240,26 @@ class AtlasVolume:
                                                     self._output_patient_folder).split('/')[1:])
                 self._raw_input_filepath = os.path.join(self._output_patient_folder, self._timestamp_folder_name,
                                                            rel_path)
+        if self._resampled_input_volume_filepath:
+            if os.name == 'nt':
+                # @TODO. Windows use-case to do.
+                pass
+            else:
+                rel_path = '/'.join(os.path.relpath(self._resampled_input_volume_filepath,
+                                                    self._output_patient_folder).split('/')[1:])
+                self._resampled_input_volume_filepath = os.path.join(self._output_patient_folder,
+                                                                     self._timestamp_folder_name,
+                                                                     rel_path)
+        if self._display_volume_filepath:
+            if os.name == 'nt':
+                # @TODO. Windows use-case to do.
+                pass
+            else:
+                rel_path = '/'.join(os.path.relpath(self._display_volume_filepath,
+                                                    self._output_patient_folder).split('/')[1:])
+                self._display_volume_filepath = os.path.join(self._output_patient_folder,
+                                                             self._timestamp_folder_name,
+                                                             rel_path)
 
     def get_class_description(self) -> Union[pd.DataFrame, dict]:
         return self._class_description

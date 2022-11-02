@@ -16,6 +16,7 @@ from gui2.SinglePatientComponent.SinglePatientWidget import SinglePatientWidget
 from gui2.StudyBatchComponent.StudyBatchWidget import StudyBatchWidget
 from gui2.UtilsWidgets.CustomQDialog.SavePatientChangesDialog import SavePatientChangesDialog
 from gui2.UtilsWidgets.CustomQDialog.SoftwareSettingsDialog import SoftwareSettingsDialog
+from gui2.UtilsWidgets.CustomQDialog.LogsViewerDialog import LogsViewerDialog
 
 
 class WorkerThread(QThread):
@@ -129,10 +130,11 @@ class RaidionicsMainWindow(QMainWindow):
                                                    "Preferences", self)
         self.settings_preferences_action.setShortcut("Ctrl+P")
         self.settings_menu.addAction(self.settings_preferences_action)
-        # self.settings_update_menu = self.settings_menu.addMenu("Update")
-        # self.settings_update_models_menu = self.settings_update_menu.addMenu("Models")
-        # self.settings_update_models_menu_active_action = QAction("Active checking", checkable=True)
-        # self.settings_update_models_menu.addAction(self.settings_update_models_menu_active_action)
+        self.view_logs_action = QAction(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                           'Images/logs_icon.png')),
+                                        "Logs", self)
+        self.view_logs_action.setShortcut("Ctrl+L")
+        self.settings_menu.addAction(self.view_logs_action)
 
         self.help_menu = self.menu_bar.addMenu('Help')
         self.community_action = QAction(
@@ -196,6 +198,7 @@ class RaidionicsMainWindow(QMainWindow):
         self.community_action.triggered.connect(self.__on_community_action_triggered)
         self.about_action.triggered.connect(self.__on_about_action_triggered)
         self.help_action.triggered.connect(self.__on_help_action_triggered)
+        self.view_logs_action.triggered.connect(self.__on_view_logs_triggered)
 
     def __cross_widgets_connections(self):
         self.welcome_widget.left_panel_single_patient_pushbutton.clicked.connect(self.__on_single_patient_clicked)
@@ -375,9 +378,18 @@ class RaidionicsMainWindow(QMainWindow):
         }""")
         popup.exec_()
 
-    def __on_help_action_triggered(self):
-        # opens browser with specified url, directs user to Issues section of GitHub repo
-        QDesktopServices.openUrl(QUrl("https://github.com/dbouget/Raidionics/issues"))
+    def __on_help_action_triggered(self) -> None:
+        """
+        Opens the Github wiki where the user can find information, explanatory videos, and a FAQ.
+        """
+        QDesktopServices.openUrl(QUrl("https://github.com/dbouget/Raidionics/wiki"))
+
+    def __on_view_logs_triggered(self):
+        """
+        @TODO. Should make a custom widget as text edit to see the content of the raidionics log file.
+        """
+        diag = LogsViewerDialog(self)
+        diag.exec_()
 
     def __on_download_example_data(self):
         QDesktopServices.openUrl(QUrl("https://drive.google.com/file/d/1GYQPR0RvoriJN6Z1Oq8WzOoDf68htdCs/view?usp=sharing"))

@@ -133,6 +133,33 @@ class MRIVolume:
                                                     self._output_patient_folder).split('/')[1:])
                 self._usable_input_filepath = os.path.join(self._output_patient_folder, self._timestamp_folder_name,
                                                            rel_path)
+        if self._dicom_metadata_filepath:
+            if os.name == 'nt':
+                # @TODO. Windows use-case to do.
+                pass
+            else:
+                rel_path = '/'.join(os.path.relpath(self._dicom_metadata_filepath,
+                                                    self._output_patient_folder).split('/')[1:])
+                self._dicom_metadata_filepath = os.path.join(self._output_patient_folder, self._timestamp_folder_name,
+                                                           rel_path)
+        if self._resampled_input_volume_filepath:
+            if os.name == 'nt':
+                # @TODO. Windows use-case to do.
+                pass
+            else:
+                rel_path = '/'.join(os.path.relpath(self._resampled_input_volume_filepath,
+                                                    self._output_patient_folder).split('/')[1:])
+                self._resampled_input_volume_filepath = os.path.join(self._output_patient_folder,
+                                                                     self._timestamp_folder_name, rel_path)
+        if self._display_volume_filepath:
+            if os.name == 'nt':
+                # @TODO. Windows use-case to do.
+                pass
+            else:
+                rel_path = '/'.join(os.path.relpath(self._display_volume_filepath,
+                                                    self._output_patient_folder).split('/')[1:])
+                self._display_volume_filepath = os.path.join(self._output_patient_folder,
+                                                             self._timestamp_folder_name, rel_path)
 
     def set_unsaved_changes_state(self, state: bool) -> None:
         self._unsaved_changes = state
@@ -162,6 +189,27 @@ class MRIVolume:
         self._raw_input_filepath = self._usable_input_filepath
 
     def set_output_patient_folder(self, output_folder: str) -> None:
+        """
+        When a patient renaming is performed by the user, the disk location where the patient is saved changed.
+        All related filepaths, local to the patient inside the designated 'patients' folder, must be adjusted
+
+        Parameters
+        ----------
+        output_folder: str
+            New folder name where the patient data will be saved on disk.
+        """
+        if self._resampled_input_volume_filepath:
+            self._resampled_input_volume_filepath = self._resampled_input_volume_filepath.replace(
+                self._output_patient_folder, output_folder)
+        if self._usable_input_filepath:
+            self._usable_input_filepath = self._usable_input_filepath.replace(self._output_patient_folder,
+                                                                              output_folder)
+        if self._display_volume_filepath:
+            self._display_volume_filepath = self._display_volume_filepath.replace(self._output_patient_folder,
+                                                                                  output_folder)
+        if self._dicom_metadata_filepath:
+            self._dicom_metadata_filepath = self._dicom_metadata_filepath.replace(self._output_patient_folder,
+                                                                                  output_folder)
         self._output_patient_folder = output_folder
 
     @property
@@ -346,7 +394,7 @@ class MRIVolume:
         self._display_volume_filepath = os.path.join(self._output_patient_folder, parameters['display_volume_filepath'])
         self._display_volume = nib.load(self._display_volume_filepath).get_data()[:]
         self._display_name = parameters['display_name']
-        self._timestamp_folder_name = self._display_volume_filepath.split('/')[0]
+        self._timestamp_folder_name = parameters['display_volume_filepath'].split('/')[0]
         self.set_sequence_type(type=parameters['sequence_type'], manual=False)
         self.__generate_intensity_histogram()
 

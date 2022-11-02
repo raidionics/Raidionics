@@ -200,11 +200,17 @@ class AnnotationVolume:
             self._raw_input_filepath = self._raw_input_filepath.replace(self._output_patient_folder, output_folder)
         if self._usable_input_filepath and self._output_patient_folder in self._usable_input_filepath:
             self._usable_input_filepath = self._usable_input_filepath.replace(self._output_patient_folder, output_folder)
+        if self._resampled_input_volume_filepath:
+            self._resampled_input_volume_filepath = self._resampled_input_volume_filepath.replace(self._output_patient_folder, output_folder)
         self._output_patient_folder = output_folder
 
     @property
     def output_patient_folder(self) -> str:
         return self._output_patient_folder
+
+    @property
+    def timestamp_uid(self) -> str:
+        return self._timestamp_uid
 
     @property
     def timestamp_folder_name(self) -> str:
@@ -222,6 +228,27 @@ class AnnotationVolume:
                                                     self._output_patient_folder).split('/')[1:])
                 self._usable_input_filepath = os.path.join(self._output_patient_folder, self._timestamp_folder_name,
                                                            rel_path)
+        if self._resampled_input_volume_filepath and \
+                self._output_patient_folder in self._resampled_input_volume_filepath:
+            if os.name == 'nt':
+                # @TODO. Windows use-case to do.
+                pass
+            else:
+                rel_path = '/'.join(os.path.relpath(self._resampled_input_volume_filepath,
+                                                    self._output_patient_folder).split('/')[1:])
+                self._resampled_input_volume_filepath = os.path.join(self._output_patient_folder,
+                                                                     self._timestamp_folder_name, rel_path)
+
+        if self._display_volume_filepath and \
+                self._output_patient_folder in self._display_volume_filepath:
+            if os.name == 'nt':
+                # @TODO. Windows use-case to do.
+                pass
+            else:
+                rel_path = '/'.join(os.path.relpath(self._display_volume_filepath,
+                                                    self._output_patient_folder).split('/')[1:])
+                self._display_volume_filepath = os.path.join(self._output_patient_folder,
+                                                             self._timestamp_folder_name, rel_path)
 
     def get_display_opacity(self) -> int:
         return self._display_opacity
@@ -375,6 +402,7 @@ class AnnotationVolume:
         self.set_generation_type(generation_type=parameters['generation_type'], manual=False)
         self._parent_mri_uid = parameters['parent_mri_uid']
         self._timestamp_uid = parameters['investigation_timestamp_uid']
+        self._timestamp_folder_name = parameters['display_volume_filepath'].split('/')[0]
         self._display_name = parameters['display_name']
         self._display_color = parameters['display_color']
         self._display_opacity = parameters['display_opacity']

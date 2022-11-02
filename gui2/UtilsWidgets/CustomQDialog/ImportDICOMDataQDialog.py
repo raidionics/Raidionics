@@ -242,6 +242,9 @@ class ImportDICOMDataQDialog(QDialog):
             else:
                 self.mri_volume_imported.emit(uid)
             self.load_progressbar.setValue(elem + 1)
+        # @TODO. The following is not enough, it updates internally and on disk the patient name, but the GUI part
+        # is not updated. Have to emit a specific signal with the new display name here.
+        # SoftwareConfigResources.getInstance().get_active_patient().set_display_name(self.dicom_holder.patient_id)
         self.load_progressbar.setVisible(False)
         self.selected_series_tablewidget.setRowCount(0)  # Cleaning the table of MRI series to import
         self.content_patient_tablewidget.setEnabled(True)  # In case the next action is a patient import

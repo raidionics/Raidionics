@@ -51,18 +51,22 @@ def collect_results(patient_parameters, pipeline):
                                             os.path.basename(patient_parameters.get_mri_by_uid(
                                                 parent_mri_uid).get_usable_input_filepath()).split('.')[
                                                 0] + '_annotation-' + anno_str + '.nii.gz')
-                    dest_ts = patient_parameters.get_timestamp_by_order(order=pip_step["inputs"]["0"]["timestamp"])
-                    dest_file = os.path.join(patient_parameters.output_folder, dest_ts.folder_name, 'raw',
-                                             os.path.basename(seg_file))
-                    shutil.move(seg_file, dest_file)
-                    data_uid, error_msg = patient_parameters.import_data(dest_file,
-                                                                         investigation_ts=dest_ts.unique_id,
-                                                                         investigation_ts_folder_name=dest_ts.folder_name,
-                                                                         type='Annotation')
-                    patient_parameters.get_annotation_by_uid(data_uid).set_annotation_class_type(anno_str)
-                    patient_parameters.get_annotation_by_uid(data_uid).set_generation_type("Automatic")
-                    patient_parameters.get_annotation_by_uid(data_uid).set_parent_mri_uid(parent_mri_uid)
-                    results['Annotation'].append(data_uid)
+                    if os.path.exists(seg_file):
+                        dest_ts = patient_parameters.get_timestamp_by_order(order=pip_step["inputs"]["0"]["timestamp"])
+                        dest_file = os.path.join(patient_parameters.output_folder, dest_ts.folder_name, 'raw',
+                                                 os.path.basename(seg_file))
+                        shutil.move(seg_file, dest_file)
+                        data_uid, error_msg = patient_parameters.import_data(dest_file,
+                                                                             investigation_ts=dest_ts.unique_id,
+                                                                             investigation_ts_folder_name=dest_ts.folder_name,
+                                                                             type='Annotation')
+                        patient_parameters.get_annotation_by_uid(data_uid).set_annotation_class_type(anno_str)
+                        patient_parameters.get_annotation_by_uid(data_uid).set_generation_type("Automatic")
+                        patient_parameters.get_annotation_by_uid(data_uid).set_parent_mri_uid(parent_mri_uid)
+                        results['Annotation'].append(data_uid)
+                    else:
+                        # Segmentation step most likely skipped because the annotation volume already exists.
+                        logging.info("Not collecting annotation results for step {}.".format(pip_step))
             elif pip_step["task"] == "Apply registration":
                 if pip_step["direction"] == "inverse":
                     seq_type = get_type_from_string(MRISequenceType, pip_step["moving"]["sequence"])
