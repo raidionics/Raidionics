@@ -432,7 +432,9 @@ class PatientParameters:
                 else:
                     investigation_ts = list(self._investigation_timestamps.keys())[0]
 
-            type = input_file_category_disambiguation(filename)
+            if not type:
+                type = input_file_category_disambiguation(filename)
+
             if type == 'MRI':
                 # Generating a unique id for the MRI volume
                 base_data_uid = os.path.basename(filename).strip().split('.')[0]
@@ -506,7 +508,19 @@ class PatientParameters:
 
             sitk.WriteImage(dicom_series.volume, ori_filename)
             logging.info("Converted DICOM import to {}".format(ori_filename))
-            uid, error_msg = self.import_data(ori_filename, type="MRI")
+            investigation_dicom_id = dicom_series.get_study_id()
+            inv_ts_object = self.get_timestamp_by_dicom_study_id(investigation_dicom_id)
+            if not inv_ts_object:
+                investigation_ts = investigation_dicom_id
+                curr_ts = InvestigationTimestamp(investigation_ts, order=len(self._investigation_timestamps),
+                                                 inv_time=dicom_series.series_date,
+                                                 output_patient_folder=self._output_folder)
+                curr_ts.dicom_study_id = investigation_ts
+                self._investigation_timestamps[investigation_ts] = curr_ts
+                inv_ts_uid = curr_ts.unique_id
+            else:
+                inv_ts_uid = inv_ts_object.unique_id
+            uid, error_msg = self.import_data(ori_filename, investigation_ts=inv_ts_uid,  type="MRI")
             self._mri_volumes[uid].set_dicom_metadata(dicom_series.dicom_tags)
 
             # Removing the temporary MRI Series placeholder.
@@ -607,6 +621,12 @@ class PatientParameters:
     def get_timestamp_by_order(self, order: int) -> Union[None, InvestigationTimestamp]:
         for ts in self._investigation_timestamps:
             if self._investigation_timestamps[ts].order == order:
+                return self._investigation_timestamps[ts]
+        return None
+
+    def get_timestamp_by_dicom_study_id(self, study_id: str) -> Union[None, InvestigationTimestamp]:
+        for ts in self._investigation_timestamps:
+            if self._investigation_timestamps[ts].dicom_study_id == study_id:
                 return self._investigation_timestamps[ts]
         return None
 

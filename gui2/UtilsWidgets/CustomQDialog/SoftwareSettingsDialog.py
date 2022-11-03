@@ -99,8 +99,8 @@ class SoftwareSettingsDialog(QDialog):
         self.processing_options_use_sequences_header_label.setToolTip("Tick the box in order to use the manually set sequence type. If left unticked, a sequence classifier will be used on all loaded MRI scans.\n")
         self.processing_options_use_sequences_checkbox = QCheckBox()
         self.processing_options_use_sequences_checkbox.setChecked(SoftwareConfigResources.getInstance().user_preferences.use_manual_sequences)
-        self.processing_options_use_sequences_layout.addWidget(self.processing_options_use_sequences_header_label)
         self.processing_options_use_sequences_layout.addWidget(self.processing_options_use_sequences_checkbox)
+        self.processing_options_use_sequences_layout.addWidget(self.processing_options_use_sequences_header_label)
         self.processing_options_use_sequences_layout.addStretch(1)
         self.processing_options_base_layout.addLayout(self.processing_options_use_sequences_layout)
         self.processing_options_use_annotations_layout = QHBoxLayout()
@@ -108,8 +108,8 @@ class SoftwareSettingsDialog(QDialog):
         self.processing_options_use_annotations_header_label.setToolTip("Tick the box in order to use the loaded manual annotations during pipeline processing. If left unticked, segmentation models will be used to generate automatic annotations.\n")
         self.processing_options_use_annotations_checkbox = QCheckBox()
         self.processing_options_use_annotations_checkbox.setChecked(SoftwareConfigResources.getInstance().user_preferences.use_manual_annotations)
-        self.processing_options_use_annotations_layout.addWidget(self.processing_options_use_annotations_header_label)
         self.processing_options_use_annotations_layout.addWidget(self.processing_options_use_annotations_checkbox)
+        self.processing_options_use_annotations_layout.addWidget(self.processing_options_use_annotations_header_label)
         self.processing_options_use_annotations_layout.addStretch(1)
         self.processing_options_base_layout.addLayout(self.processing_options_use_annotations_layout)
         self.separating_line = QLabel()
@@ -120,8 +120,8 @@ class SoftwareSettingsDialog(QDialog):
         self.processing_options_compute_corticalstructures_label.setToolTip("Tick the box in order to include cortical structures related features in the standardized report.\n")
         self.processing_options_compute_corticalstructures_checkbox = QCheckBox()
         self.processing_options_compute_corticalstructures_checkbox.setChecked(SoftwareConfigResources.getInstance().user_preferences.compute_cortical_structures)
-        self.processing_options_compute_corticalstructures_layout.addWidget(self.processing_options_compute_corticalstructures_label)
         self.processing_options_compute_corticalstructures_layout.addWidget(self.processing_options_compute_corticalstructures_checkbox)
+        self.processing_options_compute_corticalstructures_layout.addWidget(self.processing_options_compute_corticalstructures_label)
         self.processing_options_compute_corticalstructures_layout.addStretch(1)
         self.processing_options_base_layout.addLayout(self.processing_options_compute_corticalstructures_layout)
         self.processing_options_compute_subcorticalstructures_layout = QHBoxLayout()
@@ -129,8 +129,8 @@ class SoftwareSettingsDialog(QDialog):
         self.processing_options_compute_subcorticalstructures_label.setToolTip("Tick the box in order to include subcortical structures related features in the standardized report.\n")
         self.processing_options_compute_subcorticalstructures_checkbox = QCheckBox()
         self.processing_options_compute_subcorticalstructures_checkbox.setChecked(SoftwareConfigResources.getInstance().user_preferences.compute_subcortical_structures)
-        self.processing_options_compute_subcorticalstructures_layout.addWidget(self.processing_options_compute_subcorticalstructures_label)
         self.processing_options_compute_subcorticalstructures_layout.addWidget(self.processing_options_compute_subcorticalstructures_checkbox)
+        self.processing_options_compute_subcorticalstructures_layout.addWidget(self.processing_options_compute_subcorticalstructures_label)
         self.processing_options_compute_subcorticalstructures_layout.addStretch(1)
         self.processing_options_base_layout.addLayout(self.processing_options_compute_subcorticalstructures_layout)
         self.processing_options_base_layout.addStretch(1)
@@ -170,6 +170,7 @@ class SoftwareSettingsDialog(QDialog):
         # if selected:
         #     background_color = software_ss["Color3"]
         #     pressed_background_color = software_ss["Color4"]
+
         self.options_list_scrollarea.setStyleSheet("""
         QScrollArea{
         background-color: """ + background_color + """;

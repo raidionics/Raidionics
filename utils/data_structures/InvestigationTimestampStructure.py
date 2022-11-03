@@ -30,6 +30,7 @@ class InvestigationTimestamp:
     Class defining how an MRI volume should be handled.
     """
     _unique_id = ""  # Internal unique identifier for the timestamp
+    _dicom_study_id = None  # If applicable (i.e., data loaded from a DICOM folder), storing the official study ID
     _order = None  # If multiple timestamps for the current patient, order of the current timestamp
     _output_patient_folder = None  # Overall patient directory where results are stored
     _display_name = None  # Visible name for the current timestamp
@@ -38,14 +39,16 @@ class InvestigationTimestamp:
     _investigation_type = None  # From the InvestigationType
     _unsaved_changes = False  # Documenting any change, for suggesting saving when swapping between patients
 
-    def __init__(self, uid: str, order: int, output_patient_folder: str, inv_time: str = None,
-                 reload_params: dict = None) -> None:
+    def __init__(self, uid: str, order: int, output_patient_folder: str, dicom_study_id: str = None,
+                 inv_time: str = None, reload_params: dict = None) -> None:
         self.__reset()
         self._unique_id = uid
+        if dicom_study_id:
+            self._dicom_study_id = dicom_study_id
         self._order = order
         self._output_patient_folder = output_patient_folder
         if inv_time:
-            self._datetime = datetime.datetime.strptime(inv_time, "%d/%m/%Y, %H:%M:%S")
+            self._datetime = datetime.datetime.strptime(inv_time, "%Y%m%d").date()
         self._display_name = uid
 
         if reload_params:
@@ -55,6 +58,7 @@ class InvestigationTimestamp:
 
     def __reset(self):
         self._unique_id = None
+        self._dicom_study_id = None
         self._order = None
         self._output_patient_folder = None
         self._display_name = None
@@ -66,6 +70,14 @@ class InvestigationTimestamp:
     @property
     def unique_id(self) -> str:
         return self._unique_id
+
+    @property
+    def dicom_study_id(self) -> str:
+        return self._dicom_study_id
+
+    @dicom_study_id.setter
+    def dicom_study_id(self, study_id: str) -> None:
+        self._dicom_study_id = study_id
 
     def set_unsaved_changes_state(self, state: bool) -> None:
         self._unsaved_changes = state

@@ -29,7 +29,7 @@ class ActionsInteractorWidget(QWidget):
         self.layout.setContentsMargins(10, 5, 10, 5)
         self.layout.setSpacing(5)
 
-        self.run_folder_classification = QPushButton("Folder analysis")
+        self.run_folder_classification = QPushButton("Sequence classification")
         self.run_folder_classification.setIcon(QIcon(
             QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../Images/classification_icon.png'))))
         self.run_segmentation_preop = QPushButton("Preoperative segmentation")
