@@ -74,7 +74,7 @@ class WelcomeWidget(QWidget):
         self.right_panel_layout.addWidget(self.right_panel_community_pushbutton)
         self.right_panel_layout.addItem(QSpacerItem(1, 5))
         self.right_panel_published_articles_pushbutton = QPushButton()
-        self.right_panel_published_articles_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Images/published_articles_icon.png'))))
+        self.right_panel_published_articles_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Images/about_raidionics_icon.png'))))
         self.right_panel_layout.addWidget(self.right_panel_published_articles_pushbutton)
         self.right_panel_layout.addItem(QSpacerItem(1, 5))
         self.right_panel_issues_suggestions_pushbutton = QPushButton()
@@ -281,10 +281,10 @@ class WelcomeWidget(QWidget):
         self.right_panel_community_pushbutton.clicked.connect(self.community_clicked)
 
     def __on_right_panel_publised_articles_pressed(self):
-        self.right_panel_published_articles_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Images/published_articles_icon_pressed.png'))))
+        self.right_panel_published_articles_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Images/about_raidionics_icon_pressed.png'))))
 
     def __on_right_panel_published_articles_released(self):
-        self.right_panel_published_articles_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Images/published_articles_icon.png'))))
+        self.right_panel_published_articles_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Images/about_raidionics_icon.png'))))
 
     def __on_right_panel_issues_suggestions_pressed(self):
         self.right_panel_issues_suggestions_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Images/issues_suggestions_pressed_icon.png'))))

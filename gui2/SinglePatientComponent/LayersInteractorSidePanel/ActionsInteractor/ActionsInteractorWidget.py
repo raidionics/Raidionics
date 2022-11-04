@@ -9,7 +9,9 @@ from utils.software_config import SoftwareConfigResources
 
 class ActionsInteractorWidget(QWidget):
     """
-
+    @TODO. The entire panel should be setEnabled(False) when no active_patient exists
+    @TODO2. Should redesign this widget, to be more generic. For example should allow a pipeline selection (e.g.,
+    segmentation, reporting) and then select a timestamp. The actual pipeline content should then be made on-the-fly...
     """
     pipeline_execution_requested = Signal(str)  # predefined pipeline code
 

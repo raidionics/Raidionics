@@ -17,6 +17,9 @@ from gui2.StudyBatchComponent.StudyBatchWidget import StudyBatchWidget
 from gui2.UtilsWidgets.CustomQDialog.SavePatientChangesDialog import SavePatientChangesDialog
 from gui2.UtilsWidgets.CustomQDialog.SoftwareSettingsDialog import SoftwareSettingsDialog
 from gui2.UtilsWidgets.CustomQDialog.LogsViewerDialog import LogsViewerDialog
+from gui2.UtilsWidgets.CustomQDialog.AboutDialog import AboutDialog
+from gui2.UtilsWidgets.CustomQDialog.ResearchCommunityDialog import ResearchCommunityDialog
+from gui2.UtilsWidgets.CustomQDialog.KeyboardShortcutsDialog import KeyboardShortcutsDialog
 
 
 class WorkerThread(QThread):
@@ -130,6 +133,11 @@ class RaidionicsMainWindow(QMainWindow):
                                                    "Preferences", self)
         self.settings_preferences_action.setShortcut("Ctrl+P")
         self.settings_menu.addAction(self.settings_preferences_action)
+        self.settings_shortcuts_action = QAction(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                                    'Images/tag-icon.png')),
+                                                 "Keyboard shortcuts", self)
+        self.settings_shortcuts_action.setShortcut("Ctrl+K")
+        self.settings_menu.addAction(self.settings_shortcuts_action)
         self.view_logs_action = QAction(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                            'Images/logs_icon.png')),
                                         "Logs", self)
@@ -199,6 +207,7 @@ class RaidionicsMainWindow(QMainWindow):
         self.about_action.triggered.connect(self.__on_about_action_triggered)
         self.help_action.triggered.connect(self.__on_help_action_triggered)
         self.view_logs_action.triggered.connect(self.__on_view_logs_triggered)
+        self.settings_shortcuts_action.triggered.connect(self.__on_shortcuts_action_triggered)
 
     def __cross_widgets_connections(self):
         self.welcome_widget.left_panel_single_patient_pushbutton.clicked.connect(self.__on_single_patient_clicked)
@@ -325,57 +334,11 @@ class RaidionicsMainWindow(QMainWindow):
         SoftwareConfigResources.getInstance().set_active_patient(patient_uid=patient_uid)
 
     def __on_community_action_triggered(self):
-        popup = QMessageBox()
-        popup.setWindowTitle('Research community')
-        popup.setText('The data used for training the various segmentation models was gathered from: \n'
-            '* Ole Solheim, Lisa M. Sagberg, Even H. Fyllingen, Sayed Hoseiney; Department of Neurosurgery, St. Olavs hospital, Trondheim University Hospital, Trondheim, Norway\n'
-            '* Asgeir Store Jakola; Department of Neurosurgery, Sahlgrenska University Hospital, Gothenburg, Sweden\n'
-            '* Kyrre Eeg Emblem; Department of Physics and Computational Radiology, Division of Radiology and Nuclear Medicine, Oslo University Hospital, Oslo, Norway\n'
-            '* Philip C. De Witt Hamer, Roelant S. Eijgelaar, Ivar Kommers, Frederik Barkhof, Domenique M.J. Müller; Department of Neurosurgery, Amsterdam University Medical Centers, Vrije Universiteit, Amsterdam, The Netherlands\n'
-            '* Hilko Ardon; Department of Neurosurgery, Twee Steden Hospital, Tilburg, The Netherlands\n'
-            '* Lorenzo Bello, Marco Conti Nibali, Marco Rossi, Tommaso Sciortino; Neurosurgical Oncology Unit, Department of Oncology and Hemato-Oncology, Humanitas Research Hospital, Università Degli Studi di Milano, Milano, Italy\n'
-            '* Mitchel S. Berger, Shawn Hervey-Jumper; Department of Neurological Surgery, University of California San Francisco, San Francisco, USA\n'
-            '* Julia Furtner; Department of Biomedical Imaging and Image-Guided Therapy, Medical University Vienna, Wien, Austria\n'
-            '* Albert J. S. Idema; Department of Neurosurgery, Northwest Clinics, Alkmaar, The Netherlands\n'
-            '* Barbara Kiesel, Georg Widhalm; Department of Neurosurgery, Medical University Vienna, Wien, Austria\n'
-            '* Alfred Kloet; Department of Neurosurgery, Haaglanden Medical Center, The Hague, The Netherlands\n'
-            '* Emmanuel Mandonnet; Department of Neurological Surgery, Hôpital Lariboisière, Paris, France\n'
-            '* Pierre A. Robe; Department of Neurology and Neurosurgery, University Medical Center Utrecht, Utrecht, The Netherlands\n'
-            '* Wimar van den Brink; Department of Neurosurgery, Isala, Zwolle, The Netherlands\n'
-            '* Michiel Wagemakers;  Department of Neurosurgery, University Medical Center Groningen, University of Groningen, Groningen, The Netherlands\n'
-            '* Marnix G. Witte; Department of Radiation Oncology, The Netherlands Cancer Institute, Amsterdam, The Netherlands\n'
-            '* Aeilko H. Zwinderman; Department of Clinical Epidemiology and Biostatistics, Amsterdam University Medical Centers, University of Amsterdam, Amsterdam, The Netherlands\n'
-            '\n\n')
-        popup.setStyleSheet("""
-        QLabel{
-        min-width: 600px;
-        font-size: 14px;
-        color: black;
-        }""")
+        popup = ResearchCommunityDialog(self)
         popup.exec_()
 
     def __on_about_action_triggered(self):
-        popup = QMessageBox()
-        popup.setWindowTitle('About')
-        popup.setText('Raidionics is developed by the Medical Technology group, Health department, SINTEF Digital:\n'
-                        '* David Bouget, contact: david.bouget@sintef.no\n'
-                        '* André Pedersen (deployment and multi-platform support)\n'
-                        '* Demah Alsinan (design)\n'
-                        '* Valeria Gaitan (design)\n'
-                        '* Ingerid Reinertsen (project leader)\n\n'
-                      'For questions about the methodological aspect, please refer to the following published articles:\n'
-                      '* Preoperative brain tumor imaging: models and software for segmentation and standardized reporting (https://www.frontiersin.org/articles/10.3389/fneur.2022.932219/full)\n'
-                      '* Glioblastoma Surgery Imaging–Reporting and Data System: Validation and Performance of the Automated Segmentation Task (https://www.mdpi.com/2072-6694/13/18/4674)\n'
-                      '* Glioblastoma Surgery Imaging—Reporting and Data System: Standardized Reporting of Tumor Volume, Location, and Resectability Based on Automated Segmentations (https://www.mdpi.com/2072-6694/13/12/2854)\n'
-                      '* Meningioma Segmentation in T1-Weighted MRI Leveraging Global Context and Attention Mechanisms (https://www.frontiersin.org/articles/10.3389/fradi.2021.711514/full)\n'
-                      '\n\nCurrent software version: {}'.format(SoftwareConfigResources.getInstance().software_version)
-                      )
-        popup.setStyleSheet("""
-        QLabel{
-        min-width: 600px;
-        font-size: 14px;
-        color: black;
-        }""")
+        popup = AboutDialog()
         popup.exec_()
 
     def __on_help_action_triggered(self) -> None:
@@ -390,6 +353,10 @@ class RaidionicsMainWindow(QMainWindow):
         """
         diag = LogsViewerDialog(self)
         diag.exec_()
+
+    def __on_shortcuts_action_triggered(self):
+        popup = KeyboardShortcutsDialog(self)
+        popup.exec_()
 
     def __on_download_example_data(self):
         QDesktopServices.openUrl(QUrl("https://drive.google.com/file/d/1GYQPR0RvoriJN6Z1Oq8WzOoDf68htdCs/view?usp=sharing"))
