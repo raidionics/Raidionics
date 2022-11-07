@@ -113,6 +113,7 @@ class SinglePatientLayersWidget(QWidget):
         self.timestamp_layer_widget.atlas_structure_opacity_changed.connect(self.atlas_structure_opacity_changed)
 
         # Actions-based connections
+        self.mri_volume_imported.connect(self.execution_actions_widget.on_enable_actions)
         self.execution_actions_widget.pipeline_execution_requested.connect(self.pipeline_execution_requested)
 
         # @TODO. Can be removed, deprecated?
@@ -193,7 +194,21 @@ class SinglePatientLayersWidget(QWidget):
         self.patient_view_toggled.emit(patient_uid)
 
     def on_import_patient(self, patient_uid: str) -> None:
-        self.patient_imported.emit(patient_uid)
+        """
+        Notifies the import of a new patient, represented by the patient_uid, for the single patient widget to be
+        updated.
+        N-B: Because of the behaviour of folder inputs (needed in both the single patient and study modes), a new
+        patient imported from a folder is not made as the active patient, and as such the single patient widget should
+        not be visually updated.
+
+        Parameters
+        ----------
+        patient_uid: str
+            Internal unique identifier for the newly imported patient.
+        """
+        if not SoftwareConfigResources.getInstance().get_active_patient_uid() \
+                or SoftwareConfigResources.getInstance().get_active_patient_uid() == patient_uid:
+            self.patient_imported.emit(patient_uid)
 
     def on_reset_interface(self) -> None:
         """
@@ -203,6 +218,7 @@ class SinglePatientLayersWidget(QWidget):
         self.volumes_collapsiblegroupbox.reset()
         self.annotations_collapsiblegroupbox.reset()
         self.atlases_collapsiblegroupbox.reset()
+        self.execution_actions_widget.reset()
 
     def on_batch_process_started(self) -> None:
         self.execution_actions_widget.on_process_started()

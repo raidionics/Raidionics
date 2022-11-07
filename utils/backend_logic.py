@@ -206,6 +206,8 @@ def generate_surrogate_folder(patient_parameters: PatientParameters, output_fold
     Generating a temporary input folder for the backend, containing only the necessary files.
     When manual annotations exist, the choice is left to the user to ship them to the backend for re-use, or to
     generate them from scratch (through the Settings > Preferences panel).
+    @Behaviour. For segmentation tasks, should it compute an automatic annotation even when a manual one has already
+    been loaded?
 
     Parameters
     ----------

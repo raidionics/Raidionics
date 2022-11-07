@@ -1,3 +1,5 @@
+import traceback
+
 from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QLineEdit, QComboBox, QGridLayout, QPushButton,\
     QRadioButton, QMenu, QAction, QVBoxLayout, QMessageBox
 from PySide2.QtCore import Qt, QSize, Signal, QPoint
@@ -246,12 +248,15 @@ class MRISeriesLayerWidget(QWidget):
         """
         Setting up the GUI from the parameters reloaded from disk and stored in SoftwareConfigResources.
         """
-        mri_volume_parameters = SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_uid(self.uid)
-        self.display_name_lineedit.setText(mri_volume_parameters.display_name)
-        sequence_index = self.sequence_type_combobox.findText(mri_volume_parameters.get_sequence_type_str())
-        self.sequence_type_combobox.blockSignals(True)
-        self.sequence_type_combobox.setCurrentIndex(sequence_index)
-        self.sequence_type_combobox.blockSignals(False)
+        try:
+            mri_volume_parameters = SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_uid(self.uid)
+            self.display_name_lineedit.setText(mri_volume_parameters.display_name)
+            sequence_index = self.sequence_type_combobox.findText(mri_volume_parameters.get_sequence_type_str())
+            self.sequence_type_combobox.blockSignals(True)
+            self.sequence_type_combobox.setCurrentIndex(sequence_index)
+            self.sequence_type_combobox.blockSignals(False)
+        except Exception:
+            logging.error("[MRISeriesLayerWidget] Initialization from internal parameters failed with: \n {}.".format(traceback.format_exc()))
 
     def __on_delete_layer(self):
         """

@@ -24,6 +24,7 @@ class ActionsInteractorWidget(QWidget):
         self.__set_connections()
         self.__set_layout_dimensions()
         self.__set_stylesheets()
+        self.reset()
 
     def __set_interface(self):
         self.setAttribute(Qt.WA_StyledBackground, True)  # Enables to set e.g. background-color for the QWidget
@@ -162,6 +163,20 @@ class ActionsInteractorWidget(QWidget):
         background-color: """ + pressed_background_color + """;
         }
         """)
+
+    def reset(self):
+        self.run_folder_classification.setEnabled(False)
+        self.run_segmentation_preop.setEnabled(False)
+        self.run_segmentation_postop.setEnabled(False)
+        self.run_rads_preop.setEnabled(False)
+        self.run_rads_postop.setEnabled(False)
+
+    def on_enable_actions(self):
+        self.run_folder_classification.setEnabled(True)
+        self.run_segmentation_preop.setEnabled(True)
+        self.run_segmentation_postop.setEnabled(True)
+        self.run_rads_preop.setEnabled(True)
+        self.run_rads_postop.setEnabled(True)
 
     def on_process_started(self) -> None:
         self.setEnabled(False)

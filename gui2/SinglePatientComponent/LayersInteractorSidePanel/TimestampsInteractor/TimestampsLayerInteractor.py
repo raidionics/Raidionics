@@ -328,6 +328,8 @@ class TimestampsLayerInteractor(QWidget):
         self.timestamp_selector_combobox.blockSignals(False)
         self.import_data_pushbutton.setEnabled(False)
         self.import_data_pushbutton.setVisible(False)
+        # self.timestamp_add_pushbutton.setEnabled(False)  # Unsure if should be disabled or not.
+        self.timestamp_remove_pushbutton.setEnabled(False)
 
     def on_patient_view_toggled(self, patient_uid: str) -> None:
         """

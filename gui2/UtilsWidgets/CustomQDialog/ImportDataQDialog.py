@@ -219,20 +219,29 @@ class ImportDataQDialog(QDialog):
             self.load_progressbar.setValue(i + 1)
 
         # @TODO. Might try something more advanced for pairing annotations with MRIs
-        regular_files = mris_selected + annotations_selected
-        for i, pf in enumerate(regular_files):
-            uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_data(pf)
+        for i, pf in enumerate(mris_selected):
+            uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_data(pf, type="MRI")
             if error_msg:
                 diag = QMessageBox()
                 diag.setText("Unable to load: {}.\nError message: {}.\n".format(os.path.basename(pf),
                                                                                 error_msg))
                 diag.exec_()
             else:
-                if uid in SoftwareConfigResources.getInstance().get_active_patient().get_all_mri_volumes_uids():
-                    self.mri_volume_imported.emit(uid)
-                elif uid in list(SoftwareConfigResources.getInstance().get_active_patient().get_all_annotation_volumes_uids()):
-                    self.annotation_volume_imported.emit(uid)
+                self.mri_volume_imported.emit(uid)
             self.load_progressbar.setValue(i + 1)
+
+        for i, pf in enumerate(annotations_selected):
+            uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_data(pf,
+                                                                                                    type="Annotation")
+            if error_msg:
+                diag = QMessageBox()
+                diag.setText("Unable to load: {}.\nError message: {}.\n".format(os.path.basename(pf),
+                                                                                error_msg))
+                diag.exec_()
+            else:
+                self.annotation_volume_imported.emit(uid)
+            self.load_progressbar.setValue(len(mris_selected) + i + 1)
+
         self.load_progressbar.setVisible(False)
         self.accept()
 

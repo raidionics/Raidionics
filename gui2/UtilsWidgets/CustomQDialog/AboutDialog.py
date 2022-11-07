@@ -35,7 +35,8 @@ class AboutDialog(QDialog):
         self.raidionics_logo_label.setScaledContents(True)
         self.about_label = QLabel()
         self.about_label.setOpenExternalLinks(True)
-        self.about_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        # The following counters the possibility to open external links...
+        # self.about_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
         self.upper_layout.addWidget(self.raidionics_logo_label)
         self.upper_layout.addWidget(self.about_label)
         self.layout.addLayout(self.upper_layout)
@@ -81,6 +82,7 @@ class AboutDialog(QDialog):
         * André Pedersen (deployment and multi-platform support)
         * Demah Alsinan (design)
         * Valeria Gaitan (design)
+        * Javier Pérez de Frutos (logo design)
         * Ingerid Reinertsen (project leader) \n\n 
         For questions about the methodological aspect, please refer to the following published articles:
         * Preoperative brain tumor imaging: models and software for segmentation and standardized

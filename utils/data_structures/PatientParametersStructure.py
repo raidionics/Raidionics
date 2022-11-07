@@ -405,7 +405,7 @@ class PatientParameters:
         return error_message
 
     def import_data(self, filename: str, investigation_ts: str = None, investigation_ts_folder_name: str = None,
-                    type: str = "MRI") -> Union[str, Any]:
+                    type: str = None) -> Tuple[str, Any]:
         """
         Defining how stand-alone MRI volumes or annotation volumes are loaded into the system for the current patient.
 
@@ -414,6 +414,24 @@ class PatientParameters:
 
         Imported data must also be linked to an InvestigationTimestamp, and their output folders will be named after
         the timestamp.
+
+        Parameters
+        ----------
+        filename: str
+            Disk location containing the volume to be loaded inside Raidionics for the current patient.
+        investigation_ts: str
+            Unique internal identifier to attach the loaded volume to.
+        investigation_ts_folder_name: str
+            Folder name on disk where all volumes for the specified investigation timestamp should be stored.
+        type: str
+            Logical type for the volume to load from [None, "MRI", "Annotation"]. If None, the type will be determined
+            automatically
+
+        Returns
+        -------
+        data_uid, error_message: [str, str]
+            A tuple [str, str] containing first the new internal unique identifier for the loaded volume, and second
+            a potential error message.
         """
         data_uid = None
         error_message = None
