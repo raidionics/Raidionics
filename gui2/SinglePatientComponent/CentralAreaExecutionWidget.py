@@ -47,6 +47,7 @@ class CentralAreaExecutionWidget(QLabel):
 
         self.run_segmentation_pushbutton = QPushButton("Run segmentation")
         self.run_segmentation_pushbutton.setFixedSize(QSize(175, 25))
+        self.run_segmentation_pushbutton.setToolTip("On preoperative data (i.e. T0)")
         self.arrow_icon = QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/filled_arrow_right.png')))
         self.run_segmentation_pushbutton.setIcon(self.arrow_icon)
         self.run_segmentation_pushbutton.setIconSize(QSize(40, 15))
@@ -54,6 +55,7 @@ class CentralAreaExecutionWidget(QLabel):
         self.run_reporting_pushbutton.setFixedSize(QSize(175, 25))
         self.run_reporting_pushbutton.setIcon(self.arrow_icon)
         self.run_reporting_pushbutton.setIconSize(QSize(40, 15))
+        self.run_reporting_pushbutton.setToolTip("On preoperative data (i.e. T0)")
         self.run_segmentation_pushbutton.setEnabled(False)
         self.run_reporting_pushbutton.setEnabled(False)
         self.base_layout.addStretch(1)

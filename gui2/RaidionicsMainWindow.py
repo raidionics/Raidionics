@@ -107,6 +107,10 @@ class RaidionicsMainWindow(QMainWindow):
         self.menu_bar = QMenuBar(self)
         self.menu_bar.setNativeMenuBar(False)  # https://stackoverflow.com/questions/25261760/menubar-not-showing-for-simple-qmainwindow-code-qt-creator-mac-os
         self.file_menu = self.menu_bar.addMenu('File')
+        self.save_file_action = QAction(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                           'Images/floppy_disk_icon.png')), 'Save', self)
+        self.save_file_action.setShortcut("Ctrl+S")
+        self.file_menu.addAction(self.save_file_action)
         self.download_example_data_action = QAction(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                                        'Images/download-tray-icon.png')),
                                                     'Download test data', self)
@@ -203,6 +207,7 @@ class RaidionicsMainWindow(QMainWindow):
         self.__cross_widgets_connections()
 
     def __set_inner_widget_connections(self):
+        self.save_file_action.triggered.connect(self.__on_save_file_triggered)
         self.community_action.triggered.connect(self.__on_community_action_triggered)
         self.about_action.triggered.connect(self.__on_about_action_triggered)
         self.help_action.triggered.connect(self.__on_help_action_triggered)
@@ -220,6 +225,7 @@ class RaidionicsMainWindow(QMainWindow):
 
         # Connections from single mode to study mode.
         self.single_patient_widget.patient_name_edited.connect(self.batch_study_widget.patient_name_edited)
+        self.single_patient_widget.patient_deleted.connect(self.batch_study_widget.patient_deleted)
 
         # Connections from study mode to single mode.
         self.batch_study_widget.mri_volume_imported.connect(self.single_patient_widget.on_mri_volume_imported)
@@ -357,6 +363,14 @@ class RaidionicsMainWindow(QMainWindow):
     def __on_shortcuts_action_triggered(self):
         popup = KeyboardShortcutsDialog(self)
         popup.exec_()
+
+    def __on_save_file_triggered(self):
+        if SoftwareConfigResources.getInstance().get_active_patient_uid() \
+                and SoftwareConfigResources.getInstance().get_active_patient().has_unsaved_changes():
+            SoftwareConfigResources.getInstance().get_active_patient().save_patient()
+        if SoftwareConfigResources.getInstance().get_active_study_uid() \
+                and SoftwareConfigResources.getInstance().get_active_study().has_unsaved_changes():
+            SoftwareConfigResources.getInstance().get_active_study().save()
 
     def __on_download_example_data(self):
         QDesktopServices.openUrl(QUrl("https://drive.google.com/file/d/1GYQPR0RvoriJN6Z1Oq8WzOoDf68htdCs/view?usp=sharing"))

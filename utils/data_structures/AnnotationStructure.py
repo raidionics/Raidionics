@@ -199,9 +199,14 @@ class AnnotationVolume:
         if self._raw_input_filepath and self._output_patient_folder in self._raw_input_filepath:
             self._raw_input_filepath = self._raw_input_filepath.replace(self._output_patient_folder, output_folder)
         if self._usable_input_filepath and self._output_patient_folder in self._usable_input_filepath:
-            self._usable_input_filepath = self._usable_input_filepath.replace(self._output_patient_folder, output_folder)
+            self._usable_input_filepath = self._usable_input_filepath.replace(self._output_patient_folder,
+                                                                              output_folder)
         if self._resampled_input_volume_filepath:
-            self._resampled_input_volume_filepath = self._resampled_input_volume_filepath.replace(self._output_patient_folder, output_folder)
+            self._resampled_input_volume_filepath = self._resampled_input_volume_filepath.replace(
+                self._output_patient_folder, output_folder)
+        if self._display_volume_filepath:
+            self._display_volume_filepath = self._display_volume_filepath.replace(self._output_patient_folder,
+                                                                                  output_folder)
         self._output_patient_folder = output_folder
 
     @property
@@ -219,6 +224,15 @@ class AnnotationVolume:
     @timestamp_folder_name.setter
     def timestamp_folder_name(self, folder_name: str) -> None:
         self._timestamp_folder_name = folder_name
+        if self._output_patient_folder in self._raw_input_filepath:
+            if os.name == 'nt':
+                # @TODO. Windows use-case to do.
+                pass
+            else:
+                rel_path = '/'.join(os.path.relpath(self._raw_input_filepath,
+                                                    self._output_patient_folder).split('/')[1:])
+                self._raw_input_filepath = os.path.join(self._output_patient_folder, self._timestamp_folder_name,
+                                                        rel_path)
         if self._output_patient_folder in self._usable_input_filepath:
             if os.name == 'nt':
                 # @TODO. Windows use-case to do.

@@ -15,6 +15,7 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
     and maybe the SinglePatientResultsWidget if the scroll area is filled.
     """
     patient_selected = Signal(str)  # Unique internal id of the selected patient
+    patient_deleted = Signal(str)  # Unique internal id of the deleted patient
     patient_name_edited = Signal(str, str)
     reset_interface_requested = Signal()  # To set the default interface when the last opened patient has been closed.
     import_patient_from_dicom_requested = Signal()
@@ -247,8 +248,8 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
             if code == QMessageBox.StandardButton.Cancel:  # Deletion canceled
                 return
             else:  # Deletion accepted
-                # @TODO. Must send a signal to notify the study panel to delete the patient with widget_id and redraw.
-                pass
+                self.patient_deleted.emit(widget_id)
+                SoftwareConfigResources.getInstance().get_active_study().remove_study_patient(widget_id)
 
         if SoftwareConfigResources.getInstance().get_active_patient().has_unsaved_changes():
             dialog = SavePatientChangesDialog()

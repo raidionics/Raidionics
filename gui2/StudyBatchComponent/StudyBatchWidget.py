@@ -21,6 +21,7 @@ class StudyBatchWidget(QWidget):
     @TODO2. Should disable the menu option to go from single mode to batch mode, to force the user to click on a patient
     from the list, which will trigger the active patient update properly.
     """
+    patient_deleted = Signal(str)
     patient_imported = Signal(str)
     patient_selected = Signal(str)
     patient_name_edited = Signal(str, str)
@@ -121,9 +122,12 @@ class StudyBatchWidget(QWidget):
         self.study_imported.connect(self.studies_panel.on_study_imported)
 
         self.patient_listing_panel.patient_selected.connect(self.patient_selected)
+        # Redrawing the whole tree when a patient is removed is not optimal, but will do for now.
+        self.patient_listing_panel.patient_removed.connect(self.patients_summary_panel.on_patients_import)
         self.study_imported.connect(self.patient_listing_panel.on_study_imported)
 
         self.patient_name_edited.connect(self.patient_listing_panel.on_patient_name_edited)
+        self.patient_deleted.connect(self.patient_listing_panel.on_patient_removed)
 
         self.processing_advanced.connect(self.studies_panel.on_processing_advanced)
         self.processing_finished.connect(self.studies_panel.on_processing_finished)

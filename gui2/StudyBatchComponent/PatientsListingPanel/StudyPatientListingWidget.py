@@ -10,6 +10,7 @@ class StudyPatientListingWidget(QWidget):
 
     """
     patient_selected = Signal(str)
+    patient_removed = Signal(str)
 
     def __init__(self, parent=None):
         super(StudyPatientListingWidget, self).__init__()
@@ -125,6 +126,7 @@ class StudyPatientListingWidget(QWidget):
         del self.study_patient_widgetitems[patient_uid]
         self.adjustSize()
         self.repaint()
+        self.patient_removed.emit(patient_uid)
 
     def on_study_imported(self, study_uid):
         included_patient_uids = SoftwareConfigResources.getInstance().get_study(study_uid).included_patients_uids

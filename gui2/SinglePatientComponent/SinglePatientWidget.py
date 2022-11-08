@@ -20,6 +20,7 @@ class SinglePatientWidget(QWidget):
     """
 
     """
+    patient_deleted = Signal(str)
     patient_name_edited = Signal(str, str)
     import_data_triggered = Signal()
     import_patient_triggered = Signal()
@@ -145,6 +146,7 @@ class SinglePatientWidget(QWidget):
 
         # Connections between the patient results panel (left-hand) and the study/batch mode
         self.results_panel.patient_name_edited.connect(self.patient_name_edited)
+        self.results_panel.patient_deleted.connect(self.patient_deleted)
 
         # Connections related to data display (from right-hand panel to update the central viewer)
         self.layers_panel.reset_central_viewer.connect(self.center_panel.reset_central_viewer)

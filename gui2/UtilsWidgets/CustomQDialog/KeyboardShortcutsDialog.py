@@ -65,6 +65,8 @@ class KeyboardShortcutsDialog(QDialog):
         self.shortcuts_treewidget.insertTopLevelItem(self.shortcuts_treewidget.topLevelItemCount(), shortcut_item)
         shortcut_item = QTreeWidgetItem(["Open Logging", "Ctrl + L", "Open the dashboard with the software execution logs"])
         self.shortcuts_treewidget.insertTopLevelItem(self.shortcuts_treewidget.topLevelItemCount(), shortcut_item)
+        shortcut_item = QTreeWidgetItem(["Save current patient/study", "Ctrl + S", "Save on disk the current active patient and active study"])
+        self.shortcuts_treewidget.insertTopLevelItem(self.shortcuts_treewidget.topLevelItemCount(), shortcut_item)
         shortcut_item = QTreeWidgetItem(["Toggle tumor display", "S", "Toggle on/off the display of all tumor annotations (must click somewhere on the central display area beforehand)."])
         self.shortcuts_treewidget.insertTopLevelItem(self.shortcuts_treewidget.topLevelItemCount(), shortcut_item)
 
