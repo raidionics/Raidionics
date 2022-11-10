@@ -74,15 +74,13 @@ class AnnotationSingleLayerWidget(QWidget):
         self.annotation_type_layout = QHBoxLayout()
         self.annotation_type_label = QLabel("Class")
         self.annotation_type_combobox = QComboBox()
-        # @TODO. Should be parsed from the EnumType in the AnnotationStructure class
-        self.annotation_type_combobox.addItems(["Brain", "Tumor"])
+        self.annotation_type_combobox.addItems(SoftwareConfigResources.getInstance().get_annotation_types_for_specialty())
         self.annotation_type_layout.addWidget(self.annotation_type_label)
         self.annotation_type_layout.addWidget(self.annotation_type_combobox)
         self.annotation_type_layout.addStretch(1)
         self.generation_type_label = QLabel("Generation ")
         self.generation_type_combobox = QComboBox()
-        # @TODO. Should be parsed from the EnumType in the AnnotationStructure class
-        self.generation_type_combobox.addItems(["Manual", "Automatic"])
+        self.generation_type_combobox.addItems(SoftwareConfigResources.getInstance().get_annotation_generation_types())
         self.annotation_type_layout.addWidget(self.generation_type_label)
         self.annotation_type_layout.addWidget(self.generation_type_combobox)
         self.annotation_type_layout.addStretch(1)

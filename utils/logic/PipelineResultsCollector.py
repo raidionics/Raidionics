@@ -114,7 +114,8 @@ def collect_results(patient_parameters, pipeline):
                         subcortical_folder = os.path.join(patient_parameters.output_folder, 'reporting',
                                                        'T' + str(pip_step["moving"]["timestamp"]), 'Subcortical-structures')
 
-                        subcortical_masks = ['MNI_BCB_atlas.nii.gz']  # @TODO. Hardcoded for now, have to improve the RADS backend here.
+                        # @TODO. Hardcoded for now, have to improve the RADS backend here if we are to support more atlases.
+                        subcortical_masks = ['MNI_BCB_atlas.nii.gz']
                         # subcortical_masks = []
                         # for _, _, files in os.walk(subcortical_folder):
                         #     for f in files:

@@ -122,6 +122,7 @@ class StudyBatchWidget(QWidget):
         self.study_imported.connect(self.studies_panel.on_study_imported)
 
         self.patient_listing_panel.patient_selected.connect(self.patient_selected)
+        self.studies_panel.import_study_from_file_requested.connect(self.patients_summary_panel.on_patients_import)
         # Redrawing the whole tree when a patient is removed is not optimal, but will do for now.
         self.patient_listing_panel.patient_removed.connect(self.patients_summary_panel.on_patients_import)
         self.study_imported.connect(self.patient_listing_panel.on_study_imported)

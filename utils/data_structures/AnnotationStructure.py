@@ -16,12 +16,17 @@ from utils.utilities import get_type_from_string, input_file_type_conversion
 @unique
 class AnnotationClassType(Enum):
     """
-    Specification regarding the content of the annotation, limited to [Brain, Tumor, Other] for now.
+    Specification regarding the content of the annotation.
+    Values in [0, 99] will cover neurological targets, in [100, 199] thoracic targets, for now.
     """
     _init_ = 'value string'
 
     Brain = 0, 'Brain'
     Tumor = 1, 'Tumor'
+
+    Lungs = 100, 'Lungs'
+    Airways = 101, 'Airways'
+
     Other = 999, 'Other'
 
     def __str__(self):

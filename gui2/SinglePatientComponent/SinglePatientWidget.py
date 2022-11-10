@@ -14,6 +14,7 @@ from gui2.SinglePatientComponent.ProcessProgressWidget import ProcessProgressWid
 from gui2.UtilsWidgets.CustomQDialog.ImportDataQDialog import ImportDataQDialog
 from gui2.UtilsWidgets.CustomQDialog.ImportFoldersQDialog import ImportFoldersQDialog
 from gui2.UtilsWidgets.CustomQDialog.ImportDICOMDataQDialog import ImportDICOMDataQDialog
+from gui2.UtilsWidgets.CustomQDialog.VolumeStatisticsDialog import VolumeStatisticsDialog
 
 
 class SinglePatientWidget(QWidget):
@@ -91,6 +92,12 @@ class SinglePatientWidget(QWidget):
         self.top_logo_panel_label_save_pushbutton.setEnabled(False)
         # self.top_logo_panel_layout.addWidget(self.top_logo_panel_label_save_pushbutton)
 
+        self.top_logo_panel_statistics_pushbutton = QPushButton()
+        self.top_logo_panel_statistics_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/statistics_chartbars_icon.png'))))
+        self.top_logo_panel_statistics_pushbutton.setToolTip("Display the volumes and annotations statistics for the active patient.")
+        self.top_logo_panel_statistics_pushbutton.setEnabled(False)
+        self.top_logo_panel_layout.addWidget(self.top_logo_panel_statistics_pushbutton)
+
         self.top_logo_panel_layout.addStretch(1)
 
         self.top_logo_panel_label = QLabel()
@@ -106,6 +113,7 @@ class SinglePatientWidget(QWidget):
         self.top_logo_panel_label_import_dicom_pushbutton.setFixedSize(QSize(30, 30))
         self.top_logo_panel_label_save_pushbutton.setFixedSize(QSize(70, 20))
         self.top_logo_panel_label_save_pushbutton.setIconSize(QSize(30, 30))
+        self.top_logo_panel_statistics_pushbutton.setFixedSize(QSize(30, 30))
 
         ################################## RIGHT PANEL ######################################
         self.right_panel_stackedwidget.setFixedWidth((315 / SoftwareConfigResources.getInstance().get_optimal_dimensions().width()) * self.parent.baseSize().width())
@@ -117,6 +125,7 @@ class SinglePatientWidget(QWidget):
         self.top_logo_panel_label_import_file_pushbutton.clicked.connect(self.__on_import_file_clicked)
         self.top_logo_panel_label_import_dicom_pushbutton.clicked.connect(self.__on_import_dicom_clicked)
         self.top_logo_panel_label_save_pushbutton.clicked.connect(self.__on_save_clicked)
+        self.top_logo_panel_statistics_pushbutton.clicked.connect(self.__on_show_statistics_clicked)
         self.results_panel.patient_selected.connect(self.__on_patient_selected)
         self.__set_cross_connections()
 
@@ -233,12 +242,17 @@ class SinglePatientWidget(QWidget):
     def __on_save_clicked(self):
         SoftwareConfigResources.getInstance().patients_parameters[SoftwareConfigResources.getInstance().active_patient_name].save_patient()
 
+    def __on_show_statistics_clicked(self):
+        diag = VolumeStatisticsDialog(self)
+        diag.exec_()
+
     def __on_patient_selected(self, patient_uid):
         # @TODO. Quick dirty hack, should not have to set the flag everytime a patient is selected, but only once.
         # To be fixed.
         self.top_logo_panel_label_import_file_pushbutton.setEnabled(True)
         self.top_logo_panel_label_import_dicom_pushbutton.setEnabled(True)
         self.top_logo_panel_label_save_pushbutton.setEnabled(True)
+        self.top_logo_panel_statistics_pushbutton.setEnabled(True)
 
     def on_patient_selected(self, patient_name):
         self.results_panel.on_external_patient_selection(patient_name)

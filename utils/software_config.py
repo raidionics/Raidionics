@@ -4,7 +4,7 @@ import platform
 import traceback
 from os.path import expanduser
 import numpy as np
-from typing import Union, Any
+from typing import Union, Any, List
 import names
 from PySide2.QtCore import QSize
 import logging
@@ -13,6 +13,7 @@ import json
 from utils.data_structures.PatientParametersStructure import PatientParameters
 from utils.data_structures.StudyParametersStructure import StudyParameters
 from utils.data_structures.UserPreferencesStructure import UserPreferencesStructure
+from utils.data_structures.AnnotationStructure import AnnotationClassType, AnnotationGenerationType
 
 
 class SoftwareConfigResources:
@@ -27,6 +28,7 @@ class SoftwareConfigResources:
     _user_preferences = None  # Structure containing the parsed information stored in the aforementioned file.
     _session_log_filename = None  # log filename containing the runtime logging for each software execution.
     _software_version = "1.2"  # Current software version (minor) for selecting which models to use in the backend.
+    _software_medical_specialty = "thoracic"  # Overall medical target [neurology, thoracic]
 
     @staticmethod
     def getInstance():
@@ -82,6 +84,10 @@ class SoftwareConfigResources:
     @property
     def software_version(self) -> str:
         return self._software_version
+
+    @property
+    def software_medical_specialty(self) -> str:
+        return self._software_medical_specialty
 
     def get_session_log_filename(self):
         return self._session_log_filename
@@ -423,3 +429,20 @@ class SoftwareConfigResources:
 
     def get_optimal_dimensions(self):
         return self.optimal_dimensions
+
+    def get_annotation_types_for_specialty(self) -> List[str]:
+        results = []
+
+        for anno in AnnotationClassType:
+            if self._software_medical_specialty == "neurology" and 0 <= anno.value < 100:
+                results.append(anno.name)
+            elif self._software_medical_specialty == "thoracic" and 100 <= anno.value < 200:
+                results.append(anno.name)
+        return results
+
+    def get_annotation_generation_types(self) -> List[str]:
+        results = []
+
+        for anno in AnnotationGenerationType:
+            results.append(anno.name)
+        return results

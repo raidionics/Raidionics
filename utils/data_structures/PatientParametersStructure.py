@@ -642,6 +642,12 @@ class PatientParameters:
                 return self._investigation_timestamps[ts]
         return None
 
+    def get_timestamp_by_display_name(self, name: str) -> Union[None, InvestigationTimestamp]:
+        for ts in self._investigation_timestamps:
+            if self._investigation_timestamps[ts].display_name == name:
+                return self._investigation_timestamps[ts]
+        return None
+
     def get_timestamp_by_dicom_study_id(self, study_id: str) -> Union[None, InvestigationTimestamp]:
         for ts in self._investigation_timestamps:
             if self._investigation_timestamps[ts].dicom_study_id == study_id:

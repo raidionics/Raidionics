@@ -115,6 +115,7 @@ class SinglePatientLayersWidget(QWidget):
         # Actions-based connections
         self.mri_volume_imported.connect(self.execution_actions_widget.on_enable_actions)
         self.execution_actions_widget.pipeline_execution_requested.connect(self.pipeline_execution_requested)
+        self.main_tabwidget.currentChanged.connect(self.__on_main_tab_changed)
 
         # @TODO. Can be removed, deprecated?
         self.import_data_triggered.connect(self.volumes_collapsiblegroupbox.on_import_data)
@@ -152,6 +153,10 @@ class SinglePatientLayersWidget(QWidget):
         font-style: bold;
         }
         """)
+
+    def __on_main_tab_changed(self, index):
+        if index == 1:
+            self.execution_actions_widget.refresh()
 
     def on_mri_volume_import(self, uid):
         self.mri_volume_imported.emit(uid)

@@ -41,6 +41,9 @@ class ActionsInteractorWidget(QWidget):
         self.run_segmentation_postop = QPushButton("Postoperative segmentation")
         self.run_segmentation_postop.setIcon(QIcon(
             QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../Images/segmentation_icon.png'))))
+        self.run_segmentation_other = QPushButton("Other segmentation")
+        self.run_segmentation_other.setIcon(QIcon(
+            QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../Images/segmentation_icon.png'))))
         self.run_rads_preop = QPushButton("Preoperative reporting")
         self.run_rads_preop.setIcon(QIcon(
             QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../Images/reporting_icon.png'))))
@@ -50,23 +53,44 @@ class ActionsInteractorWidget(QWidget):
         self.layout.addWidget(self.run_folder_classification)
         self.layout.addWidget(self.run_segmentation_preop)
         self.layout.addWidget(self.run_segmentation_postop)
+        self.layout.addWidget(self.run_segmentation_other)
         self.layout.addWidget(self.run_rads_preop)
         self.layout.addWidget(self.run_rads_postop)
         self.layout.addStretch(1)
+
+        self.action_type_combobox = QComboBox()
+        self.action_type_combobox.addItems(["Classification", "Segmentation", "Reporting"])
+        self.timestamp_target_combobox = QComboBox()
+        self.segmentation_class_combobox = QComboBox()
+        self.segmentation_class_combobox.addItems(["All"] + SoftwareConfigResources.getInstance().get_annotation_types_for_specialty())
+        self.run_action_pushbutton = QPushButton("Execute")
+        self.layout.addWidget(self.action_type_combobox)
+        self.layout.addWidget(self.timestamp_target_combobox)
+        self.layout.addWidget(self.segmentation_class_combobox)
+        self.layout.addWidget(self.run_action_pushbutton)
 
     def __set_connections(self):
         self.run_folder_classification.clicked.connect(self.on_execute_folders_classification)
         self.run_segmentation_preop.clicked.connect(self.on_preop_segmentation_requested)
         self.run_segmentation_postop.clicked.connect(self.on_postop_segmentation_requested)
+        self.run_segmentation_other.clicked.connect(self.on_other_segmentation_requested)
         self.run_rads_preop.clicked.connect(self.on_preop_reporting_requested)
         self.run_rads_postop.clicked.connect(self.on_postop_reporting_requested)
+
+        self.run_action_pushbutton.clicked.connect(self.__on_run_action_requested)
 
     def __set_layout_dimensions(self):
         self.run_folder_classification.setFixedHeight(25)
         self.run_segmentation_preop.setFixedHeight(25)
         self.run_segmentation_postop.setFixedHeight(25)
+        self.run_segmentation_other.setFixedHeight(25)
         self.run_rads_preop.setFixedHeight(25)
         self.run_rads_postop.setFixedHeight(25)
+
+        self.action_type_combobox.setFixedHeight(25)
+        self.timestamp_target_combobox.setFixedHeight(25)
+        self.segmentation_class_combobox.setFixedHeight(25)
+        self.run_action_pushbutton.setFixedHeight(25)
 
     def __set_stylesheets(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
@@ -130,6 +154,23 @@ class ActionsInteractorWidget(QWidget):
         }
         """)
 
+        self.run_segmentation_other.setStyleSheet("""
+        QPushButton{
+        background-color: """ + background_color + """;
+        border-style: none;
+        text-align:left;
+        }
+        QPushButton::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        }
+        QPushButton:pressed{
+        border-style:inset;
+        background-color: """ + pressed_background_color + """;
+        }
+        """)
+
         self.run_rads_preop.setStyleSheet("""
         QPushButton{
         background-color: """ + background_color + """;
@@ -171,6 +212,13 @@ class ActionsInteractorWidget(QWidget):
         self.run_rads_preop.setEnabled(False)
         self.run_rads_postop.setEnabled(False)
 
+    def refresh(self):
+        self.timestamp_target_combobox.clear()
+        items = []
+        for ts in SoftwareConfigResources.getInstance().get_active_patient().get_all_timestamps_uids():
+            items.append(SoftwareConfigResources.getInstance().get_active_patient().get_timestamp_by_uid(ts).display_name)
+        self.timestamp_target_combobox.addItems(items)
+
     def on_enable_actions(self):
         self.run_folder_classification.setEnabled(True)
         self.run_segmentation_preop.setEnabled(True)
@@ -193,8 +241,19 @@ class ActionsInteractorWidget(QWidget):
     def on_postop_segmentation_requested(self):
         self.pipeline_execution_requested.emit("postop_segmentation")
 
+    def on_other_segmentation_requested(self):
+        self.pipeline_execution_requested.emit("other_segmentation")
+
     def on_preop_reporting_requested(self):
         self.pipeline_execution_requested.emit("preop_reporting")
 
     def on_postop_reporting_requested(self):
         self.pipeline_execution_requested.emit("postop_reporting")
+
+    def __on_run_action_requested(self):
+        timestamp = SoftwareConfigResources.getInstance().get_active_patient().get_timestamp_by_display_name(self.timestamp_target_combobox.currentText())
+        if timestamp:
+            action_nametag = self.action_type_combobox.currentText() + "_" + self.segmentation_class_combobox.currentText() + "_T" + str(timestamp.order)
+        else:
+            action_nametag = self.action_type_combobox.currentText() + "_" + self.segmentation_class_combobox.currentText() + "_All"
+        self.pipeline_execution_requested.emit(action_nametag)

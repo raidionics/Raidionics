@@ -230,13 +230,11 @@ class SinglePatientResultsWidget(QCollapsibleWidget):
 
         self.results_selector_label.setStyleSheet("""
         QLabel{
-        background-color:rgb(248, 248, 248);
+        background-color: """ + background_color + """;
         color: """ + font_color + """;
         text-align:left;
         font:bold;
         font-size:14px;
-        padding-left:20px;
-        padding-right:20px;
         border: none;
         }
         """)
