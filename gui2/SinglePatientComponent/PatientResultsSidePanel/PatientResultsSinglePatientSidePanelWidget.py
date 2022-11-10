@@ -86,7 +86,10 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
     def __set_layout_dimensions(self):
         self.patient_list_scrollarea.setBaseSize(QSize(self.width(), 300))
         self.bottom_add_patient_pushbutton.setFixedHeight(40)
-        self.options_menu.setFixedSize(QSize(self.width(), 135))
+        if os.name == 'nt':
+            self.options_menu.setFixedSize(QSize(self.width(), 145))
+        else:
+            self.options_menu.setFixedSize(QSize(self.width(), 135))
 
     def __set_connections(self):
         self.bottom_add_patient_pushbutton.clicked.connect(self.on_import_options_clicked)
@@ -340,7 +343,10 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         self.patient_results_widgets[patient_uid].on_standardized_report_imported(report_uid)
 
     def on_import_options_clicked(self, point):
-        self.options_menu.exec_(self.bottom_add_patient_pushbutton.mapToGlobal(QPoint(0, -95)))
+        if os.name == 'nt':
+            self.options_menu.exec_(self.bottom_add_patient_pushbutton.mapToGlobal(QPoint(0, -106)))
+        else:
+            self.options_menu.exec_(self.bottom_add_patient_pushbutton.mapToGlobal(QPoint(0, -95)))
 
     def on_import_patient_from_data_requested(self):
         self.on_add_new_empty_patient()

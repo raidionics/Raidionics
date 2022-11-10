@@ -245,7 +245,10 @@ class StudiesSidePanelWidget(QWidget):
         """
         The position is hard-coded to get the correct alignment.
         """
-        self.options_menu.exec_(self.bottom_add_study_pushbutton.mapToGlobal(QPoint(0, -15)))
+        if os.name == 'nt':
+            self.options_menu.exec_(self.bottom_add_study_pushbutton.mapToGlobal(QPoint(0, -18)))
+        else:
+            self.options_menu.exec_(self.bottom_add_study_pushbutton.mapToGlobal(QPoint(0, -15)))
 
     def on_add_existing_study_requested(self):
         if SoftwareConfigResources.getInstance().active_study_name and\

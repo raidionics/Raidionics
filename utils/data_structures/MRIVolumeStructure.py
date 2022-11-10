@@ -126,8 +126,13 @@ class MRIVolume:
         self._timestamp_folder_name = folder_name
         if self._output_patient_folder in self._usable_input_filepath:
             if os.name == 'nt':
-                # @TODO. Windows use-case to do.
-                pass
+                path_parts = list(PurePath(os.path.relpath(self._usable_input_filepath, self._output_patient_folder)).parts[1:])
+                rel_path = PurePath()
+                rel_path = rel_path.joinpath(self._output_patient_folder)
+                rel_path = rel_path.joinpath(self._timestamp_folder_name)
+                for x in path_parts:
+                    rel_path = rel_path.joinpath(x)
+                self._usable_input_filepath = os.fspath(rel_path)
             else:
                 rel_path = '/'.join(os.path.relpath(self._usable_input_filepath,
                                                     self._output_patient_folder).split('/')[1:])
