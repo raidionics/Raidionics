@@ -1,4 +1,4 @@
-from PySide2.QtWidgets import QWidget, QVBoxLayout, QScrollArea, QTabWidget
+from PySide2.QtWidgets import QWidget, QVBoxLayout, QScrollArea, QTabWidget, QSizePolicy
 from PySide2.QtCore import Qt, QSize, Signal
 from PySide2.QtGui import QColor
 
@@ -113,6 +113,7 @@ class SinglePatientLayersWidget(QWidget):
         self.timestamp_layer_widget.atlas_structure_opacity_changed.connect(self.atlas_structure_opacity_changed)
 
         # Actions-based connections
+        self.patient_imported.connect(self.execution_actions_widget.on_enable_actions)
         self.mri_volume_imported.connect(self.execution_actions_widget.on_enable_actions)
         self.execution_actions_widget.pipeline_execution_requested.connect(self.pipeline_execution_requested)
         self.main_tabwidget.currentChanged.connect(self.__on_main_tab_changed)
@@ -157,6 +158,15 @@ class SinglePatientLayersWidget(QWidget):
     def __on_main_tab_changed(self, index):
         if index == 1:
             self.execution_actions_widget.refresh()
+
+        # @TODO. Look into this for proper resize when switching between tabs.
+        # for i in range(self.main_tabwidget.count()):
+        #     if i != index:
+        #         self.main_tabwidget.widget(i).setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
+        #     else:
+        #         self.main_tabwidget.widget(i).setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        # self.main_tabwidget.widget(index).setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        # self.adjustSize()
 
     def on_mri_volume_import(self, uid):
         self.mri_volume_imported.emit(uid)

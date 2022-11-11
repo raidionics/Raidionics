@@ -20,17 +20,12 @@ class ContextMenuQTableWidget(QTableWidget):
     def __set_interface(self):
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.context_menu = QMenu(self)
-        # self.display_metadata_action = QAction("Display DICOM metadata")
-        # self.context_menu.addAction(self.display_metadata_action)
-        # self.remove_action = QAction("Remove")
-        # self.context_menu.addAction(self.remove_action)
 
     def __set_stylesheets(self):
         pass
 
     def __set_connections(self):
         pass
-        # self.display_metadata_action.triggered.connect(self.__on_display_metadata_triggered)
 
     def mousePressEvent(self, event):
         """
@@ -38,7 +33,7 @@ class ContextMenuQTableWidget(QTableWidget):
         if event.button() == Qt.RightButton:
             item = self.itemAt(event.pos())
             if item is not None:
-                print('Table Item:', item.row(), item.column())
+                # print('Table Item:', item.row(), item.column())
                 self.current_item = item
                 self.context_menu.exec_(event.globalPos())
         super(ContextMenuQTableWidget, self).mousePressEvent(event)

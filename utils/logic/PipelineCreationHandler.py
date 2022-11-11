@@ -747,8 +747,7 @@ def __create_custom_pipeline(task, tumor_type, patient_parameters):
             pip[pip_num]["description"] = "Classification of the MRI sequence type for all input scans"
             download_model(model_name='MRI_Sequence_Classifier')
 
-        model_name = "MRI_" if SoftwareConfigResources.getInstance().software_medical_specialty == "neurology" else "CT_"
-        model_name = model_name + split_task[1]
+        base_model_name = "MRI_" if SoftwareConfigResources.getInstance().software_medical_specialty == "neurology" else "CT_"
         timestamp_order = int(split_task[2][1:])
         if SoftwareConfigResources.getInstance().software_medical_specialty == "thoracic" and split_task[1] != "Lungs":
             pip_num_int = pip_num_int + 1
@@ -768,21 +767,41 @@ def __create_custom_pipeline(task, tumor_type, patient_parameters):
             pip[pip_num]["description"] = "Lungs segmentation in T1CE (T{})".format(str(timestamp_order))
             download_model(model_name="CT_Lungs")
 
-        pip_num_int = pip_num_int + 1
-        pip_num = str(pip_num_int)
-        pip[pip_num] = {}
-        pip[pip_num]["task"] = 'Segmentation'
-        pip[pip_num]["inputs"] = {}
-        pip[pip_num]["inputs"]["0"] = {}
-        pip[pip_num]["inputs"]["0"]["timestamp"] = timestamp_order
-        pip[pip_num]["inputs"]["0"]["sequence"] = "T1-CE"
-        pip[pip_num]["inputs"]["0"]["labels"] = None
-        pip[pip_num]["inputs"]["0"]["space"] = {}
-        pip[pip_num]["inputs"]["0"]["space"]["timestamp"] = timestamp_order
-        pip[pip_num]["inputs"]["0"]["space"]["sequence"] = "T1-CE"
-        pip[pip_num]["target"] = [split_task[1]]
-        pip[pip_num]["model"] = model_name
-        pip[pip_num]["description"] = split_task[1] + " segmentation in T1CE (T{})".format(str(timestamp_order))
-        download_model(model_name=model_name)
-
+        if split_task[1] != 'All':
+            model_name = base_model_name + split_task[1]
+            pip_num_int = pip_num_int + 1
+            pip_num = str(pip_num_int)
+            pip[pip_num] = {}
+            pip[pip_num]["task"] = 'Segmentation'
+            pip[pip_num]["inputs"] = {}
+            pip[pip_num]["inputs"]["0"] = {}
+            pip[pip_num]["inputs"]["0"]["timestamp"] = timestamp_order
+            pip[pip_num]["inputs"]["0"]["sequence"] = "T1-CE"
+            pip[pip_num]["inputs"]["0"]["labels"] = None
+            pip[pip_num]["inputs"]["0"]["space"] = {}
+            pip[pip_num]["inputs"]["0"]["space"]["timestamp"] = timestamp_order
+            pip[pip_num]["inputs"]["0"]["space"]["sequence"] = "T1-CE"
+            pip[pip_num]["target"] = [split_task[1]]
+            pip[pip_num]["model"] = model_name
+            pip[pip_num]["description"] = split_task[1] + " segmentation in T1CE (T{})".format(str(timestamp_order))
+            download_model(model_name=model_name)
+        else:
+            for k in SoftwareConfigResources.getInstance().get_annotation_types_for_specialty():
+                model_name = base_model_name + k if k != "Tumor" else tumor_type
+                pip_num_int = pip_num_int + 1
+                pip_num = str(pip_num_int)
+                pip[pip_num] = {}
+                pip[pip_num]["task"] = 'Segmentation'
+                pip[pip_num]["inputs"] = {}
+                pip[pip_num]["inputs"]["0"] = {}
+                pip[pip_num]["inputs"]["0"]["timestamp"] = timestamp_order
+                pip[pip_num]["inputs"]["0"]["sequence"] = "T1-CE"
+                pip[pip_num]["inputs"]["0"]["labels"] = None
+                pip[pip_num]["inputs"]["0"]["space"] = {}
+                pip[pip_num]["inputs"]["0"]["space"]["timestamp"] = timestamp_order
+                pip[pip_num]["inputs"]["0"]["space"]["sequence"] = "T1-CE"
+                pip[pip_num]["target"] = [k]
+                pip[pip_num]["model"] = model_name
+                pip[pip_num]["description"] = k + " segmentation in T1CE (T{})".format(str(timestamp_order))
+                download_model(model_name=model_name)
     return pip

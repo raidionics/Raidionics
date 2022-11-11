@@ -41,14 +41,14 @@ class MRIVolume:
     _raw_input_filepath = ""  # Original MRI volume filepath on the user's machine
     _usable_input_filepath = ""  # Usable MRI volume filepath, e.g., after conversion from nrrd to nifti (or other)
     _output_patient_folder = ""
-    _sequence_type = MRISequenceType.T1c
+    _sequence_type = MRISequenceType.T1c  # Acquisition sequence type from MRISequenceType
     _resampled_input_volume = None  # np.ndarray with the raw intensity values from the display volume
     _resampled_input_volume_filepath = None  # Filepath for storing the aforementioned volume
     _dicom_metadata = None  # If the MRI series originate from a DICOM folder, the metadata tags are stored here
     _dicom_metadata_filepath = None  # Filepath for storing the aforementioned DICOM metadata, if needed
     _contrast_window = [None, None]  # Min and max intensity values for the display of the current MRI volume
     _intensity_histogram = None  #
-    _display_name = ""
+    _display_name = ""  # Name shown to the user to identify the current volume, and which can be modified.
     _display_volume = None
     _display_volume_filepath = ""  # Display MRI volume filepath, in its latest state after potential user modifiers
     _default_affine = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]  # Affine matrix for dumping resampled files
@@ -123,6 +123,10 @@ class MRIVolume:
 
     @timestamp_folder_name.setter
     def timestamp_folder_name(self, folder_name: str) -> None:
+        """
+        @Behaviour. Should we also adjust the raw_input_filepath, in case it is inside the patient folder
+        (i.e., DICOM import)?
+        """
         self._timestamp_folder_name = folder_name
         if self._output_patient_folder in self._usable_input_filepath:
             if os.name == 'nt':
@@ -140,8 +144,14 @@ class MRIVolume:
                                                            rel_path)
         if self._dicom_metadata_filepath:
             if os.name == 'nt':
-                # @TODO. Windows use-case to do.
-                pass
+                path_parts = list(PurePath(os.path.relpath(self._dicom_metadata_filepath,
+                                                           self._output_patient_folder)).parts[1:])
+                rel_path = PurePath()
+                rel_path = rel_path.joinpath(self._output_patient_folder)
+                rel_path = rel_path.joinpath(self._timestamp_folder_name)
+                for x in path_parts:
+                    rel_path = rel_path.joinpath(x)
+                self._dicom_metadata_filepath = os.fspath(rel_path)
             else:
                 rel_path = '/'.join(os.path.relpath(self._dicom_metadata_filepath,
                                                     self._output_patient_folder).split('/')[1:])
@@ -149,8 +159,14 @@ class MRIVolume:
                                                            rel_path)
         if self._resampled_input_volume_filepath:
             if os.name == 'nt':
-                # @TODO. Windows use-case to do.
-                pass
+                path_parts = list(PurePath(os.path.relpath(self._resampled_input_volume_filepath,
+                                                           self._output_patient_folder)).parts[1:])
+                rel_path = PurePath()
+                rel_path = rel_path.joinpath(self._output_patient_folder)
+                rel_path = rel_path.joinpath(self._timestamp_folder_name)
+                for x in path_parts:
+                    rel_path = rel_path.joinpath(x)
+                self._resampled_input_volume_filepath = os.fspath(rel_path)
             else:
                 rel_path = '/'.join(os.path.relpath(self._resampled_input_volume_filepath,
                                                     self._output_patient_folder).split('/')[1:])
@@ -158,8 +174,14 @@ class MRIVolume:
                                                                      self._timestamp_folder_name, rel_path)
         if self._display_volume_filepath:
             if os.name == 'nt':
-                # @TODO. Windows use-case to do.
-                pass
+                path_parts = list(PurePath(os.path.relpath(self._display_volume_filepath,
+                                                           self._output_patient_folder)).parts[1:])
+                rel_path = PurePath()
+                rel_path = rel_path.joinpath(self._output_patient_folder)
+                rel_path = rel_path.joinpath(self._timestamp_folder_name)
+                for x in path_parts:
+                    rel_path = rel_path.joinpath(x)
+                self._display_volume_filepath = os.fspath(rel_path)
             else:
                 rel_path = '/'.join(os.path.relpath(self._display_volume_filepath,
                                                     self._output_patient_folder).split('/')[1:])

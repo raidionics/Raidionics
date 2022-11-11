@@ -241,7 +241,7 @@ def generate_surrogate_folder(patient_parameters: PatientParameters, output_fold
                 manual_annos = patient_parameters.get_specific_annotations_for_mri(mri_volume_uid=im,
                                                                             generation_type=AnnotationGenerationType.Manual,
                                                                             annotation_class=c)
-                if use_manual_files and len(manual_annos) != 0 and 'segmentation' not in pipeline_task:
+                if use_manual_files and len(manual_annos) != 0 and 'segmentation' not in pipeline_task.lower():
                     for anno in manual_annos:
                         shutil.copyfile(src=patient_parameters.get_annotation_by_uid(anno).usable_input_filepath,
                                         dst=os.path.join(surrogate_folder, "T" + str(ts_object.order), os.path.basename(

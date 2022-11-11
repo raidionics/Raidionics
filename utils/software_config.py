@@ -20,7 +20,6 @@ class SoftwareConfigResources:
     """
     Singleton class to have access from anywhere in the code at the various local paths where the data, or code are
     located.
-    @TODO. Should include a new structure to hold all user preferences.
     """
     __instance = None
     _software_home_location = None  # Main dump location for the software elements (e.g., models, runtime log)
@@ -28,7 +27,7 @@ class SoftwareConfigResources:
     _user_preferences = None  # Structure containing the parsed information stored in the aforementioned file.
     _session_log_filename = None  # log filename containing the runtime logging for each software execution.
     _software_version = "1.2"  # Current software version (minor) for selecting which models to use in the backend.
-    _software_medical_specialty = "thoracic"  # Overall medical target [neurology, thoracic]
+    _software_medical_specialty = "neurology"  # Overall medical target [neurology, thoracic]
 
     @staticmethod
     def getInstance():

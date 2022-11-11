@@ -89,7 +89,7 @@ class TimestampsLayerInteractor(QWidget):
         self.timestamp_remove_pushbutton.clicked.connect(self.__on_timestamp_removed)
 
     def __set_layout_dimensions(self):
-        self.timestamp_selector_combobox.setFixedHeight(20)
+        self.timestamp_selector_combobox.setFixedSize(QSize(80, 20))
         self.import_data_pushbutton.setFixedSize(QSize(20, 20))
         self.import_data_pushbutton.setIconSize(QSize(20, 20))
         self.timestamp_rankup_pushbutton.setFixedSize(QSize(20, 20))
@@ -448,3 +448,4 @@ class TimestampsLayerInteractor(QWidget):
         self.timestamp_remove_pushbutton.setEnabled(True)
         self.timestamp_rankup_pushbutton.setEnabled(True)
         self.timestamp_rankdown_pushbutton.setEnabled(True)
+        self.timestamp_selector_combobox.setCurrentIndex(0)
