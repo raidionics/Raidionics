@@ -1,3 +1,4 @@
+import numpy as np
 from aenum import Enum, unique
 import logging
 import os
@@ -7,7 +8,9 @@ import dateutil
 import json
 import traceback
 from copy import deepcopy
-from typing import Union, Any, Tuple
+import nibabel as nib
+import pandas as pd
+from typing import Union, Any, Tuple, List
 
 
 class StudyParameters:
@@ -22,6 +25,9 @@ class StudyParameters:
     _output_study_directory = ""  # Root directory (user-selected home location) for storing all patients info
     _output_study_folder = ""  # Complete folder location where the study info are stored
     _included_patients_uids = {}  # List of internal unique identifiers for all the patients included in the study, and their on-disk folder
+    _segmentation_statistics_df = None  # pandas DataFrame for holding all statistics related to the annotations
+    _seg_stats_cnames = ["Patient", "Timestamp", "Sequence", "Generation", "Target", "Volume (ml)"]
+    _reporting_statistics_df = None  # pandas DataFrame for holding all statistics related to the reporting
     _display_name = ""  # Human-readable name for the study
     _unsaved_changes = False  # Documenting any change, for suggesting saving when exiting the software
 
@@ -54,6 +60,8 @@ class StudyParameters:
         self._output_study_directory = ""
         self._output_study_folder = ""
         self._included_patients_uids = {}
+        self._segmentation_statistics_df = None
+        self._reporting_statistics_df = None
         self._display_name = ""
         self._unsaved_changes = False
 
@@ -246,3 +254,16 @@ class StudyParameters:
         # Setting up the output directory, but not saving until the user chooses to
         logging.info("Output study directory set to: {}".format(self._output_study_folder))
         self.__init_json_config()
+        self._segmentation_statistics_df = pd.DataFrame(data=None, columns=self._seg_stats_cnames)
+
+    def include_segmentation_statistics(self, patient_uid: str, annotation_uids: List[str], patient_parameters) -> None:
+        for anno in annotation_uids:
+            anno_object = patient_parameters.get_annotation_by_uid(anno)
+            volume_nib = nib.load(anno_object.raw_input_filepath)
+            anno_volume = np.count_nonzero(volume_nib.get_data()[:]) * np.prod(volume_nib.header.get_zooms()) * 1e-3
+            row_values = [patient_parameters.display_name, anno_object.timestamp_folder_name, "", anno_object.get_generation_type_str(),
+                          anno_object.get_annotation_class_str(), np.round(anno_volume, 3)]
+            row_df = pd.DataFrame(data=np.array(row_values).reshape(1, len(self._seg_stats_cnames)),
+                                  columns=self._seg_stats_cnames)
+            # @TODO. Check that a similar row does not already exist?
+            self._segmentation_statistics_df.append(row_df)

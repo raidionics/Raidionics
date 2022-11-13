@@ -231,8 +231,14 @@ class AnnotationVolume:
         self._timestamp_folder_name = folder_name
         if self._output_patient_folder in self._raw_input_filepath:
             if os.name == 'nt':
-                # @TODO. Windows use-case to do.
-                pass
+                path_parts = list(PurePath(os.path.relpath(self._raw_input_filepath,
+                                                           self._output_patient_folder)).parts[1:])
+                rel_path = PurePath()
+                rel_path = rel_path.joinpath(self._output_patient_folder)
+                rel_path = rel_path.joinpath(self._timestamp_folder_name)
+                for x in path_parts:
+                    rel_path = rel_path.joinpath(x)
+                self._raw_input_filepath = os.fspath(rel_path)
             else:
                 rel_path = '/'.join(os.path.relpath(self._raw_input_filepath,
                                                     self._output_patient_folder).split('/')[1:])
@@ -240,8 +246,14 @@ class AnnotationVolume:
                                                         rel_path)
         if self._output_patient_folder in self._usable_input_filepath:
             if os.name == 'nt':
-                # @TODO. Windows use-case to do.
-                pass
+                path_parts = list(PurePath(os.path.relpath(self._usable_input_filepath,
+                                                           self._output_patient_folder)).parts[1:])
+                rel_path = PurePath()
+                rel_path = rel_path.joinpath(self._output_patient_folder)
+                rel_path = rel_path.joinpath(self._timestamp_folder_name)
+                for x in path_parts:
+                    rel_path = rel_path.joinpath(x)
+                self._usable_input_filepath = os.fspath(rel_path)
             else:
                 rel_path = '/'.join(os.path.relpath(self._usable_input_filepath,
                                                     self._output_patient_folder).split('/')[1:])
@@ -250,8 +262,14 @@ class AnnotationVolume:
         if self._resampled_input_volume_filepath and \
                 self._output_patient_folder in self._resampled_input_volume_filepath:
             if os.name == 'nt':
-                # @TODO. Windows use-case to do.
-                pass
+                path_parts = list(PurePath(os.path.relpath(self._resampled_input_volume_filepath,
+                                                           self._output_patient_folder)).parts[1:])
+                rel_path = PurePath()
+                rel_path = rel_path.joinpath(self._output_patient_folder)
+                rel_path = rel_path.joinpath(self._timestamp_folder_name)
+                for x in path_parts:
+                    rel_path = rel_path.joinpath(x)
+                self._resampled_input_volume_filepath = os.fspath(rel_path)
             else:
                 rel_path = '/'.join(os.path.relpath(self._resampled_input_volume_filepath,
                                                     self._output_patient_folder).split('/')[1:])
@@ -261,8 +279,14 @@ class AnnotationVolume:
         if self._display_volume_filepath and \
                 self._output_patient_folder in self._display_volume_filepath:
             if os.name == 'nt':
-                # @TODO. Windows use-case to do.
-                pass
+                path_parts = list(PurePath(os.path.relpath(self._display_volume_filepath,
+                                                           self._output_patient_folder)).parts[1:])
+                rel_path = PurePath()
+                rel_path = rel_path.joinpath(self._output_patient_folder)
+                rel_path = rel_path.joinpath(self._timestamp_folder_name)
+                for x in path_parts:
+                    rel_path = rel_path.joinpath(x)
+                self._display_volume_filepath = os.fspath(rel_path)
             else:
                 rel_path = '/'.join(os.path.relpath(self._display_volume_filepath,
                                                     self._output_patient_folder).split('/')[1:])
@@ -334,15 +358,17 @@ class AnnotationVolume:
             if not self._display_volume is None:
                 self._display_volume_filepath = os.path.join(self._output_patient_folder, self._timestamp_folder_name,
                                                              'display', self._unique_id + '_display.nii.gz')
-                nib.save(nib.Nifti1Image(self._display_volume, affine=self._default_affine),
-                         self._display_volume_filepath)
+                if not os.path.exists(self._display_volume_filepath):
+                    nib.save(nib.Nifti1Image(self._display_volume, affine=self._default_affine),
+                             self._display_volume_filepath)
 
             if not self._resampled_input_volume is None:
                 self._resampled_input_volume_filepath = os.path.join(self._output_patient_folder,
                                                                      self._timestamp_folder_name, 'display',
                                                                      self._unique_id + '_resampled.nii.gz')
-                nib.save(nib.Nifti1Image(self._resampled_input_volume, affine=self._default_affine),
-                         self._resampled_input_volume_filepath)
+                if not os.path.exists(self._resampled_input_volume_filepath):
+                    nib.save(nib.Nifti1Image(self._resampled_input_volume, affine=self._default_affine),
+                             self._resampled_input_volume_filepath)
 
             # Parameters-filling operations
             volume_params = {}

@@ -7,7 +7,7 @@ import threading
 from utils.software_config import SoftwareConfigResources
 from gui2.StudyBatchComponent.StudiesSidePanel.StudiesSidePanelWidget import StudiesSidePanelWidget
 from gui2.StudyBatchComponent.PatientsListingPanel.StudyPatientListingWidget import StudyPatientListingWidget
-from gui2.StudyBatchComponent.PatientsSummaryPanel.StudyPatientsContentSummaryPanelWidget import StudyPatientsContentSummaryPanelWidget
+from gui2.StudyBatchComponent.PatientsSummaryPanel.StudyPatientsSummaryPanelWidget import StudyPatientsSummaryPanelWidget
 from gui2.UtilsWidgets.CustomQDialog.ImportDataQDialog import ImportDataQDialog
 from gui2.UtilsWidgets.CustomQDialog.ImportFoldersQDialog import ImportFoldersQDialog
 from gui2.UtilsWidgets.CustomQDialog.ImportDICOMDataQDialog import ImportDICOMDataQDialog
@@ -55,17 +55,15 @@ class StudyBatchWidget(QWidget):
 
     def __set_interface(self):
         self.__top_logo_options_panel_interface()
-        self.right_panel_stackedwidget = QStackedWidget()
         self.center_panel_layout = QHBoxLayout()
         self.center_panel_layout.setSpacing(0)
         self.center_panel_layout.setContentsMargins(0, 0, 0, 0)
         self.studies_panel = StudiesSidePanelWidget(self)
         self.patient_listing_panel = StudyPatientListingWidget(self)
-        self.patients_summary_panel = StudyPatientsContentSummaryPanelWidget(self)
-        self.right_panel_stackedwidget.insertWidget(0, self.patients_summary_panel)
+        self.patients_summary_panel = StudyPatientsSummaryPanelWidget(self)
         self.center_panel_layout.addWidget(self.studies_panel)
         self.center_panel_layout.addWidget(self.patient_listing_panel)
-        self.center_panel_layout.addWidget(self.right_panel_stackedwidget)
+        self.center_panel_layout.addWidget(self.patients_summary_panel)
 
         self.layout = QVBoxLayout(self)
         self.layout.setSpacing(0)
@@ -118,13 +116,13 @@ class StudyBatchWidget(QWidget):
         self.studies_panel.import_study_from_file_requested.connect(self.__on_import_custom_clicked)
         self.studies_panel.patient_imported.connect(self.patient_listing_panel.on_patient_imported)
         self.studies_panel.batch_pipeline_execution_requested.connect(self.on_batch_pipeline_execution_wrapper)
-        self.studies_panel.patients_import_finished.connect(self.patients_summary_panel.on_patients_import)
+        self.studies_panel.patients_import_finished.connect(self.patients_summary_panel.patients_imported)
         self.study_imported.connect(self.studies_panel.on_study_imported)
 
         self.patient_listing_panel.patient_selected.connect(self.patient_selected)
-        self.studies_panel.import_study_from_file_requested.connect(self.patients_summary_panel.on_patients_import)
+        self.studies_panel.import_study_from_file_requested.connect(self.patients_summary_panel.patients_imported)
         # Redrawing the whole tree when a patient is removed is not optimal, but will do for now.
-        self.patient_listing_panel.patient_removed.connect(self.patients_summary_panel.on_patients_import)
+        self.patient_listing_panel.patient_removed.connect(self.patients_summary_panel.patients_imported)
         self.study_imported.connect(self.patient_listing_panel.on_study_imported)
 
         self.patient_name_edited.connect(self.patient_listing_panel.on_patient_name_edited)
@@ -132,6 +130,7 @@ class StudyBatchWidget(QWidget):
 
         self.processing_advanced.connect(self.studies_panel.on_processing_advanced)
         self.processing_finished.connect(self.studies_panel.on_processing_finished)
+        self.processing_finished.connect(self.patients_summary_panel.on_processing_finished)
 
         self.import_data_dialog.study_imported.connect(self.on_study_imported)
 
@@ -146,7 +145,6 @@ class StudyBatchWidget(QWidget):
 
     def on_process_finished(self):
         self.processing_finished.emit()
-        self.patients_summary_panel.postprocessing_update()
 
     def __on_import_custom_clicked(self) -> None:
         self.import_data_dialog.reset()
@@ -184,7 +182,9 @@ class StudyBatchWidget(QWidget):
                 # @TODO. Will have to be more generic when more than one classifier.
                 # @TODO2. Not connected all the way.
                 self.patient_radiological_sequences_imported.emit(u)
-
+            if 'Annotation' in list(results.keys()):
+                study.include_segmentation_statistics(patient_uid=u, annotation_uids=results["Annotation"],
+                                                      patient_parameters=SoftwareConfigResources.getInstance().patients_parameters[u])
             # Automatically saving the patient (with the latest results) for an easier loading afterwards.
             SoftwareConfigResources.getInstance().patients_parameters[u].save_patient()
             self.processing_advanced.emit()

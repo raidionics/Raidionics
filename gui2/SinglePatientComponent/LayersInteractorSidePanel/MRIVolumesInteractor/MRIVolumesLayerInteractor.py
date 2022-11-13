@@ -1,3 +1,5 @@
+import time
+
 from PySide2.QtWidgets import QApplication, QHBoxLayout, QVBoxLayout, QSpacerItem, QGridLayout
 from PySide2.QtCore import QSize, Signal
 import os
@@ -165,6 +167,7 @@ class MRIVolumesLayerInteractor(QCollapsibleWidget):
         self.adjustSize()
 
     def on_remove_volume(self, volume_uid):
+        # start = time.time()
         visible = False
         if self.volumes_widget[volume_uid].display_toggle_radiobutton.isChecked():
             visible = True
@@ -182,6 +185,7 @@ class MRIVolumesLayerInteractor(QCollapsibleWidget):
         if len(self.volumes_widget) > 0:
             self.volumes_widget[list(self.volumes_widget.keys())[0]].display_toggle_radiobutton.setChecked(True)
             self.volumes_widget[list(self.volumes_widget.keys())[0]].display_toggle_radiobutton.clicked.emit()
+        # logging.info("[MRIVolumesLayerInteractor] on_remove_volume took {} seconds.".format(time.time() - start))
 
     def on_visibility_clicked(self, uid, state):
         # @TODO. Auto-exclusive behaviour, should be a cleaner way to achieve this.

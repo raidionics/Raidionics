@@ -107,10 +107,10 @@ class SingleStudyWidget(QCollapsibleWidget):
                                                                                                                                          Qt.KeepAspectRatio)))
         self.include_single_dicom_patient_folder_pushbutton.setToolTip("For inclusion of a (few) patients, each from"
                                                                        " a raw DICOM folder")
-
         self.single_patient_inclusion_layout.addWidget(self.include_single_patient_label)
         self.single_patient_inclusion_layout.addWidget(self.include_single_patient_folder_pushbutton)
         self.single_patient_inclusion_layout.addWidget(self.include_single_dicom_patient_folder_pushbutton)
+        # @TODO. Should also have a button for including single/multiple Raidionics patient!
         self.single_patient_inclusion_layout.addStretch(1)
         self.patient_inclusion_layout.addLayout(self.single_patient_inclusion_layout)
 
@@ -536,6 +536,7 @@ class SingleStudyWidget(QCollapsibleWidget):
         """
         self.import_data_dialog.reset()
         self.import_data_dialog.set_parsing_mode('single')
+        self.import_data_dialog.set_target_type('regular')
         code = self.import_data_dialog.exec_()
         if code == QDialog.Accepted:
             self.patients_import_finished.emit()
@@ -543,6 +544,7 @@ class SingleStudyWidget(QCollapsibleWidget):
     def __on_include_multiple_patients_folder_clicked(self):
         self.import_data_dialog.reset()
         self.import_data_dialog.set_parsing_mode('multiple')
+        self.import_data_dialog.set_target_type('regular')
         code = self.import_data_dialog.exec_()
         if code == QDialog.Accepted:
             self.patients_import_finished.emit()

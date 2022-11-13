@@ -51,8 +51,10 @@ class MRIVolume:
     _display_name = ""  # Name shown to the user to identify the current volume, and which can be modified.
     _display_volume = None
     _display_volume_filepath = ""  # Display MRI volume filepath, in its latest state after potential user modifiers
-    _default_affine = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]  # Affine matrix for dumping resampled files
+    _default_affine = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0],
+                       [0, 0, 0, 0]]  # Affine matrix for dumping resampled files
     _unsaved_changes = False  # Documenting any change, for suggesting saving when swapping between patients
+    _contrast_changed = False
 
     def __init__(self, uid: str, inv_ts_uid: str, input_filename: str, output_patient_folder: str,
                  reload_params: dict = None) -> None:
@@ -91,6 +93,7 @@ class MRIVolume:
         self._display_volume_filepath = ""
         self._default_affine = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]
         self._unsaved_changes = False
+        self._contrast_changed = False
 
     def load_in_memory(self) -> None:
         if self._resampled_input_volume_filepath and os.path.exists(self._resampled_input_volume_filepath):
@@ -130,7 +133,8 @@ class MRIVolume:
         self._timestamp_folder_name = folder_name
         if self._output_patient_folder in self._usable_input_filepath:
             if os.name == 'nt':
-                path_parts = list(PurePath(os.path.relpath(self._usable_input_filepath, self._output_patient_folder)).parts[1:])
+                path_parts = list(
+                    PurePath(os.path.relpath(self._usable_input_filepath, self._output_patient_folder)).parts[1:])
                 rel_path = PurePath()
                 rel_path = rel_path.joinpath(self._output_patient_folder)
                 rel_path = rel_path.joinpath(self._timestamp_folder_name)
@@ -156,7 +160,7 @@ class MRIVolume:
                 rel_path = '/'.join(os.path.relpath(self._dicom_metadata_filepath,
                                                     self._output_patient_folder).split('/')[1:])
                 self._dicom_metadata_filepath = os.path.join(self._output_patient_folder, self._timestamp_folder_name,
-                                                           rel_path)
+                                                             rel_path)
         if self._resampled_input_volume_filepath:
             if os.name == 'nt':
                 path_parts = list(PurePath(os.path.relpath(self._resampled_input_volume_filepath,
@@ -328,7 +332,7 @@ class MRIVolume:
         if self._resampled_input_volume_filepath and os.path.exists(self._resampled_input_volume_filepath):
             os.remove(self._resampled_input_volume_filepath)
 
-        if self._usable_input_filepath and self._output_patient_folder in self._usable_input_filepath\
+        if self._usable_input_filepath and self._output_patient_folder in self._usable_input_filepath \
                 and os.path.exists(self._usable_input_filepath):
             os.remove(self._usable_input_filepath)
 
@@ -337,29 +341,32 @@ class MRIVolume:
 
     def save(self) -> dict:
         """
-
+        Saving all volumes on disk everytime is an issue with many loaded patients/volumes.
+        Only storing when a change of contrast happened, or if they don't exist already on disk.
         """
         try:
             # Disk operations
             if not self._display_volume is None:
                 self._display_volume_filepath = os.path.join(self._output_patient_folder, self._timestamp_folder_name,
                                                              'display', self._unique_id + '_display.nii.gz')
-                nib.save(nib.Nifti1Image(self._display_volume, affine=self._default_affine),
-                         self._display_volume_filepath)
+                if not os.path.exists(self._display_volume_filepath) or self._contrast_changed:
+                    nib.save(nib.Nifti1Image(self._display_volume, affine=self._default_affine),
+                             self._display_volume_filepath)
 
             if not self._resampled_input_volume is None:
                 self._resampled_input_volume_filepath = os.path.join(self._output_patient_folder,
                                                                      self._timestamp_folder_name, 'display',
                                                                      self._unique_id + '_resampled.nii.gz')
-                nib.save(nib.Nifti1Image(self._resampled_input_volume, affine=self._default_affine),
-                         self._resampled_input_volume_filepath)
+                if not os.path.exists(self._resampled_input_volume_filepath):
+                    nib.save(nib.Nifti1Image(self._resampled_input_volume, affine=self._default_affine),
+                             self._resampled_input_volume_filepath)
 
-            if not self._dicom_metadata is None:
+            if self._dicom_metadata:
                 self._dicom_metadata_filepath = os.path.join(self._output_patient_folder, self._timestamp_folder_name,
                                                              'display', self._unique_id + '_dicom_metadata.json')
-
-                with open(self._dicom_metadata_filepath, 'w') as outfile:
-                    json.dump(self._dicom_metadata, outfile, indent=4)
+                if not os.path.exists(self._dicom_metadata_filepath):
+                    with open(self._dicom_metadata_filepath, 'w') as outfile:
+                        json.dump(self._dicom_metadata, outfile, indent=4)
 
             # Parameters-filling operations
             volume_params = {}
@@ -382,6 +389,7 @@ class MRIVolume:
                 volume_params['dicom_metadata_filepath'] = os.path.relpath(self._dicom_metadata_filepath,
                                                                            self._output_patient_folder)
             self._unsaved_changes = False
+            self._contrast_changed = False
             return volume_params
         except Exception:
             logging.error("MRIVolumeStructure saving failed with:\n {}".format(traceback.format_exc()))
@@ -475,3 +483,4 @@ class MRIVolume:
         image_res = image_res.astype('uint8')
 
         self._display_volume = deepcopy(image_res)
+        self._contrast_changed = True

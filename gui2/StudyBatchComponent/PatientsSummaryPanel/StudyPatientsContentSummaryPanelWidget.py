@@ -48,8 +48,8 @@ class StudyPatientsContentSummaryPanelWidget(QWidget):
         self.header_label = QLabel("Content summary")
         self.header_label.setAlignment(Qt.AlignCenter)
         self.header_layout.addWidget(self.header_label)
-        self.patients_list_scrollarea_layout.insertLayout(self.patients_list_scrollarea_layout.count() - 1,
-                                                          self.header_layout)
+        # self.patients_list_scrollarea_layout.insertLayout(self.patients_list_scrollarea_layout.count() - 1,
+        #                                                   self.header_layout)
 
     def __set_layout_dimensions(self):
         self.patients_list_scrollarea.setBaseSize(QSize(self.width(), 300))

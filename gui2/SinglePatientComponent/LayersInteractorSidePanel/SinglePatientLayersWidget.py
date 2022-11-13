@@ -1,3 +1,5 @@
+import time
+
 from PySide2.QtWidgets import QWidget, QVBoxLayout, QScrollArea, QTabWidget, QSizePolicy
 from PySide2.QtCore import Qt, QSize, Signal
 from PySide2.QtGui import QColor
@@ -176,12 +178,15 @@ class SinglePatientLayersWidget(QWidget):
         The MRI volume has been requested for deletion by the user. If other MRI volumes exist, the central view will
         automatically display the next available MRI volume. If the last MRI volume has just been deleted, the central
         view is set to display an empty black image.
+        @TODO. Is this triggered?
         """
+        # start = time.time()
         objects_uids, error_msg = SoftwareConfigResources.getInstance().get_active_patient().remove_mri_volume(volume_uid=uid)
         if SoftwareConfigResources.getInstance().get_active_patient().get_patient_mri_volumes_number() == 0:
             self.volume_view_toggled.emit(uid, False)
             self.annotations_collapsiblegroupbox.reset()
             self.atlases_collapsiblegroupbox.reset()
+        # logging.info("[SinglePatientLayersWidget] on_mri_volume_removed took {} seconds.".format(time.time() - start))
 
     def on_annotation_volume_import(self, uid):
         self.annotation_volume_imported.emit(uid)

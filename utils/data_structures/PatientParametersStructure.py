@@ -499,7 +499,7 @@ class PatientParameters:
         """
         Half the content should be deported within the MRI structure, so that the DICOM metadata can be properly
         saved.
-
+        @Behaviour. Should there be a check to avoid importing a volume that has less than 10 slices along one axis?
         Parameters
         ----------
         dicom_series: DICOMSeries

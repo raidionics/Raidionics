@@ -66,7 +66,16 @@ def input_file_type_conversion(input_filename: str, output_folder: str) -> str:
         filename = nifti_outfilename
     else:
         filename = os.path.join(output_folder, os.path.basename(input_filename))
-        if input_filename != filename:
+        if input_filename != filename and not os.path.exists(filename):
             shutil.copyfile(input_filename, filename)
+        elif input_filename != filename and os.path.exists(filename):
+            # In case of DICOM conversion, multiple files might have the same filename, hence the check and renaming.
+            new_filename = os.path.join(output_folder, str(np.random.randint(0, 10000)) + "_" +
+                                        os.path.basename(input_filename))
+            while os.path.exists(new_filename):
+                new_filename = os.path.join(output_folder, str(np.random.randint(0, 10000)) + "_" +
+                                            os.path.basename(input_filename))
+            shutil.copyfile(input_filename, new_filename)
+            filename = new_filename
 
     return filename
