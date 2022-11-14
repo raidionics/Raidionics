@@ -40,7 +40,7 @@ class StudyPatientsSummaryPanelWidget(QWidget):
         self.layout.addWidget(self.patients_list_scrollarea)
         self.main_stackedwidget = QStackedWidget()
         self.main_selector_combobox = QComboBox()
-        self.main_selector_combobox.addItems(["Content", "Annotations", "Reports"])
+        self.main_selector_combobox.addItems(["Content summary", "Annotation statistics", "Reporting statistics"])
         self.patients_content_summary_panel = StudyPatientsContentSummaryPanelWidget(self)
         self.patients_segmentation_summary_panel = StudyPatientsSegmentationSummaryWidget(self)
         self.main_stackedwidget.addWidget(self.patients_content_summary_panel)
