@@ -141,13 +141,11 @@ class SinglePatientLayersWidget(QWidget):
         background-color: """ + background_color + """;
         color: """ + font_color + """;
         font-size: 14px;
-        font-style: bold;
         }
         QTabBar:tab{
         background-color: """ + background_color + """;
         color: """ + font_color + """;
         font-size: 14px;
-        font-style: bold;
         }
         QTabBar:tab::selected{
         background-color: """ + background_color_selected + """;
@@ -160,7 +158,6 @@ class SinglePatientLayersWidget(QWidget):
     def __on_main_tab_changed(self, index):
         if index == 1:
             self.execution_actions_widget.refresh()
-
         # @TODO. Look into this for proper resize when switching between tabs.
         # for i in range(self.main_tabwidget.count()):
         #     if i != index:
