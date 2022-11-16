@@ -83,6 +83,8 @@ class StudyPatientsSegmentationSummaryWidget(QWidget):
         """
         self.content_table_widget.setRowCount(0)
         segmentation_statistics_table = SoftwareConfigResources.getInstance().get_active_study().segmentation_statistics_df
+        if segmentation_statistics_table is None:
+            return
 
         for i in range(segmentation_statistics_table.shape[0]):
             self.content_table_widget.insertRow(self.content_table_widget.rowCount())

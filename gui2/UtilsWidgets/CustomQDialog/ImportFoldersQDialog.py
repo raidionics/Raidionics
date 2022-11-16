@@ -180,6 +180,7 @@ class ImportFoldersQDialog(QDialog):
 
         @TODO. Potential patient import error messages should be collected, appended, and reported to the user
          at the end of the import process.
+        @TODO2. Should not perform a save_patient if loaded from a .raidionics file!
         """
         widgets = (self.import_scrollarea_layout.itemAt(i) for i in range(self.import_scrollarea_layout.count() - 1))
         input_folderpaths = [w.wid.filepath_lineedit.text() for w in widgets]

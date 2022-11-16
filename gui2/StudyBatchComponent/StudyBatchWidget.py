@@ -178,6 +178,8 @@ class StudyBatchWidget(QWidget):
             if 'Report' in list(results.keys()):
                 for r in results['Report']:
                     self.patient_report_imported.emit(u, r)
+                study.include_reporting_statistics(patient_uid=u, reporting_uids=results["Report"],
+                                                   patient_parameters=SoftwareConfigResources.getInstance().patients_parameters[u])
             if 'Classification' in list(results.keys()):
                 # @TODO. Will have to be more generic when more than one classifier.
                 # @TODO2. Not connected all the way.

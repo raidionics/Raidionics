@@ -33,7 +33,8 @@ class ReportingStructure:
     the content of the dict.
     """
     _unique_id = None  # Internal unique identifier for the report
-    _report_filename = None  # Location on disk where the report is stored.
+    _report_filename = None  # Location on disk where the report is stored (as a json file, by default).
+    _report_filename_csv = None  # Location on disk where the report is stored (as a csv file, in addition).
     _report_content = {}  # Stored elements, inside a dict, of the aforementioned file content
     _parent_mri_uid = None  # If applicable, MRI volume instance unique identifier on which the report content is based
     _report_task = None  # Generic tag describing the focus of the report, from ReportingType
@@ -67,6 +68,7 @@ class ReportingStructure:
         """
         self._unique_id = None
         self._report_filename = None
+        self._report_filename_csv = None
         self._report_content = {}
         self._output_patient_folder = None
         self._unsaved_changes = False
@@ -89,18 +91,44 @@ class ReportingStructure:
     @timestamp_folder_name.setter
     def timestamp_folder_name(self, folder_name: str) -> None:
         self._timestamp_folder_name = folder_name
-        if self._report_filename:
+        if self._report_filename is not None:
             if os.name == 'nt':
-                # @TODO. Windows use-case to do.
-                pass
+                path_parts = list(PurePath(os.path.relpath(self._report_filename,
+                                                           self._output_patient_folder)).parts[1:])
+                rel_path = PurePath()
+                rel_path = rel_path.joinpath(self._output_patient_folder)
+                rel_path = rel_path.joinpath(self._timestamp_folder_name)
+                for x in path_parts:
+                    rel_path = rel_path.joinpath(x)
+                self._report_filename = os.fspath(rel_path)
             else:
                 rel_path = '/'.join(os.path.relpath(self._report_filename,
                                                     self._output_patient_folder).split('/')[1:])
                 self._report_filename = os.path.join(self._output_patient_folder, self._timestamp_folder_name, rel_path)
 
+        if self._report_filename_csv is not None:
+            if os.name == 'nt':
+                path_parts = list(PurePath(os.path.relpath(self._report_filename_csv,
+                                                           self._output_patient_folder)).parts[1:])
+                rel_path = PurePath()
+                rel_path = rel_path.joinpath(self._output_patient_folder)
+                rel_path = rel_path.joinpath(self._timestamp_folder_name)
+                for x in path_parts:
+                    rel_path = rel_path.joinpath(x)
+                self._report_filename_csv = os.fspath(rel_path)
+            else:
+                rel_path = '/'.join(os.path.relpath(self._report_filename_csv,
+                                                    self._output_patient_folder).split('/')[1:])
+                self._report_filename_csv = os.path.join(self._output_patient_folder, self._timestamp_folder_name,
+                                                         rel_path)
+
     @property
     def report_filename(self) -> str:
         return self._report_filename
+
+    @property
+    def report_filename_csv(self) -> str:
+        return self._report_filename_csv
 
     @property
     def report_content(self) -> dict:
@@ -148,7 +176,9 @@ class ReportingStructure:
             self._report_task = rep_type
 
     def __init_from_scratch(self):
-        pass
+        report_filename_csv = self._report_filename[:-5] + ".csv"
+        if os.path.exists(report_filename_csv):
+            self._report_filename_csv = report_filename_csv
 
     def __reload_from_disk(self, params: dict):
         """
@@ -163,6 +193,9 @@ class ReportingStructure:
 
         if 'task' in list(params.keys()):
             self.set_reporting_type(params['task'])
+
+        if 'report_filename_csv' in list(params.keys()):
+            self._report_filename_csv = os.path.join(self._output_patient_folder, params["report_filename_csv"])
 
     def save(self) -> dict:
         """
@@ -183,6 +216,8 @@ class ReportingStructure:
                 for x in base_patient_folder_parts:
                     base_patient_folder = base_patient_folder.joinpath(x)
             report_params['report_filename'] = os.path.relpath(self._report_filename, base_patient_folder)
+            if self._report_filename_csv:
+                report_params['report_filename_csv'] = os.path.relpath(self._report_filename_csv, base_patient_folder)
             self._unsaved_changes = False
             return report_params
         except Exception:

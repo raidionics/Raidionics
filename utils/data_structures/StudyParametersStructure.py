@@ -29,6 +29,7 @@ class StudyParameters:
     _seg_stats_cnames = ["Patient uid", "Patient", "Timestamp", "Sequence", "Generation", "Target", "Volume (ml)"]
     _segmentation_statistics_filename = None  # Overall file on disk to save all segmentation statistics
     _reporting_statistics_df = None  # pandas DataFrame for holding all statistics related to the reporting
+    _reporting_stats_cnames = None
     _reporting_statistics_filename = None  # Overall file on disk to save all reporting statistics
     _display_name = ""  # Human-readable name for the study
     _unsaved_changes = False  # Documenting any change, for suggesting saving when exiting the software
@@ -175,6 +176,10 @@ class StudyParameters:
     def segmentation_statistics_df(self) -> pd.DataFrame:
         return self._segmentation_statistics_df
 
+    @property
+    def reporting_statistics_df(self) -> pd.DataFrame:
+        return self._reporting_statistics_df
+
     def include_study_patient(self, uid: str, folder_name: str, patient_parameters) -> int:
         """
         When a patient is included in the study, the statistics components must be updated with whatever is accessible
@@ -193,6 +198,7 @@ class StudyParameters:
             self._included_patients_uids[uid] = os.path.basename(folder_name)
             self.include_segmentation_statistics(patient_uid=uid, annotation_uids=[],
                                                  patient_parameters=patient_parameters)
+            self.include_reporting_statistics(patient_uid=uid, reporting_uids=[], patient_parameters=patient_parameters)
             self._unsaved_changes = True
             return 0
         else:
@@ -260,6 +266,11 @@ class StudyParameters:
                                                                   "segmentation_statistics.csv")
             self._segmentation_statistics_df.to_csv(self._segmentation_statistics_filename, index=False)
 
+        if self._reporting_statistics_df is not None:
+            self._reporting_statistics_filename = os.path.join(self._output_study_folder,
+                                                                  "reporting_statistics.csv")
+            self._reporting_statistics_df.to_csv(self._reporting_statistics_filename, index=False)
+
         # Saving the study-specific parameters.
         self._last_editing_timestamp = datetime.datetime.now(tz=dateutil.tz.gettz(name='Europe/Oslo'))
         self._study_parameters_filename = os.path.join(self._output_study_folder, self._display_name.strip().lower().replace(" ", "_") + '_study.sraidionics')
@@ -317,6 +328,23 @@ class StudyParameters:
 
     def include_reporting_statistics(self, patient_uid: str, reporting_uids: List[str], patient_parameters) -> None:
         """
-        @TODO. Should just collate the individual report.json files.
+        Just collate the individual report.csv files into one big table.
+        @TODO. Have to make a distinction between tumor characteristics reports, and surgical reports, or a mix?
         """
-        pass
+        if len(reporting_uids) == 0:
+            # Including statistics from scratch
+            reporting_uids = list(patient_parameters.reportings.keys())
+
+        for rep in reporting_uids:
+            if patient_parameters.get_reporting(rep).get_report_task_str() == "Tumor characteristics":
+                rep_df = pd.read_csv(patient_parameters.get_reporting(rep).report_filename_csv)
+                if not self._reporting_stats_cnames:
+                    self._reporting_stats_cnames = ["Patient UID", "Patient", "Timestamp"] + list(rep_df.columns.values)
+                    self._reporting_statistics_df = pd.DataFrame(data=None,  columns=self._reporting_stats_cnames)
+
+                row_values = [patient_uid, patient_parameters.display_name,
+                              patient_parameters.get_reporting(rep).timestamp_folder_name] + list(rep_df.values[0])
+                row_df = pd.DataFrame(data=np.array(row_values).reshape(1, len(self._reporting_stats_cnames)),
+                                      columns=self._reporting_stats_cnames)
+                # @TODO. Check that a similar row does not already exist?
+                self._reporting_statistics_df = self._reporting_statistics_df.append(row_df)

@@ -5,6 +5,7 @@ from PySide2.QtCore import QSize, Qt, Signal
 from utils.software_config import SoftwareConfigResources
 from gui2.StudyBatchComponent.PatientsSummaryPanel.StudyPatientsContentSummaryPanelWidget import StudyPatientsContentSummaryPanelWidget
 from gui2.StudyBatchComponent.PatientsSummaryPanel.StudyPatientsSegmentationSummaryWidget import StudyPatientsSegmentationSummaryWidget
+from gui2.StudyBatchComponent.PatientsSummaryPanel.StudyPatientsReportingSummaryWidget import StudyPatientsReportingSummaryWidget
 
 
 class StudyPatientsSummaryPanelWidget(QWidget):
@@ -43,9 +44,10 @@ class StudyPatientsSummaryPanelWidget(QWidget):
         self.main_selector_combobox.addItems(["Content summary", "Annotation statistics", "Reporting statistics"])
         self.patients_content_summary_panel = StudyPatientsContentSummaryPanelWidget(self)
         self.patients_segmentation_summary_panel = StudyPatientsSegmentationSummaryWidget(self)
+        self.patients_reporting_summary_panel = StudyPatientsReportingSummaryWidget(self)
         self.main_stackedwidget.addWidget(self.patients_content_summary_panel)
         self.main_stackedwidget.addWidget(self.patients_segmentation_summary_panel)
-        self.main_stackedwidget.addWidget(QWidget())
+        self.main_stackedwidget.addWidget(self.patients_reporting_summary_panel)
         self.patients_list_scrollarea_layout.addWidget(self.main_selector_combobox)
         self.patients_list_scrollarea_layout.addWidget(self.main_stackedwidget)
 
@@ -55,6 +57,7 @@ class StudyPatientsSummaryPanelWidget(QWidget):
     def __set_connections(self):
         self.patients_imported.connect(self.patients_content_summary_panel.on_patients_import)
         self.patients_imported.connect(self.patients_segmentation_summary_panel.on_patients_import)
+        self.patients_imported.connect(self.patients_reporting_summary_panel.on_patients_import)
         self.main_selector_combobox.currentIndexChanged.connect(self.__on_selector_index_changed)
 
     def __set_stylesheets(self):
@@ -73,3 +76,4 @@ class StudyPatientsSummaryPanelWidget(QWidget):
     def on_processing_finished(self):
         self.patients_content_summary_panel.postprocessing_update()
         self.patients_segmentation_summary_panel.postprocessing_update()
+        self.patients_reporting_summary_panel.postprocessing_update()

@@ -160,6 +160,13 @@ def collect_results(patient_parameters, pipeline):
                                          os.path.basename(report_filename))
                 shutil.move(report_filename, dest_file)
 
+                report_filename_csv = os.path.join(patient_parameters.output_folder, 'reporting',
+                                                   'neuro_clinical_report.csv')
+                dest_file_csv = os.path.join(patient_parameters.output_folder, dest_ts_object.folder_name,
+                                             os.path.basename(report_filename_csv))
+                # Also moving the csv version, for the statistics part.
+                shutil.move(report_filename_csv, dest_file_csv)
+
                 if os.path.exists(dest_file):  # Should always exist
                     report_uid, error_msg = patient_parameters.import_report(dest_file, dest_ts_object.unique_id)
                     patient_parameters.reportings[report_uid].set_reporting_type("Tumor characteristics")
