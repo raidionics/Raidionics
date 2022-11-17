@@ -246,7 +246,8 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         """
         if SoftwareConfigResources.getInstance().is_patient_in_studies(widget_id):
             code = QMessageBox.warning(self, "Patient closing warning.",
-                                       "The patient is included in an opened study. Closing the patient will remove it from the study.",
+                                       """The patient is included in an opened study. Closing the patient will remove 
+                                       it from the study.""",
                                        QMessageBox.Ok | QMessageBox.Cancel, QMessageBox.Ok)
             if code == QMessageBox.StandardButton.Cancel:  # Deletion canceled
                 return
@@ -254,7 +255,7 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
                 self.patient_deleted.emit(widget_id)
                 SoftwareConfigResources.getInstance().get_active_study().remove_study_patient(widget_id)
 
-        if SoftwareConfigResources.getInstance().get_active_patient().has_unsaved_changes():
+        if SoftwareConfigResources.getInstance().get_patient(widget_id).has_unsaved_changes():
             dialog = SavePatientChangesDialog()
             code = dialog.exec_()
             if code == 0:  # Operation cancelled

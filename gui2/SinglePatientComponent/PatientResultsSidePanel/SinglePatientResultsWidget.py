@@ -278,15 +278,16 @@ class SinglePatientResultsWidget(QCollapsibleWidget):
 
     def __on_patient_closed(self) -> None:
         """
-
+        All verifications regarding possible issues if the patient is closed are performed at the side panel level.
+        Here, a signal with the proper internal unique identifier for the patient to close is emitted.
         """
-        if SoftwareConfigResources.getInstance().get_patient(self.uid).has_unsaved_changes():
-            dialog = SavePatientChangesDialog()
-            code = dialog.exec_()
-            if code == 0:  # Operation cancelled
-                # The widget for the clicked patient must be collapsed back down, since the change has not
-                # been confirmed by the user in the end.
-                return
+        # if SoftwareConfigResources.getInstance().get_patient(self.uid).has_unsaved_changes():
+        #     dialog = SavePatientChangesDialog()
+        #     code = dialog.exec_()
+        #     if code == 0:  # Operation cancelled
+        #         # The widget for the clicked patient must be collapsed back down, since the change has not
+        #         # been confirmed by the user in the end.
+        #         return
         self.patient_closed.emit(self.uid)
 
     def __on_patient_toggled(self, state):

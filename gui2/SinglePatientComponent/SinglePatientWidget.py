@@ -104,7 +104,42 @@ class SinglePatientWidget(QWidget):
         self.right_panel_stackedwidget.setFixedWidth((315 / SoftwareConfigResources.getInstance().get_optimal_dimensions().width()) * self.parent.baseSize().width())
 
     def __set_stylesheets(self):
+        software_ss = SoftwareConfigResources.getInstance().stylesheet_components
+        font_color = software_ss["Color7"]
+        background_color = software_ss["Color5"]
+        pressed_background_color = software_ss["Color6"]
+
         self.setStyleSheet("QWidget{font:11px;}")
+
+        self.top_logo_panel_label_import_dicom_pushbutton.setStyleSheet("""
+        QPushButton{
+        background-color: """ + background_color + """;
+        border-style: none;
+        }
+        QPushButton::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        }
+        QPushButton:pressed{
+        border-style:inset;
+        background-color: """ + pressed_background_color + """;
+        }""")
+
+        self.top_logo_panel_statistics_pushbutton.setStyleSheet("""
+        QPushButton{
+        background-color: """ + background_color + """;
+        border-style: none;
+        }
+        QPushButton::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        }
+        QPushButton:pressed{
+        border-style:inset;
+        background-color: """ + pressed_background_color + """;
+        }""")
 
     def __set_connections(self):
         self.top_logo_panel_label_import_dicom_pushbutton.clicked.connect(self.__on_import_dicom_clicked)

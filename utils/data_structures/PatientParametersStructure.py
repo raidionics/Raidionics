@@ -437,8 +437,18 @@ class PatientParameters:
         error_message = None
 
         try:
+            if not type:
+                type = input_file_category_disambiguation(filename)
+
+            # @TODO. Maybe not the best solution to fix the QDialog push button multiple clicks issue.
+            if type == "MRI" and self.is_mri_raw_filepath_already_loaded(filename):
+                error_message = "[Doppelganger] An MRI with the provided filename has already been loaded for the patient"
+                return data_uid, error_message
+            if type == "Annotation" and self.is_annotation_raw_filepath_already_loaded(filename):
+                error_message = "[Doppelganger] An annotation with the provided filename has already been loaded for the patient"
+                return data_uid, error_message
+
             # When including data for a patient, creating a Timestamp if none exists, otherwise assign to the first one
-            # @TODO. Better way to handle this.
             if not investigation_ts:
                 if len(self._investigation_timestamps) == 0:
                     investigation_ts = 'T0'
@@ -449,9 +459,6 @@ class PatientParameters:
                     investigation_ts = self._active_investigation_timestamp_uid
                 else:
                     investigation_ts = list(self._investigation_timestamps.keys())[0]
-
-            if not type:
-                type = input_file_category_disambiguation(filename)
 
             if type == 'MRI':
                 # Generating a unique id for the MRI volume
@@ -695,6 +702,13 @@ class PatientParameters:
                 return res
         return res
 
+    def is_mri_raw_filepath_already_loaded(self, volume_filepath: str) -> bool:
+        state = False
+        for im in self._mri_volumes:
+            if self._mri_volumes[im].raw_input_filepath == volume_filepath:
+                return True
+        return state
+
     def get_all_mri_volumes_uids(self) -> List[str]:
         return list(self._mri_volumes.keys())
 
@@ -840,6 +854,13 @@ class PatientParameters:
                     and self._annotation_volumes[an].get_generation_type_enum() == generation_type:
                 res.append(self._annotation_volumes[an].unique_id)
         return res
+
+    def is_annotation_raw_filepath_already_loaded(self, volume_filepath: str) -> bool:
+        state = False
+        for im in self._annotation_volumes:
+            if self._annotation_volumes[im].raw_input_filepath == volume_filepath:
+                return True
+        return state
 
     @property
     def annotation_volumes(self) -> dict:

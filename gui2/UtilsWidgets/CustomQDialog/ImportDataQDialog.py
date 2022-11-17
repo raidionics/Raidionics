@@ -25,6 +25,8 @@ class ImportDataQDialog(QDialog):
         """
         The filter option, through the set_parsing_filter method is used to specify if looking for image files or
         a raidionics scene file.
+        @TODO. The Ok button can be clicked mulitple times in a short time span, which will include all images multiple
+        times....
         """
         super().__init__(parent)
         self.setWindowTitle("Import patient data")
@@ -156,6 +158,7 @@ class ImportDataQDialog(QDialog):
         """
         Iterating over the list of selected files and internally updating variables
         """
+
         widgets = (self.import_scrollarea_layout.itemAt(i) for i in range(self.import_scrollarea_layout.count() - 1))
 
         self.load_progressbar.reset()
@@ -222,10 +225,11 @@ class ImportDataQDialog(QDialog):
         for i, pf in enumerate(mris_selected):
             uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_data(pf, type="MRI")
             if error_msg:
-                diag = QMessageBox()
-                diag.setText("Unable to load: {}.\nError message: {}.\n".format(os.path.basename(pf),
-                                                                                error_msg))
-                diag.exec_()
+                if "[Doppelganger]" not in error_msg:
+                    diag = QMessageBox()
+                    diag.setText("Unable to load: {}.\nError message: {}.\n".format(os.path.basename(pf),
+                                                                                    error_msg))
+                    diag.exec_()
             else:
                 self.mri_volume_imported.emit(uid)
             self.load_progressbar.setValue(i + 1)
@@ -234,10 +238,11 @@ class ImportDataQDialog(QDialog):
             uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_data(pf,
                                                                                                     type="Annotation")
             if error_msg:
-                diag = QMessageBox()
-                diag.setText("Unable to load: {}.\nError message: {}.\n".format(os.path.basename(pf),
-                                                                                error_msg))
-                diag.exec_()
+                if "[Doppelganger]" not in error_msg:
+                    diag = QMessageBox()
+                    diag.setText("Unable to load: {}.\nError message: {}.\n".format(os.path.basename(pf),
+                                                                                    error_msg))
+                    diag.exec_()
             else:
                 self.annotation_volume_imported.emit(uid)
             self.load_progressbar.setValue(len(mris_selected) + i + 1)
