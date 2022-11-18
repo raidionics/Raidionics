@@ -26,6 +26,7 @@ class SinglePatientLayersWidget(QWidget):
 
     import_data_triggered = Signal()
     import_data_requested = Signal()
+    import_dicom_requested = Signal()
     patient_imported = Signal(str)
     patient_view_toggled = Signal(str)
     volume_view_toggled = Signal(str, bool)
@@ -105,6 +106,7 @@ class SinglePatientLayersWidget(QWidget):
         self.radiological_sequences_imported.connect(self.timestamp_layer_widget.on_radiological_sequences_imported)
         self.timestamp_layer_widget.reset_central_viewer.connect(self.reset_central_viewer)
         self.timestamp_layer_widget.import_data_requested.connect(self.import_data_requested)
+        self.timestamp_layer_widget.import_dicom_requested.connect(self.import_dicom_requested)
         self.timestamp_layer_widget.volume_view_toggled.connect(self.volume_view_toggled)
         self.timestamp_layer_widget.volume_contrast_changed.connect(self.volume_contrast_changed)
         self.timestamp_layer_widget.annotation_view_toggled.connect(self.annotation_view_toggled)
@@ -141,14 +143,15 @@ class SinglePatientLayersWidget(QWidget):
         background-color: """ + background_color + """;
         color: """ + font_color + """;
         font-size: 14px;
+        font-style: normal;
         }
         QTabBar:tab{
         background-color: """ + background_color + """;
-        color: """ + font_color + """;
+        color: """ + "rgba(143, 143, 143, 1)" + """;
         font-size: 14px;
+        font-style: light;
         }
         QTabBar:tab::selected{
-        background-color: """ + background_color_selected + """;
         color: """ + font_color + """;
         font-size: 14px;
         font-style: bold;
@@ -158,6 +161,8 @@ class SinglePatientLayersWidget(QWidget):
     def __on_main_tab_changed(self, index):
         if index == 1:
             self.execution_actions_widget.refresh()
+
+
         # @TODO. Look into this for proper resize when switching between tabs.
         # for i in range(self.main_tabwidget.count()):
         #     if i != index:

@@ -96,6 +96,7 @@ class AboutDialog(QDialog):
         <b> Current software version: """ + SoftwareConfigResources.getInstance().software_version + """ </b>\n
         <a href=https://raidionics.github.io> Website </a>
         <a href=https://github.com/dbouget/Raidionics> Github </a>
+        Feel free to contact us with any feedback or suggestion for improvement.
         </p>
         """
         self.about_label.setText(text)

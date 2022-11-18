@@ -64,7 +64,7 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         self.bottom_add_patient_pushbutton = QPushButton("Import patient")
         self.bottom_add_patient_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                                             '../../Images/download_icon.png'))))
-        self.bottom_add_patient_pushbutton.setIconSize(QSize(40, 30))
+        self.bottom_add_patient_pushbutton.setIconSize(QSize(40, 40))
         self.bottom_layout.addWidget(self.bottom_add_patient_pushbutton)
         self.bottom_add_patient_pushbutton.setContextMenuPolicy(Qt.CustomContextMenu)
         self.options_menu = QMenu(self)
@@ -80,8 +80,8 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         self.options_menu.addAction(self.add_folder_data_action)
         self.options_menu.addSeparator()
 
-        self.layout.addWidget(self.patient_list_scrollarea)
         self.layout.addLayout(self.bottom_layout)
+        self.layout.addWidget(self.patient_list_scrollarea)
 
     def __set_layout_dimensions(self):
         self.patient_list_scrollarea.setBaseSize(QSize(self.width(), 300))
@@ -107,15 +107,16 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         QScrollArea{
         background-color: """ + software_ss["Color2"] + """;
         }""")
+        #"rgba(205, 220, 250, 1)"
 
         self.bottom_add_patient_pushbutton.setStyleSheet("""
         QPushButton{
-        background-color: """ + software_ss["Color1"] + """;
+        background-color: """ + "rgba(73, 99, 171, 1)" + """;
         color: """ + software_ss["Color2"] + """;
         font-size: 16px;
         }
         QPushButton:pressed{
-        background-color: rgba(50, 50, 50, 1);
+        background-color: rgba(81, 101, 153, 1);
         border-style:inset;
         }""")
 
@@ -123,15 +124,15 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         # https://stackoverflow.com/questions/47082375/how-to-set-hover-on-qmenu
         self.options_menu.setStyleSheet("""
         QMenu{
-        background-color: """ + software_ss["Color1"] + """;
+        background-color: """ + "rgba(73, 99, 171, 1)" + """;
         color: """ + software_ss["Color2"] + """;
         font-size: 16px;
         }
         QMenu:selected{
-        background-color: rgba(50, 50, 50, 1);
+        background-color: rgba(56, 69, 105, 1);
         }
         QMenu:pressed{
-        background-color: rgba(50, 50, 50, 1);
+        background-color: rgba(56, 69, 105, 1);
         border-style:inset;
         }""")
 
@@ -242,7 +243,7 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
 
     def __on_patient_closed(self, widget_id: str) -> None:
         """
-
+        @TODO. Even if all changes have been saved, should prompt a popup to ask for confirmation to delete the patient.
         """
         if SoftwareConfigResources.getInstance().is_patient_in_studies(widget_id):
             code = QMessageBox.warning(self, "Patient closing warning.",
@@ -344,10 +345,17 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         self.patient_results_widgets[patient_uid].on_standardized_report_imported(report_uid)
 
     def on_import_options_clicked(self, point):
+        ## Bottom position
+        # if os.name == 'nt':
+        #     self.options_menu.exec_(self.bottom_add_patient_pushbutton.mapToGlobal(QPoint(0, -106)))
+        # else:
+        #     self.options_menu.exec_(self.bottom_add_patient_pushbutton.mapToGlobal(QPoint(0, -95)))
+
+        # Top position
         if os.name == 'nt':
-            self.options_menu.exec_(self.bottom_add_patient_pushbutton.mapToGlobal(QPoint(0, -106)))
+            self.options_menu.exec_(self.bottom_add_patient_pushbutton.mapToGlobal(QPoint(0, 0)))
         else:
-            self.options_menu.exec_(self.bottom_add_patient_pushbutton.mapToGlobal(QPoint(0, -95)))
+            self.options_menu.exec_(self.bottom_add_patient_pushbutton.mapToGlobal(QPoint(0, 0)))
 
     def on_import_patient_from_data_requested(self):
         self.on_add_new_empty_patient()

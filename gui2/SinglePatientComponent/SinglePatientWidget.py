@@ -157,6 +157,7 @@ class SinglePatientWidget(QWidget):
         self.import_dicom_dialog.patient_imported.connect(self.results_panel.on_import_patient)
         self.import_dicom_dialog.mri_volume_imported.connect(self.layers_panel.on_mri_volume_import)
         self.layers_panel.import_data_requested.connect(self.__on_import_file_clicked)
+        self.layers_panel.import_dicom_requested.connect(self.__on_import_patient_dicom_clicked)
 
         # Connections relating patient selection (left-hand side) with data import
         self.results_panel.import_patient_from_data_requested.connect(self.__on_import_file_clicked)
