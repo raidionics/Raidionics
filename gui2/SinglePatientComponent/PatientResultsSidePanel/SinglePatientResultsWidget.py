@@ -185,6 +185,7 @@ class SinglePatientResultsWidget(QCollapsibleWidget):
         self.default_collapsiblegroupbox.header_pushbutton.setStyleSheet("""
         QPushButton{
         background-color:rgb(248, 248, 248);
+        color: """ + font_color + """;
         text-align:left;
         }""")
 

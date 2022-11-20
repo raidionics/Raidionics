@@ -352,10 +352,7 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         #     self.options_menu.exec_(self.bottom_add_patient_pushbutton.mapToGlobal(QPoint(0, -95)))
 
         # Top position
-        if os.name == 'nt':
-            self.options_menu.exec_(self.bottom_add_patient_pushbutton.mapToGlobal(QPoint(0, 0)))
-        else:
-            self.options_menu.exec_(self.bottom_add_patient_pushbutton.mapToGlobal(QPoint(0, 0)))
+        self.options_menu.exec_(self.bottom_add_patient_pushbutton.mapToGlobal(QPoint(0, 0)))
 
     def on_import_patient_from_data_requested(self):
         self.on_add_new_empty_patient()

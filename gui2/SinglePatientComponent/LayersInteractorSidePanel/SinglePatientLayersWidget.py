@@ -129,31 +129,41 @@ class SinglePatientLayersWidget(QWidget):
     def __set_stylesheets(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
         font_color = software_ss["Color7"]
-        background_color = software_ss["Color5"]
+        background_color = software_ss["Color2"]
         background_color_selected = software_ss["Color3"]
 
-        # self.main_tabwidget.setStyleSheet("""
-        # QTableWidget:pane{
-        # border: 2px solid black;
-        # }
-        # """)
+        self.setStyleSheet("""
+        QWidget{
+        background-color: """ + background_color + """;
+        }""")
+
+        self.overall_scrollarea_dummy_widget.setStyleSheet("""
+        QWidget{
+        background-color: """ + background_color + """;
+        }""")
+
+        self.main_tabwidget.setStyleSheet("""
+        QTabWidget{
+        border: none;
+        }
+        """)
 
         self.main_tabwidget.tabBar().setStyleSheet("""
         QTabBar{
         background-color: """ + background_color + """;
         color: """ + font_color + """;
-        font-size: 14px;
+        font-size: 16px;
         font-style: normal;
         }
         QTabBar:tab{
         background-color: """ + background_color + """;
         color: """ + "rgba(143, 143, 143, 1)" + """;
-        font-size: 14px;
+        font-size: 16px;
         font-style: light;
         }
         QTabBar:tab::selected{
         color: """ + font_color + """;
-        font-size: 14px;
+        font-size: 16px;
         font-style: bold;
         }
         """)

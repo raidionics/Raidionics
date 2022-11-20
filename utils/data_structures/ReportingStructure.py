@@ -187,6 +187,8 @@ class ReportingStructure:
         self._timestamp_uid = params['investigation_timestamp_uid']
         if self._timestamp_uid:
             self._timestamp_folder_name = params['report_filename'].split('/')[0]
+            if os.name == 'nt':
+                self._timestamp_folder_name = list(PurePath(params['report_filename']).parts)[0]
 
         if 'parent_mri_uid' in list(params.keys()):
             self._parent_mri_uid = params['parent_mri_uid']

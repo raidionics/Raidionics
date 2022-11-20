@@ -430,6 +430,8 @@ class MRIVolume:
         self._display_volume = nib.load(self._display_volume_filepath).get_data()[:]
         self._display_name = parameters['display_name']
         self._timestamp_folder_name = parameters['display_volume_filepath'].split('/')[0]
+        if os.name == 'nt':
+            self._timestamp_folder_name = list(PurePath(parameters['display_volume_filepath']).parts)[0]
         self.set_sequence_type(type=parameters['sequence_type'], manual=False)
         self.__generate_intensity_histogram()
 

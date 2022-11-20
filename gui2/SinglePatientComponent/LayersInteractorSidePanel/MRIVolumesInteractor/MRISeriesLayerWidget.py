@@ -118,7 +118,7 @@ class MRISeriesLayerWidget(QWidget):
     def set_stylesheets(self, selected: bool):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
         font_color = software_ss["Color7"]
-        background_color = software_ss["Color5"]
+        background_color = software_ss["White"]
         pressed_background_color = software_ss["Color6"]
         if selected:
             background_color = software_ss["Color3"]
@@ -127,6 +127,10 @@ class MRISeriesLayerWidget(QWidget):
         self.setStyleSheet("""
         MRISeriesLayerWidget{
         background-color: """ + background_color + """;
+        border-width: 1px;
+        border-style: solid;
+        border-color: """ + background_color + background_color + software_ss["Color2"] + background_color + """;
+        border-radius: 1px;
         }""")
 
         self.display_name_lineedit.setStyleSheet("""

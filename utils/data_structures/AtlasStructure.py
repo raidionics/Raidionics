@@ -116,6 +116,9 @@ class AtlasVolume:
         self._parent_mri_uid = parameters['parent_mri_uid']
         self._timestamp_uid = parameters['investigation_timestamp_uid']
         self._timestamp_folder_name = parameters['display_volume_filepath'].split('/')[0]
+        if os.name == 'nt':
+            self._timestamp_folder_name = list(PurePath(parameters['display_volume_filepath']).parts)[0]
+
         if 'display_colors' in parameters.keys():
             self._class_display_color = {int(k): v for k, v in parameters['display_colors'].items()}
         if 'display_opacities' in parameters.keys():

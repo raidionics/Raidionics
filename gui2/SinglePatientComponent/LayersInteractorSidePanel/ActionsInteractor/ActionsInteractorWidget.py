@@ -132,7 +132,7 @@ class ActionsInteractorWidget(QWidget):
     def __set_stylesheets(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
         font_color = software_ss["Color7"]
-        background_color = software_ss["Color5"]
+        background_color = software_ss["Color2"]
         pressed_background_color = software_ss["Color6"]
 
         self.setStyleSheet("""
@@ -407,14 +407,14 @@ class ActionsInteractorWidget(QWidget):
         self.run_action_pushbutton.setStyleSheet("""
         QPushButton{
         color:rgb(0, 0, 0);
-        background-color: rgb(255, 255, 255);
+        background-color: """ + software_ss["Process"] + """;
         border-radius:10px;
         margin-left:5px;
         margin-right:5px;
         font:bold
         }
         QPushButton:pressed{
-        background-color: rgb(235, 235, 235);
+        background-color: """ + software_ss["Process_pressed"] + """;
         border-style:inset
         }
         QPushButton:disabled{

@@ -60,20 +60,28 @@ class AboutDialog(QDialog):
     def __set_stylesheets(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
         font_color = software_ss["Color7"]
-        background_color = software_ss["Color5"]
-        pressed_background_color = software_ss["Color6"]
+        background_color = software_ss["Color2"]
+
+        self.setStyleSheet("""
+        QDialog{
+        background-color: """ + background_color + """;
+        }
+        """)
 
         self.raidionics_logo_label.setStyleSheet("""
         QLabel{
-        background-color: white;
+        background-color: """ + background_color + """;
         }""")
 
         self.about_label.setStyleSheet("""
         QLabel{
-        background-color: white;
-        color: black;
+        color: """ + font_color + """;
+        background-color: """ + background_color + """;
         text-align: top;
         }""")
+
+        self.exit_close_pushbutton.setStyleSheet("""
+        """)
 
     def __textfill(self):
         text = "<p style=\"font-size: 32px;\"> <strong> Raidionics </strong> </p>"

@@ -1,6 +1,7 @@
 from PySide2.QtWidgets import QLabel, QHBoxLayout, QPushButton, QWidget
 from PySide2.QtCore import QSize, Qt, Signal, QRectF
 from PySide2.QtGui import QIcon, QPaintEvent, QPainter, QPainterPath, QPen, QColor, QFont
+from utils.software_config import SoftwareConfigResources
 
 
 class QCircularProgressBar(QWidget):
@@ -14,13 +15,22 @@ class QCircularProgressBar(QWidget):
         self.progress_ratio = 0  # Float in [0., 1.]
         self.display_header = "Progress: "
         self.display_progress = " "
+        self.setAttribute(Qt.WA_StyledBackground, True)  # Enables to set e.g. background-color for the QWidget
         self.__set_stylesheets()
 
     def __set_stylesheets(self):
+        software_ss = SoftwareConfigResources.getInstance().stylesheet_components
+        font_color = software_ss["Color7"]
+        background_color = software_ss["Color2"]
         self.setFixedSize(QSize(208, 208))
-        self.frame_color = QColor("#d7d7d7")
+        self.frame_color = QColor(235, 250, 255)
         self.progress_color = QColor(55, 235, 126)  # QColor("#30b7e0"))
         self.text_color = QColor(67, 88, 90)
+
+        self.setStyleSheet("""
+        QWidget{
+        background-color: """ + background_color + """;
+        }""")
 
     def paintEvent(self, event: QPaintEvent) -> None:
         """
@@ -34,7 +44,7 @@ class QCircularProgressBar(QWidget):
         pd = self.progress_ratio * 360
         rd = 360 - pd
         painter = QPainter(self)
-        painter.fillRect(self.rect(), Qt.white)
+        painter.fillRect(self.rect(), self.frame_color)
         painter.translate(4, 4)
         painter.setRenderHint(QPainter.Antialiasing)
         path = QPainterPath()
@@ -50,7 +60,7 @@ class QCircularProgressBar(QWidget):
         painter.strokePath(path, pen)
         path2.moveTo(100, 0)
         pen2.setWidth(8)
-        pen2.setColor(self.frame_color)
+        pen2.setColor(Qt.white)
         pen2.setCapStyle(Qt.FlatCap)
         pen2.setDashPattern([0.5, 1.105])
         path2.arcTo(QRectF(0, 0, 200, 200), 90, rd)

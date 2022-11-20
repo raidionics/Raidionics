@@ -51,13 +51,18 @@ class ResearchCommunityDialog(QDialog):
     def __set_stylesheets(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
         font_color = software_ss["Color7"]
-        background_color = software_ss["Color5"]
-        pressed_background_color = software_ss["Color6"]
+        background_color = software_ss["Color2"]
+
+        self.setStyleSheet("""
+        QDialog{
+        background-color: """ + background_color + """;
+        }
+        """)
 
         self.text_label.setStyleSheet("""
         QLabel{
-        background-color: white;
-        color: black;
+        background-color: """ + background_color + """;
+        color: """ + font_color + """;
         }""")
 
     def __textfill(self):

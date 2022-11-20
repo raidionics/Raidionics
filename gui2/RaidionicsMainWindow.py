@@ -186,6 +186,7 @@ class RaidionicsMainWindow(QMainWindow):
 
     def __set_layouts(self):
         self.setMenuBar(self.menu_bar)
+        self.menu_bar.setFixedHeight(30)
         self.main_window_layout = QHBoxLayout()
 
         self.central_label = QLabel()
@@ -200,6 +201,107 @@ class RaidionicsMainWindow(QMainWindow):
         QMainWindow{
         background-color: """ + software_ss["Color2"] + """;
         }""")
+
+        self.menu_bar.setStyleSheet("""
+        QMenuBar{
+        background-color: """ + software_ss["Color2"] + """;
+        color: """ + software_ss["Color7"] + """;
+        font: 15px; 
+        border: solid black;
+        border-width: 0px 0px 1px 0px;
+        border-radius: 1px;
+        }
+        QMenuBar::item{
+        background: transparent;
+        color: """ + software_ss["Color7"] + """;
+        margin-top: 5px;
+        }
+        QMenuBar::item:selected{
+        background: """ + "rgba(0, 120, 230, 1)" + """;
+        color: white;
+        }
+        QMenuBar::item:pressed{
+        background: """ + "rgba(0, 120, 230, 1)" + """;
+        color: white;
+        border-style: inset;
+        }
+        """)
+
+        self.file_menu.setStyleSheet("""
+        QMenu{
+        background-color: """ + software_ss["Color2"] + """;
+        color: """ + software_ss["Color7"] + """;
+        font: 14px; 
+        border: solid black;
+        border-width: 1px;
+        }
+        QMenu::item:selected{
+        background: """ + "rgba(0, 120, 230, 1)" + """;
+        color: white;
+        }
+        QMenu::item:pressed{
+        background: """ + "rgba(0, 120, 230, 1)" + """;
+        color: white;
+        border-style: inset;
+        }
+        """)
+
+        self.mode_menu.setStyleSheet("""
+        QMenu{
+        background-color: """ + software_ss["Color2"] + """;
+        color: """ + software_ss["Color7"] + """;
+        font: 14px; 
+        border: solid black;
+        border-width: 1px;
+        }
+        QMenu::item:selected{
+        background: """ + "rgba(0, 120, 230, 1)" + """;
+        color: white;
+        }
+        QMenu::item:pressed{
+        background: """ + "rgba(0, 120, 230, 1)" + """;
+        color: white;
+        border-style: inset;
+        }
+        """)
+
+        self.settings_menu.setStyleSheet("""
+        QMenu{
+        background-color: """ + software_ss["Color2"] + """;
+        color: """ + software_ss["Color7"] + """;
+        font: 14px; 
+        border: solid black;
+        border-width: 1px;
+        }
+        QMenu::item:selected{
+        background: """ + "rgba(0, 120, 230, 1)" + """;
+        color: white;
+        }
+        QMenu::item:pressed{
+        background: """ + "rgba(0, 120, 230, 1)" + """;
+        color: white;
+        border-style: inset;
+        }
+        """)
+
+        self.help_menu.setStyleSheet("""
+        QMenu{
+        background-color: """ + software_ss["Color2"] + """;
+        color: """ + software_ss["Color7"] + """;
+        font: 14px; 
+        border: solid black;
+        border-width: 1px;
+        }
+        QMenu::item:selected{
+        background: """ + "rgba(0, 120, 230, 1)" + """;
+        color: white;
+        }
+        QMenu::item:pressed{
+        background: """ + "rgba(0, 120, 230, 1)" + """;
+        color: white;
+        border-style: inset;
+        }
+        """)
 
     def __set_connections(self):
         self.__set_menubar_connections()
@@ -301,6 +403,7 @@ class RaidionicsMainWindow(QMainWindow):
         else:
             # Should not happen, but what if?
             pass
+
         self.adjustSize()
 
     def __on_study_batch_clicked(self):

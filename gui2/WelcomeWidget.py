@@ -26,9 +26,10 @@ class WelcomeWidget(QWidget):
         self.__set_connections()
 
     def __set_interface(self):
-        self.__top_logo_panel_interface()
+        self.__top_title_interface()
         self.__set_right_panel_interface()
         self.__set_left_panel_interface()
+        self.__bottom_logo_panel_interface()
         self.central_label = QLabel()
         self.central_label.setContentsMargins(0, 0, 0, 0)
         self.central_layout = QHBoxLayout()
@@ -46,14 +47,22 @@ class WelcomeWidget(QWidget):
         # Always center aligning the center piece, while keeping the logo always at the top
         self.center_widget_container_layout.addWidget(self.central_label, 0, 0, Qt.AlignCenter)
         self.layout.addLayout(self.center_widget_container_layout)
+        self.layout.addLayout(self.bottom_logo_panel_layout, Qt.AlignBottom)
 
-    def __top_logo_panel_interface(self):
+    def __top_title_interface(self):
         self.top_logo_panel_layout = QHBoxLayout()
-        self.top_logo_panel_label = QLabel()
-        self.top_logo_panel_label.setPixmap(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                                                 'Images/raidionics-logo.png')).scaled(200, 50, Qt.KeepAspectRatio))
-        self.top_logo_panel_layout.addWidget(self.top_logo_panel_label, Qt.AlignLeft)
+        self.top_logo_panel_label = QLabel("Welcome to Raidionics")
         self.top_logo_panel_layout.addStretch(1)
+        self.top_logo_panel_layout.addWidget(self.top_logo_panel_label, Qt.AlignCenter)
+        self.top_logo_panel_layout.addStretch(1)
+
+    def __bottom_logo_panel_interface(self):
+        self.bottom_logo_panel_layout = QHBoxLayout()
+        self.bottom_logo_panel_label = QLabel()
+        self.bottom_logo_panel_label.setPixmap(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                                 'Images/raidionics-logo.png')).scaled(200, 50, Qt.KeepAspectRatio))
+        self.bottom_logo_panel_layout.addStretch(1)
+        self.bottom_logo_panel_layout.addWidget(self.bottom_logo_panel_label, Qt.AlignRight)
 
     def __set_right_panel_interface(self):
         self.right_panel_label = QLabel()
@@ -94,11 +103,8 @@ class WelcomeWidget(QWidget):
         self.left_panel_top_spaceritem = QSpacerItem(1, 20)
         self.left_panel_layout.addItem(self.left_panel_top_spaceritem)
 
-        self.left_panel_welcome_label = QLabel()
-        self.left_panel_welcome_label.setText("Welcome to Raidionics")
-        self.left_panel_layout.addWidget(self.left_panel_welcome_label)
         self.left_panel_startby_label = QLabel()
-        self.left_panel_startby_label.setText("Start by: ")
+        self.left_panel_startby_label.setText("Start by")
         self.left_panel_layout.addWidget(self.left_panel_startby_label)
         self.left_panel_spaceritem = QSpacerItem(1, 15)
         self.left_panel_layout.addItem(self.left_panel_spaceritem)
@@ -137,12 +143,12 @@ class WelcomeWidget(QWidget):
         self.central_label.setFixedSize(QSize((1364 / SoftwareConfigResources.getInstance().get_optimal_dimensions().width()) * self.parent.baseSize().width(),
                                               (685 / SoftwareConfigResources.getInstance().get_optimal_dimensions().height()) * self.parent.baseSize().height()))
 
+        self.top_logo_panel_label.setFixedSize(QSize(650, 90))
         ################################## LOGO PANEL ######################################
-        self.top_logo_panel_label.setFixedSize(QSize(200, 50))
+        self.bottom_logo_panel_label.setFixedSize(QSize(200, 50))
 
         ################################## LEFT PANEL ######################################
-        self.left_panel_welcome_label.setFixedSize(QSize(300, 30))
-        self.left_panel_startby_label.setFixedSize(QSize(220, 30))
+        self.left_panel_startby_label.setFixedSize(QSize(220, 50))
         self.left_panel_single_patient_pushbutton.setFixedSize(QSize(260, 50))
         self.left_panel_single_patient_pushbutton.setIconSize(QSize(50, 25))
         self.left_panel_multiple_patients_pushbutton.setFixedSize(QSize(260, 50))
@@ -151,6 +157,7 @@ class WelcomeWidget(QWidget):
         self.left_panel_label.setFixedSize(QSize(550, 600))
 
         ################################## RIGHT PANEL ######################################
+        self.right_panel_more_info_label.setFixedWidth(450)
         self.right_panel_published_articles_pushbutton.setFixedSize(QSize(240, 70))
         self.right_panel_published_articles_pushbutton.setIconSize(QSize(240, 70))
         self.right_panel_issues_suggestions_pushbutton.setIconSize(QSize(240, 70))
@@ -166,6 +173,14 @@ class WelcomeWidget(QWidget):
         background-color: """ + software_ss["Color2"] + """;
         }""")
 
+        self.top_logo_panel_label.setStyleSheet("""
+        QLabel{
+        color: """ + software_ss["Color7"] + """;
+        font: 60px;
+        font-style: bold;
+        margin-top: 40px;
+        }""")
+
         self.right_panel_label.setStyleSheet("""
         QLabel{
         border:1px solid; 
@@ -177,7 +192,7 @@ class WelcomeWidget(QWidget):
         QLabel{
         color: """ + software_ss["Color7"] + """;
         border: 0px;
-        font-size: 26px;
+        font-size: 40px;
         font-style: bold;
         }""")
 
@@ -204,19 +219,12 @@ class WelcomeWidget(QWidget):
         background-color:rgba(255, 255, 255, 1);
         }""")
 
-        self.left_panel_welcome_label.setStyleSheet("""
-        QLabel{
-        color: """ + software_ss["Color7"] + """;
-        font:bold;
-        font-size:26px;
-        border: 0px;}
-        """)
-
         self.left_panel_startby_label.setStyleSheet("""
         QLabel{
         color: """ + software_ss["Color7"] + """;
         border: 0px;
-        font-size:20px;
+        font-size: 40px;
+        font-style: bold;
         }""")
 
         self.left_panel_center_or_label.setStyleSheet("""

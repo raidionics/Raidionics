@@ -81,16 +81,16 @@ class TimestampsLayerInteractor(QWidget):
         self.timestamp_remove_pushbutton.clicked.connect(self.__on_timestamp_removed)
 
     def __set_layout_dimensions(self):
-        self.timestamp_selector_combobox.setFixedSize(QSize(80, 30))
-        self.timestamp_add_pushbutton.setFixedSize(QSize(30, 30))
-        self.timestamp_add_pushbutton.setIconSize(QSize(30, 30))
-        self.timestamp_remove_pushbutton.setFixedSize(QSize(30, 30))
-        self.timestamp_remove_pushbutton.setIconSize(QSize(30, 30))
+        self.timestamp_selector_combobox.setFixedSize(QSize(80, 25))
+        self.timestamp_add_pushbutton.setFixedSize(QSize(25, 25))
+        self.timestamp_add_pushbutton.setIconSize(QSize(25, 25))
+        self.timestamp_remove_pushbutton.setFixedSize(QSize(25, 25))
+        self.timestamp_remove_pushbutton.setIconSize(QSize(25, 25))
 
     def __set_stylesheets(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
         font_color = software_ss["Color7"]
-        background_color = software_ss["Color5"]
+        background_color = software_ss["Color2"]
         pressed_background_color = software_ss["Color6"]
 
         self.setStyleSheet("""

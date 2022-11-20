@@ -451,6 +451,8 @@ class AnnotationVolume:
         self._parent_mri_uid = parameters['parent_mri_uid']
         self._timestamp_uid = parameters['investigation_timestamp_uid']
         self._timestamp_folder_name = parameters['display_volume_filepath'].split('/')[0]
+        if os.name == 'nt':
+            self._timestamp_folder_name = list(PurePath(parameters['display_volume_filepath']).parts)[0]
         self._display_name = parameters['display_name']
         self._display_color = parameters['display_color']
         self._display_opacity = parameters['display_opacity']

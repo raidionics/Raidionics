@@ -73,12 +73,19 @@ class SoftwareConfigResources:
     def __set_default_stylesheet_components(self):
         self.stylesheet_components = {}
         self.stylesheet_components["Color1"] = "rgba(0, 0, 0, 1)"  # Black
-        self.stylesheet_components["Color2"] = "rgba(255, 255, 255, 1)"  # White
+        self.stylesheet_components["Color2"] = "rgba(235, 250, 255, 1)"  # Blueish white
         self.stylesheet_components["Color3"] = "rgba(239, 255, 245, 1)"  # Light green
         self.stylesheet_components["Color4"] = "rgba(209, 241, 222, 1)"  # Darker light green (when pressed)
         self.stylesheet_components["Color5"] = "rgba(248, 248, 248, 1)"  # Almost white (standard background)
         self.stylesheet_components["Color6"] = "rgba(214, 214, 214, 1)"  # Darker almost white (when pressed)
         self.stylesheet_components["Color7"] = "rgba(67, 88, 90, 1)"
+
+        self.stylesheet_components["White"] = "rgba(255, 255, 255, 1)"  # White
+        self.stylesheet_components["Process"] = "rgba(255, 191, 128, 1)"  # Light orange
+        self.stylesheet_components["Process_pressed"] = "rgba(204, 102, 0, 1)"  # Dark orange
+        self.stylesheet_components["Import"] = "rgba(73, 99, 171, 1)"  # Greyish blue
+        self.stylesheet_components["Import_pressed"] = "rgba(81, 101, 153, 1)"  # Dark greyish blue
+        self.stylesheet_components["Data"] = "rgba(204, 224, 255, 1)"  # Greyish blue
 
     @property
     def software_version(self) -> str:
