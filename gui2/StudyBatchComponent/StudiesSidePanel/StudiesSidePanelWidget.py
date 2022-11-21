@@ -82,10 +82,13 @@ class StudiesSidePanelWidget(QWidget):
 
     def __set_stylesheets(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
+        font_color = software_ss["Color7"]
+        background_color = software_ss["Color2"]
+        pressed_background_color = software_ss["Color6"]
 
         self.study_list_scrollarea.setStyleSheet("""
         QScrollArea{
-        background-color: """ + software_ss["Color2"] + """;
+        background-color: """ + background_color + """;
         }""")
 
         self.bottom_add_study_pushbutton.setStyleSheet("""
@@ -104,7 +107,7 @@ class StudiesSidePanelWidget(QWidget):
         self.options_menu.setStyleSheet("""
         QMenu{
         background-color: """ + "rgba(73, 99, 171, 1)" + """;
-        color: """ + software_ss["Color2"] + """;
+        color: """ + background_color + """;
         font-size: 16px;
         }
         QMenu:selected{

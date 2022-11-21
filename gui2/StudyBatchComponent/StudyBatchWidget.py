@@ -87,7 +87,17 @@ class StudyBatchWidget(QWidget):
         self.top_logo_panel_label.setFixedSize(QSize(150, 30))
 
     def __set_stylesheets(self):
-        self.setStyleSheet("QWidget{font:11px;}")
+        software_ss = SoftwareConfigResources.getInstance().stylesheet_components
+        font_color = software_ss["Color7"]
+        background_color = software_ss["Color2"]
+        pressed_background_color = software_ss["Color6"]
+
+        self.setStyleSheet("""
+        QWidget{
+        font:11px;
+        background-color: """ + background_color + """;
+        }""")
+
 
     def __set_connections(self):
         self.__set_cross_connections()

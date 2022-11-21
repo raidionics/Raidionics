@@ -39,7 +39,7 @@ class PatientListingWidgetItem(QWidget):
         self.patient_investigation_pushbutton.setToolTip("Press to visually inspect the patient.")
         self.patient_remove_pushbutton = QPushButton()
         self.patient_remove_pushbutton.setIcon(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                                                  '../../Images/trash-bin_icon.png')))
+                                                                  '../../Images/close_icon.png')))
         self.patient_remove_pushbutton.setToolTip("Press to remove the patient from the study (but retained on disk).")
         # self.patient_remove_pushbutton.setEnabled(False)
         self.layout.addWidget(self.patient_remove_pushbutton)
@@ -61,7 +61,7 @@ class PatientListingWidgetItem(QWidget):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
         font_color = software_ss["Color7"]
         font_style = 'normal'
-        background_color = software_ss["Color5"]
+        background_color = software_ss["Color2"]
         pressed_background_color = software_ss["Color6"]
 
         self.setStyleSheet("""

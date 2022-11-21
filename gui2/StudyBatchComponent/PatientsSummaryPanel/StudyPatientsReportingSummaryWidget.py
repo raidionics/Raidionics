@@ -52,8 +52,22 @@ class StudyPatientsReportingSummaryWidget(QWidget):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
         font_color = software_ss["Color7"]
         font_style = 'normal'
-        background_color = software_ss["Color5"]
+        background_color = software_ss["Color2"]
         pressed_background_color = software_ss["Color6"]
+
+        self.content_table_widget.setStyleSheet("""
+        QTableWidget{
+        color: """ + font_color + """;
+        font-size: 14px;
+        text-align: left;
+        }""")
+
+        self.content_table_widget.horizontalHeader().setStyleSheet("""
+        QHeaderView{
+        color: """ + font_color + """;
+        background-color: """ + background_color + """;
+        font-size: 15px
+        }""")
 
     def adjustSize(self) -> None:
         pass

@@ -85,7 +85,7 @@ class AboutDialog(QDialog):
 
     def __textfill(self):
         text = "<p style=\"font-size: 32px;\"> <strong> Raidionics </strong> </p>"
-        text = text + """<p style=\"font-size: 16px; white-space: pre-line\"> Developed by the Medical Technology group, Health department, SINTEF Digital:\n
+        text = text + """<p style=\"font-size: 16px; white-space: pre-line\"> Developed by the Medical Technology group, Health Research Department, SINTEF Digital:\n
         * David Bouget, contact: david.bouget@sintef.no
         * André Pedersen (deployment and multi-platform support)
         * Demah Alsinan (design)

@@ -46,91 +46,91 @@ class ResearchCommunityDialog(QDialog):
         self.main_scrollarea_layout.addLayout(self.title_layout, 0, 0, 1, 4)
 
         self.st_olavs_widget = HospitalContributorWidget(self)
-        self.st_olavs_widget.set_hospital_name("St. Olavs hospital,Trondheim \nUniversity Hospital, Trondheim, Norway")
-        self.st_olavs_widget.set_hospital_participants("Ole Solheim, Lisa M. Sagberg, \n Even H. Fyllingen, Sayed Hoseiney")
+        self.st_olavs_widget.set_hospital_name("St. Olavs hospital,Trondheim\nUniversity Hospital, Trondheim, Norway")
+        self.st_olavs_widget.set_hospital_participants("Ole Solheim, Lisa M. Sagberg,\nEven H. Fyllingen, Sayed Hoseiney")
         self.st_olavs_widget.set_logo_icon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                         '../../Images/stolavs-logo.png'))
         self.main_scrollarea_layout.addWidget(self.st_olavs_widget, 1, 0, 1, 1)
 
         self.goth_sahl_widget = HospitalContributorWidget(self)
-        self.goth_sahl_widget.set_hospital_name("Sahlgrenska University Hospital,\n Gothenburg, Sweden")
+        self.goth_sahl_widget.set_hospital_name("Sahlgrenska University Hospital,\nGothenburg, Sweden")
         self.goth_sahl_widget.set_hospital_participants("Asgeir Store Jakola")
         self.goth_sahl_widget.set_logo_icon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                         '../../Images/gothenburg-hospital-icon.png'))
         self.main_scrollarea_layout.addWidget(self.goth_sahl_widget, 1, 1, 1, 1)
 
         self.olso_ouh_widget = HospitalContributorWidget(self)
-        self.olso_ouh_widget.set_hospital_name("Oslo University Hospital, \nOslo, Norway")
+        self.olso_ouh_widget.set_hospital_name("Oslo University Hospital,\nOslo, Norway")
         self.olso_ouh_widget.set_hospital_participants("Kyrre Eeg Emblem")
         self.olso_ouh_widget.set_logo_icon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                         '../../Images/oslo_univeristy_hospital_icon.png'))
         self.main_scrollarea_layout.addWidget(self.olso_ouh_widget, 1, 2, 1, 1)
 
         self.brigham_boston_widget = HospitalContributorWidget(self)
-        self.brigham_boston_widget.set_hospital_name("Brigham and Women’s Hospital,\n Boston, USA")
-        self.brigham_boston_widget.set_hospital_participants("Timothy R. Smith,\n Vasileios Kavouridis")
+        self.brigham_boston_widget.set_hospital_name("Brigham and Women’s Hospital,\nBoston, USA")
+        self.brigham_boston_widget.set_hospital_participants("Timothy R. Smith,\nVasileios Kavouridis")
         self.brigham_boston_widget.set_logo_icon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                         '../../Images/brigham-boston-hospital-logo.png'))
         self.main_scrollarea_layout.addWidget(self.brigham_boston_widget, 1, 3, 1, 1)
 
         self.amsterdam_widget = HospitalContributorWidget(self)
-        self.amsterdam_widget.set_hospital_name("Amsterdam University Medical Centers, \nVrije Universiteit, Amsterdam, The Netherlands")
-        self.amsterdam_widget.set_hospital_participants("Philip C. De Witt Hamer, Roelant S. Eijgelaar, \nIvar Kommers, Frederik Barkhof, \nDomenique M.J. Müller, Aeilko H. Zwinderman")
+        self.amsterdam_widget.set_hospital_name("Amsterdam University Medical Centers,\nVrije Universiteit, Amsterdam, The Netherlands")
+        self.amsterdam_widget.set_hospital_participants("Philip C. De Witt Hamer, Roelant S. Eijgelaar,\nIvar Kommers, Frederik Barkhof,\nDomenique M.J. Müller, Aeilko H. Zwinderman")
         self.amsterdam_widget.set_logo_icon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                         '../../Images/amsterdam-hospital-logo.png'))
         self.main_scrollarea_layout.addWidget(self.amsterdam_widget, 2, 0, 1, 1)
 
         self.twee_steden_widget = HospitalContributorWidget(self)
-        self.twee_steden_widget.set_hospital_name("Twee Steden Hospital, \nTilburg, The Netherlands")
+        self.twee_steden_widget.set_hospital_name("Twee Steden Hospital,\nTilburg, The Netherlands")
         self.twee_steden_widget.set_hospital_participants("Hilko Ardon")
         self.twee_steden_widget.set_logo_icon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                         '../../Images/tweesteden-hospital-logo.png'))
         self.main_scrollarea_layout.addWidget(self.twee_steden_widget, 2, 1, 1, 1)
 
         self.humanitas_milan_widget = HospitalContributorWidget(self)
-        self.humanitas_milan_widget.set_hospital_name("Humanitas Research Hospital, Università \nDegli Studi di Milano, Milano, Italy")
-        self.humanitas_milan_widget.set_hospital_participants("Lorenzo Bello, Marco Conti Nibali, \nMarco Rossi, Tommaso Sciortino")
+        self.humanitas_milan_widget.set_hospital_name("Humanitas Research Hospital, Università\nDegli Studi di Milano, Milano, Italy")
+        self.humanitas_milan_widget.set_hospital_participants("Lorenzo Bello, Marco Conti Nibali,\nMarco Rossi, Tommaso Sciortino")
         self.humanitas_milan_widget.set_logo_icon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                         '../../Images/humanitas-milan-hospital-logo.png'))
         self.main_scrollarea_layout.addWidget(self.humanitas_milan_widget, 2, 2, 1, 1)
 
         self.ucsf_widget = HospitalContributorWidget(self)
-        self.ucsf_widget.set_hospital_name("University of California San Francisco, \nSan Francisco, USA")
-        self.ucsf_widget.set_hospital_participants("Mitchel S. Berger, \nShawn Hervey-Jumper")
+        self.ucsf_widget.set_hospital_name("University of California San Francisco,\nSan Francisco, USA")
+        self.ucsf_widget.set_hospital_participants("Mitchel S. Berger,\nShawn Hervey-Jumper")
         self.ucsf_widget.set_logo_icon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                         '../../Images/ucsf-hospital-logo.png'))
         self.main_scrollarea_layout.addWidget(self.ucsf_widget, 2, 3, 1, 1)
 
         self.vienna_hospital_widget = HospitalContributorWidget(self)
-        self.vienna_hospital_widget.set_hospital_name("Medical University Vienna, \n Wien, Austria")
+        self.vienna_hospital_widget.set_hospital_name("Medical University Vienna,\nWien, Austria")
         self.vienna_hospital_widget.set_hospital_participants("Julia Furtner, Barbara Kiesel, \nGeorg Widhalm")
         self.vienna_hospital_widget.set_logo_icon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                         '../../Images/vienna-hospital-logo.png'))
         self.main_scrollarea_layout.addWidget(self.vienna_hospital_widget, 3, 0, 1, 1)
 
         self.alkmaar_hospital_widget = HospitalContributorWidget(self)
-        self.alkmaar_hospital_widget.set_hospital_name("Northwest Clinics, Alkmaar, \nThe Netherlands")
+        self.alkmaar_hospital_widget.set_hospital_name("Northwest Clinics, Alkmaar,\nThe Netherlands")
         self.alkmaar_hospital_widget.set_hospital_participants("Albert J. S. Idema")
         self.alkmaar_hospital_widget.set_logo_icon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                         '../../Images/alkmaar-hospital-logo.png'))
         self.main_scrollarea_layout.addWidget(self.alkmaar_hospital_widget, 3, 1, 1, 1)
 
         self.hague_hospital_widget = HospitalContributorWidget(self)
-        self.hague_hospital_widget.set_hospital_name("Haaglanden Medical Center, \nThe Hague, The Netherlands")
+        self.hague_hospital_widget.set_hospital_name("Haaglanden Medical Center,\nThe Hague, The Netherlands")
         self.hague_hospital_widget.set_hospital_participants("Alfred Kloet")
         self.hague_hospital_widget.set_logo_icon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                         '../../Images/haaglanden-hospital-logo.png'))
         self.main_scrollarea_layout.addWidget(self.hague_hospital_widget, 3, 2, 1, 1)
 
         self.lariboisiere_hospital_widget = HospitalContributorWidget(self)
-        self.lariboisiere_hospital_widget.set_hospital_name("Hôpital Lariboisière,\n Paris, France")
+        self.lariboisiere_hospital_widget.set_hospital_name("Hôpital Lariboisière,\nParis, France")
         self.lariboisiere_hospital_widget.set_hospital_participants("Emmanuel Mandonnet")
         self.lariboisiere_hospital_widget.set_logo_icon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                         '../../Images/lariboisiere-hospital-logo.png'))
         self.main_scrollarea_layout.addWidget(self.lariboisiere_hospital_widget, 3, 3, 1, 1)
 
         self.utrecht_hospital_widget = HospitalContributorWidget(self)
-        self.utrecht_hospital_widget.set_hospital_name("University Medical Center Utrecht,\n Utrecht, The Netherlands")
+        self.utrecht_hospital_widget.set_hospital_name("University Medical Center Utrecht,\nUtrecht, The Netherlands")
         self.utrecht_hospital_widget.set_hospital_participants("Pierre A. Robe")
         self.utrecht_hospital_widget.set_logo_icon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                         '../../Images/utrecht-hospital-logo.png'))
@@ -144,14 +144,14 @@ class ResearchCommunityDialog(QDialog):
         self.main_scrollarea_layout.addWidget(self.isala_hospital_widget, 4, 1, 1, 1)
 
         self.groningen_hospital_widget = HospitalContributorWidget(self)
-        self.groningen_hospital_widget.set_hospital_name("University Medical Center Groningen, \nGroningen, The Netherlands")
+        self.groningen_hospital_widget.set_hospital_name("University Medical Center Groningen,\nGroningen, The Netherlands")
         self.groningen_hospital_widget.set_hospital_participants("Michiel Wagemakers")
         self.groningen_hospital_widget.set_logo_icon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                         '../../Images/groningen-hospital-logo.png'))
         self.main_scrollarea_layout.addWidget(self.groningen_hospital_widget, 4, 2, 1, 1)
 
         self.cancer_institute_ams_widget = HospitalContributorWidget(self)
-        self.cancer_institute_ams_widget.set_hospital_name("The Netherlands Cancer Institute, \nAmsterdam, The Netherlands")
+        self.cancer_institute_ams_widget.set_hospital_name("The Netherlands Cancer Institute,\nAmsterdam, The Netherlands")
         self.cancer_institute_ams_widget.set_hospital_participants("Marnix G. Witte")
         self.cancer_institute_ams_widget.set_logo_icon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                         '../../Images/cancer-institute-ams-logo.png'))
@@ -203,46 +203,6 @@ class ResearchCommunityDialog(QDialog):
         background-color: """ + background_color + """;
         font: 18px;
         }""")
-
-    def __textfill(self):
-        text = "<p style=\"font-size: 32px;\"> <strong> Research community </strong> </p>"
-        text = text + """<p style=\"font-size: 16px; white-space: pre-line\"> The data used for training the various segmentation models was gathered from:
-            * Department of Neurosurgery, St. Olavs hospital, Trondheim University Hospital, Trondheim, Norway
-              Ole Solheim, Lisa M. Sagberg, Even H. Fyllingen, Sayed Hoseiney
-            * Department of Neurosurgery, Sahlgrenska University Hospital, Gothenburg, Sweden
-              Asgeir Store Jakola
-            * Department of Physics and Computational Radiology, Division of Radiology and Nuclear Medicine, Oslo University Hospital, Oslo, Norway
-            Kyrre Eeg Emblem
-            * Department of Neurosurgery, Amsterdam University Medical Centers, Vrije Universiteit, Amsterdam, The Netherlands
-            Philip C. De Witt Hamer, Roelant S. Eijgelaar, Ivar Kommers, Frederik Barkhof, Domenique M.J. Müller
-            * Department of Neurosurgery, Twee Steden Hospital, Tilburg, The Netherlands
-            Hilko Ardon
-            * Neurosurgical Oncology Unit, Department of Oncology and Hemato-Oncology, Humanitas Research Hospital, Università Degli Studi di Milano, Milano, Italy
-            Lorenzo Bello, Marco Conti Nibali, Marco Rossi, Tommaso Sciortino
-            * Department of Neurological Surgery, University of California San Francisco, San Francisco, USA
-            Mitchel S. Berger, Shawn Hervey-Jumper
-            * Department of Biomedical Imaging and Image-Guided Therapy, Medical University Vienna, Wien, Austria
-            Julia Furtner
-            * Department of Neurosurgery, Northwest Clinics, Alkmaar, The Netherlands
-            Albert J. S. Idema
-            * Department of Neurosurgery, Medical University Vienna, Wien, Austria
-            Barbara Kiesel, Georg Widhalm
-            * Department of Neurosurgery, Haaglanden Medical Center, The Hague, The Netherlands
-            Alfred Kloet
-            * Department of Neurological Surgery, Hôpital Lariboisière, Paris, France
-            Emmanuel Mandonnet
-            * Department of Neurology and Neurosurgery, University Medical Center Utrecht, Utrecht, The Netherlands
-            Pierre A. Robe
-            * Department of Neurosurgery, Isala, Zwolle, The Netherlands
-            Wimar van den Brink
-            * Department of Neurosurgery, University Medical Center Groningen, University of Groningen, Groningen, The Netherlands
-            Michiel Wagemakers
-            * Department of Radiation Oncology, The Netherlands Cancer Institute, Amsterdam, The Netherlands
-            Marnix G. Witte
-            * Department of Clinical Epidemiology and Biostatistics, Amsterdam University Medical Centers, University of Amsterdam, Amsterdam, The Netherlands
-            Aeilko H. Zwinderman
-        </p>
-        """
 
 
 class HospitalContributorWidget(QWidget):
@@ -310,12 +270,16 @@ class HospitalContributorWidget(QWidget):
 
         self.hospital_name_label.setStyleSheet("""
         QLabel{
+        color: """ + font_color + """;
+        font-size: 13px;
         border: none;
         }
         """)
 
         self.hospital_participants_label.setStyleSheet("""
         QLabel{
+        color: """ + font_color + """;
+        font-size: 13px;
         border: none;
         }
         """)

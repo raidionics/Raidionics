@@ -43,6 +43,7 @@ class SoftwareSettingsDialog(QDialog):
         self.options_stackedwidget = QStackedWidget()
         self.__set_default_options_interface()
         self.__set_processing_options_interface()
+        self.__set_appearance_options_interface()
 
         self.options_layout.addWidget(self.options_list_scrollarea)
         self.options_layout.addWidget(self.options_stackedwidget)
@@ -142,12 +143,25 @@ class SoftwareSettingsDialog(QDialog):
         self.options_list_scrollarea_layout.insertWidget(self.options_list_scrollarea_layout.count() - 1,
                                                          self.processing_options_pushbutton)
 
+    def __set_appearance_options_interface(self):
+        self.appearance_options_widget = QWidget()
+        self.appearance_options_base_layout = QVBoxLayout()
+        self.appearance_options_label = QLabel("Appearance settings")
+        self.appearance_options_base_layout.addWidget(self.appearance_options_label)
+
+        self.options_stackedwidget.addWidget(self.appearance_options_widget)
+        self.appearance_options_pushbutton = QPushButton('Appearance')
+        self.options_list_scrollarea_layout.insertWidget(self.options_list_scrollarea_layout.count() - 1,
+                                                         self.appearance_options_pushbutton)
+
     def __set_layout_dimensions(self):
         self.options_list_scrollarea.setFixedWidth(150)
         self.default_options_pushbutton.setFixedHeight(30)
         self.default_options_label.setFixedHeight(40)
         self.processing_options_pushbutton.setFixedHeight(30)
         self.processing_options_label.setFixedHeight(40)
+        self.appearance_options_pushbutton.setFixedHeight(30)
+        self.appearance_options_label.setFixedHeight(40)
         self.setMinimumSize(800, 600)
 
     def __set_connections(self):
@@ -214,6 +228,33 @@ class SoftwareSettingsDialog(QDialog):
         }""")
 
         self.processing_options_pushbutton.setStyleSheet("""
+        QPushButton{
+        background-color: """ + background_color + """;
+        color: """ + font_color + """;
+        font: 12px;
+        border-style: none;
+        }
+        QPushButton::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        }
+        QPushButton:pressed{
+        border-style:inset;
+        background-color: """ + pressed_background_color + """;
+        }""")
+
+        self.appearance_options_label.setStyleSheet("""
+        QLabel{
+        background-color: """ + background_color + """;
+        color: """ + font_color + """;
+        text-align: center;
+        font: 18px;
+        font-style: bold;
+        border-style: none;
+        }""")
+
+        self.appearance_options_pushbutton.setStyleSheet("""
         QPushButton{
         background-color: """ + background_color + """;
         color: """ + font_color + """;

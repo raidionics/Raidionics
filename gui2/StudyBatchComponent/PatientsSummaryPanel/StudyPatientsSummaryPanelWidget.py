@@ -24,6 +24,7 @@ class StudyPatientsSummaryPanelWidget(QWidget):
         self.__set_stylesheets()
 
     def __set_interface(self):
+        self.setAttribute(Qt.WA_StyledBackground, True)  # Enables to set e.g. background-color for the QWidget
         self.layout = QVBoxLayout(self)
         self.layout.setSpacing(0)
         self.layout.setContentsMargins(0, 0, 0, 0)
@@ -63,9 +64,65 @@ class StudyPatientsSummaryPanelWidget(QWidget):
     def __set_stylesheets(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
         font_color = software_ss["Color7"]
-        font_style = 'normal'
-        background_color = software_ss["Color5"]
+        background_color = software_ss["Color2"]
         pressed_background_color = software_ss["Color6"]
+
+        self.setStyleSheet("""
+        QWidget{
+        background-color: """ + background_color + """;
+        }""")
+
+        if os.name == 'nt':
+            self.main_selector_combobox.setStyleSheet("""
+            QComboBox{
+            color: """ + font_color + """;
+            background-color: """ + background_color + """;
+            font: bold;
+            font-size: 12px;
+            text-align: center;
+            border-style:none;
+            }
+            QComboBox::hover{
+            border-style: solid;
+            border-width: 1px;
+            border-color: rgba(196, 196, 196, 1);
+            }
+            QComboBox::drop-down {
+            subcontrol-origin: padding;
+            subcontrol-position: top right;
+            width: 15px;
+            }
+            """)
+        else:
+            self.main_selector_combobox.setStyleSheet("""
+            QComboBox{
+            color: """ + font_color + """;
+            background-color: """ + background_color + """;
+            font: bold;
+            font-size: 14px;
+            text-align: center;
+            border: 1px solid;
+            border-color: rgba(196, 196, 196, 1);
+            }
+            QComboBox::hover{
+            border-style: solid;
+            border-width: 1px;
+            border-color: rgba(196, 196, 196, 1);
+            }
+            QComboBox::drop-down {
+            subcontrol-origin: padding;
+            subcontrol-position: top right;
+            width: 15px;
+            border-left-width: 1px;
+            border-left-color: darkgray;
+            border-left-style: none;
+            border-top-right-radius: 3px; /* same radius as the QComboBox */
+            border-bottom-right-radius: 3px;
+            }
+            QComboBox::down-arrow{
+            image: url(""" + os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../Images/combobox-arrow-icon-10x7.png') + """)
+            }
+            """)
 
     def adjustSize(self) -> None:
         pass
