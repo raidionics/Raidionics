@@ -44,13 +44,25 @@ class KeyboardShortcutsDialog(QDialog):
     def __set_stylesheets(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
         font_color = software_ss["Color7"]
-        background_color = software_ss["Color5"]
+        background_color = software_ss["Color2"]
         pressed_background_color = software_ss["Color6"]
 
         self.setStyleSheet("""
         QDialog{
-        background-color: white;
+        background-color: """ + background_color + """;
         color: black;
+        }""")
+
+        self.shortcuts_treewidget.setStyleSheet("""
+        QTreeWidget{
+        color: """ + font_color + """;
+        background-color: """ + background_color + """;
+        }""")
+        self.shortcuts_treewidget.header().setStyleSheet("""
+        QHeaderView{
+        color: """ + font_color + """;
+        background-color: """ + background_color + """;
+        font-size: 16px;
         }""")
 
     def __fill_table(self):

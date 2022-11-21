@@ -33,7 +33,7 @@ class TumorTypeSelectionQDialog(QDialog):
     def __set_layout_dimensions(self):
         self.select_tumor_type_label.setFixedHeight(25)
         self.select_tumor_type_combobox.setFixedHeight(25)
-        self.select_tumor_type_combobox.setFixedWidth(100)
+        self.select_tumor_type_combobox.setFixedWidth(125)
 
     def __set_stylesheets(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components

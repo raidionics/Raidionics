@@ -80,6 +80,10 @@ class SoftwareConfigResources:
         self.stylesheet_components["Color6"] = "rgba(214, 214, 214, 1)"  # Darker almost white (when pressed)
         self.stylesheet_components["Color7"] = "rgba(67, 88, 90, 1)"
 
+        if False:  # Dark-mode alternative
+            self.stylesheet_components["Color2"] = "rgba(86, 92, 110, 1)"
+            self.stylesheet_components["Color7"] = "rgba(250, 250, 250, 1)"
+
         self.stylesheet_components["White"] = "rgba(255, 255, 255, 1)"  # White
         self.stylesheet_components["Process"] = "rgba(255, 191, 128, 1)"  # Light orange
         self.stylesheet_components["Process_pressed"] = "rgba(204, 102, 0, 1)"  # Dark orange

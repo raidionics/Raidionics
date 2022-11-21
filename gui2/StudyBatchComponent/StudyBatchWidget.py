@@ -68,40 +68,23 @@ class StudyBatchWidget(QWidget):
         self.layout = QVBoxLayout(self)
         self.layout.setSpacing(0)
         self.layout.setContentsMargins(0, 0, 0, 25)  # To prevent the bottom objects to be invisible below screen
-        self.layout.addLayout(self.top_logo_panel_layout, Qt.AlignTop)
+        # self.layout.addLayout(self.top_logo_panel_layout, Qt.AlignTop)
         self.layout.addLayout(self.center_panel_layout)
 
     def __top_logo_options_panel_interface(self):
         self.top_logo_panel_layout = QHBoxLayout()
         self.top_logo_panel_layout.setSpacing(5)
-        self.top_logo_panel_label_import_file_pushbutton = QPushButton("Data")
-        self.top_logo_panel_label_import_file_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/upload_icon.png'))))
-        # self.top_logo_panel_layout.addWidget(self.top_logo_panel_label_import_file_pushbutton)
-
-        self.top_logo_panel_label_import_dicom_pushbutton = QPushButton("DICOM")
-        self.top_logo_panel_label_import_dicom_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/upload_icon.png'))))
-        # self.top_logo_panel_layout.addWidget(self.top_logo_panel_label_import_dicom_pushbutton)
-
-        self.top_logo_panel_label_save_pushbutton = QPushButton("Save")
-        self.top_logo_panel_label_save_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/download_icon_black.png'))))
-        # self.top_logo_panel_layout.addWidget(self.top_logo_panel_label_save_pushbutton)
 
         self.top_logo_panel_layout.addStretch(1)
 
         self.top_logo_panel_label = QLabel()
         self.top_logo_panel_label.setPixmap(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                                  '../Images/raidionics-logo.png')).scaled(150, 30, Qt.KeepAspectRatio))
-        self.top_logo_panel_layout.addWidget(self.top_logo_panel_label, Qt.AlignLeft)
+        # self.top_logo_panel_layout.addWidget(self.top_logo_panel_label, Qt.AlignLeft)
 
     def __set_layout_dimensions(self):
         ################################## LOGO PANEL ######################################
         self.top_logo_panel_label.setFixedSize(QSize(150, 30))
-        self.top_logo_panel_label_import_file_pushbutton.setFixedSize(QSize(70, 20))
-        self.top_logo_panel_label_import_file_pushbutton.setIconSize(QSize(30, 30))
-        self.top_logo_panel_label_import_dicom_pushbutton.setFixedSize(QSize(70, 20))
-        self.top_logo_panel_label_import_dicom_pushbutton.setIconSize(QSize(30, 30))
-        self.top_logo_panel_label_save_pushbutton.setFixedSize(QSize(70, 20))
-        self.top_logo_panel_label_save_pushbutton.setIconSize(QSize(30, 30))
 
     def __set_stylesheets(self):
         self.setStyleSheet("QWidget{font:11px;}")

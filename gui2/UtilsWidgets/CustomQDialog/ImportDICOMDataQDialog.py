@@ -143,7 +143,7 @@ class ImportDICOMDataQDialog(QDialog):
     def __set_stylesheets(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
         font_color = software_ss["Color7"]
-        background_color = software_ss["Color5"]
+        background_color = software_ss["Color2"]
 
         self.setStyleSheet("""
         QDialog{
@@ -167,6 +167,34 @@ class ImportDICOMDataQDialog(QDialog):
         border-style:inset;
         }
         """)
+
+        self.content_series_tablewidget.horizontalHeader().setStyleSheet("""
+        QHeaderView{
+        color: """ + font_color + """;
+        background-color: """ + background_color + """;
+        font: 15px;
+        }""")
+
+        self.content_patient_tablewidget.horizontalHeader().setStyleSheet("""
+        QHeaderView{
+        color: """ + font_color + """;
+        background-color: """ + background_color + """;
+        font: 15px;
+        }""")
+
+        self.content_study_tablewidget.horizontalHeader().setStyleSheet("""
+        QHeaderView{
+        color: """ + font_color + """;
+        background-color: """ + background_color + """;
+        font: 15px;
+        }""")
+
+        self.selected_series_tablewidget.horizontalHeader().setStyleSheet("""
+        QHeaderView{
+        color: """ + font_color + """;
+        background-color: """ + background_color + """;
+        font: 15px;
+        }""")
 
         # self.content_series_tablewidget.setStyleSheet("""
         # QTableWidget{

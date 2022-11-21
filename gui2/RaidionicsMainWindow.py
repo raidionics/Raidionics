@@ -150,16 +150,18 @@ class RaidionicsMainWindow(QMainWindow):
 
         self.help_menu = self.menu_bar.addMenu('Help')
         self.community_action = QAction(
-            QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../images/readme-icon.jpeg')), 'Community',
+            QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Images/globe-icon.png')), 'Community',
             self)
         # self.community_action.setShortcut("Ctrl+R")
         self.help_menu.addAction(self.community_action)
         self.about_action = QAction(
-            QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../images/about-icon.png')), 'About', self)
+            QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Images/circle_question_icon.png')),
+            'About', self)
         # self.about_action.setShortcut("Ctrl+A")
         self.help_menu.addAction(self.about_action)
-        self.help_action = QAction(QIcon.fromTheme("help-faq"), "Help",
-                                   self)  # Default icons can be found here: https://specifications.freedesktop.org/icon-naming-spec/icon-naming-spec-latest.html#guidelines
+        self.help_action = QAction(
+            QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Images/help_wavy_question_icon_blue.png')),
+            'Help', self)
         # self.help_action.setShortcut("Ctrl+J")
         self.help_menu.addAction(self.help_action)
 
@@ -324,6 +326,7 @@ class RaidionicsMainWindow(QMainWindow):
         self.welcome_widget.community_clicked.connect(self.__on_community_action_triggered)
         self.welcome_widget.about_clicked.connect(self.__on_about_action_triggered)
         self.welcome_widget.help_clicked.connect(self.__on_help_action_triggered)
+        self.welcome_widget.issues_clicked.connect(self.__on_issues_action_triggered)
 
         # Connections from single mode to study mode.
         self.single_patient_widget.patient_name_edited.connect(self.batch_study_widget.patient_name_edited)
@@ -455,6 +458,9 @@ class RaidionicsMainWindow(QMainWindow):
         Opens the Github wiki where the user can find information, explanatory videos, and a FAQ.
         """
         QDesktopServices.openUrl(QUrl("https://github.com/dbouget/Raidionics/wiki"))
+
+    def __on_issues_action_triggered(self) -> None:
+        QDesktopServices.openUrl(QUrl("https://github.com/dbouget/Raidionics/issues"))
 
     def __on_view_logs_triggered(self):
         """

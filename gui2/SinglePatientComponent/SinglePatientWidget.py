@@ -79,7 +79,7 @@ class SinglePatientWidget(QWidget):
                                                                                              '../Images/database_icon.png')).scaled(QSize(30, 30), Qt.KeepAspectRatio)))
         self.top_logo_panel_label_import_dicom_pushbutton.setToolTip("DICOM explorer")
         self.top_logo_panel_label_import_dicom_pushbutton.setEnabled(False)
-        self.top_logo_panel_layout.addWidget(self.top_logo_panel_label_import_dicom_pushbutton)
+        # self.top_logo_panel_layout.addWidget(self.top_logo_panel_label_import_dicom_pushbutton)
 
         self.top_logo_panel_statistics_pushbutton = QPushButton()
         self.top_logo_panel_statistics_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/statistics_chartbars_icon.png'))))
@@ -92,7 +92,7 @@ class SinglePatientWidget(QWidget):
         self.top_logo_panel_label = QLabel()
         self.top_logo_panel_label.setPixmap(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                                  '../Images/raidionics-logo.png')).scaled(150, 30, Qt.KeepAspectRatio))
-        self.top_logo_panel_layout.addWidget(self.top_logo_panel_label, Qt.AlignLeft)
+        # self.top_logo_panel_layout.addWidget(self.top_logo_panel_label, Qt.AlignLeft)
 
     def __set_layout_dimensions(self):
         ################################## LOGO PANEL ######################################
