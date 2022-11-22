@@ -24,6 +24,7 @@ class DisplayMetadataDICOMDialog(QDialog):
         self.content_tablewidget.setEditTriggers(QTableWidget.NoEditTriggers)
         self.content_tablewidget.setColumnCount(3)
         self.content_tablewidget.setHorizontalHeaderLabels(["Tag", "Description", "Value"])
+        self.content_tablewidget.verticalHeader().setVisible(False)
         self.layout.addWidget(self.content_tablewidget)
 
         for k in list(self.dicom_tags.keys()):
@@ -42,4 +43,26 @@ class DisplayMetadataDICOMDialog(QDialog):
         pass
 
     def __set_stylesheets(self):
-        pass
+        software_ss = SoftwareConfigResources.getInstance().stylesheet_components
+        font_color = software_ss["Color7"]
+        background_color = software_ss["Color2"]
+        pressed_background_color = software_ss["Background_pressed"]
+
+        self.setStyleSheet("""
+        QDialog{
+        background-color: """ + background_color + """;
+        color: """ + font_color + """;
+        }""")
+
+        self.content_tablewidget.setStyleSheet("""
+        QTableWidget{
+        color: """ + font_color + """;
+        font-size: 12px;
+        }""")
+
+        self.content_tablewidget.horizontalHeader().setStyleSheet("""
+        QHeaderView{
+        color: """ + font_color + """;
+        font-style: bold;
+        font-size: 14px;
+        }""")

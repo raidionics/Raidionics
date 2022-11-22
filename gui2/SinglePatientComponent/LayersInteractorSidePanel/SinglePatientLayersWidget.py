@@ -79,17 +79,8 @@ class SinglePatientLayersWidget(QWidget):
         self.overall_scrollarea_layout.addWidget(self.main_tabwidget)
 
         self.volumes_collapsiblegroupbox = MRIVolumesLayerInteractor(self)
-        # self.volumes_collapsiblegroupbox.setFixedSize(QSize(200, self.parent.baseSize().height()))
-        # self.volumes_collapsiblegroupbox.content_label.setBaseSize(QSize(200, self.parent.baseSize().height()))
-        # self.overall_scrollarea_layout.addWidget(self.volumes_collapsiblegroupbox)
-
         self.annotations_collapsiblegroupbox = AnnotationsLayersInteractor(self)
-        # self.volumes_collapsiblegroupbox.setFixedSize(QSize(200, self.parent.baseSize().height()))
-        # self.volumes_collapsiblegroupbox.content_label.setBaseSize(QSize(200, self.parent.baseSize().height()))
-        # self.overall_scrollarea_layout.addWidget(self.annotations_collapsiblegroupbox)
-
         self.atlases_collapsiblegroupbox = AtlasesLayersInteractor(self)
-        # self.overall_scrollarea_layout.addWidget(self.atlases_collapsiblegroupbox)
 
         self.overall_scrollarea_layout.addStretch(1)
         self.overall_scrollarea_dummy_widget.setLayout(self.overall_scrollarea_layout)
@@ -171,7 +162,6 @@ class SinglePatientLayersWidget(QWidget):
     def __on_main_tab_changed(self, index):
         if index == 1:
             self.execution_actions_widget.refresh()
-
 
         # @TODO. Look into this for proper resize when switching between tabs.
         # for i in range(self.main_tabwidget.count()):
@@ -259,3 +249,7 @@ class SinglePatientLayersWidget(QWidget):
     def on_batch_process_finished(self) -> None:
         self.execution_actions_widget.on_process_finished()
         self.timestamp_layer_widget.on_process_finished()
+        self.main_tabwidget.setCurrentIndex(0)
+
+    def on_process_finished(self) -> None:
+        self.main_tabwidget.setCurrentIndex(0)

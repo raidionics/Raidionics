@@ -60,7 +60,7 @@ class QCircularProgressBar(QWidget):
         painter.strokePath(path, pen)
         path2.moveTo(100, 0)
         pen2.setWidth(8)
-        pen2.setColor(Qt.white)
+        pen2.setColor(Qt.black)
         pen2.setCapStyle(Qt.FlatCap)
         pen2.setDashPattern([0.5, 1.105])
         path2.arcTo(QRectF(0, 0, 200, 200), 90, rd)

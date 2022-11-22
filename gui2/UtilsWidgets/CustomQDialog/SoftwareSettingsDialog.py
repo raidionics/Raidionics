@@ -148,7 +148,18 @@ class SoftwareSettingsDialog(QDialog):
         self.appearance_options_base_layout = QVBoxLayout()
         self.appearance_options_label = QLabel("Appearance settings")
         self.appearance_options_base_layout.addWidget(self.appearance_options_label)
+        self.color_theme_layout = QHBoxLayout()
+        self.dark_mode_header_label = QLabel("Dark mode ")
+        self.dark_mode_header_label.setToolTip("Click to use a dark-theme appearance mode ( a restart is necessary).")
+        self.dark_mode_checkbox = QCheckBox()
+        self.dark_mode_checkbox.setChecked(SoftwareConfigResources.getInstance().user_preferences.use_dark_mode)
+        self.color_theme_layout.addWidget(self.dark_mode_checkbox)
+        self.color_theme_layout.addWidget(self.dark_mode_header_label)
+        self.color_theme_layout.addStretch(1)
+        self.appearance_options_base_layout.addLayout(self.color_theme_layout)
 
+        self.appearance_options_base_layout.addStretch(1)
+        self.appearance_options_widget.setLayout(self.appearance_options_base_layout)
         self.options_stackedwidget.addWidget(self.appearance_options_widget)
         self.appearance_options_pushbutton = QPushButton('Appearance')
         self.options_list_scrollarea_layout.insertWidget(self.options_list_scrollarea_layout.count() - 1,
@@ -167,12 +178,14 @@ class SoftwareSettingsDialog(QDialog):
     def __set_connections(self):
         self.default_options_pushbutton.clicked.connect(self.__on_display_default_options)
         self.processing_options_pushbutton.clicked.connect(self.__on_display_processing_options)
+        self.appearance_options_pushbutton.clicked.connect(self.__on_display_appearance_options)
         self.home_directory_lineedit.textChanged.connect(self.__on_home_dir_changed)
         self.model_update_checkbox.stateChanged.connect(self.__on_active_model_status_changed)
         self.processing_options_use_sequences_checkbox.stateChanged.connect(self.__on_use_sequences_status_changed)
         self.processing_options_use_annotations_checkbox.stateChanged.connect(self.__on_use_manual_annotations_status_changed)
         self.processing_options_compute_corticalstructures_checkbox.stateChanged.connect(self.__on_compute_corticalstructures_status_changed)
         self.processing_options_compute_subcorticalstructures_checkbox.stateChanged.connect(self.__on_compute_subcorticalstructures_status_changed)
+        self.dark_mode_checkbox.stateChanged.connect(self.__on_dark_mode_status_changed)
         self.exit_accept_pushbutton.clicked.connect(self.__on_exit_accept_clicked)
         self.exit_cancel_pushbutton.clicked.connect(self.__on_exit_cancel_clicked)
 
@@ -300,6 +313,10 @@ class SoftwareSettingsDialog(QDialog):
     def __on_compute_subcorticalstructures_status_changed(self, state):
         SoftwareConfigResources.getInstance().user_preferences.compute_subcortical_structures = state
 
+    def __on_dark_mode_status_changed(self, state):
+        # @TODO. Would have to bounce back to the QApplication class, to trigger a global setStyleSheet on-the-fly?
+        SoftwareConfigResources.getInstance().set_dark_mode_state(state)
+
     def __on_exit_accept_clicked(self):
         """
         """
@@ -321,6 +338,10 @@ class SoftwareSettingsDialog(QDialog):
         QPushButton{
         background-color: """ + software_ss["Color5"] + """;
         }""")
+        self.appearance_options_pushbutton.setStyleSheet(self.appearance_options_pushbutton.styleSheet() + """
+        QPushButton{
+        background-color: """ + software_ss["Color5"] + """;
+        }""")
 
     def __on_display_processing_options(self):
         self.options_stackedwidget.setCurrentIndex(1)
@@ -330,6 +351,26 @@ class SoftwareSettingsDialog(QDialog):
         background-color: """ + software_ss["Color6"] + """;
         }""")
         self.default_options_pushbutton.setStyleSheet(self.default_options_pushbutton.styleSheet() + """
+        QPushButton{
+        background-color: """ + software_ss["Color5"] + """;
+        }""")
+        self.appearance_options_pushbutton.setStyleSheet(self.appearance_options_pushbutton.styleSheet() + """
+        QPushButton{
+        background-color: """ + software_ss["Color5"] + """;
+        }""")
+
+    def __on_display_appearance_options(self):
+        self.options_stackedwidget.setCurrentIndex(2)
+        software_ss = SoftwareConfigResources.getInstance().stylesheet_components
+        self.appearance_options_pushbutton.setStyleSheet(self.appearance_options_pushbutton.styleSheet() + """
+        QPushButton{
+        background-color: """ + software_ss["Color6"] + """;
+        }""")
+        self.default_options_pushbutton.setStyleSheet(self.default_options_pushbutton.styleSheet() + """
+        QPushButton{
+        background-color: """ + software_ss["Color5"] + """;
+        }""")
+        self.processing_options_pushbutton.setStyleSheet(self.processing_options_pushbutton.styleSheet() + """
         QPushButton{
         background-color: """ + software_ss["Color5"] + """;
         }""")

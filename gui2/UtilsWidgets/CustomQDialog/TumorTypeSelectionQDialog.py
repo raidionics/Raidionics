@@ -1,5 +1,6 @@
 import os
 from PySide2.QtWidgets import QDialog, QGridLayout, QLabel, QComboBox, QDialogButtonBox
+from PySide2.QtCore import QSize
 from utils.software_config import SoftwareConfigResources
 
 
@@ -33,7 +34,8 @@ class TumorTypeSelectionQDialog(QDialog):
     def __set_layout_dimensions(self):
         self.select_tumor_type_label.setFixedHeight(25)
         self.select_tumor_type_combobox.setFixedHeight(25)
-        self.select_tumor_type_combobox.setFixedWidth(125)
+        self.select_tumor_type_combobox.setFixedWidth(135)
+        self.setFixedSize(QSize(250, 70))
 
     def __set_stylesheets(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components

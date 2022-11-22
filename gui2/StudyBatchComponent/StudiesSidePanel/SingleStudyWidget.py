@@ -150,7 +150,8 @@ class SingleStudyWidget(QCollapsibleWidget):
         self.batch_processing_layout.setSpacing(5)
         self.batch_processing_layout.setContentsMargins(0, 0, 0, 0)
         self.batch_processing_combobox = QComboBox()
-        self.batch_processing_combobox.addItems(["folders_classification", "preop_segmentation", "preop_reporting"])
+        self.batch_processing_combobox.addItems(["folders_classification", "preop_segmentation", "preop_reporting",
+                                                 "postop_segmentation", "postop_reporting"])
         self.batch_processing_run_pushbutton = QPushButton()
         self.batch_processing_run_pushbutton.setToolTip("Execute the selected process.")
         self.batch_processing_run_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)),
@@ -440,7 +441,8 @@ class SingleStudyWidget(QCollapsibleWidget):
         border-bottom-right-radius: 1px;
         }
         QComboBox::down-arrow{
-        image: url(""" + os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../Images/combobox-arrow-icon-10x7.png') + """)
+        image: url(""" + os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                      '../../Images/combobox-arrow-icon-10x7.png') + """)
         }
         QComboBox::hover{
         border-style: solid;
@@ -451,7 +453,7 @@ class SingleStudyWidget(QCollapsibleWidget):
 
         self.batch_processing_run_pushbutton.setStyleSheet("""
         QPushButton{
-        background-color: """ + background_color + """;
+        background-color: """ + software_ss["Process"] + """;
         color: """ + font_color + """;
         font: 12px;
         border-style: none;
@@ -463,7 +465,7 @@ class SingleStudyWidget(QCollapsibleWidget):
         }
         QPushButton:pressed{
         border-style:inset;
-        background-color: """ + pressed_background_color + """;
+        background-color: """ + software_ss["Process_pressed"] + """;
         }""")
 
     def adjustSize(self):

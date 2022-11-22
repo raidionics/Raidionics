@@ -44,7 +44,7 @@ class TimestampsLayerInteractor(QWidget):
     def __set_interface(self):
         self.setAttribute(Qt.WA_StyledBackground, True)  # Enables to set e.g. background-color for the QWidget
         self.layout = QVBoxLayout(self)
-        self.layout.setContentsMargins(0, 5, 10, 5)
+        self.layout.setContentsMargins(0, 5, 5, 5)
         self.layout.setSpacing(5)
 
         self.timestamp_order_layout = QHBoxLayout()
@@ -239,6 +239,10 @@ class TimestampsLayerInteractor(QWidget):
 
         self.timestamp_remove_pushbutton.setEnabled(True)
 
+        # Automatically viewing the newly added timestamp, to let the user know it has been properly created and can
+        # now be populated with data.
+        self.timestamp_selector_combobox.setCurrentIndex(order)
+
     def __on_selected_timestamp_changed(self, index: int) -> None:
         """
         Whenever the user manually changes the displayed timestamp from the combobox, the proper timestamp widget
@@ -275,6 +279,7 @@ class TimestampsLayerInteractor(QWidget):
             self.timestamp_rankdown_pushbutton.setEnabled(False)
 
     def __on_timestamp_removed(self):
+        # @TODO. Removing a timestamp should also delete all files on disk, and all linked reports...
         index = self.timestamp_selector_combobox.currentIndex()
         current_ts_id = self.timestamps_widget[list(self.timestamps_widget.keys())[index]].uid
         images = SoftwareConfigResources.getInstance().get_active_patient().get_all_mri_volumes_for_timestamp(current_ts_id)

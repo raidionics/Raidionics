@@ -91,12 +91,12 @@ class SinglePatientWidget(QWidget):
 
         self.top_logo_panel_label = QLabel()
         self.top_logo_panel_label.setPixmap(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                                                 '../Images/raidionics-logo.png')).scaled(150, 30, Qt.KeepAspectRatio))
-        # self.top_logo_panel_layout.addWidget(self.top_logo_panel_label, Qt.AlignLeft)
+                                                                 '../Images/raidionics-icon.png')).scaled(30, 30, Qt.KeepAspectRatio))
+        self.top_logo_panel_layout.addWidget(self.top_logo_panel_label, Qt.AlignRight)
 
     def __set_layout_dimensions(self):
         ################################## LOGO PANEL ######################################
-        self.top_logo_panel_label.setFixedSize(QSize(150, 30))
+        self.top_logo_panel_label.setFixedSize(QSize(30, 30))
         self.top_logo_panel_label_import_dicom_pushbutton.setFixedSize(QSize(30, 30))
         self.top_logo_panel_statistics_pushbutton.setFixedSize(QSize(30, 30))
 
@@ -161,7 +161,7 @@ class SinglePatientWidget(QWidget):
         self.import_dicom_dialog.patient_imported.connect(self.results_panel.on_import_patient)
         self.import_dicom_dialog.mri_volume_imported.connect(self.layers_panel.on_mri_volume_import)
         self.layers_panel.import_data_requested.connect(self.__on_import_file_clicked)
-        self.layers_panel.import_dicom_requested.connect(self.__on_import_patient_dicom_clicked)
+        self.layers_panel.import_dicom_requested.connect(self.__on_import_dicom_clicked)
 
         # Connections relating patient selection (left-hand side) with data import
         self.results_panel.import_patient_from_data_requested.connect(self.__on_import_file_clicked)
@@ -197,6 +197,7 @@ class SinglePatientWidget(QWidget):
         self.center_panel.process_finished.connect(self.on_process_finished)
         self.center_panel.process_started.connect(self.process_progress_panel.on_process_started)
         self.center_panel.process_finished.connect(self.process_progress_panel.on_process_finished)
+        self.center_panel.process_finished.connect(self.layers_panel.on_process_finished)
         self.center_panel.standardized_report_imported.connect(self.results_panel.on_standardized_report_imported)
         self.center_panel.radiological_sequences_imported.connect(self.layers_panel.radiological_sequences_imported)
         self.center_panel.annotation_display_state_changed.connect(self.layers_panel.annotation_display_state_changed)

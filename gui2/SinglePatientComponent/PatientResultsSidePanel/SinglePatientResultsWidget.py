@@ -41,7 +41,7 @@ class SinglePatientResultsWidget(QCollapsibleWidget):
                                 collapse_fn=os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                            '../../Images/patient-icon.png'))
         self.content_layout.setSpacing(5)
-        self.header.set_icon_size(QSize(20, 20))
+        self.header.set_icon_size(QSize(25, 25))
         self.save_patient_pushbutton = QPushButton()
         self.save_patient_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                                         '../../Images/floppy_disk_icon.png')).scaled(QSize(25, 25), Qt.KeepAspectRatio)))

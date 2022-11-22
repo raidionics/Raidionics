@@ -8,6 +8,7 @@ from utils.software_config import SoftwareConfigResources
 from gui2.LogReaderThread import LogReaderThread
 from gui2.UtilsWidgets.QCircularProgressBar import QCircularProgressBar
 
+
 class ProcessProgressWidget(QWidget):
     """
 

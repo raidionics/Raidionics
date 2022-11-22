@@ -2,6 +2,7 @@ from PySide2.QtWidgets import QAction
 from PySide2.QtCore import Qt, Signal
 
 from gui2.UtilsWidgets.CustomQTableWidget.ContextMenuQTableWidget import ContextMenuQTableWidget
+from utils.software_config import SoftwareConfigResources
 
 
 class ImportDICOMQTableWidget(ContextMenuQTableWidget):
@@ -24,7 +25,27 @@ class ImportDICOMQTableWidget(ContextMenuQTableWidget):
         self.context_menu.addAction(self.remove_action)
 
     def __set_stylesheets(self):
-        pass
+        software_ss = SoftwareConfigResources.getInstance().stylesheet_components
+        font_color = software_ss["Color7"]
+        background_color = software_ss["Color2"]
+        pressed_background_color = software_ss["Background_pressed"]
+
+        self.context_menu.setStyleSheet("""
+        QMenu{
+        background-color: """ + background_color + """;
+        color: """ + font_color + """;
+        font: 11px; 
+        }
+        QMenu::item:selected{
+        background: """ + pressed_background_color + """;
+        color: white;
+        }
+        QMenu::item:pressed{
+        background: """ + pressed_background_color + """;
+        color: white;
+        border-style: inset;
+        }
+        """)
 
     def __set_connections(self):
         self.display_metadata_action.triggered.connect(self.__on_display_metadata_triggered)

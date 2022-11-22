@@ -48,13 +48,14 @@ class CentralAreaExecutionWidget(QLabel):
         self.run_segmentation_pushbutton = QPushButton("Run segmentation")
         self.run_segmentation_pushbutton.setFixedSize(QSize(175, 25))
         self.run_segmentation_pushbutton.setToolTip("On preoperative data (i.e. T0)")
-        self.arrow_icon = QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/filled_arrow_right.png')))
+        self.arrow_icon = QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                     '../Images/play_icon.png')))
         self.run_segmentation_pushbutton.setIcon(self.arrow_icon)
-        self.run_segmentation_pushbutton.setIconSize(QSize(40, 15))
+        self.run_segmentation_pushbutton.setIconSize(QSize(25, 25))
         self.run_reporting_pushbutton = QPushButton("Run reporting")
         self.run_reporting_pushbutton.setFixedSize(QSize(175, 25))
         self.run_reporting_pushbutton.setIcon(self.arrow_icon)
-        self.run_reporting_pushbutton.setIconSize(QSize(40, 15))
+        self.run_reporting_pushbutton.setIconSize(QSize(25, 25))
         self.run_reporting_pushbutton.setToolTip("On preoperative data (i.e. T0)")
         self.run_segmentation_pushbutton.setEnabled(False)
         self.run_reporting_pushbutton.setEnabled(False)
@@ -82,7 +83,8 @@ class CentralAreaExecutionWidget(QLabel):
         border-radius:10px;
         margin-left:5px;
         margin-right:5px;
-        font:bold
+        font:bold;
+        font-size: 14px;
         }
         QPushButton:pressed{
         background-color: """ + software_ss["Process_pressed"] + """;
@@ -99,7 +101,8 @@ class CentralAreaExecutionWidget(QLabel):
         border-radius:10px;
         margin-left:5px;
         margin-right:5px;
-        font:bold
+        font:bold;
+        font-size: 14px;
         }
         QPushButton:pressed{
         background-color: """ + software_ss["Process_pressed"] + """;

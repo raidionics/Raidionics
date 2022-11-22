@@ -169,7 +169,7 @@ class ResearchCommunityDialog(QDialog):
     def __set_layout_dimensions(self):
         self.setMinimumSize(QSize(600, 300))
         self.title_label.setFixedHeight(40)
-        self.main_scrollarea_dummy_widget.setFixedSize(QSize(1500, 550))
+        self.main_scrollarea_dummy_widget.setFixedSize(QSize(1500, 500))
 
     def __set_connections(self):
         self.exit_close_pushbutton.clicked.connect(self.accept)

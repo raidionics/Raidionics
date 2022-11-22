@@ -36,6 +36,20 @@ class SavePatientChangesDialog(QDialog):
         self.exit_dontsave_pushbutton.accepted.connect(self.discard_changes)
         self.exit_cancel_pushbutton.rejected.connect(self.reject)
 
+        self.__set_stylesheets()
+
+    def __set_stylesheets(self):
+        software_ss = SoftwareConfigResources.getInstance().stylesheet_components
+        font_color = software_ss["Color7"]
+        background_color = software_ss["Color2"]
+
+        self.setStyleSheet("""
+        QDialog{
+        color: """ + font_color + """;
+        background-color: """ + background_color + """;
+        font-size: 12px;
+        }""")
+
     def exec_(self) -> int:
         curr_patient = SoftwareConfigResources.getInstance().get_active_patient()
         self.destination_folder_lineedit.blockSignals(True)

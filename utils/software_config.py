@@ -61,8 +61,8 @@ class SoftwareConfigResources:
         self.accepted_study_file_format = ['sraidionics']
 
         self.__set_default_values()
-        self.__set_default_stylesheet_components()
         self._user_preferences = UserPreferencesStructure(self._user_preferences_filename)
+        self.__set_default_stylesheet_components()
 
     def __set_default_values(self):
         self.patients_parameters = {}  # Storing open patients with a key (name) and a class instance
@@ -80,7 +80,7 @@ class SoftwareConfigResources:
         self.stylesheet_components["Color6"] = "rgba(214, 214, 214, 1)"  # Darker almost white (when pressed)
         self.stylesheet_components["Color7"] = "rgba(67, 88, 90, 1)"  # Main font color ()
 
-        if False:  # Dark-mode alternative
+        if self._user_preferences.use_dark_mode:  # Dark-mode alternative
             self.stylesheet_components["Color2"] = "rgba(86, 92, 110, 1)"  # Main background color
             self.stylesheet_components["Color7"] = "rgba(250, 250, 250, 1)"  # Main font color (whiteish)
 
@@ -90,6 +90,7 @@ class SoftwareConfigResources:
         self.stylesheet_components["Import"] = "rgba(73, 99, 171, 1)"  # Greyish blue
         self.stylesheet_components["Import_pressed"] = "rgba(81, 101, 153, 1)"  # Dark greyish blue
         self.stylesheet_components["Data"] = "rgba(204, 224, 255, 1)"  # Greyish blue
+        self.stylesheet_components["Background_pressed"] = "rgba(0, 120, 230, 1)"  # Dark blue
 
     @property
     def software_version(self) -> str:
@@ -108,6 +109,10 @@ class SoftwareConfigResources:
 
     def get_accepted_image_formats(self) -> list:
         return self.accepted_image_format
+
+    def set_dark_mode_state(self, state: bool) -> None:
+        self._user_preferences.use_dark_mode = state
+        self.__set_default_stylesheet_components()
 
     def add_new_empty_patient(self, active: bool = True) -> Union[str, Any]:
         """

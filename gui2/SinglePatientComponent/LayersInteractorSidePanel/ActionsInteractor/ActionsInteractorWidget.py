@@ -38,7 +38,7 @@ class ActionsInteractorWidget(QWidget):
         self.layout.addStretch(1)
 
     def __set_pipeline_interface(self):
-        self.pipeline_groupbox = QGroupBox("Pipelines")
+        self.pipeline_groupbox = QGroupBox("Official pipelines")
         self.pipeline_groupbox_layout = QVBoxLayout()
         self.pipeline_groupbox_layout.setSpacing(5)
         self.pipeline_groupbox_layout.setContentsMargins(0, 0, 0, 0)
@@ -48,20 +48,25 @@ class ActionsInteractorWidget(QWidget):
         self.run_folder_classification.setIcon(QIcon(
             QPixmap(
                 os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../Images/classification_icon.png'))))
+        self.run_folder_classification.setToolTip("To automatically identify the MRI sequence for each loaded MR scan.")
         self.run_segmentation_preop = QPushButton("Preoperative segmentation")
         self.run_segmentation_preop.setIcon(QIcon(
             QPixmap(
                 os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../Images/segmentation_icon.png'))))
+        self.run_segmentation_preop.setToolTip("Brain and tumor automatic segmentation for data inside the timestamp at order 0.")
         self.run_segmentation_postop = QPushButton("Postoperative segmentation")
         self.run_segmentation_postop.setIcon(QIcon(
             QPixmap(
                 os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../Images/segmentation_icon.png'))))
+        self.run_segmentation_postop.setToolTip("Brain and tumor automatic segmentation for data inside the timestamp at order 1.")
         self.run_rads_preop = QPushButton("Preoperative reporting")
         self.run_rads_preop.setIcon(QIcon(
             QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../Images/reporting_icon.png'))))
+        self.run_rads_preop.setToolTip("Tumor features computation and clinical report generation for the data inside the timestamp at order 0.")
         self.run_rads_postop = QPushButton("Postoperative reporting")
         self.run_rads_postop.setIcon(QIcon(
             QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../Images/reporting_icon.png'))))
+        self.run_rads_postop.setToolTip("Surgical report generation using the data inside both timestamps at order 0 and 1.")
         self.pipeline_groupbox_layout.addWidget(self.run_folder_classification)
         self.pipeline_groupbox_layout.addWidget(self.run_segmentation_preop)
         self.pipeline_groupbox_layout.addWidget(self.run_segmentation_postop)
@@ -71,7 +76,7 @@ class ActionsInteractorWidget(QWidget):
         self.layout.addWidget(self.pipeline_groupbox)
 
     def __set_advanced_interface(self):
-        self.advanced_actions_groupbox = QGroupBox("Specific actions")
+        self.advanced_actions_groupbox = QGroupBox("Custom actions")
         self.advanced_actions_groupbox_layout = QVBoxLayout()
         self.advanced_actions_groupbox.setLayout(self.advanced_actions_groupbox_layout)
         self.action_type_layout = QHBoxLayout()
@@ -100,7 +105,9 @@ class ActionsInteractorWidget(QWidget):
         self.segmentation_class_layout.addWidget(self.segmentation_class_combobox)
         self.run_action_pushbutton = QPushButton("Execute")
         self.run_action_pushbutton.setIcon(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                                              '../../../Images/filled_arrow_right.png')))
+                                                              '../../../Images/play_icon.png')))
+        self.run_action_pushbutton.setToolTip("Not all action combinations are actually eligible, and as such nothing"
+                                              " might be returned by executing the process.")
         self.advanced_actions_groupbox_layout.addLayout(self.action_type_layout)
         self.advanced_actions_groupbox_layout.addLayout(self.timestamp_target_layout)
         self.advanced_actions_groupbox_layout.addLayout(self.segmentation_class_layout)
@@ -128,6 +135,7 @@ class ActionsInteractorWidget(QWidget):
         self.timestamp_target_combobox.setFixedHeight(25)
         self.segmentation_class_combobox.setFixedHeight(25)
         self.run_action_pushbutton.setFixedHeight(25)
+        self.run_action_pushbutton.setIconSize(QSize(25, 25))
 
     def __set_stylesheets(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
@@ -143,7 +151,7 @@ class ActionsInteractorWidget(QWidget):
         self.pipeline_groupbox.setStyleSheet("""
         QGroupBox{
         color: """ + font_color + """;
-        font: bold 13px;
+        font: bold 17px;
         }
         """)
 
@@ -156,7 +164,7 @@ class ActionsInteractorWidget(QWidget):
 
         self.run_folder_classification.setStyleSheet("""
         QPushButton{
-        background-color: """ + background_color + """;
+        background: transparent;
         text-align:left;
         border-style: none;
         }
@@ -173,7 +181,7 @@ class ActionsInteractorWidget(QWidget):
 
         self.run_segmentation_preop.setStyleSheet("""
         QPushButton{
-        background-color: """ + background_color + """;
+        background: transparent;
         border-style: none;
         text-align:left;
         }
@@ -190,7 +198,7 @@ class ActionsInteractorWidget(QWidget):
 
         self.run_segmentation_postop.setStyleSheet("""
         QPushButton{
-        background-color: """ + background_color + """;
+        background: transparent;
         border-style: none;
         text-align:left;
         }
@@ -207,7 +215,7 @@ class ActionsInteractorWidget(QWidget):
 
         self.run_rads_preop.setStyleSheet("""
         QPushButton{
-        background-color: """ + background_color + """;
+        background: transparent;
         border-style: none;
         text-align:left;
         }
@@ -224,7 +232,7 @@ class ActionsInteractorWidget(QWidget):
 
         self.run_rads_postop.setStyleSheet("""
         QPushButton{
-        background-color: """ + background_color + """;
+        background: transparent;
         border-style: none;
         text-align:left;
         }
@@ -242,7 +250,7 @@ class ActionsInteractorWidget(QWidget):
         self.action_type_label.setStyleSheet("""
         QLabel{
         color: """ + font_color + """;
-        background-color: """ + background_color + """;
+        background: transparent;
         font: 12px;
         border: 0px;
         }""")
@@ -251,7 +259,6 @@ class ActionsInteractorWidget(QWidget):
             self.action_type_combobox.setStyleSheet("""
             QComboBox{
             color: """ + font_color + """;
-            background-color: """ + background_color + """;
             font-size: 12px;
             border-style:none;
             }
@@ -270,7 +277,6 @@ class ActionsInteractorWidget(QWidget):
             self.action_type_combobox.setStyleSheet("""
             QComboBox{
             color: """ + font_color + """;
-            background-color: """ + background_color + """;
             font-size: 12px;
             border-style:none;
             }
@@ -297,7 +303,7 @@ class ActionsInteractorWidget(QWidget):
         self.timestamp_target_label.setStyleSheet("""
         QLabel{
         color: """ + font_color + """;
-        background-color: """ + background_color + """;
+        background: transparent;
         font: 12px;
         border: 0px;
         }""")
@@ -306,7 +312,6 @@ class ActionsInteractorWidget(QWidget):
             self.timestamp_target_combobox.setStyleSheet("""
             QComboBox{
             color: """ + font_color + """;
-            background-color: """ + background_color + """;
             font-size: 12px;
             border-style:none;
             }
@@ -325,7 +330,6 @@ class ActionsInteractorWidget(QWidget):
             self.timestamp_target_combobox.setStyleSheet("""
             QComboBox{
             color: """ + font_color + """;
-            background-color: """ + background_color + """;
             font-size: 12px;
             border-style:none;
             }
@@ -352,7 +356,7 @@ class ActionsInteractorWidget(QWidget):
         self.segmentation_class_label.setStyleSheet("""
         QLabel{
         color: """ + font_color + """;
-        background-color: """ + background_color + """;
+        background: transparent;
         font: 12px;
         border: 0px;
         }""")
@@ -361,7 +365,6 @@ class ActionsInteractorWidget(QWidget):
             self.segmentation_class_combobox.setStyleSheet("""
             QComboBox{
             color: """ + font_color + """;
-            background-color: """ + background_color + """;
             font-size: 12px;
             border-style:none;
             }
@@ -380,7 +383,6 @@ class ActionsInteractorWidget(QWidget):
             self.segmentation_class_combobox.setStyleSheet("""
             QComboBox{
             color: """ + font_color + """;
-            background-color: """ + background_color + """;
             font-size: 12px;
             border-style:none;
             }
@@ -411,7 +413,8 @@ class ActionsInteractorWidget(QWidget):
         border-radius:10px;
         margin-left:5px;
         margin-right:5px;
-        font:bold
+        font:bold;
+        font-size: 14px;
         }
         QPushButton:pressed{
         background-color: """ + software_ss["Process_pressed"] + """;

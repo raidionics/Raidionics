@@ -1,6 +1,6 @@
 from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QLineEdit, QComboBox, QGridLayout, QPushButton,\
     QRadioButton, QMenu, QAction, QSlider, QColorDialog, QVBoxLayout, QSpacerItem, QSizePolicy
-from PySide2.QtCore import Qt, QSize, Signal
+from PySide2.QtCore import Qt, QSize, Signal, QPoint
 from PySide2.QtGui import QPixmap, QIcon, QColor
 import os
 import logging
@@ -39,7 +39,6 @@ class AtlasSingleLayerWidget(QWidget):
         self.options_menu.addAction(QAction('Remove', self))
         self.options_menu.addSeparator()
 
-        # self.content_label = QLabel(self)
         self.layout = QHBoxLayout(self)
         self.display_toggle_layout = QVBoxLayout()
         self.display_toggle_layout.addStretch(1)
@@ -55,31 +54,32 @@ class AtlasSingleLayerWidget(QWidget):
 
         self.manual_grid_layout = QVBoxLayout()
         self.name_layout = QHBoxLayout()
-        # self.icon_label = QLabel()
-        # self.icon_label.setScaledContents(True)  # Will force the pixmap inside to rescale to the label size
-        # pix = QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../Images/file_icon.png'))
-        # self.icon_label.setPixmap(pix)
         self.display_name_lineedit = QLineEdit()
         self.display_name_lineedit.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)
         self.display_name_lineedit.setReadOnly(True)
-        # self.name_layout.addWidget(self.icon_label)
+        self.name_layout.addWidget(self.display_toggle_button)
         self.name_layout.addWidget(self.display_name_lineedit)
+        self.options_pushbutton = QPushButton()
+        self.options_pushbutton.setIcon(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                           '../../../Images/more-dots-icon.png')))
+        self.options_pushbutton.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.name_layout.addWidget(self.options_pushbutton)
         self.manual_grid_layout.addLayout(self.name_layout)
-        # self.name_layout.addWidget(self.display_toggle_button)
 
         self.detailed_structures_collapsiblegoupbox = AtlasSingleLayerCollapsibleGroupBox(self.uid, parent=self)
         self.manual_grid_layout.addWidget(self.detailed_structures_collapsiblegoupbox)
 
-        self.layout.addLayout(self.display_toggle_layout)
+        # self.layout.addLayout(self.display_toggle_layout)
         self.layout.addLayout(self.manual_grid_layout)
 
     def __set_layout_dimensions(self):
+        self.options_pushbutton.setFixedSize(QSize(20, 20))
         self.display_toggle_button.setFixedSize(QSize(30, 30))
         self.display_toggle_button.setIconSize(QSize(25, 25))
         self.display_name_lineedit.setFixedHeight(20)
 
     def __set_connections(self):
-        self.customContextMenuRequested.connect(self.on_right_clicked)
+        self.options_pushbutton.clicked.connect(self.on_options_clicked)
         self.display_name_lineedit.textEdited.connect(self.on_name_changed)
         self.display_toggle_button.toggled.connect(self.on_visibility_toggled)
         # self.detailed_structures_collapsiblegoupbox.clicked_signal.connect(self.adjustSize)
@@ -91,7 +91,7 @@ class AtlasSingleLayerWidget(QWidget):
     def __set_stylesheets(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
         font_color = software_ss["Color7"]
-        background_color = software_ss["White2"]
+        background_color = software_ss["White"]
         pressed_background_color = software_ss["Color6"]
 
         self.setStyleSheet("""
@@ -124,6 +124,23 @@ class AtlasSingleLayerWidget(QWidget):
         QPushButton:pressed{
         background-color: """ + pressed_background_color + """;
         border-style:inset;
+        }""")
+
+        self.options_pushbutton.setStyleSheet("""
+        QPushButton{
+        background-color: """ + background_color + """;
+        color: """ + font_color + """;
+        font: 12px;
+        border-style: none;
+        }
+        QPushButton::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        }
+        QPushButton:pressed{
+        border-style:inset;
+        background-color: """ + pressed_background_color + """;
         }""")
 
         self.options_menu.setStyleSheet("""
@@ -173,8 +190,8 @@ class AtlasSingleLayerWidget(QWidget):
         # logging.debug("Single atlas widget container set to {}.\n".format(QSize(self.size().width(), actual_height)))
         self.resizeRequested.emit()
 
-    def on_right_clicked(self, point):
-        self.options_menu.exec_(self.mapToGlobal(point))
+    def on_options_clicked(self, point):
+        self.options_menu.exec_(self.options_pushbutton.mapToGlobal(QPoint(0, 0)))
 
     def on_advanced_options_clicked(self):
         self.adjustSize()

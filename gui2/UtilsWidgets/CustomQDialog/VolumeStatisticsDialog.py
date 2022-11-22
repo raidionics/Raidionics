@@ -47,6 +47,8 @@ class VolumeStatisticsDialog(QDialog):
     def __set_volume_selector_interface(self):
         self.volume_selector_layout = QVBoxLayout()
         self.volume_selector_list = QListWidget()
+        self.volume_selector_list.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self.volume_selector_list.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.volume_selector_layout.addWidget(self.volume_selector_list)
         self.main_center_layout.addLayout(self.volume_selector_layout)
 
@@ -204,17 +206,21 @@ class VolumeStatisticsDialog(QDialog):
     def __set_stylesheets(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
         font_color = software_ss["Color7"]
-        background_color = software_ss["Color5"]
+        background_color = software_ss["Color2"]
         pressed_background_color = software_ss["Color6"]
 
         self.volume_selector_list.setStyleSheet("""
         QListWidget{
         font-style: bold;
         font-size: 14px;
+        }
+        QListWidget::item{
+        height: 30px;
         }""")
 
         self.volume_information_groupbox.setStyleSheet("""
         QGroupBox{
+        color: """ + font_color + """;
         font: 16px bold;
         }
         """)
@@ -222,6 +228,7 @@ class VolumeStatisticsDialog(QDialog):
         self.volume_dimensions_label.setStyleSheet("""
         QLabel{
         font: 14px;
+        color: """ + font_color + """;
         border-width: 0px 0px 1px 0px;
         border-style: solid;
         border-radius: 1px;
@@ -229,10 +236,47 @@ class VolumeStatisticsDialog(QDialog):
         padding-top: 10px;
         }
         """)
+
+        self.volume_dimensions_x_label.setStyleSheet("""
+        QLabel{
+        font: 12px;
+        color: """ + font_color + """;
+        }""")
+
+        self.volume_dimensions_x_value.setStyleSheet("""
+        QLineEdit{
+        font: 12px;
+        color: """ + font_color + """;
+        }""")
+
+        self.volume_dimensions_y_label.setStyleSheet("""
+        QLabel{
+        font: 12px;
+        color: """ + font_color + """;
+        }""")
+
+        self.volume_dimensions_y_value.setStyleSheet("""
+        QLineEdit{
+        font: 12px;
+        color: """ + font_color + """;
+        }""")
+
+        self.volume_dimensions_z_label.setStyleSheet("""
+        QLabel{
+        font: 12px;
+        color: """ + font_color + """;
+        }""")
+
+        self.volume_dimensions_z_value.setStyleSheet("""
+        QLineEdit{
+        font: 12px;
+        color: """ + font_color + """;
+        }""")
 
         self.volume_spacings_label.setStyleSheet("""
         QLabel{
         font: 14px;
+        color: """ + font_color + """;
         border-width: 0px 0px 1px 0px;
         border-style: solid;
         border-radius: 1px;
@@ -240,10 +284,46 @@ class VolumeStatisticsDialog(QDialog):
         padding-top: 10px;
         }
         """)
+
+        self.volume_spacings_x_label.setStyleSheet("""
+        QLabel{
+        font: 12px;
+        color: """ + font_color + """;
+        }""")
+
+        self.volume_spacings_x_value.setStyleSheet("""
+        QLineEdit{
+        font: 12px;
+        color: """ + font_color + """;
+        }""")
+
+        self.volume_spacings_y_label.setStyleSheet("""
+        QLabel{
+        font: 12px;
+        color: """ + font_color + """;
+        }""")
+
+        self.volume_spacings_y_value.setStyleSheet("""
+        QLineEdit{
+        color: """ + font_color + """;
+        }""")
+
+        self.volume_spacings_z_label.setStyleSheet("""
+        QLabel{
+        font: 12px;
+        color: """ + font_color + """;
+        }""")
+
+        self.volume_spacings_z_value.setStyleSheet("""
+        QLineEdit{
+        font: 12px;
+        color: """ + font_color + """;
+        }""")
 
         self.volume_origin_label.setStyleSheet("""
         QLabel{
         font: 14px;
+        color: """ + font_color + """;
         border-width: 0px 0px 1px 0px;
         border-style: solid;
         border-radius: 1px;
@@ -252,12 +332,60 @@ class VolumeStatisticsDialog(QDialog):
         }
         """)
 
+        self.volume_origin_x_label.setStyleSheet("""
+        QLabel{
+        font: 12px;
+        color: """ + font_color + """;
+        }""")
+
+        self.volume_origin_x_value.setStyleSheet("""
+        QLineEdit{
+        font: 12px;
+        color: """ + font_color + """;
+        }""")
+
+        self.volume_origin_y_label.setStyleSheet("""
+        QLabel{
+        font: 12px;
+        color: """ + font_color + """;
+        }""")
+
+        self.volume_origin_y_value.setStyleSheet("""
+        QLineEdit{
+        font: 12px;
+        color: """ + font_color + """;
+        }""")
+
+        self.volume_origin_z_label.setStyleSheet("""
+        QLabel{
+        font: 12px;
+        color: """ + font_color + """;
+        }""")
+
+        self.volume_origin_z_value.setStyleSheet("""
+        QLineEdit{
+        font: 12px;
+        color: """ + font_color + """;
+        }""")
+
         self.annotation_statistics_groupbox.setStyleSheet("""
         QGroupBox{
+        color: """ + font_color + """;
         font: 16px;
         font-style: bold;
         }
         """)
+
+        self.annotation_statistics_table.setStyleSheet("""
+        QTableWidget{
+        color: """ + font_color + """;
+        }""")
+
+        self.annotation_statistics_table.horizontalHeader().setStyleSheet("""
+        QHeaderView{
+        color: """ + font_color + """;
+        font-style: bold;
+        }""")
 
     def __set_connections(self):
         self.volume_selector_list.currentRowChanged.connect(self.__fill)
@@ -289,7 +417,7 @@ class VolumeStatisticsDialog(QDialog):
         for im in active_patient.get_all_mri_volumes_uids():
             image_object = active_patient.get_mri_by_uid(im)
             item = QListWidgetItem(image_object.display_name)
-            item.setSizeHint(QSize(self.volume_selector_list.width(), 30))
+            # item.setSizeHint(QSize(self.volume_selector_list.width(), 30))
             self.volume_selector_list.addItem(item)
         self.__fill(index=0)
 

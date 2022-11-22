@@ -363,18 +363,19 @@ class ImportFolderLineWidget(QWidget):
         self.filepath_lineedit.setReadOnly(True)
         self.filepath_browse_edit_pushbutton = QPushButton()
         self.filepath_browse_edit_pushbutton.setIcon(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                                                        '../../Images/folder_icon.png')))
+                                                                        '../../Images/folder_simple_icon.png')))
+        self.filepath_browse_edit_pushbutton.setToolTip("To modify the disk location for the current entry")
         self.remove_entry_pushbutton = QPushButton()
         self.remove_entry_pushbutton.setIcon(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                                                '../../Images/trash-bin_icon.png')))
-
+                                                                '../../Images/close_icon.png')))
+        self.remove_entry_pushbutton.setToolTip("To remove the current entry from the list")
         self.layout.addWidget(self.filepath_lineedit)
         self.layout.addWidget(self.filepath_browse_edit_pushbutton)
         self.layout.addWidget(self.remove_entry_pushbutton)
 
     def __set_layout_dimensions(self):
-        self.filepath_browse_edit_pushbutton.setIconSize(QSize(20, 20))
-        self.remove_entry_pushbutton.setIconSize(QSize(20, 20))
+        self.filepath_browse_edit_pushbutton.setIconSize(QSize(25, 25))
+        self.remove_entry_pushbutton.setIconSize(QSize(25, 25))
         self.filepath_lineedit.setFixedHeight(25)
 
     def __set_connections(self):
@@ -382,7 +383,49 @@ class ImportFolderLineWidget(QWidget):
         self.remove_entry_pushbutton.clicked.connect(self.deleteLater)
 
     def __set_stylesheets(self):
-        pass
+        software_ss = SoftwareConfigResources.getInstance().stylesheet_components
+        font_color = software_ss["Color7"]
+        background_color = software_ss["Color2"]
+        pressed_background_color = software_ss["Color6"]
+
+        self.filepath_lineedit.setStyleSheet("""
+        QLineEdit{
+        background: transparent;
+        border: none;
+        color: """ + font_color + """;
+        }""")
+
+        self.filepath_browse_edit_pushbutton.setStyleSheet("""
+        QPushButton{
+        background-color: """ + background_color + """;
+        border-style: none;
+        }
+        QPushButton::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        }
+        QPushButton:pressed{
+        border-style:inset;
+        background-color: """ + pressed_background_color + """;
+        }
+        """)
+
+        self.remove_entry_pushbutton.setStyleSheet("""
+        QPushButton{
+        background-color: """ + background_color + """;
+        border-style: none;
+        }
+        QPushButton::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        }
+        QPushButton:pressed{
+        border-style:inset;
+        background-color: """ + pressed_background_color + """;
+        }
+        """)
 
     def __on_browse_edit_clicked(self):
         dialog = QFileDialog(self)

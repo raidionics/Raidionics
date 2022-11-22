@@ -120,7 +120,8 @@ class StudyPatientsSummaryPanelWidget(QWidget):
             border-bottom-right-radius: 3px;
             }
             QComboBox::down-arrow{
-            image: url(""" + os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../Images/combobox-arrow-icon-10x7.png') + """)
+            image: url(""" + os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                          '../../Images/combobox-arrow-icon-10x7.png') + """)
             }
             """)
 

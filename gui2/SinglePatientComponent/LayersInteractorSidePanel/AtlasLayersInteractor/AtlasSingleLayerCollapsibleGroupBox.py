@@ -41,6 +41,7 @@ class AtlasSingleLayerCollapsibleGroupBox(QCollapsibleWidget):
         self.header.set_icon_size(QSize(15, 15))
         self.header.title_label.setFixedHeight(20)
         self.header.background_label.setFixedHeight(25)
+        self.content_layout.setContentsMargins(25, 0, 0, 0)
 
     def __set_connections(self):
         pass
@@ -48,7 +49,7 @@ class AtlasSingleLayerCollapsibleGroupBox(QCollapsibleWidget):
     def __set_stylesheets(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
         font_color = software_ss["Color7"]
-        background_color = software_ss["White2"]
+        background_color = software_ss["White"]
         pressed_background_color = software_ss["Color6"]
 
         self.header.background_label.setStyleSheet("""
@@ -176,14 +177,14 @@ class SingleLineAtlasStructureWidget(QWidget):
         self.layout.addStretch(1)
 
     def __set_layout_dimensions(self):
-        self.display_toggle_button.setIconSize(QSize(15, 15))
-        self.display_toggle_button.setFixedSize(QSize(20, 20))
-        self.structure_name_lineedit.setFixedHeight(20)
+        self.display_toggle_button.setIconSize(QSize(20, 20))
+        self.display_toggle_button.setFixedSize(QSize(25, 25))
+        self.structure_name_lineedit.setFixedHeight(25)
         self.structure_name_lineedit.setFixedWidth(155)
-        self.color_dialog_pushbutton.setFixedHeight(20)
+        self.color_dialog_pushbutton.setFixedHeight(25)
         # self.color_dialog_pushbutton.setFixedWidth(15)
         # self.color_dialog_pushbutton.setFixedSize(QSize(15, 15))
-        self.opacity_spinbox.setFixedHeight(20)
+        self.opacity_spinbox.setFixedHeight(25)
 
     def __set_connections(self):
         self.display_toggle_button.toggled.connect(self.on_visibility_toggled)
@@ -193,7 +194,7 @@ class SingleLineAtlasStructureWidget(QWidget):
     def __set_stylesheets(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
         font_color = software_ss["Color7"]
-        background_color = software_ss["Color5"]
+        background_color = software_ss["White"]
         pressed_background_color = software_ss["Color6"]
 
         self.structure_name_lineedit.setStyleSheet("""
@@ -206,7 +207,7 @@ class SingleLineAtlasStructureWidget(QWidget):
 
         self.color_dialog_pushbutton_base_ss = """
         QPushButton{
-        border-width: 0px;
+        border: 1px solid grey;
         }
         QPushButton::hover{
         border-style: solid;
