@@ -11,6 +11,7 @@ class StudyPatientListingWidget(QWidget):
     """
     patient_selected = Signal(str)
     patient_removed = Signal(str)
+    patient_refresh_triggered = Signal(str)
 
     def __init__(self, parent=None):
         super(StudyPatientListingWidget, self).__init__()
@@ -111,6 +112,7 @@ class StudyPatientListingWidget(QWidget):
         self.patients_list_scrollarea_layout.insertWidget(self.patients_list_scrollarea_layout.count() - 1, wid)
         wid.patient_selected.connect(self.patient_selected)
         wid.patient_removed.connect(self.on_patient_removed)
+        wid.patient_refresh_triggered.connect(self.patient_refresh_triggered)
         self.adjustSize()
         self.repaint()
 
@@ -133,3 +135,12 @@ class StudyPatientListingWidget(QWidget):
         included_patient_uids = SoftwareConfigResources.getInstance().get_study(study_uid).included_patients_uids
         for pid in included_patient_uids:
             self.on_patient_imported(pid)
+
+    def on_process_started(self) -> None:
+        """
+        In order to trigger a GUI freeze where necessary.
+        """
+        self.processing_started.emit()
+
+    def on_process_finished(self):
+        self.processing_finished.emit()

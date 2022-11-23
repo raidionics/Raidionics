@@ -82,7 +82,7 @@ class SinglePatientResultsWidget(QCollapsibleWidget):
         self.results_selector_label = QLabel("Reports")
         self.results_selector_combobox = QComboBox()
         self.results_selector_layout = QHBoxLayout()
-        self.results_selector_layout.setSpacing(0)
+        self.results_selector_layout.setSpacing(10)
         self.results_selector_layout.setContentsMargins(20, 0, 20, 0)
         self.results_selector_layout.addWidget(self.results_selector_label)
         self.results_selector_layout.addWidget(self.results_selector_combobox)

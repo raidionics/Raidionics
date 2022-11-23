@@ -339,7 +339,7 @@ class StudyParameters:
             if patient_parameters.get_reporting(rep).get_report_task_str() == "Tumor characteristics":
                 rep_df = pd.read_csv(patient_parameters.get_reporting(rep).report_filename_csv)
                 if not self._reporting_stats_cnames:
-                    self._reporting_stats_cnames = ["Patient UID", "Patient", "Timestamp"] + list(rep_df.columns.values)
+                    self._reporting_stats_cnames = ["Patient uid", "Patient", "Timestamp"] + list(rep_df.columns.values)
                     self._reporting_statistics_df = pd.DataFrame(data=None,  columns=self._reporting_stats_cnames)
 
                 row_values = [patient_uid, patient_parameters.display_name,
@@ -348,3 +348,15 @@ class StudyParameters:
                                       columns=self._reporting_stats_cnames)
                 # @TODO. Check that a similar row does not already exist?
                 self._reporting_statistics_df = self._reporting_statistics_df.append(row_df)
+
+    def refresh_patient_statistics(self, patient_uid: str, patient_parameters):
+        """
+        Brute-force method to update all statistics pertaining to one patient.
+        """
+        if self._segmentation_statistics_df is not None and len(self._segmentation_statistics_df[self._segmentation_statistics_df['Patient uid'] == patient_uid]) != 0:
+            self._segmentation_statistics_df = self._segmentation_statistics_df[self._segmentation_statistics_df['Patient uid'] != patient_uid]
+        if self._reporting_statistics_df is not None and len(self._reporting_statistics_df[self._reporting_statistics_df['Patient uid'] == patient_uid]) != 0:
+            self._reporting_statistics_df = self._reporting_statistics_df[self._reporting_statistics_df['Patient uid'] != patient_uid]
+
+        self.include_segmentation_statistics(patient_uid, [], patient_parameters)
+        self.include_reporting_statistics(patient_uid, [], patient_parameters)

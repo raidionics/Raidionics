@@ -223,11 +223,15 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
 
     def on_process_started(self):
         self.bottom_add_patient_pushbutton.setEnabled(False)
-        self.patient_results_widgets[SoftwareConfigResources.getInstance().get_active_patient_uid()].on_process_started()
+        if SoftwareConfigResources.getInstance().get_active_patient_uid():
+            self.patient_results_widgets[SoftwareConfigResources.getInstance().get_active_patient_uid()].on_process_started()
+        else:
+            logging.warning("Trying to start a process when there is no active patient.")
 
     def on_process_finished(self):
         self.bottom_add_patient_pushbutton.setEnabled(True)
-        self.patient_results_widgets[SoftwareConfigResources.getInstance().get_active_patient_uid()].on_process_finished()
+        if SoftwareConfigResources.getInstance().get_active_patient_uid():
+            self.patient_results_widgets[SoftwareConfigResources.getInstance().get_active_patient_uid()].on_process_finished()
 
     def on_batch_process_started(self) -> None:
         self.bottom_add_patient_pushbutton.setEnabled(False)

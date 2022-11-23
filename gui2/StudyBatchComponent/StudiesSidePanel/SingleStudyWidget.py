@@ -328,7 +328,8 @@ class SingleStudyWidget(QCollapsibleWidget):
         color: """ + software_ss["Color7"] + """;
         font:normal;
         font-size:15px;
-        }""")
+        }
+        """)
 
         self.include_single_patient_folder_pushbutton.setStyleSheet("""
         QPushButton{

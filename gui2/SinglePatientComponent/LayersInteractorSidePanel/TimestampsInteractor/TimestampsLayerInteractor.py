@@ -1,4 +1,5 @@
-from PySide2.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QSpacerItem, QGridLayout, QComboBox, QPushButton, QStackedWidget
+from PySide2.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QSpacerItem, QGridLayout, QComboBox, QPushButton,\
+    QStackedWidget, QMessageBox
 from PySide2.QtCore import Qt, QSize, Signal
 from PySide2.QtGui import QColor, QPixmap, QIcon
 import os
@@ -279,13 +280,15 @@ class TimestampsLayerInteractor(QWidget):
             self.timestamp_rankdown_pushbutton.setEnabled(False)
 
     def __on_timestamp_removed(self):
-        # @TODO. Removing a timestamp should also delete all files on disk, and all linked reports...
         index = self.timestamp_selector_combobox.currentIndex()
         current_ts_id = self.timestamps_widget[list(self.timestamps_widget.keys())[index]].uid
         images = SoftwareConfigResources.getInstance().get_active_patient().get_all_mri_volumes_for_timestamp(current_ts_id)
         if len(images) != 0:
-            # @TODO. Prompt the user a choice to continue or cancel
-            pass
+            code = QMessageBox.warning(self, "Timestamp deletion warning.",
+                                       "Deleting a timestamp will also remove all other files linked to it (e.g., MRI scans, annotations).",
+                                       QMessageBox.Ok | QMessageBox.Cancel, QMessageBox.Ok)
+            if code == QMessageBox.StandardButton.Cancel:  # Deletion cancelled
+                return
 
         self.timestamp_widgets_stacked.removeWidget(self.timestamps_widget[current_ts_id])
         self.timestamps_widget[current_ts_id].deleteLater()
@@ -293,6 +296,9 @@ class TimestampsLayerInteractor(QWidget):
         self.timestamp_selector_combobox.removeItem(index)
         if len(self.timestamps_widget) < 1:
             self.timestamp_remove_pushbutton.setEnabled(False)
+
+        objects_uids, error_msg = SoftwareConfigResources.getInstance().get_active_patient().remove_timestamp(timestamp_uid=current_ts_id)
+        # @TODO. To finish, is the reporting display in the left panel actually removed?
 
     def reset(self):
         for w in list(self.timestamps_widget):

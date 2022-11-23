@@ -24,6 +24,7 @@ class StudyBatchWidget(QWidget):
     patient_deleted = Signal(str)
     patient_imported = Signal(str)
     patient_selected = Signal(str)
+    patient_refreshed = Signal(str)
     patient_name_edited = Signal(str, str)
     mri_volume_imported = Signal(str)
     annotation_volume_imported = Signal(str)
@@ -115,14 +116,18 @@ class StudyBatchWidget(QWidget):
         self.studies_panel.import_study_from_file_requested.connect(self.patients_summary_panel.patients_imported)
         # Redrawing the whole tree when a patient is removed is not optimal, but will do for now.
         self.patient_listing_panel.patient_removed.connect(self.patients_summary_panel.patients_imported)
+        self.patient_listing_panel.patient_refresh_triggered.connect(self.on_patient_refresh_triggered)
         self.study_imported.connect(self.patient_listing_panel.on_study_imported)
 
         self.patient_name_edited.connect(self.patient_listing_panel.on_patient_name_edited)
         self.patient_deleted.connect(self.patient_listing_panel.on_patient_removed)
+        self.patient_refreshed.connect(self.patients_summary_panel.on_patient_refreshed)
 
         self.processing_advanced.connect(self.studies_panel.on_processing_advanced)
         self.processing_finished.connect(self.studies_panel.on_processing_finished)
         self.processing_finished.connect(self.patients_summary_panel.on_processing_finished)
+        self.processing_started.connect(self.patient_listing_panel.on_process_started)
+        self.processing_finished.connect(self.patient_listing_panel.on_process_finished)
 
         self.import_data_dialog.study_imported.connect(self.on_study_imported)
 
@@ -183,3 +188,8 @@ class StudyBatchWidget(QWidget):
             SoftwareConfigResources.getInstance().patients_parameters[u].save_patient()
             self.processing_advanced.emit()
         self.on_process_finished()
+
+    def on_patient_refresh_triggered(self, patient_uid: str) -> None:
+        SoftwareConfigResources.getInstance().get_active_study().refresh_patient_statistics(patient_uid,
+                                                                                            SoftwareConfigResources.getInstance().get_patient(patient_uid))
+        self.patient_refreshed.emit(patient_uid)

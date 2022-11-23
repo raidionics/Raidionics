@@ -122,6 +122,10 @@ class InvestigationTimestamp:
     def order(self) -> int:
         return self._order
 
+    @order.setter
+    def order(self, value: int) -> None:
+        self._order = value
+
     @property
     def output_patient_folder(self) -> str:
         return self._output_patient_folder
@@ -144,6 +148,10 @@ class InvestigationTimestamp:
             return timestamp_params
         except Exception:
             logging.error("InvestigationTimestampStructure saving failed with:\n {}".format(traceback.format_exc()))
+
+    def delete(self) -> None:
+        if os.path.exists(os.path.join(self._output_patient_folder, self._folder_name)):
+            shutil.rmtree(os.path.join(self._output_patient_folder, self._folder_name))
 
     def __init_from_scratch(self) -> None:
         self._folder_name = self._display_name.strip().replace(" ", "")

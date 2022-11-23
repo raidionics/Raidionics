@@ -552,6 +552,7 @@ class PatientParameters:
             self._mri_volumes[uid].set_usable_filepath_as_raw()
             if ori_filename and os.path.exists(ori_filename):
                 os.remove(ori_filename)
+            self._unsaved_changes = True
         except Exception:
             if ori_filename and os.path.exists(ori_filename):
                 os.remove(ori_filename)
@@ -586,6 +587,7 @@ class PatientParameters:
             error_message = e  # traceback.format_exc()
 
         logging.info("New atlas file imported: {}".format(data_uid))
+        self._unsaved_changes = True
         return data_uid, error_message
 
     def save_patient(self) -> None:
@@ -945,6 +947,48 @@ class PatientParameters:
                 res.append(im)
         return res
 
+    def remove_timestamp(self, timestamp_uid: str) -> Tuple[dict, Union[None, str]]:
+        """
+        Delete the specified timestamp from the patient parameters, and deletes on disk (within the
+        patient folder) all elements linked to it (e.g., MRI scans, annotations).
+        In addition, a recursive deletion of all linked objects (i.e., annotations and atlases) is triggered.\n
+        The operation is irreversible, since all erased files on disk won't be recovered, hence the state is left as
+        unchanged, but a patient save is directly performed to update the scene file.
+        @TODO. Should collect the output from the remove_mri_volume method, and append them.
+
+        Parameters
+        ----------
+        timestamp_uid: str
+            Internal unique identifier of the timestamp to delete.
+
+        Returns
+        ---------
+        Tuple
+            (i) Removed internal unique ids, associated by category, as a dict.
+            (ii) Error message collected during the recursive removal (as a string), None if no error encountered.
+        """
+        results = {}
+        error_message = None
+        linked_scans = self.get_all_mri_volumes_for_timestamp(timestamp_uid=timestamp_uid)
+        ts_order = self._investigation_timestamps[timestamp_uid].order
+        for scan in linked_scans:
+            res, err = self.remove_mri_volume(volume_uid=scan)
+        if len(linked_scans) != 0:
+            results['MRIs'] = linked_scans
+
+        self._investigation_timestamps[timestamp_uid].delete()
+        del self._investigation_timestamps[timestamp_uid]
+        logging.info("Removed timestamp {} for patient {}".format(timestamp_uid, self._unique_id))
+
+        # For all existing timestamp with an order higher than the deleted timestamp, an order decrease by one must be
+        # performed.
+        for uid in list(self._investigation_timestamps.keys()):
+            if self._investigation_timestamps[uid].order > ts_order:
+                self._investigation_timestamps[uid].order = self._investigation_timestamps[uid].order - 1
+        self.save_patient()
+
+        return results, error_message
+
     def remove_mri_volume(self, volume_uid: str) -> Tuple[dict, Union[None, str]]:
         """
         Delete the specified MRI volume from the patient parameters, and deletes on disk (within the
@@ -1019,8 +1063,15 @@ class PatientParameters:
         investigation_uid = None
         try:
             investigation_uid = 'T' + str(order)
+            uid_taken = investigation_uid in self._investigation_timestamps.keys()
+            while uid_taken:
+                trail = str(np.random.randint(0, 100))
+                investigation_uid = 'T' + str(trail)
+                uid_taken = investigation_uid in self._investigation_timestamps.keys()
             curr_ts = InvestigationTimestamp(investigation_uid, order=order, output_patient_folder=self._output_folder)
             self._investigation_timestamps[investigation_uid] = curr_ts
+            logging.error("New investigation timestamp inserted with uid: {}".format(investigation_uid))
+            self._unsaved_changes = True
         except Exception as e:
             logging.error("Inserting a new investigation timestamp failed with: {}".format(traceback.format_exc()))
             error_code = 1
