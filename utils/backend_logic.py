@@ -15,16 +15,20 @@ from typing import Any, Tuple
 import multiprocessing as mp
 from utils.software_config import SoftwareConfigResources
 from utils.data_structures.PatientParametersStructure import PatientParameters
+from utils.data_structures.AnnotationStructure import AnnotationGenerationType, AnnotationClassType
 from utils.logic.PipelineCreationHandler import create_pipeline
 from utils.logic.PipelineResultsCollector import collect_results
 
 
 def pipeline_main_wrapper(pipeline_task: str, model_name: str, patient_parameters: PatientParameters) -> Any:
     """
-    Wrapper to launch the run_segmentation method inside its own thread, in order to avoid GUI freeze.
+    Wrapper to launch the run_pipeline method inside its own thread, in order to avoid GUI freeze.
 
     Parameters
     ----------
+    pipeline_task: str
+        Tag describing the generic purpose of the pipeline, which should match an existing tag inside
+         PipelineCreationHandler.py, to generate properly the list of tasks making the pipeline.
     model_name : str
         The name of the segmentation model to use.
     patient_parameters: PatientParameters
@@ -75,14 +79,21 @@ def run_pipeline(task: str, model_name: str, patient_parameters: PatientParamete
         # Dumping the currently loaded patient MRI/annotation volumes, to be sorted/used by the backend
         patient_parameters.save_patient()
 
+        # Generating a temporary folder containing only the mandatory elements for the pipeline to run, rather than
+        # linking the raw patient folder.
+        surrogate_folder_path = generate_surrogate_folder(patient_parameters, patient_parameters.output_folder)
+
+        if SoftwareConfigResources.getInstance().user_preferences.use_manual_sequences:
+            generate_sequences_file(patient_parameters, surrogate_folder_path)
+
         rads_config = configparser.ConfigParser()
         rads_config.add_section('Default')
         rads_config.set('Default', 'task', 'neuro_diagnosis')
-        rads_config.set('Default', 'caller', 'raidionics')
+        rads_config.set('Default', 'caller', '')
         rads_config.add_section('System')
         rads_config.set('System', 'ants_root', os.path.join(os.path.dirname(os.path.realpath(__file__)), '../ANTs'))  # Hard-coded for M1
         rads_config.set('System', 'gpu_id', "-1")  # Always running on CPU
-        rads_config.set('System', 'input_folder', patient_parameters.output_folder)
+        rads_config.set('System', 'input_folder', surrogate_folder_path)
         rads_config.set('System', 'output_folder', reporting_folder)
         rads_config.set('System', 'model_folder', SoftwareConfigResources.getInstance().models_path)
         pipeline = create_pipeline(model_name, patient_parameters, task)
@@ -94,14 +105,13 @@ def run_pipeline(task: str, model_name: str, patient_parameters: PatientParamete
         rads_config.set('Runtime', 'reconstruction_method', 'thresholding')
         rads_config.set('Runtime', 'reconstruction_order', 'resample_first')
         rads_config.add_section('Neuro')
-        rads_config.set('Neuro', 'cortical_features', 'MNI, Schaefer7, Schaefer17, Harvard-Oxford')
-        rads_config.set('Neuro', 'subcortical_features', 'BCB')
+        if SoftwareConfigResources.getInstance().user_preferences.compute_cortical_structures:
+            rads_config.set('Neuro', 'cortical_features', 'MNI, Schaefer7, Schaefer17, Harvard-Oxford')
+        if SoftwareConfigResources.getInstance().user_preferences.compute_subcortical_structures:
+            rads_config.set('Neuro', 'subcortical_features', 'BCB')
         rads_config_filename = os.path.join(patient_parameters.output_folder, 'rads_config.ini')
         with open(rads_config_filename, 'w') as outfile:
             rads_config.write(outfile)
-
-        if SoftwareConfigResources.getInstance().user_preferences.use_manual_sequences:
-            generate_sequences_file(patient_parameters, patient_parameters.output_folder)
 
         #mp.set_start_method('spawn', force=True)
         with mp.Pool(processes=1, maxtasksperchild=1) as p:  # , initializer=initializer)
@@ -130,6 +140,8 @@ def run_pipeline(task: str, model_name: str, patient_parameters: PatientParamete
             os.remove(rads_config_filename)
         if os.path.exists(pipeline_filename):
             os.remove(pipeline_filename)
+        if os.path.exists(os.path.join(patient_parameters.output_folder, 'pipeline_input')):
+            shutil.rmtree(os.path.join(patient_parameters.output_folder, 'pipeline_input'))
         if os.path.exists(os.path.join(patient_parameters.output_folder, 'reporting')):
             shutil.rmtree(os.path.join(patient_parameters.output_folder, 'reporting'))
         if os.path.exists(os.path.join(patient_parameters.output_folder, "mri_sequences.csv")):
@@ -141,6 +153,8 @@ def run_pipeline(task: str, model_name: str, patient_parameters: PatientParamete
         os.remove(rads_config_filename)
     if os.path.exists(pipeline_filename):
         os.remove(pipeline_filename)
+    if os.path.exists(os.path.join(patient_parameters.output_folder, 'pipeline_input')):
+        shutil.rmtree(os.path.join(patient_parameters.output_folder, 'pipeline_input'))
     if os.path.exists(os.path.join(patient_parameters.output_folder, 'reporting')):
         shutil.rmtree(os.path.join(patient_parameters.output_folder, 'reporting'))
     if os.path.exists(os.path.join(patient_parameters.output_folder, "mri_sequences.csv")):
@@ -168,7 +182,16 @@ def run_pipeline_wrapper(params: Tuple[str]) -> None:
 
 def generate_sequences_file(patient_parameters: PatientParameters, output_folder: str) -> None:
     """
+    Generating a temporary file with the manually set sequences for all MRI series input, for use as input in the
+    backend, rather than running the sequence classification model. The choice is left to the user to decide whether
+    to run the classifier or not through the Settings > Preferences panel.
 
+    Parameters
+    ----------
+    patient_parameters: PatientParameters
+        Internal patient parameters structure which will be parsed to save on disk only the MRI sequences.
+    output_folder: str
+        Destination path where the sequences will be saved, as a csv filetype.
     """
     sequences_filename = os.path.join(output_folder, "mri_sequences.csv")
     classes = []
@@ -177,3 +200,58 @@ def generate_sequences_file(patient_parameters: PatientParameters, output_folder
                         patient_parameters.get_mri_by_uid(volume_uid).get_sequence_type_str()])
     df = pd.DataFrame(classes, columns=['File', 'MRI sequence'])
     df.to_csv(sequences_filename, index=False)
+
+
+def generate_surrogate_folder(patient_parameters: PatientParameters, output_folder: str) -> str:
+    """
+    Generating a temporary input folder for the backend, containing only the necessary files.
+    When manual annotations exist, the choice is left to the user to ship them to the backend for re-use, or to
+    generate them from scratch (through the Settings > Preferences panel).
+
+    Parameters
+    ----------
+    patient_parameters: PatientParameters
+        Internal patient parameters structure which will be parsed to save on disk only the necessary files.
+    output_folder: str
+        Destination path where the surrogate folder should be stored.
+    """
+    surrogate_folder = os.path.join(output_folder, 'pipeline_input')
+    try:
+        if os.path.exists(surrogate_folder):
+            # Should not happen as we should try/except around the processing and delete it there always.
+            shutil.rmtree(surrogate_folder)
+
+        os.makedirs(surrogate_folder)
+        use_manual_files = SoftwareConfigResources.getInstance().user_preferences.use_manual_annotations
+        for ts in patient_parameters.get_all_timestamps_uids():
+            ts_object = patient_parameters.get_timestamp_by_uid(ts)
+            os.makedirs(os.path.join(surrogate_folder, "T" + str(ts_object.order)))
+        for im in patient_parameters.get_all_mri_volumes_uids():
+            ts = patient_parameters.get_mri_by_uid(im).timestamp_uid
+            ts_object = patient_parameters.get_timestamp_by_uid(ts)
+            shutil.copyfile(src=patient_parameters.get_mri_by_uid(im).get_usable_input_filepath(),
+                            dst=os.path.join(surrogate_folder, "T" + str(ts_object.order),
+                                             os.path.basename(patient_parameters.get_mri_by_uid(im).get_usable_input_filepath())))
+            annotation_classes = [c for c in AnnotationClassType]
+            for c in annotation_classes:
+                manual_annos = patient_parameters.get_specific_annotations_for_mri(mri_volume_uid=im,
+                                                                            generation_type=AnnotationGenerationType.Manual,
+                                                                            annotation_class=c)
+                if use_manual_files and len(manual_annos) != 0:
+                    for anno in manual_annos:
+                        shutil.copyfile(src=patient_parameters.get_annotation_by_uid(anno).usable_input_filepath,
+                                        dst=os.path.join(surrogate_folder, "T" + str(ts_object.order), os.path.basename(
+                                            patient_parameters.get_mri_by_uid(im).get_usable_input_filepath()[:-7] + '-label_' + str(c) + '.nii.gz')))
+                else:
+                    annos = patient_parameters.get_specific_annotations_for_mri(mri_volume_uid=im,
+                                                                                generation_type=AnnotationGenerationType.Automatic,
+                                                                                annotation_class=c)
+                    for anno in annos:
+                        shutil.copyfile(src=patient_parameters.get_annotation_by_uid(anno).usable_input_filepath,
+                                        dst=os.path.join(surrogate_folder, "T" + str(ts_object.order), os.path.basename(
+                                            patient_parameters.get_mri_by_uid(im).get_usable_input_filepath()[:-7] + '-label_' + str(c) + '.nii.gz')))
+
+    except Exception:
+        logging.error('Pipeline surrogate folder creation failed with: \n{}'.format(traceback.format_exc()))
+
+    return surrogate_folder

@@ -43,6 +43,8 @@ def input_file_category_disambiguation(input_filename: str) -> str:
     image_type = image.GetPixelIDTypeAsString()
     array = sitk.GetArrayFromImage(image)
 
+    # @TODO. Have encountered FLAIR images with integer values in [0, 255], from DICOM conversion, which will be
+    # failed associated as annotations...
     if len(np.unique(array)) > 255 or np.max(array) > 255 or np.min(array) < -1:
         category = "MRI"
     else:

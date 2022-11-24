@@ -24,7 +24,7 @@ class CentralAreaExecutionWidget(QLabel):
     """
     annotation_volume_imported = Signal(str)
     atlas_volume_imported = Signal(str)
-    standardized_report_imported = Signal()
+    standardized_report_imported = Signal(str)
     radiological_sequences_imported = Signal()
     process_started = Signal()
     process_finished = Signal()
@@ -155,7 +155,8 @@ class CentralAreaExecutionWidget(QLabel):
                 for a in results['Atlas']:
                     self.atlas_volume_imported.emit(a)
             if 'Report' in list(results.keys()):
-                self.standardized_report_imported.emit()
+                for r in results['Report']:
+                    self.standardized_report_imported.emit(r)
             if 'Classification' in list(results.keys()):
                 # @TODO. Will have to be more generic when more than one classifier.
                 self.radiological_sequences_imported.emit()
@@ -214,47 +215,3 @@ class CentralAreaExecutionWidget(QLabel):
                 return False
 
         return True
-
-    def assertion_ready_to_process(self, task: str, tumor_type: str) -> bool:
-        readiness = True
-        # 1. Making sure an MRI series with the proper sequence type has been loaded and tagged.
-        correct_input = self.assertion_input_compatible(tumor_type)
-        readiness = readiness and correct_input
-
-        # 2. If results have already been generated, ask confirmation to compute again. Only checking the first image
-        # of its type because it's the one used by default for running the process.
-        if task == 'segmentation':
-            input_uids = SoftwareConfigResources.getInstance().get_active_patient().get_all_mri_volumes_for_sequence_type(MRISequenceType.T1c)
-            if len(input_uids) > 0 and\
-                    len(SoftwareConfigResources.getInstance().get_active_patient().get_specific_annotations_for_mri(input_uids[0],
-                                                                                                                    AnnotationClassType.Tumor,
-                                                                                                                    AnnotationGenerationType.Automatic)) > 0:
-                box = QMessageBox(self)
-                box.setWindowTitle("Results already generated")
-                box.setText("The results for this process have already been generated for the current combination of "
-                            "patient and MRI sequence type. The process will not be performed, unless the previous results "
-                            "are manually deleted.")
-                box.setIcon(QMessageBox.Warning)
-                box.setStyleSheet("""QLabel{
-                color: rgba(0, 0, 0, 1);
-                background-color: rgba(255, 255, 255, 1);
-                }""")
-                box.exec_()
-                readiness = False
-        elif task == 'rads':
-            if SoftwareConfigResources.getInstance().get_active_patient().standardized_report_filename and \
-                    os.path.exists(SoftwareConfigResources.getInstance().get_active_patient().standardized_report_filename):
-                box = QMessageBox(self)
-                box.setWindowTitle("Results already generated")
-                box.setText("The results for this process have already been generated for the current combination of "
-                            "patient and MRI sequence type. The process will not be performed, unless the previous results "
-                            "are manually deleted.")
-                box.setIcon(QMessageBox.Warning)
-                box.setStyleSheet("""QLabel{
-                color: rgba(0, 0, 0, 1);
-                background-color: rgba(255, 255, 255, 1);
-                }""")
-                box.exec_()
-                readiness = False
-
-        return readiness

@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QScrollArea, QPushButton, QLabel, QSpacerItem,\
-    QGridLayout, QMenu
+    QGridLayout, QMenu, QMessageBox
 from PySide6.QtCore import QSize, Qt, Signal, QPoint
 from PySide6.QtGui import QIcon, QPixmap, QAction
 import os
@@ -214,7 +214,6 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         """
         self.__on_patient_selection(True, patient_id)
         self.patient_results_widgets[patient_id].manual_header_pushbutton_clicked(True)
-        self.patient_results_widgets[patient_id].on_standardized_report_imported()  # Might not be the best way, should be a more generic on_patient_selection
         self.adjustSize()  # To trigger a proper redrawing after the previous call
 
     def on_process_started(self):
@@ -241,7 +240,15 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         """
 
         """
-        # @TODO. Should check if the patient is part of an opened study before closing it.
+        if SoftwareConfigResources.getInstance().is_patient_in_studies(widget_id):
+            code = QMessageBox.warning(self, "Patient closing warning.",
+                                       "The patient is included in an opened study. Closing the patient will remove it from the study.",
+                                       QMessageBox.Ok | QMessageBox.Cancel, QMessageBox.Ok)
+            if code == QMessageBox.StandardButton.Cancel:  # Deletion canceled
+                return
+            else:  # Deletion accepted
+                # @TODO. Must send a signal to notify the study panel to delete the patient with widget_id and redraw.
+                pass
 
         if SoftwareConfigResources.getInstance().get_active_patient().has_unsaved_changes():
             dialog = SavePatientChangesDialog()
@@ -325,8 +332,11 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
             self.patient_results_widgets[uid].manual_header_pushbutton_clicked(True)
             self.__on_patient_selection(True, uid)
 
-    def on_standardized_report_imported(self):
-        self.patient_results_widgets[SoftwareConfigResources.getInstance().get_active_patient().unique_id].on_standardized_report_imported()
+    def on_standardized_report_imported(self, report_uid):
+        self.patient_results_widgets[SoftwareConfigResources.getInstance().get_active_patient().unique_id].on_standardized_report_imported(report_uid)
+
+    def on_patient_report_imported(self, patient_uid: str, report_uid: str) -> None:
+        self.patient_results_widgets[patient_uid].on_standardized_report_imported(report_uid)
 
     def on_import_options_clicked(self, point):
         self.options_menu.exec_(self.bottom_add_patient_pushbutton.mapToGlobal(QPoint(0, -95)))

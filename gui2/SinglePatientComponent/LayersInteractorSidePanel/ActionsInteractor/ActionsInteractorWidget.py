@@ -29,7 +29,7 @@ class ActionsInteractorWidget(QWidget):
         self.layout.setContentsMargins(10, 5, 10, 5)
         self.layout.setSpacing(5)
 
-        self.run_folder_classification = QPushButton("Folder analysis")
+        self.run_folder_classification = QPushButton("Sequence classification")
         self.run_folder_classification.setIcon(QIcon(
             QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../Images/classification_icon.png'))))
         self.run_segmentation_preop = QPushButton("Preoperative segmentation")
@@ -59,11 +59,11 @@ class ActionsInteractorWidget(QWidget):
         self.run_rads_postop.clicked.connect(self.on_postop_reporting_requested)
 
     def __set_layout_dimensions(self):
-        self.run_folder_classification.setFixedHeight(20)
-        self.run_segmentation_preop.setFixedHeight(20)
-        self.run_segmentation_postop.setFixedHeight(20)
-        self.run_rads_preop.setFixedHeight(20)
-        self.run_rads_postop.setFixedHeight(20)
+        self.run_folder_classification.setFixedHeight(25)
+        self.run_segmentation_preop.setFixedHeight(25)
+        self.run_segmentation_postop.setFixedHeight(25)
+        self.run_rads_preop.setFixedHeight(25)
+        self.run_rads_postop.setFixedHeight(25)
 
     def __set_stylesheets(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components

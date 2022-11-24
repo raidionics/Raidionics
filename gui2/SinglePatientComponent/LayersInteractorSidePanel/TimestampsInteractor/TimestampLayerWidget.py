@@ -48,6 +48,7 @@ class TimestampLayerWidget(QWidget):
     def __set_interface(self):
         self.setAttribute(Qt.WA_StyledBackground, True)  # Enables to set e.g. background-color for the QWidget
         self.layout = QVBoxLayout(self)
+        self.layout.setContentsMargins(10, 0, 15, 0)
 
         # @TODO. Must include a push up/down the timestamp (to adjust their ordering).
         self.timestamp_name_lineedit = QLineEdit()
@@ -131,8 +132,9 @@ class TimestampLayerWidget(QWidget):
 
     def on_name_change(self):
         new_name = self.timestamp_name_lineedit.text()
-        timestamp_parameters = SoftwareConfigResources.getInstance().get_active_patient().get_timestamp_by_uid(self.uid)
-        timestamp_parameters.display_name = new_name
+        # timestamp_parameters = SoftwareConfigResources.getInstance().get_active_patient().get_timestamp_by_uid(self.uid)
+        # timestamp_parameters.display_name = new_name
+        SoftwareConfigResources.getInstance().get_active_patient().set_new_timestamp_display_name(self.uid, new_name)
         self.timestamp_display_name_changed.emit(self.uid, new_name)
 
     def on_patient_view_toggled(self, patient_uid: str) -> None:

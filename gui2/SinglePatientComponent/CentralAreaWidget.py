@@ -26,7 +26,7 @@ class CentralAreaWidget(QWidget):
     atlas_structure_view_toggled = Signal(str, int, bool)
     atlas_structure_color_changed = Signal(str, int, QColor)
     atlas_structure_opacity_changed = Signal(str, int, int)
-    standardized_report_imported = Signal()
+    standardized_report_imported = Signal(str)
     radiological_sequences_imported = Signal()
     process_started = Signal()
     process_finished = Signal()

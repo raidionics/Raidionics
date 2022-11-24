@@ -125,7 +125,6 @@ class MRISeriesLayerWidget(QWidget):
         self.setStyleSheet("""
         MRISeriesLayerWidget{
         background-color: """ + background_color + """;
-        border: 0px;
         }""")
 
         self.display_name_lineedit.setStyleSheet("""
@@ -209,7 +208,8 @@ class MRISeriesLayerWidget(QWidget):
         self.contrast_adjuster_pushbutton.setStyleSheet("""
         QPushButton{
         border-color: rgba(214, 214, 214, 1);
-        color: """ + software_ss["Color7"] + """;
+        color: """ + font_color + """;
+        background-color: """ + background_color + """;
         font-size: 12px;
         border-style: none;
         }
@@ -224,6 +224,23 @@ class MRISeriesLayerWidget(QWidget):
         border-color: rgba(196, 196, 196, 1);
         background-color: """ + pressed_background_color + """;
         }""")
+
+        self.options_menu.setStyleSheet("""
+        QMenu{
+        color: """ + font_color + """;
+        background-color: """ + background_color + """;
+        border-width: 0px;
+        }
+        QMenu::item:selected{
+        background-color: """ + pressed_background_color + """;
+        }
+        QMenu::item:pressed{
+        border-style: inset;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        background-color: """ + pressed_background_color + """;
+        }
+        """)
 
     def __init_from_parameters(self) -> None:
         """

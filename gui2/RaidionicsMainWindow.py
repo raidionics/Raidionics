@@ -16,6 +16,7 @@ from gui2.SinglePatientComponent.SinglePatientWidget import SinglePatientWidget
 from gui2.StudyBatchComponent.StudyBatchWidget import StudyBatchWidget
 from gui2.UtilsWidgets.CustomQDialog.SavePatientChangesDialog import SavePatientChangesDialog
 from gui2.UtilsWidgets.CustomQDialog.SoftwareSettingsDialog import SoftwareSettingsDialog
+from gui2.UtilsWidgets.CustomQDialog.LogsViewerDialog import LogsViewerDialog
 
 
 class WorkerThread(QThread):
@@ -42,7 +43,7 @@ class RaidionicsMainWindow(QMainWindow):
 
         self.app = application
         self.app.setWindowIcon(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                                  '../images/raidionics-logo.png')))
+                                                  'Images/raidionics-icon.png')))
         self.app.setStyle("Fusion")  # @TODO: Should we remove Fusion style? Looks strange on macOS
         self.__set_interface()
         self.__set_layouts()
@@ -103,25 +104,37 @@ class RaidionicsMainWindow(QMainWindow):
         self.menu_bar = QMenuBar(self)
         self.menu_bar.setNativeMenuBar(False)  # https://stackoverflow.com/questions/25261760/menubar-not-showing-for-simple-qmainwindow-code-qt-creator-mac-os
         self.file_menu = self.menu_bar.addMenu('File')
-        self.download_example_data_action = QAction('Download test data', self)
+        self.download_example_data_action = QAction(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                                       'Images/download-tray-icon.png')),
+                                                    'Download test data', self)
         self.file_menu.addAction(self.download_example_data_action)
-        self.quit_action = QAction('Quit', self)
+        self.quit_action = QAction(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                      'Images/power-icon.png')), 'Quit', self)
         self.quit_action.setShortcut("Ctrl+Q")
         self.file_menu.addAction(self.quit_action)
 
         self.mode_menu = self.menu_bar.addMenu('Mode')
-        self.single_use_action = QAction('Single patient', self)
+        self.home_action = QAction(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                            'Images/home-icon.png')), 'Home', self)
+        self.mode_menu.addAction(self.home_action)
+        self.single_use_action = QAction(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                            'Images/patient-icon.png')), 'Single patient', self)
         self.mode_menu.addAction(self.single_use_action)
-        self.batch_mode_action = QAction('Batch study', self)
+        self.batch_mode_action = QAction(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                            'Images/study_icon.png')), 'Batch study', self)
         self.mode_menu.addAction(self.batch_mode_action)
 
         self.settings_menu = self.menu_bar.addMenu('Settings')
-        self.settings_preferences_action = QAction("Preferences", self)
+        self.settings_preferences_action = QAction(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                                      'Images/preferences-sliders-icon.png')),
+                                                   "Preferences", self)
+        self.settings_preferences_action.setShortcut("Ctrl+P")
         self.settings_menu.addAction(self.settings_preferences_action)
-        # self.settings_update_menu = self.settings_menu.addMenu("Update")
-        # self.settings_update_models_menu = self.settings_update_menu.addMenu("Models")
-        # self.settings_update_models_menu_active_action = QAction("Active checking", checkable=True)
-        # self.settings_update_models_menu.addAction(self.settings_update_models_menu_active_action)
+        self.view_logs_action = QAction(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                           'Images/logs_icon.png')),
+                                        "Logs", self)
+        self.view_logs_action.setShortcut("Ctrl+L")
+        self.settings_menu.addAction(self.view_logs_action)
 
         self.help_menu = self.menu_bar.addMenu('Help')
         self.community_action = QAction(
@@ -185,6 +198,7 @@ class RaidionicsMainWindow(QMainWindow):
         self.community_action.triggered.connect(self.__on_community_action_triggered)
         self.about_action.triggered.connect(self.__on_about_action_triggered)
         self.help_action.triggered.connect(self.__on_help_action_triggered)
+        self.view_logs_action.triggered.connect(self.__on_view_logs_triggered)
 
     def __cross_widgets_connections(self):
         self.welcome_widget.left_panel_single_patient_pushbutton.clicked.connect(self.__on_single_patient_clicked)
@@ -202,13 +216,15 @@ class RaidionicsMainWindow(QMainWindow):
         self.batch_study_widget.mri_volume_imported.connect(self.single_patient_widget.on_mri_volume_imported)
         self.batch_study_widget.annotation_volume_imported.connect(self.single_patient_widget.on_annotation_volume_imported)
         self.batch_study_widget.atlas_volume_imported.connect(self.single_patient_widget.on_atlas_volume_imported)
-        self.batch_study_widget.standard_report_imported.connect(self.single_patient_widget.on_standard_report_imported)
         self.batch_study_widget.patient_imported.connect(self.single_patient_widget.on_patient_imported)
         self.batch_study_widget.patient_selected.connect(self.__on_patient_selected)
         self.batch_study_widget.processing_started.connect(self.single_patient_widget.on_batch_process_started)
         self.batch_study_widget.processing_finished.connect(self.single_patient_widget.on_batch_process_finished)
+        self.batch_study_widget.patient_report_imported.connect(self.single_patient_widget.patient_report_imported)
+        self.batch_study_widget.patient_radiological_sequences_imported.connect(self.single_patient_widget.patient_radiological_sequences_imported)
 
     def __set_menubar_connections(self):
+        self.home_action.triggered.connect(self.__on_home_clicked)
         self.single_use_action.triggered.connect(self.__on_single_patient_clicked)
         self.batch_mode_action.triggered.connect(self.__on_study_batch_clicked)
         self.settings_preferences_action.triggered.connect(self.__on_settings_preferences_clicked)
@@ -248,6 +264,13 @@ class RaidionicsMainWindow(QMainWindow):
 
     def __on_central_stacked_widget_index_changed(self, index):
         pass
+
+    def __on_home_clicked(self):
+        """
+        Displays the starting screen.
+        """
+        self.central_stackedwidget.setCurrentIndex(0)
+        self.adjustSize()
 
     def __on_single_patient_clicked(self):
         """
@@ -323,6 +346,12 @@ class RaidionicsMainWindow(QMainWindow):
             '* Marnix G. Witte; Department of Radiation Oncology, The Netherlands Cancer Institute, Amsterdam, The Netherlands\n'
             '* Aeilko H. Zwinderman; Department of Clinical Epidemiology and Biostatistics, Amsterdam University Medical Centers, University of Amsterdam, Amsterdam, The Netherlands\n'
             '\n\n')
+        popup.setStyleSheet("""
+        QLabel{
+        min-width: 600px;
+        font-size: 14px;
+        color: black;
+        }""")
         popup.exec_()
 
     def __on_about_action_triggered(self):
@@ -341,12 +370,26 @@ class RaidionicsMainWindow(QMainWindow):
                       '* Meningioma Segmentation in T1-Weighted MRI Leveraging Global Context and Attention Mechanisms (https://www.frontiersin.org/articles/10.3389/fradi.2021.711514/full)\n'
                       '\n\nCurrent software version: {}'.format(SoftwareConfigResources.getInstance().software_version)
                       )
-        popup.resize(popup.sizeHint())
+        popup.setStyleSheet("""
+        QLabel{
+        min-width: 600px;
+        font-size: 14px;
+        color: black;
+        }""")
         popup.exec_()
 
-    def __on_help_action_triggered(self):
-        # opens browser with specified url, directs user to Issues section of GitHub repo
-        QDesktopServices.openUrl(QUrl("https://github.com/dbouget/Raidionics/issues"))
+    def __on_help_action_triggered(self) -> None:
+        """
+        Opens the Github wiki where the user can find information, explanatory videos, and a FAQ.
+        """
+        QDesktopServices.openUrl(QUrl("https://github.com/dbouget/Raidionics/wiki"))
+
+    def __on_view_logs_triggered(self):
+        """
+        @TODO. Should make a custom widget as text edit to see the content of the raidionics log file.
+        """
+        diag = LogsViewerDialog(self)
+        diag.exec_()
 
     def __on_download_example_data(self):
         QDesktopServices.openUrl(QUrl("https://drive.google.com/file/d/1GYQPR0RvoriJN6Z1Oq8WzOoDf68htdCs/view?usp=sharing"))

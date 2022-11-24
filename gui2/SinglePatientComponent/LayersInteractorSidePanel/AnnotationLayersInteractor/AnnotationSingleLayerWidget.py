@@ -42,6 +42,7 @@ class AnnotationSingleLayerWidget(QWidget):
         self.options_menu.addSeparator()
 
         self.layout = QHBoxLayout(self)
+        self.layout.setContentsMargins(5, 5, 10, 5)
         self.display_toggle_layout = QVBoxLayout()
         self.display_toggle_layout.addStretch(1)
         self.display_toggle_button = QPushButton()
@@ -67,6 +68,7 @@ class AnnotationSingleLayerWidget(QWidget):
         self.parent_image_combobox = QComboBox()
         self.parent_layout.addWidget(self.parent_image_label)
         self.parent_layout.addWidget(self.parent_image_combobox)
+        self.parent_layout.addStretch(1)
         self.manual_grid_layout.addLayout(self.parent_layout)
 
         self.annotation_type_layout = QHBoxLayout()
@@ -83,6 +85,7 @@ class AnnotationSingleLayerWidget(QWidget):
         self.generation_type_combobox.addItems(["Manual", "Automatic"])
         self.annotation_type_layout.addWidget(self.generation_type_label)
         self.annotation_type_layout.addWidget(self.generation_type_combobox)
+        self.annotation_type_layout.addStretch(1)
         self.manual_grid_layout.addLayout(self.annotation_type_layout)
 
         self.__set_interface_advanced_options()
@@ -102,7 +105,7 @@ class AnnotationSingleLayerWidget(QWidget):
         self.opacity_layout = QHBoxLayout()
         self.opacity_layout.addWidget(self.opacity_label)
         self.opacity_layout.addWidget(self.opacity_slider)
-        self.opacity_layout.addStretch(1)
+        # self.opacity_layout.addStretch(1)
 
         self.color_label = QLabel("Color ")
         self.color_dialogpushbutton = QPushButton()
@@ -114,12 +117,6 @@ class AnnotationSingleLayerWidget(QWidget):
         self.opacity_layout.addWidget(self.color_label)
         self.opacity_layout.addWidget(self.color_dialogpushbutton)
         self.manual_grid_layout.addLayout(self.opacity_layout)
-        # self.color_layout = QHBoxLayout()
-        # self.color_layout.addWidget(self.color_label)
-        # self.color_layout.addWidget(self.color_dialogpushbutton)
-        # self.color_layout.addStretch(1)
-        #
-        # self.manual_grid_layout.addLayout(self.color_layout)
 
     def __set_layout_dimensions(self):
         self.display_toggle_button.setFixedSize(QSize(30, 30))
@@ -139,9 +136,8 @@ class AnnotationSingleLayerWidget(QWidget):
         self.opacity_slider.setFixedHeight(20)
         # self.opacity_slider.setFixedWidth(120)
         self.color_label.setFixedHeight(20)
-        self.color_dialogpushbutton.setFixedHeight(15)
+        self.color_dialogpushbutton.setFixedSize(QSize(40, 18))
         self.advanced_options_collapsible.content_label.setFixedHeight(70)
-        # self.advanced_options_collapsible.adjustSize()
 
     def __set_connections(self):
         self.customContextMenuRequested.connect(self.on_right_clicked)
@@ -308,12 +304,40 @@ class AnnotationSingleLayerWidget(QWidget):
         border-style: none;
         }""")
 
-        self.color_dialogpushbutton_base_ss = """ QPushButton{border-color:rgb(0, 0, 0); border-width:2px;} """
+        self.color_dialogpushbutton_base_ss = """
+        QPushButton{
+        border-width: 0px;
+        }
+        QPushButton::hover{
+        border-style: solid;
+        border-width: 2px;
+        border-color: rgba(196, 196, 196, 1);
+        }
+        QPushButton::pressed{
+        border-style: inset;
+        }"""
 
         self.opacity_slider.setStyleSheet("""
         QSlider{
         border: 0px;
         }""")
+
+        self.options_menu.setStyleSheet("""
+        QMenu{
+        color: """ + font_color + """;
+        background-color: """ + background_color + """;
+        border-width: 0px;
+        }
+        QMenu::item:selected{
+        background-color: """ + pressed_background_color + """;
+        }
+        QMenu::item:pressed{
+        border-style: inset;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        background-color: """ + pressed_background_color + """;
+        }
+        """)
 
     def __init_from_parameters(self):
         params = SoftwareConfigResources.getInstance().get_active_patient().get_annotation_by_uid(self.uid)
@@ -409,6 +433,17 @@ class AnnotationSingleLayerWidget(QWidget):
         params.set_annotation_class_type(self.annotation_type_combobox.currentText())
 
     def __on_parent_mri_changed(self, index: int) -> None:
+        code = QMessageBox.warning(self, "Parent MRI change warning.",
+                                   "Are you sure you want to proceed with the change of parent MRI?",
+                                   QMessageBox.Ok | QMessageBox.Cancel, QMessageBox.Ok)
+        if code == QMessageBox.StandardButton.Cancel:  # Change canceled
+            self.parent_image_combobox.blockSignals(True)
+            parent_mri_display_name = SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_uid(
+                SoftwareConfigResources.getInstance().get_active_patient().get_annotation_by_uid(self.uid).get_parent_mri_uid()).display_name
+            self.parent_image_combobox.setCurrentText(parent_mri_display_name)
+            self.parent_image_combobox.blockSignals(False)
+            return
+
         params = SoftwareConfigResources.getInstance().get_active_patient().get_annotation_by_uid(self.uid)
         old_mri_parent = params.get_parent_mri_uid()
         mri_display_name = self.parent_image_combobox.currentText()

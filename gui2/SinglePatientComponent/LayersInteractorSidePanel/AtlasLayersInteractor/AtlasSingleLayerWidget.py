@@ -61,6 +61,7 @@ class AtlasSingleLayerWidget(QWidget):
         # self.icon_label.setPixmap(pix)
         self.display_name_lineedit = QLineEdit()
         self.display_name_lineedit.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)
+        self.display_name_lineedit.setReadOnly(True)
         # self.name_layout.addWidget(self.icon_label)
         self.name_layout.addWidget(self.display_name_lineedit)
         self.manual_grid_layout.addLayout(self.name_layout)
@@ -121,20 +122,22 @@ class AtlasSingleLayerWidget(QWidget):
         border-style:inset;
         }""")
 
-        # self.detailed_structures_collapsiblegoupbox.header_pushbutton.setStyleSheet("""
-        # QPushButton{
-        # background-color: """ + background_color + """;
-        # border-style: none;
-        # }
-        # QPushButton:pressed{
-        # background-color: """ + pressed_background_color + """;
-        # border-style:inset;
-        # }
-        # QComboBox::hover{
-        # border-style: solid;
-        # border-width: 1px;
-        # border-color: rgba(196, 196, 196, 1);
-        # }""")
+        self.options_menu.setStyleSheet("""
+        QMenu{
+        color: """ + font_color + """;
+        background-color: """ + background_color + """;
+        border-width: 0px;
+        }
+        QMenu::item:selected{
+        background-color: """ + pressed_background_color + """;
+        }
+        QMenu::item:pressed{
+        border-style: inset;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        background-color: """ + pressed_background_color + """;
+        }
+        """)
 
     def __init_from_parameters(self):
         params = SoftwareConfigResources.getInstance().get_active_patient().get_atlas_by_uid(self.uid)

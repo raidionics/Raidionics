@@ -23,6 +23,7 @@ class SinglePatientLayersWidget(QWidget):
     radiological_sequences_imported = Signal()
 
     import_data_triggered = Signal()
+    import_data_requested = Signal()
     patient_imported = Signal(str)
     patient_view_toggled = Signal(str)
     volume_view_toggled = Signal(str, bool)
@@ -101,6 +102,7 @@ class SinglePatientLayersWidget(QWidget):
         self.annotation_display_state_changed.connect(self.timestamp_layer_widget.on_annotation_display_state_changed)
         self.radiological_sequences_imported.connect(self.timestamp_layer_widget.on_radiological_sequences_imported)
         self.timestamp_layer_widget.reset_central_viewer.connect(self.reset_central_viewer)
+        self.timestamp_layer_widget.import_data_requested.connect(self.import_data_requested)
         self.timestamp_layer_widget.volume_view_toggled.connect(self.volume_view_toggled)
         self.timestamp_layer_widget.volume_contrast_changed.connect(self.volume_contrast_changed)
         self.timestamp_layer_widget.annotation_view_toggled.connect(self.annotation_view_toggled)

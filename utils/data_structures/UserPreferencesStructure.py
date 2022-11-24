@@ -19,6 +19,8 @@ class UserPreferencesStructure:
     _active_model_update = False  # True for regularly checking if new models are available, False otherwise
     _use_manual_sequences = True  # True for using the manually set sequences, False to run classification on-the-fly
     _use_manual_annotations = False  # True to use annotation files provided by the user, False to recompute
+    _compute_cortical_structures = True  # True to include cortical features computation in the standardized reporting
+    _compute_subcortical_structures = True  # True to include subcortical features computation in the standardized reporting
 
     def __init__(self, preferences_filename: str) -> None:
         """
@@ -84,6 +86,25 @@ class UserPreferencesStructure:
     @use_manual_annotations.setter
     def use_manual_annotations(self, state) -> None:
         self._use_manual_annotations = state
+        self.save_preferences()
+
+    @property
+    def compute_cortical_structures(self) -> bool:
+        return self._compute_cortical_structures
+
+    @compute_cortical_structures.setter
+    def compute_cortical_structures(self, state: bool) -> None:
+        self._compute_cortical_structures = state
+        self.save_preferences()
+
+    @property
+    def compute_subcortical_structures(self) -> bool:
+        return self._compute_subcortical_structures
+
+    @compute_subcortical_structures.setter
+    def compute_subcortical_structures(self, state: bool) -> None:
+        self._compute_subcortical_structures = state
+        self.save_preferences()
 
     def __parse_preferences(self):
         with open(self._preferences_filename, 'r') as infile:
@@ -98,6 +119,10 @@ class UserPreferencesStructure:
                 self._use_manual_sequences = preferences['Processing']['use_manual_sequences']
             if 'use_manual_annotations' in preferences['Processing'].keys():
                 self._use_manual_annotations = preferences['Processing']['use_manual_annotations']
+            if 'compute_cortical_structures' in preferences['Processing'].keys():
+                self._compute_cortical_structures = preferences['Processing']['compute_cortical_structures']
+            if 'compute_subcortical_structures' in preferences['Processing'].keys():
+                self._compute_subcortical_structures = preferences['Processing']['compute_subcortical_structures']
 
     def save_preferences(self):
         preferences = {}
@@ -108,6 +133,8 @@ class UserPreferencesStructure:
         preferences['Processing'] = {}
         preferences['Processing']['use_manual_sequences'] = self._use_manual_sequences
         preferences['Processing']['use_manual_annotations'] = self._use_manual_annotations
+        preferences['Processing']['compute_cortical_structures'] = self._compute_cortical_structures
+        preferences['Processing']['compute_subcortical_structures'] = self._compute_subcortical_structures
 
         with open(self._preferences_filename, 'w') as outfile:
             json.dump(preferences, outfile, indent=4, sort_keys=True)

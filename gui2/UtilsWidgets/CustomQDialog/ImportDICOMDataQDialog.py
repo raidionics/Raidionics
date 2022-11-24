@@ -1,9 +1,15 @@
+import logging
+import traceback
+
+import numpy as np
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QDialog, QDialogButtonBox, \
     QPushButton, QScrollArea, QFileDialog, QSplitter, QTableWidget, QTableWidgetItem,\
     QProgressBar, QMessageBox
 from PySide6.QtCore import Qt, Signal
+from PySide6.QtGui import QIcon, QPixmap
 import os
 
+from typing import List
 from utils.software_config import SoftwareConfigResources
 from utils.patient_dicom import PatientDICOM
 # from gui2.UtilsWidgets.ContextMenuQTableWidget import ContextMenuQTableWidget
@@ -28,6 +34,8 @@ class ImportDICOMDataQDialog(QDialog):
         self.__set_interface()
         self.__set_connections()
         self.__set_stylesheets()
+        self.dicom_holders = {}  # Placeholder for all loaded DICOM patients
+        self.dicom_holder = None  # Placeholder for the currently displayed DICOM patient
 
     def __set_interface(self):
         self.base_layout = QVBoxLayout(self)
@@ -37,6 +45,11 @@ class ImportDICOMDataQDialog(QDialog):
         self.import_select_directory_pushbutton = QPushButton("Directory selection")
         self.import_select_button_layout.addWidget(self.import_select_directory_pushbutton)
         self.import_select_button_layout.addStretch(1)
+        self.clear_selection_pushbutton = QPushButton()
+        self.clear_selection_pushbutton.setIcon(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                                       '../../Images/trash-bin_icon.png')))
+        self.clear_selection_pushbutton.setToolTip("Remove all table entries.")
+        # self.import_select_button_layout.addWidget(self.clear_selection_pushbutton)
         self.base_layout.addLayout(self.import_select_button_layout)
 
         # Dynamic central scroll area, to accommodate for as many loaded files as necessary
@@ -68,7 +81,8 @@ class ImportDICOMDataQDialog(QDialog):
         self.bottom_exit_layout.addStretch(1)
         self.base_layout.addLayout(self.bottom_exit_layout)
 
-        self.setMinimumSize(800, 600)
+        self.setMinimumSize(750, 600)
+        self.setBaseSize(900, 650)
 
     def __set_dicom_content_area(self):
         self.dicom_content_area_layout = QVBoxLayout()
@@ -89,6 +103,7 @@ class ImportDICOMDataQDialog(QDialog):
         self.content_series_tablewidget.setColumnCount(5)
         self.content_series_tablewidget.setHorizontalHeaderLabels(["Series ID", "Series #", "Series description", "Size", "Date"])
         self.content_series_tablewidget.setSelectionBehavior(QTableWidget.SelectRows)
+        self.content_series_tablewidget.setMinimumHeight(300)
         self.dicom_content_splitter.addWidget(self.content_patient_tablewidget)
         self.dicom_content_splitter.addWidget(self.content_study_tablewidget)
         self.dicom_content_splitter.addWidget(self.content_series_tablewidget)
@@ -115,10 +130,12 @@ class ImportDICOMDataQDialog(QDialog):
 
     def __set_connections(self):
         self.import_select_directory_pushbutton.clicked.connect(self.__on_import_directory_clicked)
+        self.clear_selection_pushbutton.clicked.connect(self.__reset_interface)
         self.exit_accept_pushbutton.clicked.connect(self.__on_exit_accept_clicked)
         self.exit_cancel_pushbutton.clicked.connect(self.__on_exit_cancel_clicked)
 
         self.content_patient_tablewidget.cellClicked.connect(self.__on_patient_selected)
+        self.content_study_tablewidget.cellClicked.connect(self.__on_investigation_study_selected)
         self.content_series_tablewidget.cellDoubleClicked.connect(self.__on_series_selected)
         self.content_series_tablewidget.display_metadata_triggered.connect(self.__on_display_metadata_triggered)
         self.selected_series_tablewidget.remove_entry_triggered.connect(self.__on_remove_selected_series_triggered)
@@ -163,6 +180,14 @@ class ImportDICOMDataQDialog(QDialog):
         #                            "QTableCornerButton::section { background-color:#232326; }"
         #                            "QHeaderView::section { color:white; background-color:#232326; }");
 
+    def __reset_interface(self):
+        self.content_patient_tablewidget.setRowCount(0)
+        self.content_study_tablewidget.setRowCount(0)
+        self.content_series_tablewidget.setRowCount(0)
+        self.selected_series_tablewidget.setRowCount(0)
+        self.dicom_holders.clear()
+        self.dicom_holder = None
+
     def __on_import_directory_clicked(self):
         input_image_filedialog = QFileDialog(self)
         input_image_filedialog.setWindowFlags(Qt.WindowStaysOnTopHint)
@@ -181,19 +206,20 @@ class ImportDICOMDataQDialog(QDialog):
             return
 
         self.current_folder = os.path.dirname(input_directory)
-        self.dicom_holder = PatientDICOM(input_directory)
-        error_msg = self.dicom_holder.parse_dicom_folder()
+        dicom_holder = PatientDICOM(input_directory)
+        error_msg = dicom_holder.parse_dicom_folder()
         if error_msg is not None:
             diag = QMessageBox.warning(self, "DICOM parsing warnings", error_msg)
+        if dicom_holder.patient_id not in list(self.dicom_holders.keys()):
+            self.dicom_holders[dicom_holder.patient_id] = dicom_holder
+
+        self.dicom_holder = dicom_holder
         self.__populate_dicom_browser()
 
     def __on_exit_accept_clicked(self):
         """
-        @TODO. Should allow for multiple timestamps inside a same DICOM folder, and such creating timestamp objects
-        on-the-fly
+        @TODO. Rename the patient with the content of the metadata tag.
         """
-        # @Behaviour. Do we force the user to create a patient, or allow on-the-fly creation when loading data?
-        # In case of DICOM data, do we rename the patient with the content of the metadata tag?
         if len(SoftwareConfigResources.getInstance().patients_parameters) == 0:
             uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_patient()
             if error_msg:
@@ -210,26 +236,62 @@ class ImportDICOMDataQDialog(QDialog):
         self.load_progressbar.setVisible(True)
         self.load_progressbar.setValue(0)
 
-        for elem in range(self.selected_series_tablewidget.rowCount()):
-            series_reader = self.dicom_holder.studies[self.selected_series_tablewidget.item(elem, 0).text()].dicom_series[self.selected_series_tablewidget.item(elem, 2).text()]
+        # Ordering selecting series by date for timestamp-ordered import.
+        ordered_series_ids = self.__sort_selected_series_by_date(study_uids=[self.selected_series_tablewidget.item(elem, 0).text() for
+                                                         elem in range(self.selected_series_tablewidget.rowCount())],
+                                                        series_uids=[self.selected_series_tablewidget.item(elem, 2).text() for
+                                                         elem in range(self.selected_series_tablewidget.rowCount())])
+
+        for i, elem in enumerate(ordered_series_ids.keys()):
+            series_reader = self.dicom_holder.studies[ordered_series_ids[elem]].dicom_series[elem]
             uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_dicom_data(series_reader)
             if error_msg:
                 diag = QMessageBox()
-                diag.setText("Unable to load: {}.\nError message: {}.\n".format(self.selected_series_tablewidget.item(elem, 2).text(),
-                                                                                error_msg))
+                diag.setText("Unable to load series: {}.\nError message: {}.\n".format(elem, error_msg))
                 diag.exec_()
             else:
                 self.mri_volume_imported.emit(uid)
-            self.load_progressbar.setValue(elem + 1)
+            self.load_progressbar.setValue(i + 1)
+
+        # @TODO. The following is not enough, it updates internally and on disk the patient name, but the GUI part
+        # is not updated. Have to emit a specific signal with the new display name here.
+        # SoftwareConfigResources.getInstance().get_active_patient().set_display_name(self.dicom_holder.patient_id)
         self.load_progressbar.setVisible(False)
+        self.selected_series_tablewidget.setRowCount(0)  # Cleaning the table of MRI series to import
+        self.content_patient_tablewidget.setEnabled(True)  # In case the next action is a patient import
         self.accept()
 
     def __on_exit_cancel_clicked(self):
         self.reject()
 
-    def __on_patient_selected(self, row, column):
-        # patient_id_item = self.content_patient_tablewidget.item(row, 0)
-        pass
+    def __on_patient_selected(self, row: int, column: int) -> None:
+        """
+        When a patient row is selected in the patient table (top-table), the other two tables are redrawn with the
+        proper content, and the current dicom_holder is set for the selected patient.
+
+        Parameters
+        ----------
+        row: int
+            Row of the clicked cell, to determine which patient has been selected
+        """
+        patient_id_item = self.content_patient_tablewidget.item(row, 0)
+        self.dicom_holder = self.dicom_holders[patient_id_item.text()]
+        self.__populate_dicom_browser(import_state=False)
+
+    def __on_investigation_study_selected(self, row: int, column: int) -> None:
+        """
+        For patient DICOM folder containing multiple investigations (i.e., multiple studies), each study content can be
+        filled in the bottom series table.
+        The requested study id is retrieved by mapping the clicked cell row to the filled study id value.
+
+        Parameters
+        ----------
+        row: int
+            Row value for the clicked cell.
+        """
+        study_id = self.content_study_tablewidget.item(row, 1).text()
+        self.__update_series_display(study_id=study_id)
+        self.set_fixed_patient(patient_id=None)
 
     def __on_series_selected(self, row, column):
         study_id_item = self.content_study_tablewidget.item(self.content_study_tablewidget.currentRow(), 1)
@@ -254,16 +316,32 @@ class ImportDICOMDataQDialog(QDialog):
             for c in range(self.selected_series_tablewidget.columnCount()):
                 self.selected_series_tablewidget.resizeColumnToContents(c)
 
-    def __populate_dicom_browser(self):
+    def __populate_dicom_browser(self, import_state: bool = True) -> None:
+        """
+
+        Parameters
+        ----------
+        import_state: bool
+            True if adding a new patient to the table, False if toggling visible an existing patient entry.
+        """
         # Clearing all previous content at every DICOM folder import (for now).
-        self.content_patient_tablewidget.setRowCount(0)
+        # self.content_patient_tablewidget.setRowCount(0)
         self.content_study_tablewidget.setRowCount(0)
         self.content_series_tablewidget.setRowCount(0)
         self.selected_series_tablewidget.setRowCount(0)
 
-        self.content_patient_tablewidget.insertRow(self.content_patient_tablewidget.rowCount())
-        self.content_patient_tablewidget.setItem(self.content_patient_tablewidget.rowCount() - 1, 0,
-                                                 QTableWidgetItem(self.dicom_holder.patient_id))
+        if import_state:
+            self.content_patient_tablewidget.insertRow(self.content_patient_tablewidget.rowCount())
+            self.content_patient_tablewidget.setItem(self.content_patient_tablewidget.rowCount() - 1, 0,
+                                                     QTableWidgetItem(self.dicom_holder.patient_id))
+            self.content_patient_tablewidget.setItem(self.content_patient_tablewidget.rowCount() - 1, 1,
+                                                     QTableWidgetItem(self.dicom_holder.gender))
+            self.content_patient_tablewidget.setItem(self.content_patient_tablewidget.rowCount() - 1, 2,
+                                                     QTableWidgetItem(self.dicom_holder.birth_date))
+            self.content_patient_tablewidget.setItem(self.content_patient_tablewidget.rowCount() - 1, 3,
+                                                     QTableWidgetItem(str(len(self.dicom_holder.studies.keys()))))
+            self.content_patient_tablewidget.setItem(self.content_patient_tablewidget.rowCount() - 1, 4,
+                                                     QTableWidgetItem(""))
 
         for study_id in list(self.dicom_holder.studies.keys()):
             study = self.dicom_holder.studies[study_id]
@@ -273,6 +351,8 @@ class ImportDICOMDataQDialog(QDialog):
             self.content_study_tablewidget.setItem(self.content_study_tablewidget.rowCount() - 1, 2, QTableWidgetItem(study.study_description))
             self.content_study_tablewidget.setItem(self.content_study_tablewidget.rowCount() - 1, 3, QTableWidgetItem(str(len(study.dicom_series))))
 
+        if len(self.dicom_holder.studies.keys()) != 0:
+            study = self.dicom_holder.studies[list(self.dicom_holder.studies.keys())[0]]
             for series_id in list(study.dicom_series.keys()):
                 series = study.dicom_series[series_id]
                 self.content_series_tablewidget.insertRow(self.content_series_tablewidget.rowCount())
@@ -290,8 +370,36 @@ class ImportDICOMDataQDialog(QDialog):
         for c in range(self.content_series_tablewidget.columnCount()):
             self.content_series_tablewidget.resizeColumnToContents(c)
 
-        self.content_patient_tablewidget.selectRow(0)
+        if import_state:
+            self.content_patient_tablewidget.selectRow(self.content_patient_tablewidget.rowCount() - 1)
         self.content_study_tablewidget.selectRow(0)
+
+    def __update_series_display(self, study_id: str) -> None:
+        """
+        ...
+
+        Parameters
+        ----------
+        study_id: str
+            ...
+        """
+        if study_id not in list(self.dicom_holder.studies.keys()):
+            return
+
+        self.content_series_tablewidget.setRowCount(0)
+
+        study = self.dicom_holder.studies[study_id]
+        for series_id in list(study.dicom_series.keys()):
+            series = study.dicom_series[series_id]
+            self.content_series_tablewidget.insertRow(self.content_series_tablewidget.rowCount())
+            self.content_series_tablewidget.setItem(self.content_series_tablewidget.rowCount() - 1, 0, QTableWidgetItem(series.series_id))
+            self.content_series_tablewidget.setItem(self.content_series_tablewidget.rowCount() - 1, 1, QTableWidgetItem(series.series_number))
+            self.content_series_tablewidget.setItem(self.content_series_tablewidget.rowCount() - 1, 2, QTableWidgetItem(series.get_series_description()))
+            self.content_series_tablewidget.setItem(self.content_series_tablewidget.rowCount() - 1, 3, QTableWidgetItem("x".join(str(x) for x in series.volume_size)))
+            self.content_series_tablewidget.setItem(self.content_series_tablewidget.rowCount() - 1, 4, QTableWidgetItem(series.series_date))
+
+        for c in range(self.content_series_tablewidget.columnCount()):
+            self.content_series_tablewidget.resizeColumnToContents(c)
 
     def __on_display_metadata_triggered(self, series_index: int) -> None:
         # print("Metadata for row {}".format(series_index))
@@ -301,3 +409,56 @@ class ImportDICOMDataQDialog(QDialog):
 
     def __on_remove_selected_series_triggered(self, series_index: int) -> None:
         self.selected_series_tablewidget.removeRow(series_index)
+
+    def set_fixed_patient(self, patient_id: str = None) -> None:
+        """
+        When the DICOM database icon is clicked, the user is looking for adding more MRI series to the current patient.
+        As such, the display of any other patients is set impossible.
+        :warning: This action should only be performed in a single patient mode, whereby there is an active patient.
+
+        Parameters
+        ----------
+        patient_id: str
+            DICOM unique id for the currently displayed patient.
+        """
+        if patient_id:
+            self.dicom_holder = self.dicom_holders[list(self.dicom_holders.keys())[list(self.dicom_holders.keys()).index(patient_id)]]
+            self.content_patient_tablewidget.selectRow(list(self.dicom_holders.keys()).index(patient_id))
+            self.content_patient_tablewidget.setEnabled(False)
+
+        loaded_mris = SoftwareConfigResources.getInstance().get_active_patient().mri_volumes
+        loaded_series_id = []
+        for im in list(loaded_mris.keys()):
+            if loaded_mris[im].get_dicom_metadata() and '0020|000e' in loaded_mris[im].get_dicom_metadata().keys():
+                loaded_series_id.append(loaded_mris[im].get_dicom_metadata()['0020|000e'].strip())
+
+        for r in range(self.content_series_tablewidget.rowCount()):
+            if self.content_series_tablewidget.item(r, 0).text() in loaded_series_id:
+                for c in range(self.content_series_tablewidget.columnCount()):
+                    self.content_series_tablewidget.item(r, c).setBackgroundColor(Qt.green)
+
+    def __sort_selected_series_by_date(self, study_uids: List[str], series_uids: List[str]) -> dict:
+        study_ids = []
+        ordered_series_uids = {}
+        try:
+            for i, series_uid in enumerate(study_uids):
+                study_ids.append(self.selected_series_tablewidget.item(i, 0).text())
+
+            unique_study_ids = np.unique(study_ids)
+            if len(unique_study_ids) == 1:
+                return {series_uids[i]: study_uids[i] for i in range(len(series_uids))}
+            else:
+                ordered_study_ids = {}
+                for sid in unique_study_ids:
+                    ordered_study_ids[sid] = self.dicom_holder.studies[sid].study_acquisition_date
+
+                ordered_study_ids = dict(sorted(ordered_study_ids.items(), key=lambda item: item[1]))
+                for sid in list(ordered_study_ids.keys()):
+                    for elem in series_uids:
+                        if elem in self.dicom_holder.studies[sid].dicom_series.keys():
+                            ordered_series_uids[elem] = sid
+        except Exception as e:
+            # In case of error (e.g., no acquisition date), all selected series will be imported in the current order.
+            logging.error("[ImportDICOMDataQDialog] Selected series re-ordering for import failed with: \n{}".format(traceback.format_exc()))
+            ordered_series_uids = {series_uids[i]: study_uids[i] for i in range(len(series_uids))}
+        return ordered_series_uids

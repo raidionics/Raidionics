@@ -237,6 +237,26 @@ class SoftwareConfigResources:
         """
         del self.patients_parameters[uid]
 
+    def is_patient_in_studies(self, patient_uid: str) -> bool:
+        """
+        Verifies if the requested patient is part of any currently loaded studies.
+
+        Parameters
+        ----------
+        patient_uid: str
+            Internal unique identifier for the patient.
+
+        Returns
+        -------
+        presence_state: bool
+            True if the patient belongs to one of the opened studies, False otherwise.
+        """
+        for s in list(self.study_parameters.keys()):
+            if patient_uid in self.study_parameters[s].included_patients_uids:
+                return True
+
+        return False
+
     def add_new_empty_study(self, active: bool = True) -> Union[str, Any]:
         """
 

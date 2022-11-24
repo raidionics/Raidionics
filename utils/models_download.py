@@ -1,3 +1,4 @@
+import logging
 import os
 import gdown
 import traceback
@@ -23,6 +24,7 @@ def get_available_cloud_models_list():
     except Exception as e:
         print('Impossible to access the cloud models list.\n')
         print('{}'.format(traceback.format_exc()))
+        logging.warning('Impossible to access the cloud models list with: \n {}'.format(traceback.format_exc()))
 
     return cloud_models_list
 
@@ -61,6 +63,9 @@ def download_model(model_name):
                     download_model(d)
         else:
             print("No model exists with the provided name: {}.\n".format(model_name))
+            logging.error("No model exists with the provided name: {}.\n".format(model_name))
     except Exception as e:
         print('Issue trying to collect the latest {} model.\n'.format(model_name))
         print('{}'.format(traceback.format_exc()))
+        logging.error('Issue trying to collect the latest {} model with: \n {}'.format(model_name,
+                                                                                       traceback.format_exc()))
