@@ -143,3 +143,8 @@ class StudyPatientsSummaryPanelWidget(QWidget):
         self.patients_content_summary_panel.postprocessing_update()
         self.patients_segmentation_summary_panel.postprocessing_update()
         self.patients_reporting_summary_panel.postprocessing_update()
+
+    def on_patient_removed(self, patient_uid: str) -> None:
+        self.patients_content_summary_panel.postprocessing_update()
+        self.patients_segmentation_summary_panel.postprocessing_update()
+        self.patients_reporting_summary_panel.postprocessing_update()

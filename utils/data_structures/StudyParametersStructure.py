@@ -352,11 +352,21 @@ class StudyParameters:
     def refresh_patient_statistics(self, patient_uid: str, patient_parameters):
         """
         Brute-force method to update all statistics pertaining to one patient.
+        If the patient_parameters is left to None, then it means the patient was removed from the study, hence should
+        also be removed from the statistics tables.
+
+        Parameters
+        ----------
+        patient_uid: str
+            Internal unique identifier for the patient to refresh
+        patient_parameters:
+            Internal parameters for the patient to refresh.
         """
         if self._segmentation_statistics_df is not None and len(self._segmentation_statistics_df[self._segmentation_statistics_df['Patient uid'] == patient_uid]) != 0:
             self._segmentation_statistics_df = self._segmentation_statistics_df[self._segmentation_statistics_df['Patient uid'] != patient_uid]
         if self._reporting_statistics_df is not None and len(self._reporting_statistics_df[self._reporting_statistics_df['Patient uid'] == patient_uid]) != 0:
             self._reporting_statistics_df = self._reporting_statistics_df[self._reporting_statistics_df['Patient uid'] != patient_uid]
 
-        self.include_segmentation_statistics(patient_uid, [], patient_parameters)
-        self.include_reporting_statistics(patient_uid, [], patient_parameters)
+        if patient_parameters:
+            self.include_segmentation_statistics(patient_uid, [], patient_parameters)
+            self.include_reporting_statistics(patient_uid, [], patient_parameters)

@@ -575,7 +575,7 @@ class SingleStudyWidget(QCollapsibleWidget):
 
     def __on_run_pipeline(self) -> None:
         if len(SoftwareConfigResources.getInstance().get_active_study().included_patients_uids) == 0:
-            code = QMessageBox.warning(self, "Empty study.",
+            code = QMessageBox.warning(self, "Empty study warning",
                                        "Populate the study with some patients before running the process.",
                                        QMessageBox.Ok | QMessageBox.Ok)
             if code == QMessageBox.StandardButton.Ok:  # Deletion accepted
@@ -592,7 +592,7 @@ class SingleStudyWidget(QCollapsibleWidget):
                 return
 
             if diag.tumor_type == 'High-Grade Glioma':
-                self.model_name = "MRI_HGGlioma"
+                self.model_name = "MRI_HGGlioma_P2"
             elif diag.tumor_type == 'Low-Grade Glioma':
                 self.model_name = "MRI_LGGlioma"
             elif diag.tumor_type == 'Metastasis':

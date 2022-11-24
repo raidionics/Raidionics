@@ -145,14 +145,14 @@ class CentralAreaExecutionWidget(QLabel):
 
         """
         self.model_name = ""
-        if pipeline_code != "folders_classification":
+        if "Classification" not in pipeline_code:
             diag = TumorTypeSelectionQDialog(self)
             code = diag.exec_()
             if code == 0:  # Operation cancelled
                 return
 
             if diag.tumor_type == 'High-Grade Glioma':
-                self.model_name = "MRI_HGGlioma"
+                self.model_name = "MRI_HGGlioma_P2"
             elif diag.tumor_type == 'Low-Grade Glioma':
                 self.model_name = "MRI_LGGlioma"
             elif diag.tumor_type == 'Metastasis':
