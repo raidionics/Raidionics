@@ -30,6 +30,13 @@ def get_available_cloud_models_list():
 
 
 def download_model(model_name):
+    """
+    @TODO. In case the model could not be downloaded, maybe depending on firewall/security issues (e.g., on Windows),
+    an error message with "Cannot retrieve the public link of the file" will appear. This should be then shown in a
+    QMessageBox to the user, with a message asking to go manually download and place the model where it should,
+    providing the Google Drive link....
+
+    """
     download_state = False
     extract_state = False
     try:

@@ -188,9 +188,7 @@ class StudyPatientListingWidget(QWidget):
         """
         In order to trigger a GUI freeze where necessary.
         """
-        self.processing_started.emit()
         self.patients_refresh_pushbutton.setEnabled(False)
 
     def on_process_finished(self):
-        self.processing_finished.emit()
         self.patients_refresh_pushbutton.setEnabled(True)
