@@ -580,10 +580,14 @@ class TumorCharacteristicsWidget(QWidget):
         # Cortical structures
         self.corticalstructures_collapsiblegroupbox.clear_content_layout()
 
-        # @TODO. Something wrong with those layouts, too large and hiding the numbers if adding a stretch in the middle
-        # Hardcoding a lot now, but will have to be properly fixed.
         for atlas in report_json['Main']['Total']['CorticalStructures']:
             sorted_overlaps = dict(sorted(report_json['Main']['Total']['CorticalStructures'][atlas].items(), key=lambda item: item[1], reverse=True))
+
+            # If there is no overlap with any structure of the atlas, hence nothing to display, we skip to the next.
+            visible_elements = dict((k, v) for k, v in sorted_overlaps.items() if v >= 1.0)
+            if len(visible_elements) == 0:
+                continue
+
             label = QLabel("{} atlas".format(atlas))
             label.setFixedHeight(20)
             label.setStyleSheet("""

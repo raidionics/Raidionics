@@ -17,6 +17,9 @@ from gui2.StudyBatchComponent.StudyBatchWidget import StudyBatchWidget
 from gui2.UtilsWidgets.CustomQDialog.SavePatientChangesDialog import SavePatientChangesDialog
 from gui2.UtilsWidgets.CustomQDialog.SoftwareSettingsDialog import SoftwareSettingsDialog
 from gui2.UtilsWidgets.CustomQDialog.LogsViewerDialog import LogsViewerDialog
+from gui2.UtilsWidgets.CustomQDialog.AboutDialog import AboutDialog
+from gui2.UtilsWidgets.CustomQDialog.ResearchCommunityDialog import ResearchCommunityDialog
+from gui2.UtilsWidgets.CustomQDialog.KeyboardShortcutsDialog import KeyboardShortcutsDialog
 
 
 class WorkerThread(QThread):
@@ -104,6 +107,10 @@ class RaidionicsMainWindow(QMainWindow):
         self.menu_bar = QMenuBar(self)
         self.menu_bar.setNativeMenuBar(False)  # https://stackoverflow.com/questions/25261760/menubar-not-showing-for-simple-qmainwindow-code-qt-creator-mac-os
         self.file_menu = self.menu_bar.addMenu('File')
+        self.save_file_action = QAction(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                           'Images/floppy_disk_icon.png')), 'Save', self)
+        self.save_file_action.setShortcut("Ctrl+S")
+        self.file_menu.addAction(self.save_file_action)
         self.download_example_data_action = QAction(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                                        'Images/download-tray-icon.png')),
                                                     'Download test data', self)
@@ -130,6 +137,11 @@ class RaidionicsMainWindow(QMainWindow):
                                                    "Preferences", self)
         self.settings_preferences_action.setShortcut("Ctrl+P")
         self.settings_menu.addAction(self.settings_preferences_action)
+        self.settings_shortcuts_action = QAction(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                                    'Images/tag-icon.png')),
+                                                 "Keyboard shortcuts", self)
+        self.settings_shortcuts_action.setShortcut("Ctrl+K")
+        self.settings_menu.addAction(self.settings_shortcuts_action)
         self.view_logs_action = QAction(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                            'Images/logs_icon.png')),
                                         "Logs", self)
@@ -138,16 +150,18 @@ class RaidionicsMainWindow(QMainWindow):
 
         self.help_menu = self.menu_bar.addMenu('Help')
         self.community_action = QAction(
-            QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../images/readme-icon.jpeg')), 'Community',
+            QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Images/globe-icon.png')), 'Community',
             self)
         # self.community_action.setShortcut("Ctrl+R")
         self.help_menu.addAction(self.community_action)
         self.about_action = QAction(
-            QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../images/about-icon.png')), 'About', self)
+            QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Images/circle_question_icon.png')),
+            'About', self)
         # self.about_action.setShortcut("Ctrl+A")
         self.help_menu.addAction(self.about_action)
-        self.help_action = QAction(QIcon.fromTheme("help-faq"), "Help",
-                                   self)  # Default icons can be found here: https://specifications.freedesktop.org/icon-naming-spec/icon-naming-spec-latest.html#guidelines
+        self.help_action = QAction(
+            QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Images/help_wavy_question_icon_blue.png')),
+            'Help', self)
         # self.help_action.setShortcut("Ctrl+J")
         self.help_menu.addAction(self.help_action)
 
@@ -174,6 +188,7 @@ class RaidionicsMainWindow(QMainWindow):
 
     def __set_layouts(self):
         self.setMenuBar(self.menu_bar)
+        self.menu_bar.setFixedHeight(30)
         self.main_window_layout = QHBoxLayout()
 
         self.central_label = QLabel()
@@ -189,16 +204,119 @@ class RaidionicsMainWindow(QMainWindow):
         background-color: """ + software_ss["Color2"] + """;
         }""")
 
+        self.menu_bar.setStyleSheet("""
+        QMenuBar{
+        background-color: """ + software_ss["Color2"] + """;
+        color: """ + software_ss["Color7"] + """;
+        font: 15px; 
+        border: solid black;
+        border-width: 0px 0px 1px 0px;
+        border-radius: 1px;
+        }
+        QMenuBar::item{
+        background: transparent;
+        color: """ + software_ss["Color7"] + """;
+        margin-top: 5px;
+        }
+        QMenuBar::item:selected{
+        background: """ + "rgba(0, 120, 230, 1)" + """;
+        color: white;
+        }
+        QMenuBar::item:pressed{
+        background: """ + "rgba(0, 120, 230, 1)" + """;
+        color: white;
+        border-style: inset;
+        }
+        """)
+
+        self.file_menu.setStyleSheet("""
+        QMenu{
+        background-color: """ + software_ss["Color2"] + """;
+        color: """ + software_ss["Color7"] + """;
+        font: 14px; 
+        border: solid black;
+        border-width: 1px;
+        }
+        QMenu::item:selected{
+        background: """ + "rgba(0, 120, 230, 1)" + """;
+        color: white;
+        }
+        QMenu::item:pressed{
+        background: """ + "rgba(0, 120, 230, 1)" + """;
+        color: white;
+        border-style: inset;
+        }
+        """)
+
+        self.mode_menu.setStyleSheet("""
+        QMenu{
+        background-color: """ + software_ss["Color2"] + """;
+        color: """ + software_ss["Color7"] + """;
+        font: 14px; 
+        border: solid black;
+        border-width: 1px;
+        }
+        QMenu::item:selected{
+        background: """ + "rgba(0, 120, 230, 1)" + """;
+        color: white;
+        }
+        QMenu::item:pressed{
+        background: """ + "rgba(0, 120, 230, 1)" + """;
+        color: white;
+        border-style: inset;
+        }
+        """)
+
+        self.settings_menu.setStyleSheet("""
+        QMenu{
+        background-color: """ + software_ss["Color2"] + """;
+        color: """ + software_ss["Color7"] + """;
+        font: 14px; 
+        border: solid black;
+        border-width: 1px;
+        }
+        QMenu::item:selected{
+        background: """ + "rgba(0, 120, 230, 1)" + """;
+        color: white;
+        }
+        QMenu::item:pressed{
+        background: """ + "rgba(0, 120, 230, 1)" + """;
+        color: white;
+        border-style: inset;
+        }
+        """)
+
+        self.help_menu.setStyleSheet("""
+        QMenu{
+        background-color: """ + software_ss["Color2"] + """;
+        color: """ + software_ss["Color7"] + """;
+        font: 14px; 
+        border: solid black;
+        border-width: 1px;
+        }
+        QMenu::item:selected{
+        background: """ + "rgba(0, 120, 230, 1)" + """;
+        color: white;
+        }
+        QMenu::item:pressed{
+        background: """ + "rgba(0, 120, 230, 1)" + """;
+        color: white;
+        border-style: inset;
+        }
+        """)
+
     def __set_connections(self):
         self.__set_menubar_connections()
         self.__set_inner_widget_connections()
         self.__cross_widgets_connections()
 
     def __set_inner_widget_connections(self):
+        self.save_file_action.triggered.connect(self.__on_save_file_triggered)
         self.community_action.triggered.connect(self.__on_community_action_triggered)
         self.about_action.triggered.connect(self.__on_about_action_triggered)
         self.help_action.triggered.connect(self.__on_help_action_triggered)
         self.view_logs_action.triggered.connect(self.__on_view_logs_triggered)
+        self.settings_shortcuts_action.triggered.connect(self.__on_shortcuts_action_triggered)
 
     def __cross_widgets_connections(self):
         self.welcome_widget.left_panel_single_patient_pushbutton.clicked.connect(self.__on_single_patient_clicked)
@@ -208,9 +326,11 @@ class RaidionicsMainWindow(QMainWindow):
         self.welcome_widget.community_clicked.connect(self.__on_community_action_triggered)
         self.welcome_widget.about_clicked.connect(self.__on_about_action_triggered)
         self.welcome_widget.help_clicked.connect(self.__on_help_action_triggered)
+        self.welcome_widget.issues_clicked.connect(self.__on_issues_action_triggered)
 
         # Connections from single mode to study mode.
         self.single_patient_widget.patient_name_edited.connect(self.batch_study_widget.patient_name_edited)
+        self.single_patient_widget.patient_deleted.connect(self.batch_study_widget.patient_deleted)
 
         # Connections from study mode to single mode.
         self.batch_study_widget.mri_volume_imported.connect(self.single_patient_widget.on_mri_volume_imported)
@@ -286,6 +406,7 @@ class RaidionicsMainWindow(QMainWindow):
         else:
             # Should not happen, but what if?
             pass
+
         self.adjustSize()
 
     def __on_study_batch_clicked(self):
@@ -325,57 +446,11 @@ class RaidionicsMainWindow(QMainWindow):
         SoftwareConfigResources.getInstance().set_active_patient(patient_uid=patient_uid)
 
     def __on_community_action_triggered(self):
-        popup = QMessageBox()
-        popup.setWindowTitle('Research community')
-        popup.setText('The data used for training the various segmentation models was gathered from: \n'
-            '* Ole Solheim, Lisa M. Sagberg, Even H. Fyllingen, Sayed Hoseiney; Department of Neurosurgery, St. Olavs hospital, Trondheim University Hospital, Trondheim, Norway\n'
-            '* Asgeir Store Jakola; Department of Neurosurgery, Sahlgrenska University Hospital, Gothenburg, Sweden\n'
-            '* Kyrre Eeg Emblem; Department of Physics and Computational Radiology, Division of Radiology and Nuclear Medicine, Oslo University Hospital, Oslo, Norway\n'
-            '* Philip C. De Witt Hamer, Roelant S. Eijgelaar, Ivar Kommers, Frederik Barkhof, Domenique M.J. Müller; Department of Neurosurgery, Amsterdam University Medical Centers, Vrije Universiteit, Amsterdam, The Netherlands\n'
-            '* Hilko Ardon; Department of Neurosurgery, Twee Steden Hospital, Tilburg, The Netherlands\n'
-            '* Lorenzo Bello, Marco Conti Nibali, Marco Rossi, Tommaso Sciortino; Neurosurgical Oncology Unit, Department of Oncology and Hemato-Oncology, Humanitas Research Hospital, Università Degli Studi di Milano, Milano, Italy\n'
-            '* Mitchel S. Berger, Shawn Hervey-Jumper; Department of Neurological Surgery, University of California San Francisco, San Francisco, USA\n'
-            '* Julia Furtner; Department of Biomedical Imaging and Image-Guided Therapy, Medical University Vienna, Wien, Austria\n'
-            '* Albert J. S. Idema; Department of Neurosurgery, Northwest Clinics, Alkmaar, The Netherlands\n'
-            '* Barbara Kiesel, Georg Widhalm; Department of Neurosurgery, Medical University Vienna, Wien, Austria\n'
-            '* Alfred Kloet; Department of Neurosurgery, Haaglanden Medical Center, The Hague, The Netherlands\n'
-            '* Emmanuel Mandonnet; Department of Neurological Surgery, Hôpital Lariboisière, Paris, France\n'
-            '* Pierre A. Robe; Department of Neurology and Neurosurgery, University Medical Center Utrecht, Utrecht, The Netherlands\n'
-            '* Wimar van den Brink; Department of Neurosurgery, Isala, Zwolle, The Netherlands\n'
-            '* Michiel Wagemakers;  Department of Neurosurgery, University Medical Center Groningen, University of Groningen, Groningen, The Netherlands\n'
-            '* Marnix G. Witte; Department of Radiation Oncology, The Netherlands Cancer Institute, Amsterdam, The Netherlands\n'
-            '* Aeilko H. Zwinderman; Department of Clinical Epidemiology and Biostatistics, Amsterdam University Medical Centers, University of Amsterdam, Amsterdam, The Netherlands\n'
-            '\n\n')
-        popup.setStyleSheet("""
-        QLabel{
-        min-width: 600px;
-        font-size: 14px;
-        color: black;
-        }""")
+        popup = ResearchCommunityDialog(self)
         popup.exec_()
 
     def __on_about_action_triggered(self):
-        popup = QMessageBox()
-        popup.setWindowTitle('About')
-        popup.setText('Raidionics is developed by the Medical Technology group, Health department, SINTEF Digital:\n'
-                        '* David Bouget, contact: david.bouget@sintef.no\n'
-                        '* André Pedersen (deployment and multi-platform support)\n'
-                        '* Demah Alsinan (design)\n'
-                        '* Valeria Gaitan (design)\n'
-                        '* Ingerid Reinertsen (project leader)\n\n'
-                      'For questions about the methodological aspect, please refer to the following published articles:\n'
-                      '* Preoperative brain tumor imaging: models and software for segmentation and standardized reporting (https://www.frontiersin.org/articles/10.3389/fneur.2022.932219/full)\n'
-                      '* Glioblastoma Surgery Imaging–Reporting and Data System: Validation and Performance of the Automated Segmentation Task (https://www.mdpi.com/2072-6694/13/18/4674)\n'
-                      '* Glioblastoma Surgery Imaging—Reporting and Data System: Standardized Reporting of Tumor Volume, Location, and Resectability Based on Automated Segmentations (https://www.mdpi.com/2072-6694/13/12/2854)\n'
-                      '* Meningioma Segmentation in T1-Weighted MRI Leveraging Global Context and Attention Mechanisms (https://www.frontiersin.org/articles/10.3389/fradi.2021.711514/full)\n'
-                      '\n\nCurrent software version: {}'.format(SoftwareConfigResources.getInstance().software_version)
-                      )
-        popup.setStyleSheet("""
-        QLabel{
-        min-width: 600px;
-        font-size: 14px;
-        color: black;
-        }""")
+        popup = AboutDialog()
         popup.exec_()
 
     def __on_help_action_triggered(self) -> None:
@@ -384,12 +459,27 @@ class RaidionicsMainWindow(QMainWindow):
         """
         QDesktopServices.openUrl(QUrl("https://github.com/dbouget/Raidionics/wiki"))
 
+    def __on_issues_action_triggered(self) -> None:
+        QDesktopServices.openUrl(QUrl("https://github.com/dbouget/Raidionics/issues"))
+
     def __on_view_logs_triggered(self):
         """
         @TODO. Should make a custom widget as text edit to see the content of the raidionics log file.
         """
         diag = LogsViewerDialog(self)
         diag.exec_()
+
+    def __on_shortcuts_action_triggered(self):
+        popup = KeyboardShortcutsDialog(self)
+        popup.exec_()
+
+    def __on_save_file_triggered(self):
+        if SoftwareConfigResources.getInstance().get_active_patient_uid() \
+                and SoftwareConfigResources.getInstance().get_active_patient().has_unsaved_changes():
+            SoftwareConfigResources.getInstance().get_active_patient().save_patient()
+        if SoftwareConfigResources.getInstance().get_active_study_uid() \
+                and SoftwareConfigResources.getInstance().get_active_study().has_unsaved_changes():
+            SoftwareConfigResources.getInstance().get_active_study().save()
 
     def __on_download_example_data(self):
         QDesktopServices.openUrl(QUrl("https://drive.google.com/file/d/1GYQPR0RvoriJN6Z1Oq8WzOoDf68htdCs/view?usp=sharing"))

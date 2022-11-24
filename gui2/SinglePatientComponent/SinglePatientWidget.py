@@ -1,7 +1,7 @@
 import logging
 
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QLabel, QPushButton, QSplitter,\
-    QStackedWidget
+    QStackedWidget, QDialog
 from PySide6.QtGui import QIcon, QPixmap
 from PySide6.QtCore import Qt, QSize, Signal
 
@@ -14,12 +14,14 @@ from gui2.SinglePatientComponent.ProcessProgressWidget import ProcessProgressWid
 from gui2.UtilsWidgets.CustomQDialog.ImportDataQDialog import ImportDataQDialog
 from gui2.UtilsWidgets.CustomQDialog.ImportFoldersQDialog import ImportFoldersQDialog
 from gui2.UtilsWidgets.CustomQDialog.ImportDICOMDataQDialog import ImportDICOMDataQDialog
+from gui2.UtilsWidgets.CustomQDialog.VolumeStatisticsDialog import VolumeStatisticsDialog
 
 
 class SinglePatientWidget(QWidget):
     """
 
     """
+    patient_deleted = Signal(str)
     patient_name_edited = Signal(str, str)
     import_data_triggered = Signal()
     import_patient_triggered = Signal()
@@ -71,51 +73,81 @@ class SinglePatientWidget(QWidget):
         self.top_logo_panel_layout = QHBoxLayout()
         self.top_logo_panel_layout.setSpacing(5)
         self.top_logo_panel_layout.setContentsMargins(10, 0, 0, 0)
-        self.top_logo_panel_label_import_file_pushbutton = QPushButton("Data")
-        self.top_logo_panel_label_import_file_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/upload_icon.png'))))
-        self.top_logo_panel_label_import_file_pushbutton.setToolTip("Import single file(s) for the current patient.")
-        self.top_logo_panel_label_import_file_pushbutton.setEnabled(False)
-        # self.top_logo_panel_layout.addWidget(self.top_logo_panel_label_import_file_pushbutton)
 
         self.top_logo_panel_label_import_dicom_pushbutton = QPushButton()
         self.top_logo_panel_label_import_dicom_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                                                              '../Images/database_icon.png')).scaled(QSize(30, 30), Qt.KeepAspectRatio)))
         self.top_logo_panel_label_import_dicom_pushbutton.setToolTip("DICOM explorer")
         self.top_logo_panel_label_import_dicom_pushbutton.setEnabled(False)
-        self.top_logo_panel_layout.addWidget(self.top_logo_panel_label_import_dicom_pushbutton)
+        # self.top_logo_panel_layout.addWidget(self.top_logo_panel_label_import_dicom_pushbutton)
 
-        self.top_logo_panel_label_save_pushbutton = QPushButton("Save")
-        self.top_logo_panel_label_save_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/download_icon_black.png'))))
-        self.top_logo_panel_label_save_pushbutton.setToolTip("Save the latest modifications for the current patient.")
-        self.top_logo_panel_label_save_pushbutton.setEnabled(False)
-        # self.top_logo_panel_layout.addWidget(self.top_logo_panel_label_save_pushbutton)
+        self.top_logo_panel_statistics_pushbutton = QPushButton()
+        self.top_logo_panel_statistics_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/statistics_chartbars_icon.png'))))
+        self.top_logo_panel_statistics_pushbutton.setToolTip("Volumes and annotations statistics display for the active patient")
+        self.top_logo_panel_statistics_pushbutton.setEnabled(False)
+        self.top_logo_panel_layout.addWidget(self.top_logo_panel_statistics_pushbutton)
 
         self.top_logo_panel_layout.addStretch(1)
 
         self.top_logo_panel_label = QLabel()
         self.top_logo_panel_label.setPixmap(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                                                 '../Images/raidionics-logo.png')).scaled(150, 30, Qt.KeepAspectRatio))
-        self.top_logo_panel_layout.addWidget(self.top_logo_panel_label, Qt.AlignLeft)
+                                                                 '../Images/raidionics-icon.png')).scaled(30, 30, Qt.KeepAspectRatio))
+        self.top_logo_panel_layout.addWidget(self.top_logo_panel_label, Qt.AlignRight)
 
     def __set_layout_dimensions(self):
         ################################## LOGO PANEL ######################################
-        self.top_logo_panel_label.setFixedSize(QSize(150, 30))
-        self.top_logo_panel_label_import_file_pushbutton.setFixedSize(QSize(70, 20))
-        self.top_logo_panel_label_import_file_pushbutton.setIconSize(QSize(30, 30))
+        self.top_logo_panel_label.setFixedSize(QSize(30, 30))
         self.top_logo_panel_label_import_dicom_pushbutton.setFixedSize(QSize(30, 30))
-        self.top_logo_panel_label_save_pushbutton.setFixedSize(QSize(70, 20))
-        self.top_logo_panel_label_save_pushbutton.setIconSize(QSize(30, 30))
+        self.top_logo_panel_statistics_pushbutton.setFixedSize(QSize(30, 30))
 
         ################################## RIGHT PANEL ######################################
         self.right_panel_stackedwidget.setFixedWidth((315 / SoftwareConfigResources.getInstance().get_optimal_dimensions().width()) * self.parent.baseSize().width())
 
     def __set_stylesheets(self):
-        self.setStyleSheet("QWidget{font:11px;}")
+        software_ss = SoftwareConfigResources.getInstance().stylesheet_components
+        font_color = software_ss["Color7"]
+        background_color = software_ss["Color2"]
+        pressed_background_color = software_ss["Color6"]
+
+        self.setStyleSheet("""
+        QWidget{
+        font:11px;
+        background-color: """ + background_color + """;
+        }""")
+
+        self.top_logo_panel_label_import_dicom_pushbutton.setStyleSheet("""
+        QPushButton{
+        background-color: """ + background_color + """;
+        border-style: none;
+        }
+        QPushButton::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        }
+        QPushButton:pressed{
+        border-style:inset;
+        background-color: """ + pressed_background_color + """;
+        }""")
+
+        self.top_logo_panel_statistics_pushbutton.setStyleSheet("""
+        QPushButton{
+        background-color: """ + background_color + """;
+        border-style: none;
+        }
+        QPushButton::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        }
+        QPushButton:pressed{
+        border-style:inset;
+        background-color: """ + pressed_background_color + """;
+        }""")
 
     def __set_connections(self):
-        self.top_logo_panel_label_import_file_pushbutton.clicked.connect(self.__on_import_file_clicked)
         self.top_logo_panel_label_import_dicom_pushbutton.clicked.connect(self.__on_import_dicom_clicked)
-        self.top_logo_panel_label_save_pushbutton.clicked.connect(self.__on_save_clicked)
+        self.top_logo_panel_statistics_pushbutton.clicked.connect(self.__on_show_statistics_clicked)
         self.results_panel.patient_selected.connect(self.__on_patient_selected)
         self.__set_cross_connections()
 
@@ -129,6 +161,7 @@ class SinglePatientWidget(QWidget):
         self.import_dicom_dialog.patient_imported.connect(self.results_panel.on_import_patient)
         self.import_dicom_dialog.mri_volume_imported.connect(self.layers_panel.on_mri_volume_import)
         self.layers_panel.import_data_requested.connect(self.__on_import_file_clicked)
+        self.layers_panel.import_dicom_requested.connect(self.__on_import_dicom_clicked)
 
         # Connections relating patient selection (left-hand side) with data import
         self.results_panel.import_patient_from_data_requested.connect(self.__on_import_file_clicked)
@@ -145,6 +178,7 @@ class SinglePatientWidget(QWidget):
 
         # Connections between the patient results panel (left-hand) and the study/batch mode
         self.results_panel.patient_name_edited.connect(self.patient_name_edited)
+        self.results_panel.patient_deleted.connect(self.patient_deleted)
 
         # Connections related to data display (from right-hand panel to update the central viewer)
         self.layers_panel.reset_central_viewer.connect(self.center_panel.reset_central_viewer)
@@ -163,6 +197,7 @@ class SinglePatientWidget(QWidget):
         self.center_panel.process_finished.connect(self.on_process_finished)
         self.center_panel.process_started.connect(self.process_progress_panel.on_process_started)
         self.center_panel.process_finished.connect(self.process_progress_panel.on_process_finished)
+        self.center_panel.process_finished.connect(self.layers_panel.on_process_finished)
         self.center_panel.standardized_report_imported.connect(self.results_panel.on_standardized_report_imported)
         self.center_panel.radiological_sequences_imported.connect(self.layers_panel.radiological_sequences_imported)
         self.center_panel.annotation_display_state_changed.connect(self.layers_panel.annotation_display_state_changed)
@@ -196,23 +231,22 @@ class SinglePatientWidget(QWidget):
     def __on_import_custom_clicked(self) -> None:
         self.import_data_dialog.reset()
         self.import_data_dialog.set_parsing_filter("patient")
-        # self.import_data_dialog.setModal(True)
-        # self.import_data_dialog.show()
         code = self.import_data_dialog.exec_()
-        # if code == QDialog.Accepted:
-        #     self.import_data_triggered.emit()
+        if code == QDialog.Accepted:
+            self.top_logo_panel_label_import_dicom_pushbutton.setEnabled(True)
+            self.top_logo_panel_statistics_pushbutton.setEnabled(True)
 
     def __on_import_dicom_clicked(self) -> None:
         """
         The dialog is executed and tables are populated to show the current patient.
         """
-        # self.import_dicom_dialog.reset()
         patient_dicom_id = SoftwareConfigResources.getInstance().get_active_patient().get_dicom_id()
         if patient_dicom_id:
             self.import_dicom_dialog.set_fixed_patient(patient_dicom_id)
         code = self.import_dicom_dialog.exec_()
-        # if code == QDialog.Accepted:
-        #     self.import_data_triggered.emit()
+        if code == QDialog.Accepted:
+            self.top_logo_panel_label_import_dicom_pushbutton.setEnabled(True)
+            self.top_logo_panel_statistics_pushbutton.setEnabled(True)
 
     def __on_import_patient_dicom_clicked(self) -> None:
         """
@@ -227,16 +261,19 @@ class SinglePatientWidget(QWidget):
         self.import_folder_dialog.set_parsing_mode("single")
         self.import_folder_dialog.set_target_type("regular")
         code = self.import_folder_dialog.exec_()
+        if code == QDialog.Accepted:
+            self.top_logo_panel_label_import_dicom_pushbutton.setEnabled(True)
+            self.top_logo_panel_statistics_pushbutton.setEnabled(True)
 
-    def __on_save_clicked(self):
-        SoftwareConfigResources.getInstance().patients_parameters[SoftwareConfigResources.getInstance().active_patient_name].save_patient()
+    def __on_show_statistics_clicked(self):
+        diag = VolumeStatisticsDialog(self)
+        diag.exec_()
 
     def __on_patient_selected(self, patient_uid):
         # @TODO. Quick dirty hack, should not have to set the flag everytime a patient is selected, but only once.
         # To be fixed.
-        self.top_logo_panel_label_import_file_pushbutton.setEnabled(True)
         self.top_logo_panel_label_import_dicom_pushbutton.setEnabled(True)
-        self.top_logo_panel_label_save_pushbutton.setEnabled(True)
+        self.top_logo_panel_statistics_pushbutton.setEnabled(True)
 
     def on_patient_selected(self, patient_name):
         self.results_panel.on_external_patient_selection(patient_name)

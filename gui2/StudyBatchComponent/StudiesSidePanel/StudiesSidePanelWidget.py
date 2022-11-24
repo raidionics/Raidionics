@@ -63,8 +63,8 @@ class StudiesSidePanelWidget(QWidget):
         self.options_menu.addAction(self.add_existing_study_action)
         self.options_menu.addSeparator()
 
-        self.layout.addWidget(self.study_list_scrollarea)
         self.layout.addLayout(self.bottom_layout)
+        self.layout.addWidget(self.study_list_scrollarea)
 
     def __set_layout_dimensions(self):
         self.study_list_scrollarea.setBaseSize(QSize(self.width(), 300))
@@ -82,20 +82,23 @@ class StudiesSidePanelWidget(QWidget):
 
     def __set_stylesheets(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
+        font_color = software_ss["Color7"]
+        background_color = software_ss["Color2"]
+        pressed_background_color = software_ss["Color6"]
 
         self.study_list_scrollarea.setStyleSheet("""
         QScrollArea{
-        background-color: """ + software_ss["Color2"] + """;
+        background-color: """ + background_color + """;
         }""")
 
         self.bottom_add_study_pushbutton.setStyleSheet("""
         QPushButton{
-        background-color: """ + software_ss["Color1"] + """;
+        background-color: """ + "rgba(73, 99, 171, 1)" + """;
         color: """ + software_ss["Color2"] + """;
         font-size: 16px;
         }
         QPushButton:pressed{
-        background-color: rgba(50, 50, 50, 1);
+        background-color: rgba(81, 101, 153, 1);
         border-style:inset;
         }""")
 
@@ -103,15 +106,15 @@ class StudiesSidePanelWidget(QWidget):
         # https://stackoverflow.com/questions/47082375/how-to-set-hover-on-qmenu
         self.options_menu.setStyleSheet("""
         QMenu{
-        background-color: """ + software_ss["Color1"] + """;
-        color: """ + software_ss["Color2"] + """;
+        background-color: """ + "rgba(73, 99, 171, 1)" + """;
+        color: """ + background_color + """;
         font-size: 16px;
         }
         QMenu:selected{
-        background-color: rgba(50, 50, 50, 1);
+        background-color: rgba(56, 69, 105, 1);
         }
         QMenu:pressed{
-        background-color: rgba(50, 50, 50, 1);
+        background-color: rgba(56, 69, 105, 1);
         border-style:inset;
         }""")
 
@@ -245,7 +248,14 @@ class StudiesSidePanelWidget(QWidget):
         """
         The position is hard-coded to get the correct alignment.
         """
-        self.options_menu.exec_(self.bottom_add_study_pushbutton.mapToGlobal(QPoint(0, -15)))
+        ## Bottom position
+        # if os.name == 'nt':
+        #     self.options_menu.exec_(self.bottom_add_study_pushbutton.mapToGlobal(QPoint(0, -18)))
+        # else:
+        #     self.options_menu.exec_(self.bottom_add_study_pushbutton.mapToGlobal(QPoint(0, -15)))
+
+        # Top position
+        self.options_menu.exec_(self.bottom_add_study_pushbutton.mapToGlobal(QPoint(0, 0)))
 
     def on_add_existing_study_requested(self):
         if SoftwareConfigResources.getInstance().active_study_name and\

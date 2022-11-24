@@ -1,6 +1,8 @@
+import os
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QScrollArea, QLabel, QSpacerItem,\
-    QGridLayout
+    QGridLayout, QPushButton
 from PySide6.QtCore import QSize, Qt, Signal
+from PySide6.QtGui import QIcon
 from gui2.StudyBatchComponent.PatientsListingPanel.PatientListingWidgetItem import PatientListingWidgetItem
 from utils.software_config import SoftwareConfigResources
 
@@ -10,6 +12,8 @@ class StudyPatientListingWidget(QWidget):
 
     """
     patient_selected = Signal(str)
+    patient_removed = Signal(str)
+    patient_refresh_triggered = Signal(str)
 
     def __init__(self, parent=None):
         super(StudyPatientListingWidget, self).__init__()
@@ -45,24 +49,36 @@ class StudyPatientListingWidget(QWidget):
         self.header_layout = QHBoxLayout()
         self.header_label = QLabel("Included patients")
         self.header_label.setAlignment(Qt.AlignCenter)
-        # self.header_layout.addStretch(1)
+        self.header_layout.addStretch(1)
         self.header_layout.addWidget(self.header_label)
-        # self.header_layout.addStretch(1)
+        self.header_layout.addStretch(1)
+        self.patients_refresh_pushbutton = QPushButton()
+        self.patients_refresh_pushbutton.setIcon(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                                    '../../Images/restart_counterclockwise_icon.png')))
+        self.patients_refresh_pushbutton.setToolTip("To refresh the summary and statistics for all patients.")
+        self.patients_refresh_pushbutton.setEnabled(False)
+        self.header_layout.addWidget(self.patients_refresh_pushbutton)
         self.patients_list_scrollarea_layout.insertLayout(self.patients_list_scrollarea_layout.count() - 1,
                                                           self.header_layout)
+        self.header_separating_line_label = QLabel()
+        self.patients_list_scrollarea_layout.insertWidget(self.patients_list_scrollarea_layout.count() - 1,
+                                                          self.header_separating_line_label)
 
     def __set_layout_dimensions(self):
         self.patients_list_scrollarea.setBaseSize(QSize(self.width(), 300))
         self.header_label.setFixedHeight(30)
+        self.header_separating_line_label.setFixedHeight(2)
+        self.patients_refresh_pushbutton.setIconSize(QSize(25, 25))
+        self.patients_refresh_pushbutton.setFixedSize(QSize(30, 30))
 
     def __set_connections(self):
-        pass
+        self.patients_refresh_pushbutton.clicked.connect(self.__on_all_patients_refresh_clicked)
 
     def __set_stylesheets(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
         font_color = software_ss["Color7"]
         font_style = 'normal'
-        background_color = software_ss["Color5"]
+        background_color = software_ss["Color2"]
         pressed_background_color = software_ss["Color6"]
 
         self.setStyleSheet("""
@@ -72,13 +88,42 @@ class StudyPatientListingWidget(QWidget):
 
         self.header_label.setStyleSheet("""
         QLabel{
+        color: """ + font_color + """;
         font-size: 16px;
         font-style: bold;
-        border: 2px;
+        border: 0px;
         border-style: solid;
         border-color: """ + background_color + """ """ + background_color + """ black """ + background_color + """;
+        border-radius: 0px;
+        }""")
+
+        self.patients_refresh_pushbutton.setStyleSheet("""
+        QPushButton{
+        background-color: """ + background_color + """;
+        color: """ + font_color + """;
+        font: 12px;
+        border-style: none;
+        }
+        QPushButton::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        }
+        QPushButton:pressed{
+        border-style:inset;
+        background-color: """ + pressed_background_color + """;
+        }""")
+
+        self.header_separating_line_label.setStyleSheet("""
+        QLabel{
+        border: 2px solid black;
         border-radius: 2px;
         }""")
+
+    def __on_all_patients_refresh_clicked(self):
+        all_patients_uids = list(SoftwareConfigResources.getInstance().get_active_study().included_patients_uids.keys())
+        for uid in all_patients_uids:
+            self.patient_refresh_triggered.emit(uid)
 
     def adjustSize(self) -> None:
         items = (self.patients_list_scrollarea_layout.itemAt(i) for i in range(self.patients_list_scrollarea_layout.count()))
@@ -109,6 +154,7 @@ class StudyPatientListingWidget(QWidget):
         self.patients_list_scrollarea_layout.insertWidget(self.patients_list_scrollarea_layout.count() - 1, wid)
         wid.patient_selected.connect(self.patient_selected)
         wid.patient_removed.connect(self.on_patient_removed)
+        wid.patient_refresh_triggered.connect(self.patient_refresh_triggered)
         self.adjustSize()
         self.repaint()
 
@@ -125,8 +171,26 @@ class StudyPatientListingWidget(QWidget):
         del self.study_patient_widgetitems[patient_uid]
         self.adjustSize()
         self.repaint()
+        SoftwareConfigResources.getInstance().get_active_study().refresh_patient_statistics(patient_uid, None)
+        self.patient_removed.emit(patient_uid)
+
+        if len(self.study_patient_widgetitems) == 0:
+            self.patients_refresh_pushbutton.setEnabled(False)
 
     def on_study_imported(self, study_uid):
         included_patient_uids = SoftwareConfigResources.getInstance().get_study(study_uid).included_patients_uids
         for pid in included_patient_uids:
             self.on_patient_imported(pid)
+
+        self.patients_refresh_pushbutton.setEnabled(True)
+
+    def on_process_started(self) -> None:
+        """
+        In order to trigger a GUI freeze where necessary.
+        """
+        self.processing_started.emit()
+        self.patients_refresh_pushbutton.setEnabled(False)
+
+    def on_process_finished(self):
+        self.processing_finished.emit()
+        self.patients_refresh_pushbutton.setEnabled(True)

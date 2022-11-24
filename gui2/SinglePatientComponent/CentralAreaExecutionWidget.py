@@ -47,13 +47,16 @@ class CentralAreaExecutionWidget(QLabel):
 
         self.run_segmentation_pushbutton = QPushButton("Run segmentation")
         self.run_segmentation_pushbutton.setFixedSize(QSize(175, 25))
-        self.arrow_icon = QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/filled_arrow_right.png')))
+        self.run_segmentation_pushbutton.setToolTip("On preoperative data (i.e. T0)")
+        self.arrow_icon = QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                     '../Images/play_icon.png')))
         self.run_segmentation_pushbutton.setIcon(self.arrow_icon)
-        self.run_segmentation_pushbutton.setIconSize(QSize(40, 15))
+        self.run_segmentation_pushbutton.setIconSize(QSize(25, 25))
         self.run_reporting_pushbutton = QPushButton("Run reporting")
         self.run_reporting_pushbutton.setFixedSize(QSize(175, 25))
         self.run_reporting_pushbutton.setIcon(self.arrow_icon)
-        self.run_reporting_pushbutton.setIconSize(QSize(40, 15))
+        self.run_reporting_pushbutton.setIconSize(QSize(25, 25))
+        self.run_reporting_pushbutton.setToolTip("On preoperative data (i.e. T0)")
         self.run_segmentation_pushbutton.setEnabled(False)
         self.run_reporting_pushbutton.setEnabled(False)
         self.base_layout.addStretch(1)
@@ -65,13 +68,49 @@ class CentralAreaExecutionWidget(QLabel):
         self.setMinimumHeight(40)
 
     def __set_stylesheets(self):
-        self.setStyleSheet("QLabel{background-color: rgb(0,0,0);}")
-        self.run_segmentation_pushbutton.setStyleSheet("QPushButton{color:rgb(0, 0, 0); background-color: rgb(255, 255, 255); border-radius:10px;margin-left:5px;margin-right:5px;font:bold}"
-                                                      "QPushButton:pressed{background-color: rgb(235, 235, 235);border-style:inset}"
-                                                       "QPushButton:disabled{color: rgb(127, 127, 127);}")
-        self.run_reporting_pushbutton.setStyleSheet("QPushButton{color:rgb(0, 0, 0); background-color: rgb(255, 255, 255); border-radius:10px;margin-left:5px;margin-right:5px;font:bold}"
-                                                      "QPushButton:pressed{background-color: rgb(235, 235, 235);border-style:inset}"
-                                                       "QPushButton:disabled{color: rgb(127, 127, 127);}")
+        software_ss = SoftwareConfigResources.getInstance().stylesheet_components
+        font_color = software_ss["Color7"]
+
+        self.setStyleSheet("""
+        QLabel{
+        background-color: rgb(0,0,0);}
+        """)
+
+        self.run_segmentation_pushbutton.setStyleSheet("""
+        QPushButton{
+        color:rgb(0, 0, 0);
+        background-color: """ + software_ss["Process"] + """;
+        border-radius:10px;
+        margin-left:5px;
+        margin-right:5px;
+        font:bold;
+        font-size: 14px;
+        }
+        QPushButton:pressed{
+        background-color: """ + software_ss["Process_pressed"] + """;
+        border-style:inset
+        }
+        QPushButton:disabled{
+        color: rgb(127, 127, 127);
+        }""")
+
+        self.run_reporting_pushbutton.setStyleSheet("""
+        QPushButton{
+        color:rgb(0, 0, 0);
+        background-color: """ + software_ss["Process"] + """;
+        border-radius:10px;
+        margin-left:5px;
+        margin-right:5px;
+        font:bold;
+        font-size: 14px;
+        }
+        QPushButton:pressed{
+        background-color: """ + software_ss["Process_pressed"] + """;
+        border-style:inset
+        }
+        QPushButton:disabled{
+        color: rgb(127, 127, 127);
+        }""")
 
     def __set_connections(self):
         self.__set_inner_connections()
@@ -106,7 +145,7 @@ class CentralAreaExecutionWidget(QLabel):
 
         """
         self.model_name = ""
-        if pipeline_code != "folders_classification":
+        if "Classification" not in pipeline_code:
             diag = TumorTypeSelectionQDialog(self)
             code = diag.exec_()
             if code == 0:  # Operation cancelled

@@ -7,7 +7,7 @@ import threading
 from utils.software_config import SoftwareConfigResources
 from gui2.StudyBatchComponent.StudiesSidePanel.StudiesSidePanelWidget import StudiesSidePanelWidget
 from gui2.StudyBatchComponent.PatientsListingPanel.StudyPatientListingWidget import StudyPatientListingWidget
-from gui2.StudyBatchComponent.PatientsSummaryPanel.StudyPatientsContentSummaryPanelWidget import StudyPatientsContentSummaryPanelWidget
+from gui2.StudyBatchComponent.PatientsSummaryPanel.StudyPatientsSummaryPanelWidget import StudyPatientsSummaryPanelWidget
 from gui2.UtilsWidgets.CustomQDialog.ImportDataQDialog import ImportDataQDialog
 from gui2.UtilsWidgets.CustomQDialog.ImportFoldersQDialog import ImportFoldersQDialog
 from gui2.UtilsWidgets.CustomQDialog.ImportDICOMDataQDialog import ImportDICOMDataQDialog
@@ -21,8 +21,10 @@ class StudyBatchWidget(QWidget):
     @TODO2. Should disable the menu option to go from single mode to batch mode, to force the user to click on a patient
     from the list, which will trigger the active patient update properly.
     """
+    patient_deleted = Signal(str)
     patient_imported = Signal(str)
     patient_selected = Signal(str)
+    patient_refreshed = Signal(str)
     patient_name_edited = Signal(str, str)
     mri_volume_imported = Signal(str)
     annotation_volume_imported = Signal(str)
@@ -54,17 +56,15 @@ class StudyBatchWidget(QWidget):
 
     def __set_interface(self):
         self.__top_logo_options_panel_interface()
-        self.right_panel_stackedwidget = QStackedWidget()
         self.center_panel_layout = QHBoxLayout()
         self.center_panel_layout.setSpacing(0)
         self.center_panel_layout.setContentsMargins(0, 0, 0, 0)
         self.studies_panel = StudiesSidePanelWidget(self)
         self.patient_listing_panel = StudyPatientListingWidget(self)
-        self.patients_summary_panel = StudyPatientsContentSummaryPanelWidget(self)
-        self.right_panel_stackedwidget.insertWidget(0, self.patients_summary_panel)
+        self.patients_summary_panel = StudyPatientsSummaryPanelWidget(self)
         self.center_panel_layout.addWidget(self.studies_panel)
         self.center_panel_layout.addWidget(self.patient_listing_panel)
-        self.center_panel_layout.addWidget(self.right_panel_stackedwidget)
+        self.center_panel_layout.addWidget(self.patients_summary_panel)
 
         self.layout = QVBoxLayout(self)
         self.layout.setSpacing(0)
@@ -75,37 +75,29 @@ class StudyBatchWidget(QWidget):
     def __top_logo_options_panel_interface(self):
         self.top_logo_panel_layout = QHBoxLayout()
         self.top_logo_panel_layout.setSpacing(5)
-        self.top_logo_panel_label_import_file_pushbutton = QPushButton("Data")
-        self.top_logo_panel_label_import_file_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/upload_icon.png'))))
-        # self.top_logo_panel_layout.addWidget(self.top_logo_panel_label_import_file_pushbutton)
-
-        self.top_logo_panel_label_import_dicom_pushbutton = QPushButton("DICOM")
-        self.top_logo_panel_label_import_dicom_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/upload_icon.png'))))
-        # self.top_logo_panel_layout.addWidget(self.top_logo_panel_label_import_dicom_pushbutton)
-
-        self.top_logo_panel_label_save_pushbutton = QPushButton("Save")
-        self.top_logo_panel_label_save_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/download_icon_black.png'))))
-        # self.top_logo_panel_layout.addWidget(self.top_logo_panel_label_save_pushbutton)
-
-        self.top_logo_panel_layout.addStretch(1)
 
         self.top_logo_panel_label = QLabel()
         self.top_logo_panel_label.setPixmap(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                                                 '../Images/raidionics-logo.png')).scaled(150, 30, Qt.KeepAspectRatio))
-        self.top_logo_panel_layout.addWidget(self.top_logo_panel_label, Qt.AlignLeft)
+                                                                 '../Images/raidionics-icon.png')).scaled(30, 30, Qt.KeepAspectRatio))
+        self.top_logo_panel_layout.addStretch(1)
+        self.top_logo_panel_layout.addWidget(self.top_logo_panel_label, Qt.AlignRight)
 
     def __set_layout_dimensions(self):
         ################################## LOGO PANEL ######################################
-        self.top_logo_panel_label.setFixedSize(QSize(150, 30))
-        self.top_logo_panel_label_import_file_pushbutton.setFixedSize(QSize(70, 20))
-        self.top_logo_panel_label_import_file_pushbutton.setIconSize(QSize(30, 30))
-        self.top_logo_panel_label_import_dicom_pushbutton.setFixedSize(QSize(70, 20))
-        self.top_logo_panel_label_import_dicom_pushbutton.setIconSize(QSize(30, 30))
-        self.top_logo_panel_label_save_pushbutton.setFixedSize(QSize(70, 20))
-        self.top_logo_panel_label_save_pushbutton.setIconSize(QSize(30, 30))
+        self.top_logo_panel_label.setFixedSize(QSize(30, 30))
 
     def __set_stylesheets(self):
-        self.setStyleSheet("QWidget{font:11px;}")
+        software_ss = SoftwareConfigResources.getInstance().stylesheet_components
+        font_color = software_ss["Color7"]
+        background_color = software_ss["Color2"]
+        pressed_background_color = software_ss["Color6"]
+
+        self.setStyleSheet("""
+        QWidget{
+        font:11px;
+        background-color: """ + background_color + """;
+        }""")
+
 
     def __set_connections(self):
         self.__set_cross_connections()
@@ -117,16 +109,24 @@ class StudyBatchWidget(QWidget):
         self.studies_panel.import_study_from_file_requested.connect(self.__on_import_custom_clicked)
         self.studies_panel.patient_imported.connect(self.patient_listing_panel.on_patient_imported)
         self.studies_panel.batch_pipeline_execution_requested.connect(self.on_batch_pipeline_execution_wrapper)
-        self.studies_panel.patients_import_finished.connect(self.patients_summary_panel.on_patients_import)
+        self.studies_panel.patients_import_finished.connect(self.patients_summary_panel.patients_imported)
         self.study_imported.connect(self.studies_panel.on_study_imported)
 
         self.patient_listing_panel.patient_selected.connect(self.patient_selected)
+        self.studies_panel.import_study_from_file_requested.connect(self.patients_summary_panel.patients_imported)
+        self.patient_listing_panel.patient_removed.connect(self.patients_summary_panel.on_patient_removed)
+        self.patient_listing_panel.patient_refresh_triggered.connect(self.on_patient_refresh_triggered)
         self.study_imported.connect(self.patient_listing_panel.on_study_imported)
 
         self.patient_name_edited.connect(self.patient_listing_panel.on_patient_name_edited)
+        self.patient_deleted.connect(self.patient_listing_panel.on_patient_removed)
+        self.patient_refreshed.connect(self.patients_summary_panel.on_patient_refreshed)
 
         self.processing_advanced.connect(self.studies_panel.on_processing_advanced)
         self.processing_finished.connect(self.studies_panel.on_processing_finished)
+        self.processing_finished.connect(self.patients_summary_panel.on_processing_finished)
+        self.processing_started.connect(self.patient_listing_panel.on_process_started)
+        self.processing_finished.connect(self.patient_listing_panel.on_process_finished)
 
         self.import_data_dialog.study_imported.connect(self.on_study_imported)
 
@@ -141,7 +141,6 @@ class StudyBatchWidget(QWidget):
 
     def on_process_finished(self):
         self.processing_finished.emit()
-        self.patients_summary_panel.postprocessing_update()
 
     def __on_import_custom_clicked(self) -> None:
         self.import_data_dialog.reset()
@@ -175,12 +174,21 @@ class StudyBatchWidget(QWidget):
             if 'Report' in list(results.keys()):
                 for r in results['Report']:
                     self.patient_report_imported.emit(u, r)
+                study.include_reporting_statistics(patient_uid=u, reporting_uids=results["Report"],
+                                                   patient_parameters=SoftwareConfigResources.getInstance().patients_parameters[u])
             if 'Classification' in list(results.keys()):
                 # @TODO. Will have to be more generic when more than one classifier.
                 # @TODO2. Not connected all the way.
                 self.patient_radiological_sequences_imported.emit(u)
-
+            if 'Annotation' in list(results.keys()):
+                study.include_segmentation_statistics(patient_uid=u, annotation_uids=results["Annotation"],
+                                                      patient_parameters=SoftwareConfigResources.getInstance().patients_parameters[u])
             # Automatically saving the patient (with the latest results) for an easier loading afterwards.
             SoftwareConfigResources.getInstance().patients_parameters[u].save_patient()
             self.processing_advanced.emit()
         self.on_process_finished()
+
+    def on_patient_refresh_triggered(self, patient_uid: str) -> None:
+        SoftwareConfigResources.getInstance().get_active_study().refresh_patient_statistics(patient_uid,
+                                                                                            SoftwareConfigResources.getInstance().get_patient(patient_uid))
+        self.patient_refreshed.emit(patient_uid)

@@ -107,10 +107,10 @@ class SingleStudyWidget(QCollapsibleWidget):
                                                                                                                                          Qt.KeepAspectRatio)))
         self.include_single_dicom_patient_folder_pushbutton.setToolTip("For inclusion of a (few) patients, each from"
                                                                        " a raw DICOM folder")
-
         self.single_patient_inclusion_layout.addWidget(self.include_single_patient_label)
         self.single_patient_inclusion_layout.addWidget(self.include_single_patient_folder_pushbutton)
         self.single_patient_inclusion_layout.addWidget(self.include_single_dicom_patient_folder_pushbutton)
+        # @TODO. Should also have a button for including single/multiple Raidionics patient!
         self.single_patient_inclusion_layout.addStretch(1)
         self.patient_inclusion_layout.addLayout(self.single_patient_inclusion_layout)
 
@@ -150,7 +150,8 @@ class SingleStudyWidget(QCollapsibleWidget):
         self.batch_processing_layout.setSpacing(5)
         self.batch_processing_layout.setContentsMargins(0, 0, 0, 0)
         self.batch_processing_combobox = QComboBox()
-        self.batch_processing_combobox.addItems(["folders_classification", "preop_segmentation", "preop_reporting"])
+        self.batch_processing_combobox.addItems(["folders_classification", "preop_segmentation", "preop_reporting",
+                                                 "postop_segmentation", "postop_reporting"])
         self.batch_processing_run_pushbutton = QPushButton()
         self.batch_processing_run_pushbutton.setToolTip("Execute the selected process.")
         self.batch_processing_run_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)),
@@ -327,7 +328,8 @@ class SingleStudyWidget(QCollapsibleWidget):
         color: """ + software_ss["Color7"] + """;
         font:normal;
         font-size:15px;
-        }""")
+        }
+        """)
 
         self.include_single_patient_folder_pushbutton.setStyleSheet("""
         QPushButton{
@@ -440,7 +442,8 @@ class SingleStudyWidget(QCollapsibleWidget):
         border-bottom-right-radius: 1px;
         }
         QComboBox::down-arrow{
-        image: url(""" + os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../Images/combobox-arrow-icon-10x7.png') + """)
+        image: url(""" + os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                      '../../Images/combobox-arrow-icon-10x7.png') + """)
         }
         QComboBox::hover{
         border-style: solid;
@@ -451,7 +454,7 @@ class SingleStudyWidget(QCollapsibleWidget):
 
         self.batch_processing_run_pushbutton.setStyleSheet("""
         QPushButton{
-        background-color: """ + background_color + """;
+        background-color: """ + software_ss["Process"] + """;
         color: """ + font_color + """;
         font: 12px;
         border-style: none;
@@ -463,7 +466,7 @@ class SingleStudyWidget(QCollapsibleWidget):
         }
         QPushButton:pressed{
         border-style:inset;
-        background-color: """ + pressed_background_color + """;
+        background-color: """ + software_ss["Process_pressed"] + """;
         }""")
 
     def adjustSize(self):
@@ -536,6 +539,7 @@ class SingleStudyWidget(QCollapsibleWidget):
         """
         self.import_data_dialog.reset()
         self.import_data_dialog.set_parsing_mode('single')
+        self.import_data_dialog.set_target_type('regular')
         code = self.import_data_dialog.exec_()
         if code == QDialog.Accepted:
             self.patients_import_finished.emit()
@@ -543,6 +547,7 @@ class SingleStudyWidget(QCollapsibleWidget):
     def __on_include_multiple_patients_folder_clicked(self):
         self.import_data_dialog.reset()
         self.import_data_dialog.set_parsing_mode('multiple')
+        self.import_data_dialog.set_target_type('regular')
         code = self.import_data_dialog.exec_()
         if code == QDialog.Accepted:
             self.patients_import_finished.emit()
@@ -570,7 +575,7 @@ class SingleStudyWidget(QCollapsibleWidget):
 
     def __on_run_pipeline(self) -> None:
         if len(SoftwareConfigResources.getInstance().get_active_study().included_patients_uids) == 0:
-            code = QMessageBox.warning(self, "Empty study.",
+            code = QMessageBox.warning(self, "Empty study warning",
                                        "Populate the study with some patients before running the process.",
                                        QMessageBox.Ok | QMessageBox.Ok)
             if code == QMessageBox.StandardButton.Ok:  # Deletion accepted

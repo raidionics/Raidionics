@@ -81,7 +81,8 @@ def run_pipeline(task: str, model_name: str, patient_parameters: PatientParamete
 
         # Generating a temporary folder containing only the mandatory elements for the pipeline to run, rather than
         # linking the raw patient folder.
-        surrogate_folder_path = generate_surrogate_folder(patient_parameters, patient_parameters.output_folder)
+        surrogate_folder_path = generate_surrogate_folder(patient_parameters, patient_parameters.output_folder,
+                                                          task)
 
         if SoftwareConfigResources.getInstance().user_preferences.use_manual_sequences:
             generate_sequences_file(patient_parameters, surrogate_folder_path)
@@ -202,11 +203,13 @@ def generate_sequences_file(patient_parameters: PatientParameters, output_folder
     df.to_csv(sequences_filename, index=False)
 
 
-def generate_surrogate_folder(patient_parameters: PatientParameters, output_folder: str) -> str:
+def generate_surrogate_folder(patient_parameters: PatientParameters, output_folder: str, pipeline_task: str) -> str:
     """
     Generating a temporary input folder for the backend, containing only the necessary files.
     When manual annotations exist, the choice is left to the user to ship them to the backend for re-use, or to
     generate them from scratch (through the Settings > Preferences panel).
+    @Behaviour. For segmentation tasks, should it compute an automatic annotation even when a manual one has already
+    been loaded?
 
     Parameters
     ----------
@@ -214,6 +217,8 @@ def generate_surrogate_folder(patient_parameters: PatientParameters, output_fold
         Internal patient parameters structure which will be parsed to save on disk only the necessary files.
     output_folder: str
         Destination path where the surrogate folder should be stored.
+    pipeline_task: str
+        Tag describing the pipeline process, necessary to package (or not) the proper files.
     """
     surrogate_folder = os.path.join(output_folder, 'pipeline_input')
     try:
@@ -237,7 +242,7 @@ def generate_surrogate_folder(patient_parameters: PatientParameters, output_fold
                 manual_annos = patient_parameters.get_specific_annotations_for_mri(mri_volume_uid=im,
                                                                             generation_type=AnnotationGenerationType.Manual,
                                                                             annotation_class=c)
-                if use_manual_files and len(manual_annos) != 0:
+                if use_manual_files and len(manual_annos) != 0 and 'segmentation' not in pipeline_task.lower():
                     for anno in manual_annos:
                         shutil.copyfile(src=patient_parameters.get_annotation_by_uid(anno).usable_input_filepath,
                                         dst=os.path.join(surrogate_folder, "T" + str(ts_object.order), os.path.basename(

@@ -4,7 +4,7 @@ import platform
 import traceback
 from os.path import expanduser
 import numpy as np
-from typing import Union, Any
+from typing import Union, Any, List
 import names
 from PySide6.QtCore import QSize
 import logging
@@ -13,13 +13,13 @@ import json
 from utils.data_structures.PatientParametersStructure import PatientParameters
 from utils.data_structures.StudyParametersStructure import StudyParameters
 from utils.data_structures.UserPreferencesStructure import UserPreferencesStructure
+from utils.data_structures.AnnotationStructure import AnnotationClassType, AnnotationGenerationType
 
 
 class SoftwareConfigResources:
     """
     Singleton class to have access from anywhere in the code at the various local paths where the data, or code are
     located.
-    @TODO. Should include a new structure to hold all user preferences.
     """
     __instance = None
     _software_home_location = None  # Main dump location for the software elements (e.g., models, runtime log)
@@ -27,6 +27,7 @@ class SoftwareConfigResources:
     _user_preferences = None  # Structure containing the parsed information stored in the aforementioned file.
     _session_log_filename = None  # log filename containing the runtime logging for each software execution.
     _software_version = "1.2"  # Current software version (minor) for selecting which models to use in the backend.
+    _software_medical_specialty = "neurology"  # Overall medical target [neurology, thoracic]
 
     @staticmethod
     def getInstance():
@@ -60,8 +61,8 @@ class SoftwareConfigResources:
         self.accepted_study_file_format = ['sraidionics']
 
         self.__set_default_values()
-        self.__set_default_stylesheet_components()
         self._user_preferences = UserPreferencesStructure(self._user_preferences_filename)
+        self.__set_default_stylesheet_components()
 
     def __set_default_values(self):
         self.patients_parameters = {}  # Storing open patients with a key (name) and a class instance
@@ -72,16 +73,32 @@ class SoftwareConfigResources:
     def __set_default_stylesheet_components(self):
         self.stylesheet_components = {}
         self.stylesheet_components["Color1"] = "rgba(0, 0, 0, 1)"  # Black
-        self.stylesheet_components["Color2"] = "rgba(255, 255, 255, 1)"  # White
+        self.stylesheet_components["Color2"] = "rgba(235, 250, 255, 1)"  # Main background color (blueish white)
         self.stylesheet_components["Color3"] = "rgba(239, 255, 245, 1)"  # Light green
         self.stylesheet_components["Color4"] = "rgba(209, 241, 222, 1)"  # Darker light green (when pressed)
         self.stylesheet_components["Color5"] = "rgba(248, 248, 248, 1)"  # Almost white (standard background)
         self.stylesheet_components["Color6"] = "rgba(214, 214, 214, 1)"  # Darker almost white (when pressed)
-        self.stylesheet_components["Color7"] = "rgba(67, 88, 90, 1)"
+        self.stylesheet_components["Color7"] = "rgba(67, 88, 90, 1)"  # Main font color ()
+
+        if self._user_preferences.use_dark_mode:  # Dark-mode alternative
+            self.stylesheet_components["Color2"] = "rgba(86, 92, 110, 1)"  # Main background color
+            self.stylesheet_components["Color7"] = "rgba(250, 250, 250, 1)"  # Main font color (whiteish)
+
+        self.stylesheet_components["White"] = "rgba(255, 255, 255, 1)"  # White
+        self.stylesheet_components["Process"] = "rgba(255, 191, 128, 1)"  # Light orange
+        self.stylesheet_components["Process_pressed"] = "rgba(204, 102, 0, 1)"  # Dark orange
+        self.stylesheet_components["Import"] = "rgba(73, 99, 171, 1)"  # Greyish blue
+        self.stylesheet_components["Import_pressed"] = "rgba(81, 101, 153, 1)"  # Dark greyish blue
+        self.stylesheet_components["Data"] = "rgba(204, 224, 255, 1)"  # Greyish blue
+        self.stylesheet_components["Background_pressed"] = "rgba(0, 120, 230, 1)"  # Dark blue
 
     @property
     def software_version(self) -> str:
         return self._software_version
+
+    @property
+    def software_medical_specialty(self) -> str:
+        return self._software_medical_specialty
 
     def get_session_log_filename(self):
         return self._session_log_filename
@@ -92,6 +109,10 @@ class SoftwareConfigResources:
 
     def get_accepted_image_formats(self) -> list:
         return self.accepted_image_format
+
+    def set_dark_mode_state(self, state: bool) -> None:
+        self._user_preferences.use_dark_mode = state
+        self.__set_default_stylesheet_components()
 
     def add_new_empty_patient(self, active: bool = True) -> Union[str, Any]:
         """
@@ -423,3 +444,20 @@ class SoftwareConfigResources:
 
     def get_optimal_dimensions(self):
         return self.optimal_dimensions
+
+    def get_annotation_types_for_specialty(self) -> List[str]:
+        results = []
+
+        for anno in AnnotationClassType:
+            if self._software_medical_specialty == "neurology" and 0 <= anno.value < 100:
+                results.append(anno.name)
+            elif self._software_medical_specialty == "thoracic" and 100 <= anno.value < 200:
+                results.append(anno.name)
+        return results
+
+    def get_annotation_generation_types(self) -> List[str]:
+        results = []
+
+        for anno in AnnotationGenerationType:
+            results.append(anno.name)
+        return results

@@ -1,3 +1,5 @@
+import time
+
 from PySide6.QtWidgets import QApplication, QHBoxLayout, QVBoxLayout, QSpacerItem, QGridLayout
 from PySide6.QtCore import QSize, Signal
 import os
@@ -41,7 +43,7 @@ class MRIVolumesLayerInteractor(QCollapsibleWidget):
     def __set_stylesheets(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
         font_color = software_ss["Color7"]
-        background_color = software_ss["Color5"]
+        background_color = software_ss["White"]
         pressed_background_color = software_ss["Color6"]
 
         self.header.background_label.setStyleSheet("""
@@ -72,10 +74,6 @@ class MRIVolumesLayerInteractor(QCollapsibleWidget):
         self.content_widget.setStyleSheet("""
         QWidget{
         background-color: """ + background_color + """;
-        border-width: 2px;
-        border-style: solid;
-        border-color: """ + background_color + """ black black black;
-        border-radius: 2px;
         }""")
 
     def adjustSize(self):
@@ -165,6 +163,7 @@ class MRIVolumesLayerInteractor(QCollapsibleWidget):
         self.adjustSize()
 
     def on_remove_volume(self, volume_uid):
+        # start = time.time()
         visible = False
         if self.volumes_widget[volume_uid].display_toggle_radiobutton.isChecked():
             visible = True
@@ -182,6 +181,7 @@ class MRIVolumesLayerInteractor(QCollapsibleWidget):
         if len(self.volumes_widget) > 0:
             self.volumes_widget[list(self.volumes_widget.keys())[0]].display_toggle_radiobutton.setChecked(True)
             self.volumes_widget[list(self.volumes_widget.keys())[0]].display_toggle_radiobutton.clicked.emit()
+        # logging.info("[MRIVolumesLayerInteractor] on_remove_volume took {} seconds.".format(time.time() - start))
 
     def on_visibility_clicked(self, uid, state):
         # @TODO. Auto-exclusive behaviour, should be a cleaner way to achieve this.

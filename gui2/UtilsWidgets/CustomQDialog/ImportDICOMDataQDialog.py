@@ -47,7 +47,7 @@ class ImportDICOMDataQDialog(QDialog):
         self.import_select_button_layout.addStretch(1)
         self.clear_selection_pushbutton = QPushButton()
         self.clear_selection_pushbutton.setIcon(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                                                       '../../Images/trash-bin_icon.png')))
+                                                                   '../../Images/close_icon.png')))
         self.clear_selection_pushbutton.setToolTip("Remove all table entries.")
         # self.import_select_button_layout.addWidget(self.clear_selection_pushbutton)
         self.base_layout.addLayout(self.import_select_button_layout)
@@ -143,7 +143,7 @@ class ImportDICOMDataQDialog(QDialog):
     def __set_stylesheets(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
         font_color = software_ss["Color7"]
-        background_color = software_ss["Color5"]
+        background_color = software_ss["Color2"]
 
         self.setStyleSheet("""
         QDialog{
@@ -168,13 +168,53 @@ class ImportDICOMDataQDialog(QDialog):
         }
         """)
 
-        # self.content_series_tablewidget.setStyleSheet("""
-        # QTableWidget{
-        # color: """ + font_color + """;
-        # background-color: """ + background_color + """;
-        # font-size: 10px;
-        # }
-        # """)
+        self.content_series_tablewidget.horizontalHeader().setStyleSheet("""
+        QHeaderView{
+        color: """ + font_color + """;
+        background-color: """ + background_color + """;
+        font: 15px;
+        }""")
+
+        self.content_patient_tablewidget.horizontalHeader().setStyleSheet("""
+        QHeaderView{
+        color: """ + font_color + """;
+        background-color: """ + background_color + """;
+        font: 15px;
+        }""")
+
+        self.content_study_tablewidget.horizontalHeader().setStyleSheet("""
+        QHeaderView{
+        color: """ + font_color + """;
+        background-color: """ + background_color + """;
+        font: 15px;
+        }""")
+
+        self.selected_series_tablewidget.horizontalHeader().setStyleSheet("""
+        QHeaderView{
+        color: """ + font_color + """;
+        background-color: """ + background_color + """;
+        font: 15px;
+        }""")
+
+        self.selected_series_tablewidget.setStyleSheet("""
+        QTableWidget{
+        color: """ + font_color + """;
+        }""")
+
+        self.content_patient_tablewidget.setStyleSheet("""
+        QTableWidget{
+        color: """ + font_color + """;
+        }""")
+
+        self.content_study_tablewidget.setStyleSheet("""
+        QTableWidget{
+        color: """ + font_color + """;
+        }""")
+
+        self.content_series_tablewidget.setStyleSheet("""
+        QTableWidget{
+        color: """ + font_color + """;
+        }""")
         # @TODO. The following to check
         # tableWidget->setStyleSheet("QTableView::item:selected { color:white; background:#000000; font-weight:900; }"
         #                            "QTableCornerButton::section { background-color:#232326; }"
@@ -299,6 +339,8 @@ class ImportDICOMDataQDialog(QDialog):
         series = self.dicom_holder.studies[study_id_item.text()].dicom_series[series_id_item.text()]
         series_study = series.get_metadata_value('0020|0010')
         status = (series_study in self.selected_series_tablewidget.get_column_values(0)) and (series.series_id in self.selected_series_tablewidget.get_column_values(2))
+        # @TODO. Should in addition check that the series has not already been included (if appearing as green), or should
+        # disable click events on the row when setting it to green?
         if not status:
             self.selected_series_tablewidget.insertRow(self.selected_series_tablewidget.rowCount())
             self.selected_series_tablewidget.setItem(self.selected_series_tablewidget.rowCount() - 1, 0,

@@ -21,6 +21,7 @@ class UserPreferencesStructure:
     _use_manual_annotations = False  # True to use annotation files provided by the user, False to recompute
     _compute_cortical_structures = True  # True to include cortical features computation in the standardized reporting
     _compute_subcortical_structures = True  # True to include subcortical features computation in the standardized reporting
+    _use_dark_mode = False  # True for dark mode and False for regular mode
 
     def __init__(self, preferences_filename: str) -> None:
         """
@@ -80,6 +81,15 @@ class UserPreferencesStructure:
         self.save_preferences()
 
     @property
+    def use_dark_mode(self) -> bool:
+        return self._use_dark_mode
+
+    @use_dark_mode.setter
+    def use_dark_mode(self, state: bool) -> None:
+        self._use_dark_mode = state
+        self.save_preferences()
+
+    @property
     def use_manual_annotations(self) -> bool:
         return self._use_manual_annotations
 
@@ -123,6 +133,9 @@ class UserPreferencesStructure:
                 self._compute_cortical_structures = preferences['Processing']['compute_cortical_structures']
             if 'compute_subcortical_structures' in preferences['Processing'].keys():
                 self._compute_subcortical_structures = preferences['Processing']['compute_subcortical_structures']
+        if 'Appearance' in preferences.keys():
+            if 'dark_mode' in preferences['Appearance'].keys():
+                self._use_dark_mode = preferences['Appearance']['dark_mode']
 
     def save_preferences(self):
         preferences = {}
@@ -135,6 +148,8 @@ class UserPreferencesStructure:
         preferences['Processing']['use_manual_annotations'] = self._use_manual_annotations
         preferences['Processing']['compute_cortical_structures'] = self._compute_cortical_structures
         preferences['Processing']['compute_subcortical_structures'] = self._compute_subcortical_structures
+        preferences['Appearance'] = {}
+        preferences['Appearance']['dark_mode'] = self._use_dark_mode
 
         with open(self._preferences_filename, 'w') as outfile:
             json.dump(preferences, outfile, indent=4, sort_keys=True)

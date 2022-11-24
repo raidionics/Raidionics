@@ -405,7 +405,7 @@ class PatientParameters:
         return error_message
 
     def import_data(self, filename: str, investigation_ts: str = None, investigation_ts_folder_name: str = None,
-                    type: str = "MRI") -> Union[str, Any]:
+                    type: str = None) -> Tuple[str, Any]:
         """
         Defining how stand-alone MRI volumes or annotation volumes are loaded into the system for the current patient.
 
@@ -414,13 +414,41 @@ class PatientParameters:
 
         Imported data must also be linked to an InvestigationTimestamp, and their output folders will be named after
         the timestamp.
+
+        Parameters
+        ----------
+        filename: str
+            Disk location containing the volume to be loaded inside Raidionics for the current patient.
+        investigation_ts: str
+            Unique internal identifier to attach the loaded volume to.
+        investigation_ts_folder_name: str
+            Folder name on disk where all volumes for the specified investigation timestamp should be stored.
+        type: str
+            Logical type for the volume to load from [None, "MRI", "Annotation"]. If None, the type will be determined
+            automatically
+
+        Returns
+        -------
+        data_uid, error_message: [str, str]
+            A tuple [str, str] containing first the new internal unique identifier for the loaded volume, and second
+            a potential error message.
         """
         data_uid = None
         error_message = None
 
         try:
+            if not type:
+                type = input_file_category_disambiguation(filename)
+
+            # @TODO. Maybe not the best solution to fix the QDialog push button multiple clicks issue.
+            if type == "MRI" and self.is_mri_raw_filepath_already_loaded(filename):
+                error_message = "[Doppelganger] An MRI with the provided filename has already been loaded for the patient"
+                return data_uid, error_message
+            if type == "Annotation" and self.is_annotation_raw_filepath_already_loaded(filename):
+                error_message = "[Doppelganger] An annotation with the provided filename has already been loaded for the patient"
+                return data_uid, error_message
+
             # When including data for a patient, creating a Timestamp if none exists, otherwise assign to the first one
-            # @TODO. Better way to handle this.
             if not investigation_ts:
                 if len(self._investigation_timestamps) == 0:
                     investigation_ts = 'T0'
@@ -431,9 +459,6 @@ class PatientParameters:
                     investigation_ts = self._active_investigation_timestamp_uid
                 else:
                     investigation_ts = list(self._investigation_timestamps.keys())[0]
-
-            if not type:
-                type = input_file_category_disambiguation(filename)
 
             if type == 'MRI':
                 # Generating a unique id for the MRI volume
@@ -481,7 +506,7 @@ class PatientParameters:
         """
         Half the content should be deported within the MRI structure, so that the DICOM metadata can be properly
         saved.
-
+        @Behaviour. Should there be a check to avoid importing a volume that has less than 10 slices along one axis?
         Parameters
         ----------
         dicom_series: DICOMSeries
@@ -527,6 +552,7 @@ class PatientParameters:
             self._mri_volumes[uid].set_usable_filepath_as_raw()
             if ori_filename and os.path.exists(ori_filename):
                 os.remove(ori_filename)
+            self._unsaved_changes = True
         except Exception:
             if ori_filename and os.path.exists(ori_filename):
                 os.remove(ori_filename)
@@ -561,6 +587,7 @@ class PatientParameters:
             error_message = e  # traceback.format_exc()
 
         logging.info("New atlas file imported: {}".format(data_uid))
+        self._unsaved_changes = True
         return data_uid, error_message
 
     def save_patient(self) -> None:
@@ -624,6 +651,12 @@ class PatientParameters:
                 return self._investigation_timestamps[ts]
         return None
 
+    def get_timestamp_by_display_name(self, name: str) -> Union[None, InvestigationTimestamp]:
+        for ts in self._investigation_timestamps:
+            if self._investigation_timestamps[ts].display_name == name:
+                return self._investigation_timestamps[ts]
+        return None
+
     def get_timestamp_by_dicom_study_id(self, study_id: str) -> Union[None, InvestigationTimestamp]:
         for ts in self._investigation_timestamps:
             if self._investigation_timestamps[ts].dicom_study_id == study_id:
@@ -670,6 +703,13 @@ class PatientParameters:
                 res = self._mri_volumes[im].get_dicom_metadata()['0010|0020'].strip()
                 return res
         return res
+
+    def is_mri_raw_filepath_already_loaded(self, volume_filepath: str) -> bool:
+        state = False
+        for im in self._mri_volumes:
+            if self._mri_volumes[im].raw_input_filepath == volume_filepath:
+                return True
+        return state
 
     def get_all_mri_volumes_uids(self) -> List[str]:
         return list(self._mri_volumes.keys())
@@ -817,6 +857,13 @@ class PatientParameters:
                 res.append(self._annotation_volumes[an].unique_id)
         return res
 
+    def is_annotation_raw_filepath_already_loaded(self, volume_filepath: str) -> bool:
+        state = False
+        for im in self._annotation_volumes:
+            if self._annotation_volumes[im].raw_input_filepath == volume_filepath:
+                return True
+        return state
+
     @property
     def annotation_volumes(self) -> dict:
         return self._annotation_volumes
@@ -900,6 +947,48 @@ class PatientParameters:
                 res.append(im)
         return res
 
+    def remove_timestamp(self, timestamp_uid: str) -> Tuple[dict, Union[None, str]]:
+        """
+        Delete the specified timestamp from the patient parameters, and deletes on disk (within the
+        patient folder) all elements linked to it (e.g., MRI scans, annotations).
+        In addition, a recursive deletion of all linked objects (i.e., annotations and atlases) is triggered.\n
+        The operation is irreversible, since all erased files on disk won't be recovered, hence the state is left as
+        unchanged, but a patient save is directly performed to update the scene file.
+        @TODO. Should collect the output from the remove_mri_volume method, and append them.
+
+        Parameters
+        ----------
+        timestamp_uid: str
+            Internal unique identifier of the timestamp to delete.
+
+        Returns
+        ---------
+        Tuple
+            (i) Removed internal unique ids, associated by category, as a dict.
+            (ii) Error message collected during the recursive removal (as a string), None if no error encountered.
+        """
+        results = {}
+        error_message = None
+        linked_scans = self.get_all_mri_volumes_for_timestamp(timestamp_uid=timestamp_uid)
+        ts_order = self._investigation_timestamps[timestamp_uid].order
+        for scan in linked_scans:
+            res, err = self.remove_mri_volume(volume_uid=scan)
+        if len(linked_scans) != 0:
+            results['MRIs'] = linked_scans
+
+        self._investigation_timestamps[timestamp_uid].delete()
+        del self._investigation_timestamps[timestamp_uid]
+        logging.info("Removed timestamp {} for patient {}".format(timestamp_uid, self._unique_id))
+
+        # For all existing timestamp with an order higher than the deleted timestamp, an order decrease by one must be
+        # performed.
+        for uid in list(self._investigation_timestamps.keys()):
+            if self._investigation_timestamps[uid].order > ts_order:
+                self._investigation_timestamps[uid].order = self._investigation_timestamps[uid].order - 1
+        self.save_patient()
+
+        return results, error_message
+
     def remove_mri_volume(self, volume_uid: str) -> Tuple[dict, Union[None, str]]:
         """
         Delete the specified MRI volume from the patient parameters, and deletes on disk (within the
@@ -974,8 +1063,15 @@ class PatientParameters:
         investigation_uid = None
         try:
             investigation_uid = 'T' + str(order)
+            uid_taken = investigation_uid in self._investigation_timestamps.keys()
+            while uid_taken:
+                trail = str(np.random.randint(0, 100))
+                investigation_uid = 'T' + str(trail)
+                uid_taken = investigation_uid in self._investigation_timestamps.keys()
             curr_ts = InvestigationTimestamp(investigation_uid, order=order, output_patient_folder=self._output_folder)
             self._investigation_timestamps[investigation_uid] = curr_ts
+            logging.error("New investigation timestamp inserted with uid: {}".format(investigation_uid))
+            self._unsaved_changes = True
         except Exception as e:
             logging.error("Inserting a new investigation timestamp failed with: {}".format(traceback.format_exc()))
             error_code = 1

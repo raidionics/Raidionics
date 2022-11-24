@@ -55,13 +55,14 @@ def create_pipeline(model_name: str, patient_parameters, task: str) -> dict:
         return __create_segmentation_pipeline(model_name, patient_parameters)
     elif task == 'postop_segmentation':
         return __create_postop_segmentation_pipeline(model_name, patient_parameters)
+    elif task == 'other_segmentation':
+        return __create_other_segmentation_pipeline(model_name, patient_parameters)
     elif task == 'preop_reporting':
         return __create_preop_reporting_pipeline(model_name, patient_parameters)
     elif task == 'postop_reporting':
         return __create_postop_reporting_pipeline(model_name, patient_parameters)
     else:
-        logging.error("The requested pipeline task does not match any known task, with {}".format(task))
-        return {}
+        return __create_custom_pipeline(task, model_name, patient_parameters)
 
 
 def __create_folders_classification_pipeline():
@@ -130,6 +131,46 @@ def __create_segmentation_pipeline(model_name, patient_parameters):
 
     return pip
 
+
+def __create_other_segmentation_pipeline(model_name, patient_parameters):
+    pip = {}
+    pip_num_int = 0
+
+    pip_num_int = pip_num_int + 1
+    pip_num = str(pip_num_int)
+    pip[pip_num] = {}
+    pip[pip_num]["task"] = 'Segmentation'
+    pip[pip_num]["inputs"] = {}
+    pip[pip_num]["inputs"]["0"] = {}
+    pip[pip_num]["inputs"]["0"]["timestamp"] = 0
+    pip[pip_num]["inputs"]["0"]["sequence"] = "T1-CE"
+    pip[pip_num]["inputs"]["0"]["labels"] = None
+    pip[pip_num]["inputs"]["0"]["space"] = {}
+    pip[pip_num]["inputs"]["0"]["space"]["timestamp"] = 0
+    pip[pip_num]["inputs"]["0"]["space"]["sequence"] = "T1-CE"
+    pip[pip_num]["target"] = ["Lungs"]
+    pip[pip_num]["model"] = "CT_Lungs"
+    pip[pip_num]["description"] = "Lungs segmentation in T1CE (T0)"
+    download_model(model_name='CT_Lungs')
+
+    pip_num_int = pip_num_int + 1
+    pip_num = str(pip_num_int)
+    pip[pip_num] = {}
+    pip[pip_num]["task"] = 'Segmentation'
+    pip[pip_num]["inputs"] = {}
+    pip[pip_num]["inputs"]["0"] = {}
+    pip[pip_num]["inputs"]["0"]["timestamp"] = 0
+    pip[pip_num]["inputs"]["0"]["sequence"] = "T1-CE"
+    pip[pip_num]["inputs"]["0"]["labels"] = None
+    pip[pip_num]["inputs"]["0"]["space"] = {}
+    pip[pip_num]["inputs"]["0"]["space"]["timestamp"] = 0
+    pip[pip_num]["inputs"]["0"]["space"]["sequence"] = "T1-CE"
+    pip[pip_num]["target"] = ["Airways"]
+    pip[pip_num]["model"] = "CT_Airways"
+    pip[pip_num]["description"] = "Airways segmentation in T1CE (T0)"
+    download_model(model_name="CT_Airways")
+
+    return pip
 
 def __create_postop_segmentation_pipeline(model_name, patient_parameters):
     """
@@ -678,4 +719,89 @@ def __create_postop_reporting_pipeline(model_name, patient_parameters):
     pip[pip_num]["task"] = "Surgical reporting"
     pip[pip_num]["description"] = "Postoperative report computing."
 
+    return pip
+
+
+def __create_custom_pipeline(task, tumor_type, patient_parameters):
+    split_task = task.split('_')
+    pip = {}
+    pip_num_int = 0
+
+    if split_task[0] == "Classification":
+        pip_num_int = pip_num_int + 1
+        pip_num = str(pip_num_int)
+        pip[pip_num] = {}
+        pip[pip_num]["task"] = 'Classification'
+        pip[pip_num]["inputs"] = {}
+        pip[pip_num]["model"] = 'MRI_Sequence_Classifier'
+        pip[pip_num]["description"] = "Classification of the MRI sequence type for all input scans"
+        download_model(model_name='MRI_Sequence_Classifier')
+    elif split_task[0] == "Segmentation":
+        if not SoftwareConfigResources.getInstance().user_preferences.use_manual_sequences:
+            pip_num_int = pip_num_int + 1
+            pip_num = str(pip_num_int)
+            pip[pip_num] = {}
+            pip[pip_num]["task"] = 'Classification'
+            pip[pip_num]["inputs"] = {}
+            pip[pip_num]["model"] = 'MRI_Sequence_Classifier'
+            pip[pip_num]["description"] = "Classification of the MRI sequence type for all input scans"
+            download_model(model_name='MRI_Sequence_Classifier')
+
+        base_model_name = "MRI_" if SoftwareConfigResources.getInstance().software_medical_specialty == "neurology" else "CT_"
+        timestamp_order = int(split_task[2][1:])
+        if SoftwareConfigResources.getInstance().software_medical_specialty == "thoracic" and split_task[1] != "Lungs":
+            pip_num_int = pip_num_int + 1
+            pip_num = str(pip_num_int)
+            pip[pip_num] = {}
+            pip[pip_num]["task"] = 'Segmentation'
+            pip[pip_num]["inputs"] = {}
+            pip[pip_num]["inputs"]["0"] = {}
+            pip[pip_num]["inputs"]["0"]["timestamp"] = timestamp_order
+            pip[pip_num]["inputs"]["0"]["sequence"] = "T1-CE"
+            pip[pip_num]["inputs"]["0"]["labels"] = None
+            pip[pip_num]["inputs"]["0"]["space"] = {}
+            pip[pip_num]["inputs"]["0"]["space"]["timestamp"] = timestamp_order
+            pip[pip_num]["inputs"]["0"]["space"]["sequence"] = "T1-CE"
+            pip[pip_num]["target"] = ["Lungs"]
+            pip[pip_num]["model"] = "CT_Lungs"
+            pip[pip_num]["description"] = "Lungs segmentation in T1CE (T{})".format(str(timestamp_order))
+            download_model(model_name="CT_Lungs")
+
+        if split_task[1] != 'All':
+            model_name = base_model_name + split_task[1]
+            pip_num_int = pip_num_int + 1
+            pip_num = str(pip_num_int)
+            pip[pip_num] = {}
+            pip[pip_num]["task"] = 'Segmentation'
+            pip[pip_num]["inputs"] = {}
+            pip[pip_num]["inputs"]["0"] = {}
+            pip[pip_num]["inputs"]["0"]["timestamp"] = timestamp_order
+            pip[pip_num]["inputs"]["0"]["sequence"] = "T1-CE"
+            pip[pip_num]["inputs"]["0"]["labels"] = None
+            pip[pip_num]["inputs"]["0"]["space"] = {}
+            pip[pip_num]["inputs"]["0"]["space"]["timestamp"] = timestamp_order
+            pip[pip_num]["inputs"]["0"]["space"]["sequence"] = "T1-CE"
+            pip[pip_num]["target"] = [split_task[1]]
+            pip[pip_num]["model"] = model_name
+            pip[pip_num]["description"] = split_task[1] + " segmentation in T1CE (T{})".format(str(timestamp_order))
+            download_model(model_name=model_name)
+        else:
+            for k in SoftwareConfigResources.getInstance().get_annotation_types_for_specialty():
+                model_name = base_model_name + k if k != "Tumor" else tumor_type
+                pip_num_int = pip_num_int + 1
+                pip_num = str(pip_num_int)
+                pip[pip_num] = {}
+                pip[pip_num]["task"] = 'Segmentation'
+                pip[pip_num]["inputs"] = {}
+                pip[pip_num]["inputs"]["0"] = {}
+                pip[pip_num]["inputs"]["0"]["timestamp"] = timestamp_order
+                pip[pip_num]["inputs"]["0"]["sequence"] = "T1-CE"
+                pip[pip_num]["inputs"]["0"]["labels"] = None
+                pip[pip_num]["inputs"]["0"]["space"] = {}
+                pip[pip_num]["inputs"]["0"]["space"]["timestamp"] = timestamp_order
+                pip[pip_num]["inputs"]["0"]["space"]["sequence"] = "T1-CE"
+                pip[pip_num]["target"] = [k]
+                pip[pip_num]["model"] = model_name
+                pip[pip_num]["description"] = k + " segmentation in T1CE (T{})".format(str(timestamp_order))
+                download_model(model_name=model_name)
     return pip

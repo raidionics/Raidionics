@@ -41,7 +41,7 @@ class AnnotationsLayersInteractor(QCollapsibleWidget):
     def __set_stylesheets(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
         font_color = software_ss["Color7"]
-        background_color = software_ss["Color5"]
+        background_color = software_ss["White"]
         pressed_background_color = software_ss["Color6"]
 
         self.header.background_label.setStyleSheet("""
@@ -72,10 +72,6 @@ class AnnotationsLayersInteractor(QCollapsibleWidget):
         self.content_widget.setStyleSheet("""
         QWidget{
         background-color: """ + background_color + """;
-        border-width: 2px;
-        border-style: solid;
-        border-color: """ + background_color + """ black black black;
-        border-radius: 2px;
         }""")
 
     def adjustSize(self):

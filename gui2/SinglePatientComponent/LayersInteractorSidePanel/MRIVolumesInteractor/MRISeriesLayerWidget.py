@@ -1,3 +1,5 @@
+import traceback
+
 from PySide6.QtWidgets import QWidget, QLabel, QHBoxLayout, QLineEdit, QComboBox, QGridLayout, QPushButton,\
     QRadioButton, QMenu, QVBoxLayout, QMessageBox
 from PySide6.QtCore import Qt, QSize, Signal, QPoint
@@ -55,13 +57,15 @@ class MRISeriesLayerWidget(QWidget):
         pix = QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../Images/file_icon.png'))
         self.icon_label.setPixmap(pix)
         self.display_name_lineedit = QLineEdit()
-        self.options_pushbutton = QPushButton("...")
+        self.options_pushbutton = QPushButton()
+        self.options_pushbutton.setIcon(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                           '../../../Images/more-dots-icon.png')))
         self.options_pushbutton.setContextMenuPolicy(Qt.CustomContextMenu)
         # create context menu
         self.options_menu = QMenu(self)
         self.options_menu_dicom_metadata = QAction('DICOM Metadata', self)
         self.options_menu.addAction(self.options_menu_dicom_metadata)
-        self.delete_layer_action = QAction('Delete', self)
+        self.delete_layer_action = QAction('Remove', self)
         self.options_menu.addAction(self.delete_layer_action)
         self.options_menu.addSeparator()
         self.name_options_layout.addWidget(self.display_name_lineedit)
@@ -92,7 +96,7 @@ class MRISeriesLayerWidget(QWidget):
         self.icon_label.setFixedSize(QSize(15, 20))
         self.display_name_lineedit.setFixedHeight(20)
         # self.display_name_lineedit.setFixedWidth(150)
-        self.options_pushbutton.setFixedSize(QSize(15, 20))
+        self.options_pushbutton.setFixedSize(QSize(20, 20))
         self.sequence_type_label.setFixedHeight(20)
         self.sequence_type_combobox.setFixedSize(QSize(70, 20))
         self.contrast_adjuster_pushbutton.setFixedHeight(20)
@@ -116,7 +120,7 @@ class MRISeriesLayerWidget(QWidget):
     def set_stylesheets(self, selected: bool):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
         font_color = software_ss["Color7"]
-        background_color = software_ss["Color5"]
+        background_color = software_ss["White"]
         pressed_background_color = software_ss["Color6"]
         if selected:
             background_color = software_ss["Color3"]
@@ -125,6 +129,10 @@ class MRISeriesLayerWidget(QWidget):
         self.setStyleSheet("""
         MRISeriesLayerWidget{
         background-color: """ + background_color + """;
+        border-width: 1px;
+        border-style: solid;
+        border-color: """ + background_color + background_color + software_ss["Color2"] + background_color + """;
+        border-radius: 1px;
         }""")
 
         self.display_name_lineedit.setStyleSheet("""
@@ -246,12 +254,15 @@ class MRISeriesLayerWidget(QWidget):
         """
         Setting up the GUI from the parameters reloaded from disk and stored in SoftwareConfigResources.
         """
-        mri_volume_parameters = SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_uid(self.uid)
-        self.display_name_lineedit.setText(mri_volume_parameters.display_name)
-        sequence_index = self.sequence_type_combobox.findText(mri_volume_parameters.get_sequence_type_str())
-        self.sequence_type_combobox.blockSignals(True)
-        self.sequence_type_combobox.setCurrentIndex(sequence_index)
-        self.sequence_type_combobox.blockSignals(False)
+        try:
+            mri_volume_parameters = SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_uid(self.uid)
+            self.display_name_lineedit.setText(mri_volume_parameters.display_name)
+            sequence_index = self.sequence_type_combobox.findText(mri_volume_parameters.get_sequence_type_str())
+            self.sequence_type_combobox.blockSignals(True)
+            self.sequence_type_combobox.setCurrentIndex(sequence_index)
+            self.sequence_type_combobox.blockSignals(False)
+        except Exception:
+            logging.error("[MRISeriesLayerWidget] Initialization from internal parameters failed with: \n {}.".format(traceback.format_exc()))
 
     def __on_delete_layer(self):
         """

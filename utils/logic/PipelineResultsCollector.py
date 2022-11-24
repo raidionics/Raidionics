@@ -114,7 +114,8 @@ def collect_results(patient_parameters, pipeline):
                         subcortical_folder = os.path.join(patient_parameters.output_folder, 'reporting',
                                                        'T' + str(pip_step["moving"]["timestamp"]), 'Subcortical-structures')
 
-                        subcortical_masks = ['MNI_BCB_atlas.nii.gz']  # @TODO. Hardcoded for now, have to improve the RADS backend here.
+                        # @TODO. Hardcoded for now, have to improve the RADS backend here if we are to support more atlases.
+                        subcortical_masks = ['MNI_BCB_atlas.nii.gz']
                         # subcortical_masks = []
                         # for _, _, files in os.walk(subcortical_folder):
                         #     for f in files:
@@ -158,6 +159,13 @@ def collect_results(patient_parameters, pipeline):
                 dest_file = os.path.join(patient_parameters.output_folder, dest_ts_object.folder_name,
                                          os.path.basename(report_filename))
                 shutil.move(report_filename, dest_file)
+
+                report_filename_csv = os.path.join(patient_parameters.output_folder, 'reporting',
+                                                   'neuro_clinical_report.csv')
+                dest_file_csv = os.path.join(patient_parameters.output_folder, dest_ts_object.folder_name,
+                                             os.path.basename(report_filename_csv))
+                # Also moving the csv version, for the statistics part.
+                shutil.move(report_filename_csv, dest_file_csv)
 
                 if os.path.exists(dest_file):  # Should always exist
                     report_uid, error_msg = patient_parameters.import_report(dest_file, dest_ts_object.unique_id)

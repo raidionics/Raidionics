@@ -25,6 +25,8 @@ class ImportDataQDialog(QDialog):
         """
         The filter option, through the set_parsing_filter method is used to specify if looking for image files or
         a raidionics scene file.
+        @TODO. The Ok button can be clicked mulitple times in a short time span, which will include all images multiple
+        times....
         """
         super().__init__(parent)
         self.setWindowTitle("Import patient data")
@@ -156,6 +158,7 @@ class ImportDataQDialog(QDialog):
         """
         Iterating over the list of selected files and internally updating variables
         """
+
         widgets = (self.import_scrollarea_layout.itemAt(i) for i in range(self.import_scrollarea_layout.count() - 1))
 
         self.load_progressbar.reset()
@@ -219,20 +222,31 @@ class ImportDataQDialog(QDialog):
             self.load_progressbar.setValue(i + 1)
 
         # @TODO. Might try something more advanced for pairing annotations with MRIs
-        regular_files = mris_selected + annotations_selected
-        for i, pf in enumerate(regular_files):
-            uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_data(pf)
+        for i, pf in enumerate(mris_selected):
+            uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_data(pf, type="MRI")
             if error_msg:
-                diag = QMessageBox()
-                diag.setText("Unable to load: {}.\nError message: {}.\n".format(os.path.basename(pf),
-                                                                                error_msg))
-                diag.exec_()
+                if "[Doppelganger]" not in error_msg:
+                    diag = QMessageBox()
+                    diag.setText("Unable to load: {}.\nError message: {}.\n".format(os.path.basename(pf),
+                                                                                    error_msg))
+                    diag.exec_()
             else:
-                if uid in SoftwareConfigResources.getInstance().get_active_patient().get_all_mri_volumes_uids():
-                    self.mri_volume_imported.emit(uid)
-                elif uid in list(SoftwareConfigResources.getInstance().get_active_patient().get_all_annotation_volumes_uids()):
-                    self.annotation_volume_imported.emit(uid)
+                self.mri_volume_imported.emit(uid)
             self.load_progressbar.setValue(i + 1)
+
+        for i, pf in enumerate(annotations_selected):
+            uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_data(pf,
+                                                                                                    type="Annotation")
+            if error_msg:
+                if "[Doppelganger]" not in error_msg:
+                    diag = QMessageBox()
+                    diag.setText("Unable to load: {}.\nError message: {}.\n".format(os.path.basename(pf),
+                                                                                    error_msg))
+                    diag.exec_()
+            else:
+                self.annotation_volume_imported.emit(uid)
+            self.load_progressbar.setValue(len(mris_selected) + i + 1)
+
         self.load_progressbar.setVisible(False)
         self.accept()
 
@@ -282,18 +296,19 @@ class ImportDataLineWidget(QWidget):
         self.filepath_lineedit.setReadOnly(True)
         self.filepath_browse_edit_pushbutton = QPushButton()
         self.filepath_browse_edit_pushbutton.setIcon(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                                                        '../../Images/folder_icon.png')))
+                                                                        '../../Images/folder_simple_icon.png')))
+        self.filepath_browse_edit_pushbutton.setToolTip("To modify the disk location for the current entry")
         self.remove_entry_pushbutton = QPushButton()
         self.remove_entry_pushbutton.setIcon(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                                                '../../Images/trash-bin_icon.png')))
-
+                                                                '../../Images/close_icon.png')))
+        self.remove_entry_pushbutton.setToolTip("To remove the current entry from the list")
         self.layout.addWidget(self.filepath_lineedit)
         self.layout.addWidget(self.filepath_browse_edit_pushbutton)
         self.layout.addWidget(self.remove_entry_pushbutton)
 
     def __set_layout_dimensions(self):
-        self.filepath_browse_edit_pushbutton.setIconSize(QSize(20, 20))
-        self.remove_entry_pushbutton.setIconSize(QSize(20, 20))
+        self.filepath_browse_edit_pushbutton.setIconSize(QSize(25, 25))
+        self.remove_entry_pushbutton.setIconSize(QSize(25, 25))
         self.filepath_lineedit.setFixedHeight(25)
 
     def __set_connections(self):
@@ -301,7 +316,49 @@ class ImportDataLineWidget(QWidget):
         self.remove_entry_pushbutton.clicked.connect(self.deleteLater)
 
     def __set_stylesheets(self):
-        pass
+        software_ss = SoftwareConfigResources.getInstance().stylesheet_components
+        font_color = software_ss["Color7"]
+        background_color = software_ss["Color2"]
+        pressed_background_color = software_ss["Color6"]
+
+        self.filepath_lineedit.setStyleSheet("""
+        QLineEdit{
+        background: transparent;
+        border: none;
+        color: """ + font_color + """;
+        }""")
+
+        self.filepath_browse_edit_pushbutton.setStyleSheet("""
+        QPushButton{
+        background-color: """ + background_color + """;
+        border-style: none;
+        }
+        QPushButton::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        }
+        QPushButton:pressed{
+        border-style:inset;
+        background-color: """ + pressed_background_color + """;
+        }
+        """)
+
+        self.remove_entry_pushbutton.setStyleSheet("""
+        QPushButton{
+        background-color: """ + background_color + """;
+        border-style: none;
+        }
+        QPushButton::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        }
+        QPushButton:pressed{
+        border-style:inset;
+        background-color: """ + pressed_background_color + """;
+        }
+        """)
 
     def __on_browse_edit_clicked(self):
         dialog = QFileDialog(self)

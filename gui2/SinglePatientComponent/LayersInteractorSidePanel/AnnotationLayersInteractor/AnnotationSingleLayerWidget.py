@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QWidget, QLabel, QHBoxLayout, QLineEdit, QComboBox, QGridLayout, QPushButton,\
-    QRadioButton, QMenu, QSlider, QColorDialog, QVBoxLayout, QSpacerItem, QSizePolicy
-from PySide6.QtCore import Qt, QSize, Signal
+    QRadioButton, QMenu, QSlider, QColorDialog, QVBoxLayout, QSpacerItem, QSizePolicy, QMessageBox
+from PySide6.QtCore import Qt, QSize, Signal, QPoint
 from PySide6.QtGui import QPixmap, QIcon, QColor, QAction
 import os
 import logging
@@ -61,6 +61,12 @@ class AnnotationSingleLayerWidget(QWidget):
         self.display_name_lineedit = QLineEdit()
         self.display_name_lineedit.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)
         self.name_layout.addWidget(self.display_name_lineedit)
+
+        self.options_pushbutton = QPushButton()
+        self.options_pushbutton.setIcon(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                           '../../../Images/more-dots-icon.png')))
+        self.options_pushbutton.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.name_layout.addWidget(self.options_pushbutton)
         self.manual_grid_layout.addLayout(self.name_layout)
 
         self.parent_layout = QHBoxLayout()
@@ -74,15 +80,13 @@ class AnnotationSingleLayerWidget(QWidget):
         self.annotation_type_layout = QHBoxLayout()
         self.annotation_type_label = QLabel("Class")
         self.annotation_type_combobox = QComboBox()
-        # @TODO. Should be parsed from the EnumType in the AnnotationStructure class
-        self.annotation_type_combobox.addItems(["Brain", "Tumor"])
+        self.annotation_type_combobox.addItems(SoftwareConfigResources.getInstance().get_annotation_types_for_specialty())
         self.annotation_type_layout.addWidget(self.annotation_type_label)
         self.annotation_type_layout.addWidget(self.annotation_type_combobox)
         self.annotation_type_layout.addStretch(1)
         self.generation_type_label = QLabel("Generation ")
         self.generation_type_combobox = QComboBox()
-        # @TODO. Should be parsed from the EnumType in the AnnotationStructure class
-        self.generation_type_combobox.addItems(["Manual", "Automatic"])
+        self.generation_type_combobox.addItems(SoftwareConfigResources.getInstance().get_annotation_generation_types())
         self.annotation_type_layout.addWidget(self.generation_type_label)
         self.annotation_type_layout.addWidget(self.generation_type_combobox)
         self.annotation_type_layout.addStretch(1)
@@ -102,6 +106,8 @@ class AnnotationSingleLayerWidget(QWidget):
         self.opacity_slider.setTickInterval(1)
         self.opacity_slider.setSliderPosition(50)
         self.opacity_slider.setEnabled(False)
+        self.opacity_label.setVisible(False)
+        self.opacity_slider.setVisible(False)
         self.opacity_layout = QHBoxLayout()
         self.opacity_layout.addWidget(self.opacity_label)
         self.opacity_layout.addWidget(self.opacity_slider)
@@ -110,6 +116,8 @@ class AnnotationSingleLayerWidget(QWidget):
         self.color_label = QLabel("Color ")
         self.color_dialogpushbutton = QPushButton()
         self.color_dialogpushbutton.setEnabled(False)
+        self.color_label.setVisible(False)
+        self.color_dialogpushbutton.setVisible(False)
         self.color_dialog = QColorDialog(parent=self.parent)
         # NB: Below is mandatory on Linux to avoid => "GtkDialog mapped without a transient parent. This is discouraged."
         # What is the behaviour on Mac/Windows?
@@ -122,6 +130,7 @@ class AnnotationSingleLayerWidget(QWidget):
         self.display_toggle_button.setFixedSize(QSize(30, 30))
         self.display_toggle_button.setIconSize(QSize(25, 25))
         self.display_name_lineedit.setFixedHeight(20)
+        self.options_pushbutton.setFixedSize(QSize(20, 20))
         self.parent_image_label.setFixedHeight(20)
         self.parent_image_combobox.setFixedHeight(20)
         self.annotation_type_label.setFixedHeight(20)
@@ -140,7 +149,7 @@ class AnnotationSingleLayerWidget(QWidget):
         self.advanced_options_collapsible.content_label.setFixedHeight(70)
 
     def __set_connections(self):
-        self.customContextMenuRequested.connect(self.on_right_clicked)
+        self.options_pushbutton.clicked.connect(self.on_options_clicked)
         self.display_name_lineedit.textEdited.connect(self.on_name_changed)
         self.display_toggle_button.toggled.connect(self.on_visibility_toggled)
         self.parent_image_combobox.currentIndexChanged.connect(self.__on_parent_mri_changed)
@@ -154,12 +163,16 @@ class AnnotationSingleLayerWidget(QWidget):
     def __set_stylesheets(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
         font_color = software_ss["Color7"]
-        background_color = software_ss["Color5"]
+        background_color = software_ss["White"]
         pressed_background_color = software_ss["Color6"]
 
         self.setStyleSheet("""
         AnnotationSingleLayerWidget{
         background-color: """ + background_color + """;
+        border-width: 1px;
+        border-style: solid;
+        border-color: """ + background_color + background_color + software_ss["Color2"] + background_color + """;
+        border-radius: 1px;
         }""")
 
         self.display_name_lineedit.setStyleSheet("""
@@ -173,6 +186,23 @@ class AnnotationSingleLayerWidget(QWidget):
         border-style: solid;
         border-width: 1px;
         border-color: rgba(196, 196, 196, 1);
+        }""")
+
+        self.options_pushbutton.setStyleSheet("""
+        QPushButton{
+        background-color: """ + background_color + """;
+        color: """ + font_color + """;
+        font: 12px;
+        border-style: none;
+        }
+        QPushButton::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        }
+        QPushButton:pressed{
+        border-style:inset;
+        background-color: """ + pressed_background_color + """;
         }""")
 
         self.display_toggle_button.setStyleSheet("""
@@ -394,8 +424,8 @@ class AnnotationSingleLayerWidget(QWidget):
         logging.debug("Single annotation container set to {}.\n".format(QSize(self.size().width(), actual_height)))
         self.resizeRequested.emit()
 
-    def on_right_clicked(self, point):
-        self.options_menu.exec_(self.mapToGlobal(point))
+    def on_options_clicked(self, point):
+        self.options_menu.exec_(self.options_pushbutton.mapToGlobal(QPoint(0, 0)))
 
     def on_advanced_options_clicked(self):
         self.adjustSize()
@@ -405,10 +435,18 @@ class AnnotationSingleLayerWidget(QWidget):
             self.display_toggle_button.setIcon(self.open_eye_icon)
             self.opacity_slider.setEnabled(True)
             self.color_dialogpushbutton.setEnabled(True)
+            self.opacity_label.setVisible(True)
+            self.opacity_slider.setVisible(True)
+            self.color_label.setVisible(True)
+            self.color_dialogpushbutton.setVisible(True)
         else:
             self.display_toggle_button.setIcon(self.closed_eye_icon)
             self.opacity_slider.setEnabled(False)
             self.color_dialogpushbutton.setEnabled(False)
+            self.opacity_label.setVisible(False)
+            self.opacity_slider.setVisible(False)
+            self.color_label.setVisible(False)
+            self.color_dialogpushbutton.setVisible(False)
 
         self.visibility_toggled.emit(self.uid, state)
         logging.debug("Annotation layer {}, visibility toggled {}.".format(self.uid, state))

@@ -18,11 +18,14 @@ class TimestampLayerWidget(QWidget):
     """
     reset_central_viewer = Signal()
     timestamp_display_name_changed = Signal(str, str)  # Timestamp uid, new display name
+    timestamp_rankedup = Signal(str)  # Internal unique id for the timestamp
+    timestamp_rankeddown = Signal(str)  # Internal unique id for the timestamp
     mri_volume_imported = Signal(str)
     annotation_volume_imported = Signal(str)
     atlas_volume_imported = Signal(str)
 
-    import_data_triggered = Signal()
+    import_data_requested = Signal()
+    browse_dicom_requested = Signal()
     patient_view_toggled = Signal(str, str)  # Patient uid, timestamp uid
     volume_view_toggled = Signal(str, bool)
     volume_contrast_changed = Signal(str)
@@ -51,9 +54,31 @@ class TimestampLayerWidget(QWidget):
         self.layout.setContentsMargins(10, 0, 15, 0)
 
         # @TODO. Must include a push up/down the timestamp (to adjust their ordering).
+        self.header_layout = QHBoxLayout()
         self.timestamp_name_lineedit = QLineEdit()
         self.timestamp_name_lineedit.setText(self.visible_name)
-        self.layout.addWidget(self.timestamp_name_lineedit)
+        self.timestamp_rankup_pushbutton = QPushButton()
+        self.timestamp_rankup_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../Images/arrow_circle_up.png'))))
+        self.timestamp_rankup_pushbutton.setToolTip("Move the timestamp one rank up the order list.")
+        self.timestamp_rankup_pushbutton.setEnabled(False)
+        self.timestamp_rankdown_pushbutton = QPushButton()
+        self.timestamp_rankdown_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../Images/arrow_circle_down.png'))))
+        self.timestamp_rankdown_pushbutton.setToolTip("Move the timestamp one rank down the order list.")
+        self.timestamp_rankdown_pushbutton.setEnabled(False)
+        self.import_data_pushbutton = QPushButton()
+        self.import_data_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../Images/load_file_icon.png'))))
+        self.import_data_pushbutton.setToolTip("Import single file(s) for the current investigation timestamp.")
+        self.browse_dicom_pushbutton = QPushButton()
+        self.browse_dicom_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../Images/database_icon.png'))))
+        self.browse_dicom_pushbutton.setToolTip("DICOM explorer")
+        self.header_layout.addWidget(self.timestamp_rankup_pushbutton)
+        self.header_layout.addWidget(self.timestamp_rankdown_pushbutton)
+        self.header_layout.addStretch(1)
+        self.header_layout.addWidget(self.timestamp_name_lineedit)
+        self.header_layout.addStretch(1)
+        self.header_layout.addWidget(self.import_data_pushbutton)
+        self.header_layout.addWidget(self.browse_dicom_pushbutton)
+        self.layout.addLayout(self.header_layout)
 
         self.volumes_collapsiblegroupbox = MRIVolumesLayerInteractor(self)
         self.layout.addWidget(self.volumes_collapsiblegroupbox)
@@ -68,6 +93,14 @@ class TimestampLayerWidget(QWidget):
 
     def __set_layout_dimensions(self):
         self.timestamp_name_lineedit.setFixedHeight(20)
+        self.timestamp_rankup_pushbutton.setFixedSize(QSize(20, 20))
+        self.timestamp_rankup_pushbutton.setIconSize(QSize(20, 20))
+        self.timestamp_rankdown_pushbutton.setFixedSize(QSize(20, 20))
+        self.timestamp_rankdown_pushbutton.setIconSize(QSize(20, 20))
+        self.import_data_pushbutton.setFixedSize(QSize(20, 20))
+        self.import_data_pushbutton.setIconSize(QSize(20, 20))
+        self.browse_dicom_pushbutton.setFixedSize(QSize(20, 20))
+        self.browse_dicom_pushbutton.setIconSize(QSize(20, 20))
 
     def __set_connections(self):
         self.timestamp_name_lineedit.returnPressed.connect(self.on_name_change)
@@ -77,6 +110,10 @@ class TimestampLayerWidget(QWidget):
         self.patient_view_toggled.connect(self.volumes_collapsiblegroupbox.on_patient_view_toggled)
         self.patient_view_toggled.connect(self.annotations_collapsiblegroupbox.on_patient_view_toggled)
         self.patient_view_toggled.connect(self.atlases_collapsiblegroupbox.on_patient_view_toggled)
+        self.timestamp_rankup_pushbutton.clicked.connect(self.__on_timestamp_rankup_clicked)
+        self.timestamp_rankdown_pushbutton.clicked.connect(self.__on_timestamp_rankdown_clicked)
+        self.import_data_pushbutton.clicked.connect(self.import_data_requested)
+        self.browse_dicom_pushbutton.clicked.connect(self.browse_dicom_requested)
 
         self.volumes_collapsiblegroupbox.reset_central_viewer.connect(self.reset_central_viewer)
         self.volumes_collapsiblegroupbox.volume_view_toggled.connect(self.volume_view_toggled)
@@ -96,7 +133,7 @@ class TimestampLayerWidget(QWidget):
     def set_stylesheets(self, selected: bool):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
         font_color = software_ss["Color7"]
-        background_color = software_ss["Color5"]
+        background_color = software_ss["Color2"]
         pressed_background_color = software_ss["Color6"]
         if selected:
             background_color = software_ss["Color3"]
@@ -120,9 +157,79 @@ class TimestampLayerWidget(QWidget):
         border-color: rgba(196, 196, 196, 1);
         }""")
 
+        self.import_data_pushbutton.setStyleSheet("""
+        QPushButton{
+        background-color: """ + background_color + """;
+        border-style: none;
+        }
+        QPushButton::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        }
+        QPushButton:pressed{
+        border-style:inset;
+        background-color: """ + pressed_background_color + """;
+        }
+        """)
+
+        self.browse_dicom_pushbutton.setStyleSheet("""
+        QPushButton{
+        background-color: """ + background_color + """;
+        border-style: none;
+        }
+        QPushButton::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        }
+        QPushButton:pressed{
+        border-style:inset;
+        background-color: """ + pressed_background_color + """;
+        }
+        """)
+
+        self.timestamp_rankup_pushbutton.setStyleSheet("""
+        QPushButton{
+        background-color: """ + background_color + """;
+        border-style: none;
+        }
+        QPushButton::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        }
+        QPushButton:pressed{
+        border-style:inset;
+        background-color: """ + pressed_background_color + """;
+        }
+        """)
+
+        self.timestamp_rankdown_pushbutton.setStyleSheet("""
+        QPushButton{
+        background-color: """ + background_color + """;
+        border-style: none;
+        }
+        QPushButton::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        }
+        QPushButton:pressed{
+        border-style:inset;
+        background-color: """ + pressed_background_color + """;
+        }
+        """)
+
     def __init_from_parameters(self):
         timestamp_parameters = SoftwareConfigResources.getInstance().get_active_patient().get_timestamp_by_uid(self.uid)
         self.timestamp_name_lineedit.setText(timestamp_parameters.display_name)
+
+    def __on_timestamp_rankup_clicked(self):
+        self.timestamp_rankedup.emit(self.uid)
+
+    def __on_timestamp_rankdown_clicked(self):
+        self.timestamp_rankeddown.emit(self.uid)
 
     def adjustSize(self):
         """
@@ -192,3 +299,15 @@ class TimestampLayerWidget(QWidget):
 
     def on_radiological_sequences_imported(self):
         self.volumes_collapsiblegroupbox.on_radiological_sequences_imported()
+
+    def on_process_started(self):
+        self.import_data_pushbutton.setEnabled(False)
+        self.browse_dicom_pushbutton.setEnabled(False)
+        self.timestamp_rankup_pushbutton.setEnabled(False)
+        self.timestamp_rankdown_pushbutton.setEnabled(False)
+
+    def on_process_finished(self):
+        self.import_data_pushbutton.setEnabled(True)
+        self.browse_dicom_pushbutton.setEnabled(True)
+        self.timestamp_rankup_pushbutton.setEnabled(True)
+        self.timestamp_rankdown_pushbutton.setEnabled(True)

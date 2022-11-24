@@ -41,7 +41,7 @@ class SinglePatientResultsWidget(QCollapsibleWidget):
                                 collapse_fn=os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                            '../../Images/patient-icon.png'))
         self.content_layout.setSpacing(5)
-        self.header.set_icon_size(QSize(30, 30))
+        self.header.set_icon_size(QSize(25, 25))
         self.save_patient_pushbutton = QPushButton()
         self.save_patient_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                                         '../../Images/floppy_disk_icon.png')).scaled(QSize(25, 25), Qt.KeepAspectRatio)))
@@ -82,7 +82,7 @@ class SinglePatientResultsWidget(QCollapsibleWidget):
         self.results_selector_label = QLabel("Reports")
         self.results_selector_combobox = QComboBox()
         self.results_selector_layout = QHBoxLayout()
-        self.results_selector_layout.setSpacing(0)
+        self.results_selector_layout.setSpacing(10)
         self.results_selector_layout.setContentsMargins(20, 0, 20, 0)
         self.results_selector_layout.addWidget(self.results_selector_label)
         self.results_selector_layout.addWidget(self.results_selector_combobox)
@@ -96,7 +96,7 @@ class SinglePatientResultsWidget(QCollapsibleWidget):
 
     def __set_layout_dimensions(self):
         self.header.background_label.setFixedHeight(40)
-        self.header.icon_label.setFixedHeight(40)
+        self.header.icon_label.setFixedHeight(30)
         self.header.title_label.setFixedHeight(40)
         self.patient_name_label.setFixedHeight(20)
         self.patient_name_lineedit.setFixedHeight(20)
@@ -185,6 +185,7 @@ class SinglePatientResultsWidget(QCollapsibleWidget):
         self.default_collapsiblegroupbox.header_pushbutton.setStyleSheet("""
         QPushButton{
         background-color:rgb(248, 248, 248);
+        color: """ + font_color + """;
         text-align:left;
         }""")
 
@@ -230,13 +231,11 @@ class SinglePatientResultsWidget(QCollapsibleWidget):
 
         self.results_selector_label.setStyleSheet("""
         QLabel{
-        background-color:rgb(248, 248, 248);
+        background-color: """ + background_color + """;
         color: """ + font_color + """;
         text-align:left;
         font:bold;
         font-size:14px;
-        padding-left:20px;
-        padding-right:20px;
         border: none;
         }
         """)
@@ -280,15 +279,16 @@ class SinglePatientResultsWidget(QCollapsibleWidget):
 
     def __on_patient_closed(self) -> None:
         """
-
+        All verifications regarding possible issues if the patient is closed are performed at the side panel level.
+        Here, a signal with the proper internal unique identifier for the patient to close is emitted.
         """
-        if SoftwareConfigResources.getInstance().get_patient(self.uid).has_unsaved_changes():
-            dialog = SavePatientChangesDialog()
-            code = dialog.exec_()
-            if code == 0:  # Operation cancelled
-                # The widget for the clicked patient must be collapsed back down, since the change has not
-                # been confirmed by the user in the end.
-                return
+        # if SoftwareConfigResources.getInstance().get_patient(self.uid).has_unsaved_changes():
+        #     dialog = SavePatientChangesDialog()
+        #     code = dialog.exec_()
+        #     if code == 0:  # Operation cancelled
+        #         # The widget for the clicked patient must be collapsed back down, since the change has not
+        #         # been confirmed by the user in the end.
+        #         return
         self.patient_closed.emit(self.uid)
 
     def __on_patient_toggled(self, state):

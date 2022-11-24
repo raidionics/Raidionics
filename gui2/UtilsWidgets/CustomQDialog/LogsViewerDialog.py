@@ -70,12 +70,19 @@ class LogsViewerDialog(QDialog):
     def __set_stylesheets(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
         font_color = software_ss["Color7"]
-        background_color = software_ss["Color5"]
+        background_color = software_ss["Color2"]
         pressed_background_color = software_ss["Color6"]
+
+        self.setStyleSheet("""
+        QDialog{
+        background-color: """ + background_color + """;
+        }
+        """)
 
         self.log_filename_label.setStyleSheet("""
         QLabel{
         color: """ + font_color + """;
+        background-color: """ + background_color + """;
         font: 14px;
         }""")
 

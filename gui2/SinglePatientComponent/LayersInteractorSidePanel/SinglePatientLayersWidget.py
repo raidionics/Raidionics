@@ -1,4 +1,6 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QScrollArea, QTabWidget
+import time
+
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QScrollArea, QTabWidget, QSizePolicy
 from PySide6.QtCore import Qt, QSize, Signal
 from PySide6.QtGui import QColor
 
@@ -24,6 +26,7 @@ class SinglePatientLayersWidget(QWidget):
 
     import_data_triggered = Signal()
     import_data_requested = Signal()
+    import_dicom_requested = Signal()
     patient_imported = Signal(str)
     patient_view_toggled = Signal(str)
     volume_view_toggled = Signal(str, bool)
@@ -76,17 +79,8 @@ class SinglePatientLayersWidget(QWidget):
         self.overall_scrollarea_layout.addWidget(self.main_tabwidget)
 
         self.volumes_collapsiblegroupbox = MRIVolumesLayerInteractor(self)
-        # self.volumes_collapsiblegroupbox.setFixedSize(QSize(200, self.parent.baseSize().height()))
-        # self.volumes_collapsiblegroupbox.content_label.setBaseSize(QSize(200, self.parent.baseSize().height()))
-        # self.overall_scrollarea_layout.addWidget(self.volumes_collapsiblegroupbox)
-
         self.annotations_collapsiblegroupbox = AnnotationsLayersInteractor(self)
-        # self.volumes_collapsiblegroupbox.setFixedSize(QSize(200, self.parent.baseSize().height()))
-        # self.volumes_collapsiblegroupbox.content_label.setBaseSize(QSize(200, self.parent.baseSize().height()))
-        # self.overall_scrollarea_layout.addWidget(self.annotations_collapsiblegroupbox)
-
         self.atlases_collapsiblegroupbox = AtlasesLayersInteractor(self)
-        # self.overall_scrollarea_layout.addWidget(self.atlases_collapsiblegroupbox)
 
         self.overall_scrollarea_layout.addStretch(1)
         self.overall_scrollarea_dummy_widget.setLayout(self.overall_scrollarea_layout)
@@ -103,6 +97,7 @@ class SinglePatientLayersWidget(QWidget):
         self.radiological_sequences_imported.connect(self.timestamp_layer_widget.on_radiological_sequences_imported)
         self.timestamp_layer_widget.reset_central_viewer.connect(self.reset_central_viewer)
         self.timestamp_layer_widget.import_data_requested.connect(self.import_data_requested)
+        self.timestamp_layer_widget.import_dicom_requested.connect(self.import_dicom_requested)
         self.timestamp_layer_widget.volume_view_toggled.connect(self.volume_view_toggled)
         self.timestamp_layer_widget.volume_contrast_changed.connect(self.volume_contrast_changed)
         self.timestamp_layer_widget.annotation_view_toggled.connect(self.annotation_view_toggled)
@@ -113,7 +108,10 @@ class SinglePatientLayersWidget(QWidget):
         self.timestamp_layer_widget.atlas_structure_opacity_changed.connect(self.atlas_structure_opacity_changed)
 
         # Actions-based connections
+        self.patient_imported.connect(self.execution_actions_widget.on_enable_actions)
+        self.mri_volume_imported.connect(self.execution_actions_widget.on_enable_actions)
         self.execution_actions_widget.pipeline_execution_requested.connect(self.pipeline_execution_requested)
+        self.main_tabwidget.currentChanged.connect(self.__on_main_tab_changed)
 
         # @TODO. Can be removed, deprecated?
         self.import_data_triggered.connect(self.volumes_collapsiblegroupbox.on_import_data)
@@ -122,35 +120,57 @@ class SinglePatientLayersWidget(QWidget):
     def __set_stylesheets(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
         font_color = software_ss["Color7"]
-        background_color = software_ss["Color5"]
+        background_color = software_ss["Color2"]
         background_color_selected = software_ss["Color3"]
 
-        # self.main_tabwidget.setStyleSheet("""
-        # QTableWidget:pane{
-        # border: 2px solid black;
-        # }
-        # """)
+        self.setStyleSheet("""
+        QWidget{
+        background-color: """ + background_color + """;
+        }""")
+
+        self.overall_scrollarea_dummy_widget.setStyleSheet("""
+        QWidget{
+        background-color: """ + background_color + """;
+        }""")
+
+        self.main_tabwidget.setStyleSheet("""
+        QTabWidget{
+        border: none;
+        }
+        """)
 
         self.main_tabwidget.tabBar().setStyleSheet("""
         QTabBar{
         background-color: """ + background_color + """;
         color: """ + font_color + """;
-        font-size: 14px;
-        font-style: bold;
+        font-size: 16px;
+        font-style: normal;
         }
         QTabBar:tab{
         background-color: """ + background_color + """;
-        color: """ + font_color + """;
-        font-size: 14px;
-        font-style: bold;
+        color: """ + "rgba(143, 143, 143, 1)" + """;
+        font-size: 16px;
+        font-style: light;
         }
         QTabBar:tab::selected{
-        background-color: """ + background_color_selected + """;
         color: """ + font_color + """;
-        font-size: 14px;
+        font-size: 16px;
         font-style: bold;
         }
         """)
+
+    def __on_main_tab_changed(self, index):
+        if index == 1:
+            self.execution_actions_widget.refresh()
+
+        # @TODO. Look into this for proper resize when switching between tabs.
+        # for i in range(self.main_tabwidget.count()):
+        #     if i != index:
+        #         self.main_tabwidget.widget(i).setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
+        #     else:
+        #         self.main_tabwidget.widget(i).setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        # self.main_tabwidget.widget(index).setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        # self.adjustSize()
 
     def on_mri_volume_import(self, uid):
         self.mri_volume_imported.emit(uid)
@@ -160,12 +180,15 @@ class SinglePatientLayersWidget(QWidget):
         The MRI volume has been requested for deletion by the user. If other MRI volumes exist, the central view will
         automatically display the next available MRI volume. If the last MRI volume has just been deleted, the central
         view is set to display an empty black image.
+        @TODO. Is this triggered?
         """
+        # start = time.time()
         objects_uids, error_msg = SoftwareConfigResources.getInstance().get_active_patient().remove_mri_volume(volume_uid=uid)
         if SoftwareConfigResources.getInstance().get_active_patient().get_patient_mri_volumes_number() == 0:
             self.volume_view_toggled.emit(uid, False)
             self.annotations_collapsiblegroupbox.reset()
             self.atlases_collapsiblegroupbox.reset()
+        # logging.info("[SinglePatientLayersWidget] on_mri_volume_removed took {} seconds.".format(time.time() - start))
 
     def on_annotation_volume_import(self, uid):
         self.annotation_volume_imported.emit(uid)
@@ -193,7 +216,21 @@ class SinglePatientLayersWidget(QWidget):
         self.patient_view_toggled.emit(patient_uid)
 
     def on_import_patient(self, patient_uid: str) -> None:
-        self.patient_imported.emit(patient_uid)
+        """
+        Notifies the import of a new patient, represented by the patient_uid, for the single patient widget to be
+        updated.
+        N-B: Because of the behaviour of folder inputs (needed in both the single patient and study modes), a new
+        patient imported from a folder is not made as the active patient, and as such the single patient widget should
+        not be visually updated.
+
+        Parameters
+        ----------
+        patient_uid: str
+            Internal unique identifier for the newly imported patient.
+        """
+        if not SoftwareConfigResources.getInstance().get_active_patient_uid() \
+                or SoftwareConfigResources.getInstance().get_active_patient_uid() == patient_uid:
+            self.patient_imported.emit(patient_uid)
 
     def on_reset_interface(self) -> None:
         """
@@ -203,6 +240,7 @@ class SinglePatientLayersWidget(QWidget):
         self.volumes_collapsiblegroupbox.reset()
         self.annotations_collapsiblegroupbox.reset()
         self.atlases_collapsiblegroupbox.reset()
+        self.execution_actions_widget.reset()
 
     def on_batch_process_started(self) -> None:
         self.execution_actions_widget.on_process_started()
@@ -211,3 +249,7 @@ class SinglePatientLayersWidget(QWidget):
     def on_batch_process_finished(self) -> None:
         self.execution_actions_widget.on_process_finished()
         self.timestamp_layer_widget.on_process_finished()
+        self.main_tabwidget.setCurrentIndex(0)
+
+    def on_process_finished(self) -> None:
+        self.main_tabwidget.setCurrentIndex(0)
