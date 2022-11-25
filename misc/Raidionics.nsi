@@ -25,7 +25,7 @@ InstallDirRegKey "${REG_ROOT}" "${REG_APP_PATH}" ""
 InstallDir "$PROGRAMFILES\Raidionics"
 
 !include 'MUI.nsh'
-!define MUI_ICON "..\images\raidionics-logo.ico"
+!define MUI_ICON "images\raidionics-logo.ico"
 
 !define MUI_ABORTWARNING
 !define MUI_UNABORTWARNING

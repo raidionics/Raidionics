@@ -26,7 +26,7 @@ hidden_imports = [x.lower() for x in hidden_imports]
 # copy dependencies and images, remove if folder already exists
 if os.path.exists(cwd + "/tmp_dependencies/"):
     shutil.rmtree(cwd + "/tmp_dependencies/")
-shutil.copytree(cwd + "/images/", cwd + "/tmp_dependencies/images/")
+shutil.copytree(cwd + "/mics/images/", cwd + "/tmp_dependencies/misc/images/")
 shutil.copytree(cwd + "/utils/", cwd + "/tmp_dependencies/utils/")
 shutil.copytree(cwd + "/gui2/", cwd + "/tmp_dependencies/gui2/")
 
@@ -58,7 +58,7 @@ exe = EXE(pyz,
           strip=False,
           upx=True,
           console=True,
-          icon=cwd + "/tmp_dependencies/images/raidionics-logo.ico" if sys.platform != "darwin" else None
+          icon=cwd + "/tmp_dependencies/misc/images/raidionics-logo.ico" if sys.platform != "darwin" else None
 )
 coll = COLLECT(exe,
                a.binaries,
@@ -75,7 +75,7 @@ coll = COLLECT(exe,
 if sys.platform == "darwin":
     app = BUNDLE(coll,
                  name='Raidionics.app',
-                 icon=cwd + "/tmp_dependencies/images/raidionics-logo.icns",
+                 icon=cwd + "/tmp_dependencies/misc/images/raidionics-logo.icns",
                  bundle_identifier=None,
                  info_plist={
                     'NSRequiresAquaSystemAppearance': 'true',
