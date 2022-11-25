@@ -12,7 +12,7 @@ import os
 from typing import List
 from utils.software_config import SoftwareConfigResources
 from utils.patient_dicom import PatientDICOM
-# from gui2.UtilsWidgets.ContextMenuQTableWidget import ContextMenuQTableWidget
+# from gui.UtilsWidgets.ContextMenuQTableWidget import ContextMenuQTableWidget
 from gui.UtilsWidgets.CustomQTableWidget.ImportDICOMQTableWidget import ImportDICOMQTableWidget
 from gui.UtilsWidgets.CustomQDialog.DisplayDICOMMetadataDialog import DisplayMetadataDICOMDialog
 

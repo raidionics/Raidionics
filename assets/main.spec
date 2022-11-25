@@ -28,7 +28,7 @@ if os.path.exists(cwd + "/tmp_dependencies/"):
     shutil.rmtree(cwd + "/tmp_dependencies/")
 shutil.copytree(cwd + "/assets/images/", cwd + "/tmp_dependencies/assets/images/")
 shutil.copytree(cwd + "/utils/", cwd + "/tmp_dependencies/utils/")
-shutil.copytree(cwd + "/gui2/", cwd + "/tmp_dependencies/gui2/")
+shutil.copytree(cwd + "/gui/", cwd + "/tmp_dependencies/gui/")
 
 a = Analysis([cwd + '/main.py'],
              pathex=[cwd],
