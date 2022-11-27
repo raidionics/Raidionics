@@ -222,33 +222,54 @@ class AnnotationSingleLayerWidget(QWidget):
         border-style: none;
         }""")
 
-        self.parent_image_combobox.setStyleSheet("""
-        QComboBox{
-        color: """ + font_color + """;
-        background-color: """ + background_color + """;
-        font: bold;
-        font-size: 10px;
-        border-style:none;
-        }
-        QComboBox::hover{
-        border-style: solid;
-        border-width: 1px;
-        border-color: rgba(196, 196, 196, 1);
-        }
-        QComboBox::drop-down {
-        subcontrol-origin: padding;
-        subcontrol-position: top right;
-        width: 15px;
-        border-left-width: 1px;
-        border-left-color: darkgray;
-        border-left-style: none;
-        border-top-right-radius: 3px; /* same radius as the QComboBox */
-        border-bottom-right-radius: 3px;
-        }
-        QComboBox::down-arrow{
-        image: url(""" + os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../Images/combobox-arrow-icon-10x7.png') + """)
-        }
-        """)
+        if os.name == 'nt':
+            self.parent_image_combobox.setStyleSheet("""
+            QComboBox{
+            color: """ + font_color + """;
+            background-color: """ + background_color + """;
+            font: bold;
+            font-size: 10px;
+            border-style:none;
+            }
+            QComboBox::hover{
+            border-style: solid;
+            border-width: 1px;
+            border-color: rgba(196, 196, 196, 1);
+            }
+            QComboBox::drop-down {
+            subcontrol-origin: padding;
+            subcontrol-position: top right;
+            width: 15px;
+            }
+            """)
+        else:
+            self.parent_image_combobox.setStyleSheet("""
+            QComboBox{
+            color: """ + font_color + """;
+            background-color: """ + background_color + """;
+            font: bold;
+            font-size: 10px;
+            border-style:none;
+            }
+            QComboBox::hover{
+            border-style: solid;
+            border-width: 1px;
+            border-color: rgba(196, 196, 196, 1);
+            }
+            QComboBox::drop-down {
+            subcontrol-origin: padding;
+            subcontrol-position: top right;
+            width: 15px;
+            border-left-width: 1px;
+            border-left-color: darkgray;
+            border-left-style: none;
+            border-top-right-radius: 3px; /* same radius as the QComboBox */
+            border-bottom-right-radius: 3px;
+            }
+            QComboBox::down-arrow{
+            image: url(""" + os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../Images/combobox-arrow-icon-10x7.png') + """)
+            }
+            """)
 
         self.annotation_type_label.setStyleSheet("""
         QLabel{
@@ -257,33 +278,54 @@ class AnnotationSingleLayerWidget(QWidget):
         border-style: none;
         }""")
 
-        self.annotation_type_combobox.setStyleSheet("""
-        QComboBox{
-        color: """ + font_color + """;
-        background-color: """ + background_color + """;
-        font: bold;
-        font-size: 10px;
-        border-style:none;
-        }
-        QComboBox::hover{
-        border-style: solid;
-        border-width: 1px;
-        border-color: rgba(196, 196, 196, 1);
-        }
-        QComboBox::drop-down {
-        subcontrol-origin: padding;
-        subcontrol-position: top right;
-        width: 15px;
-        border-left-width: 1px;
-        border-left-color: darkgray;
-        border-left-style: none;
-        border-top-right-radius: 3px; /* same radius as the QComboBox */
-        border-bottom-right-radius: 3px;
-        }
-        QComboBox::down-arrow{
-        image: url(""" + os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../Images/combobox-arrow-icon-10x7.png') + """)
-        }
-        """)
+        if os.name == 'nt':
+            self.annotation_type_combobox.setStyleSheet("""
+                   QComboBox{
+                   color: """ + font_color + """;
+                   background-color: """ + background_color + """;
+                   font: bold;
+                   font-size: 10px;
+                   border-style:none;
+                   }
+                   QComboBox::hover{
+                   border-style: solid;
+                   border-width: 1px;
+                   border-color: rgba(196, 196, 196, 1);
+                   }
+                   QComboBox::drop-down {
+                   subcontrol-origin: padding;
+                   subcontrol-position: top right;
+                   width: 15px;
+                   }
+                   """)
+        else:
+            self.annotation_type_combobox.setStyleSheet("""
+            QComboBox{
+            color: """ + font_color + """;
+            background-color: """ + background_color + """;
+            font: bold;
+            font-size: 10px;
+            border-style:none;
+            }
+            QComboBox::hover{
+            border-style: solid;
+            border-width: 1px;
+            border-color: rgba(196, 196, 196, 1);
+            }
+            QComboBox::drop-down {
+            subcontrol-origin: padding;
+            subcontrol-position: top right;
+            width: 15px;
+            border-left-width: 1px;
+            border-left-color: darkgray;
+            border-left-style: none;
+            border-top-right-radius: 3px; /* same radius as the QComboBox */
+            border-bottom-right-radius: 3px;
+            }
+            QComboBox::down-arrow{
+            image: url(""" + os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../Images/combobox-arrow-icon-10x7.png') + """)
+            }
+            """)
 
         self.generation_type_label.setStyleSheet("""
         QLabel{
@@ -292,33 +334,54 @@ class AnnotationSingleLayerWidget(QWidget):
         border-style: none;
         }""")
 
-        self.generation_type_combobox.setStyleSheet("""
-        QComboBox{
-        color: """ + font_color + """;
-        background-color: """ + background_color + """;
-        font: bold;
-        font-size: 10px;
-        border-style:none;
-        }
-        QComboBox::hover{
-        border-style: solid;
-        border-width: 1px;
-        border-color: rgba(196, 196, 196, 1);
-        }
-        QComboBox::drop-down {
-        subcontrol-origin: padding;
-        subcontrol-position: top right;
-        width: 15px;
-        border-left-width: 1px;
-        border-left-color: darkgray;
-        border-left-style: none;
-        border-top-right-radius: 3px; /* same radius as the QComboBox */
-        border-bottom-right-radius: 3px;
-        }
-        QComboBox::down-arrow{
-        image: url(""" + os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../Images/combobox-arrow-icon-10x7.png') + """)
-        }
-        """)
+        if os.name == 'nt':
+            self.generation_type_combobox.setStyleSheet("""
+            QComboBox{
+            color: """ + font_color + """;
+            background-color: """ + background_color + """;
+            font: bold;
+            font-size: 10px;
+            border-style:none;
+            }
+            QComboBox::hover{
+            border-style: solid;
+            border-width: 1px;
+            border-color: rgba(196, 196, 196, 1);
+            }
+            QComboBox::drop-down {
+            subcontrol-origin: padding;
+            subcontrol-position: top right;
+            width: 15px;
+            }
+            """)
+        else:
+            self.generation_type_combobox.setStyleSheet("""
+            QComboBox{
+            color: """ + font_color + """;
+            background-color: """ + background_color + """;
+            font: bold;
+            font-size: 10px;
+            border-style:none;
+            }
+            QComboBox::hover{
+            border-style: solid;
+            border-width: 1px;
+            border-color: rgba(196, 196, 196, 1);
+            }
+            QComboBox::drop-down {
+            subcontrol-origin: padding;
+            subcontrol-position: top right;
+            width: 15px;
+            border-left-width: 1px;
+            border-left-color: darkgray;
+            border-left-style: none;
+            border-top-right-radius: 3px; /* same radius as the QComboBox */
+            border-bottom-right-radius: 3px;
+            }
+            QComboBox::down-arrow{
+            image: url(""" + os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../Images/combobox-arrow-icon-10x7.png') + """)
+            }
+            """)
 
         self.opacity_label.setStyleSheet("""
         QLabel{
