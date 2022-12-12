@@ -152,7 +152,7 @@ class CentralAreaExecutionWidget(QLabel):
                 return
 
             if diag.tumor_type == 'High-Grade Glioma':
-                self.model_name = "MRI_HGGlioma_P2"
+                self.model_name = "MRI_HGGlioma"
             elif diag.tumor_type == 'Low-Grade Glioma':
                 self.model_name = "MRI_LGGlioma"
             elif diag.tumor_type == 'Metastasis':

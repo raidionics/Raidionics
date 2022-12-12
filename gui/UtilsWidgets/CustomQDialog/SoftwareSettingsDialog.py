@@ -96,8 +96,8 @@ class SoftwareSettingsDialog(QDialog):
         self.processing_options_base_layout.addWidget(self.processing_options_label)
 
         self.processing_options_use_sequences_layout = QHBoxLayout()
-        self.processing_options_use_sequences_header_label = QLabel("Use MRI sequences")
-        self.processing_options_use_sequences_header_label.setToolTip("Tick the box in order to use the manually set sequence type. If left unticked, a sequence classifier will be used on all loaded MRI scans.\n")
+        self.processing_options_use_sequences_header_label = QLabel("Use manual MRI sequences")
+        self.processing_options_use_sequences_header_label.setToolTip("Tick the box in order to use the manually set sequence types (preferred). If left unticked, a sequence classification model will be applied on all loaded MRI scans.\n")
         self.processing_options_use_sequences_checkbox = QCheckBox()
         self.processing_options_use_sequences_checkbox.setChecked(SoftwareConfigResources.getInstance().user_preferences.use_manual_sequences)
         self.processing_options_use_sequences_layout.addWidget(self.processing_options_use_sequences_checkbox)

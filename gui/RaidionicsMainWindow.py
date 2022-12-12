@@ -482,7 +482,7 @@ class RaidionicsMainWindow(QMainWindow):
             SoftwareConfigResources.getInstance().get_active_study().save()
 
     def __on_download_example_data(self):
-        QDesktopServices.openUrl(QUrl("https://drive.google.com/file/d/1GYQPR0RvoriJN6Z1Oq8WzOoDf68htdCs/view?usp=sharing"))
+        QDesktopServices.openUrl(QUrl("https://drive.google.com/file/d/1W3klW_F7Rfge9-utczz9qp7uWh-pVPS1/view?usp=sharing"))
 
     def standardOutputWritten(self, text):
         """
