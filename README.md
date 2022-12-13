@@ -7,15 +7,15 @@
 ![CI](https://github.com/dbouget/Raidionics/workflows/Build%20Ubuntu/badge.svg?branch=master&event=push)
 ![CI](https://github.com/dbouget/Raidionics/workflows/Build%20macOS/badge.svg?branch=master&event=push)
 
-Software to automatically segment brain tumors from pre-operative MRI scans, compute their characteristics (e.g., volume, location), and generate a standardized report.
-The software was introduced in the article "Brain tumor preoperative surgery imaging: models and software solutions for
+Software to automatically segment brain tumors from pre- and post-operative MRI scans, compute their characteristics (e.g., volume, location), and generate a standardized report.
+The software was first introduced in the article "Brain tumor preoperative surgery imaging: models and software solutions for
 segmentation and standardized reporting", which has been published in [Frontiers in Neurology](https://www.frontiersin.org/articles/10.3389/fneur.2022.932219/full).  
 
 <p align="center">
 <img src="assets/images/Preview_SingleUse.gif" width="85%">
 </p>
 
-The current version (i.e., v1.1) provides a more user-friendly graphical user interface. Version 1.0 corresponds to the software as it was when the article was submitted.
+The current version (i.e., v1.2) provides a more user-friendly graphical user interface. Version 1.0 corresponds to the software as it was when the article was submitted.
 
 * Please visit the [wiki](https://github.com/dbouget/Raidionics/wiki) to know more about usage, use-cases, and access tutorials.  
 * For any issue, please report them [here](https://github.com/dbouget/Raidionics/issues).
@@ -24,7 +24,8 @@ The current version (i.e., v1.1) provides a more user-friendly graphical user in
 
 ## Installation
 An installer is provided for the three main Operating Systems: Windows (~v10, 64-bit), macOS (>= Catalina), and Ubuntu Linux (>= 18.04). 
-The software can be downloaded from [here](https://github.com/dbouget/Raidionics/releases) (see **Assets**). 
+The software can be downloaded from [here](https://github.com/dbouget/Raidionics/releases) (see **Assets**).  
+N-B: For re-installation, it is recommended to manually delete the .raidionics folder located inside your home directory.
 
 These steps are only needed to do once:
 1) Download the installer to your Operating System.
