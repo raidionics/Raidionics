@@ -88,7 +88,7 @@ class StudyPatientsReportingSummaryWidget(QWidget):
             self.content_table_widget.insertRow(self.content_table_widget.rowCount())
             for j in range(reporting_statistics_table.shape[1]):
                 self.content_table_widget.setItem(self.content_table_widget.rowCount() - 1, j,
-                                                  QTableWidgetItem(reporting_statistics_table.iloc[i][j]))
+                                                  QTableWidgetItem(str(reporting_statistics_table.iloc[i][j])))
 
     def postprocessing_update(self) -> None:
         #@TODO. Lazy approach to redraw from scratch, must be properly done.

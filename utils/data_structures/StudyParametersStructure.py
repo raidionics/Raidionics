@@ -252,6 +252,13 @@ class StudyParameters:
             if 'Patients' in self._study_parameters["Study"].keys():
                 self._included_patients_uids = self._study_parameters["Study"]['Patients']['listing']
 
+            if 'Statistics' in self._study_parameters.keys():
+                if 'annotations_filename' in self._study_parameters['Statistics'].keys():
+                    self._segmentation_statistics_filename = os.path.join(self._output_study_folder, self._study_parameters['Statistics']['annotations_filename'])
+                    self._segmentation_statistics_df = pd.read_csv(self._segmentation_statistics_filename)
+                if 'reportings_filename' in self._study_parameters['Statistics'].keys():
+                    self._reporting_statistics_filename = os.path.join(self._output_study_folder, self._study_parameters['Statistics']['reportings_filename'])
+                    self._reporting_statistics_df = pd.read_csv(self._reporting_statistics_filename)
         except Exception:
             error_message = "Import study failed, from {}.\n".format(os.path.basename(filename)) + str(traceback.format_exc())
             logging.error(error_message)

@@ -113,7 +113,7 @@ class StudyPatientsSegmentationSummaryWidget(QWidget):
             self.content_table_widget.setItem(self.content_table_widget.rowCount() - 1, 4,
                                               QTableWidgetItem(segmentation_statistics_table.iloc[i][5]))
             self.content_table_widget.setItem(self.content_table_widget.rowCount() - 1, 5,
-                                              QTableWidgetItem(segmentation_statistics_table.iloc[i][6]))
+                                              QTableWidgetItem(str(segmentation_statistics_table.iloc[i][6])))
 
         # study_patients_uid = SoftwareConfigResources.getInstance().get_active_study().included_patients_uids
         # for uid in study_patients_uid:
