@@ -33,7 +33,7 @@ jobs:
         python3 -m pip install --upgrade pip
         pip3 install matplotlib
         pip3 install -e git+https://github.com/dbouget/raidionics_rads_lib.git@m1_test#egg=raidionicsrads
-        pip3 install -r misc/requirements.txt
+        pip3 install -r assets/requirements.txt
         deactivate
 
     - name: Install cmake
@@ -64,7 +64,7 @@ jobs:
         pip3 install pyinstaller
         pip3 install --upgrade PyInstaller pyinstaller-hooks-contrib
         mkdir tmp_dependencies
-        pyinstaller --noconfirm --clean misc/main.spec
+        pyinstaller --noconfirm --clean assets/main.spec
 
     - name: Make installer
       run: |

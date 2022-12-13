@@ -12,7 +12,7 @@ The software was introduced in the article "Brain tumor preoperative surgery ima
 segmentation and standardized reporting", which has been published in [Frontiers in Neurology](https://www.frontiersin.org/articles/10.3389/fneur.2022.932219/full).  
 
 <p align="center">
-<img src="images/Preview_SingleUse.gif" width="85%">
+<img src="assets/images/Preview_SingleUse.gif" width="85%">
 </p>
 
 The current version (i.e., v1.1) provides a more user-friendly graphical user interface. Version 1.0 corresponds to the software as it was when the article was submitted.

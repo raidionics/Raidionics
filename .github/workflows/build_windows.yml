@@ -29,19 +29,19 @@ jobs:
         python -m pip install --upgrade pip
         pip install matplotlib==3.3.4
         pip install -e git+https://github.com/dbouget/raidionics_rads_lib.git@master#egg=raidionicsrads
-        pip install -r misc/requirements.txt
+        pip install -r assets/requirements.txt
 #        pip install -e git+https://github.com/dbouget/raidionics_seg_lib.git@master#egg=raidionicsseg
 
     - name: Build software
       run: |              
         pip install pyinstaller
         mkdir tmp_dependencies
-        pyinstaller --noconfirm --clean misc/main.spec
+        pyinstaller --noconfirm --clean assets/main.spec
 
     - name: Make installer
       run: |
-        makensis.exe misc/Raidionics.nsi
-        cp -r misc/Raidionics-1.2.0-win.exe dist/Raidionics-1.2.0-win.exe
+        makensis.exe assets/Raidionics.nsi
+        cp -r assets/Raidionics-1.2.0-win.exe dist/Raidionics-1.2.0-win.exe
 
     - name: Upload package
       uses: actions/upload-artifact@v2

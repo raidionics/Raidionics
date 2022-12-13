@@ -28,22 +28,22 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -e git+https://github.com/dbouget/raidionics_rads_lib.git@master#egg=raidionicsrads
-        pip install -r misc/requirements.txt
+        pip install -r assets/requirements.txt
 #        pip install -e git+https://github.com/dbouget/raidionics_seg_lib.git@master#egg=raidionicsseg
 
     - name: Build software
       run: |
         pip install pyinstaller
         mkdir tmp_dependencies
-        pyinstaller --noconfirm --clean misc/main.spec
+        pyinstaller --noconfirm --clean assets/main.spec
 
     - name: Make installer
       run: |
-        mkdir -p misc/Raidionics_ubuntu/usr/local/bin
-        cp -r dist/Raidionics misc/Raidionics_ubuntu/usr/local/bin
-        dpkg-deb --build --root-owner-group misc/Raidionics_ubuntu
+        mkdir -p assets/Raidionics_ubuntu/usr/local/bin
+        cp -r dist/Raidionics assets/Raidionics_ubuntu/usr/local/bin
+        dpkg-deb --build --root-owner-group assets/Raidionics_ubuntu
         ls -la
-        cp -r misc/Raidionics_ubuntu.deb dist/Raidionics-1.2.0-ubuntu.deb
+        cp -r assets/Raidionics_ubuntu.deb dist/Raidionics-1.2.0-ubuntu.deb
 
     - name: Upload package
       uses: actions/upload-artifact@v2

@@ -6,7 +6,7 @@ from pathlib import PurePath
 import PySide6
 import sys
 from PySide6.QtWidgets import QApplication
-from gui2.RaidionicsMainWindow import RaidionicsMainWindow
+from gui.RaidionicsMainWindow import RaidionicsMainWindow
 import logging
 
 
