@@ -15,7 +15,7 @@ segmentation and standardized reporting", which has been published in [Frontiers
 <img src="assets/images/Preview_SingleUse.gif" width="85%">
 </p>
 
-The current version (i.e., v1.1) provides a more user-friendly graphical user interface. Version 1.0 corresponds to the software as it was when the article was submitted.
+The current version (i.e., v1.2) provides a more user-friendly graphical user interface. Version 1.0 corresponds to the software as it was when the article was submitted.
 
 * Please visit the [wiki](https://github.com/dbouget/Raidionics/wiki) to know more about usage, use-cases, and access tutorials.  
 * For any issue, please report them [here](https://github.com/dbouget/Raidionics/issues).
