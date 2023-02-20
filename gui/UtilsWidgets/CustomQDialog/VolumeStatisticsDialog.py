@@ -1,9 +1,9 @@
 import logging
 import traceback
 
-from PySide2.QtWidgets import QWidget, QDialog, QHBoxLayout, QVBoxLayout, QDialogButtonBox, QGroupBox, QLabel,\
+from PySide6.QtWidgets import QWidget, QDialog, QHBoxLayout, QVBoxLayout, QDialogButtonBox, QGroupBox, QLabel,\
     QLineEdit, QListWidget, QListWidgetItem, QTableWidget, QTableWidgetItem, QSpacerItem
-from PySide2.QtCore import Qt, QSize, Signal
+from PySide6.QtCore import Qt, QSize, Signal
 import nibabel as nib
 import numpy as np
 from utils.software_config import SoftwareConfigResources

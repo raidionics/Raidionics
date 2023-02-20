@@ -1,7 +1,7 @@
-from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QGridLayout, QDialog, QDialogButtonBox,\
+from PySide6.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QGridLayout, QDialog, QDialogButtonBox,\
     QPushButton, QLineEdit, QFileDialog, QCheckBox, QTextEdit
-from PySide2.QtCore import Qt, QSize, Signal, QFile, QUrl
-from PySide2.QtGui import QIcon, QMouseEvent, QDesktopServices
+from PySide6.QtCore import Qt, QSize, Signal, QFile, QUrl
+from PySide6.QtGui import QIcon, QMouseEvent, QDesktopServices
 import os
 
 from utils.software_config import SoftwareConfigResources

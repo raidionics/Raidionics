@@ -1,6 +1,6 @@
 import os
 import time
-from PySide2.QtCore import Signal, QThread
+from PySide6.QtCore import Signal, QThread
 from utils.software_config import SoftwareConfigResources
 
 

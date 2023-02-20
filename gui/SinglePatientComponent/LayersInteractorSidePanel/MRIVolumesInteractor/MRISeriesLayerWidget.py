@@ -1,9 +1,9 @@
 import traceback
 
-from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QLineEdit, QComboBox, QGridLayout, QPushButton,\
-    QRadioButton, QMenu, QAction, QVBoxLayout, QMessageBox
-from PySide2.QtCore import Qt, QSize, Signal, QPoint
-from PySide2.QtGui import QPixmap, QIcon
+from PySide6.QtWidgets import QWidget, QLabel, QHBoxLayout, QLineEdit, QComboBox, QGridLayout, QPushButton,\
+    QRadioButton, QMenu, QVBoxLayout, QMessageBox
+from PySide6.QtCore import Qt, QSize, Signal, QPoint
+from PySide6.QtGui import QPixmap, QIcon, QAction
 import os
 import logging
 from gui.UtilsWidgets.CustomQGroupBox.QCollapsibleGroupBox import QCollapsibleGroupBox

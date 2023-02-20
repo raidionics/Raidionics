@@ -1,4 +1,4 @@
 gdown==4.6.0
 names==0.3.0
-PySide2==5.15.2
+PySide6==6.2.4
 plotly==5.8.0

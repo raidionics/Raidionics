@@ -1,7 +1,7 @@
 import os
-from PySide2.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QScrollArea, QLabel, QSpacerItem,\
+from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QScrollArea, QLabel, QSpacerItem,\
     QGridLayout, QStackedWidget, QComboBox
-from PySide2.QtCore import QSize, Qt, Signal
+from PySide6.QtCore import QSize, Qt, Signal
 from utils.software_config import SoftwareConfigResources
 from gui.StudyBatchComponent.PatientsSummaryPanel.StudyPatientsContentSummaryPanelWidget import StudyPatientsContentSummaryPanelWidget
 from gui.StudyBatchComponent.PatientsSummaryPanel.StudyPatientsSegmentationSummaryWidget import StudyPatientsSegmentationSummaryWidget

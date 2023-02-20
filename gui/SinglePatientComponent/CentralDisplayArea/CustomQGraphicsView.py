@@ -1,6 +1,6 @@
-from PySide2.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsPixmapItem, QGraphicsOpacityEffect
-from PySide2.QtGui import QPixmap, QImage, QPen, QColor, QTransform
-from PySide2.QtCore import Qt, Signal, QPoint, QSize
+from PySide6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsPixmapItem, QGraphicsOpacityEffect
+from PySide6.QtGui import QPixmap, QImage, QPen, QColor, QTransform
+from PySide6.QtCore import Qt, Signal, QPoint, QSize
 import numpy as np
 import os
 import logging

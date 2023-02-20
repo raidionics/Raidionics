@@ -1,6 +1,6 @@
-from PySide2.QtWidgets import QLabel, QHBoxLayout, QPushButton, QWidget
-from PySide2.QtCore import QSize, Qt, Signal, QRectF
-from PySide2.QtGui import QIcon, QPaintEvent, QPainter, QPainterPath, QPen, QColor, QFont
+from PySide6.QtWidgets import QLabel, QHBoxLayout, QPushButton, QWidget
+from PySide6.QtCore import QSize, Qt, Signal, QRectF
+from PySide6.QtGui import QIcon, QPaintEvent, QPainter, QPainterPath, QPen, QColor, QFont
 from utils.software_config import SoftwareConfigResources
 
 

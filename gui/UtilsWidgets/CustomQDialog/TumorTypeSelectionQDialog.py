@@ -1,6 +1,6 @@
 import os
-from PySide2.QtWidgets import QDialog, QGridLayout, QLabel, QComboBox, QDialogButtonBox
-from PySide2.QtCore import QSize
+from PySide6.QtWidgets import QDialog, QGridLayout, QLabel, QComboBox, QDialogButtonBox
+from PySide6.QtCore import QSize
 from utils.software_config import SoftwareConfigResources
 
 

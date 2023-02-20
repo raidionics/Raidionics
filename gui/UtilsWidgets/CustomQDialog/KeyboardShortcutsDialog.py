@@ -1,6 +1,6 @@
-from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QDialog, QDialogButtonBox, QTreeWidget, QTreeWidgetItem
-from PySide2.QtCore import Qt, QSize, Signal
-from PySide2.QtGui import QIcon, QPixmap
+from PySide6.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QDialog, QDialogButtonBox, QTreeWidget, QTreeWidgetItem
+from PySide6.QtCore import Qt, QSize, Signal
+from PySide6.QtGui import QIcon, QPixmap
 import os
 
 from utils.software_config import SoftwareConfigResources

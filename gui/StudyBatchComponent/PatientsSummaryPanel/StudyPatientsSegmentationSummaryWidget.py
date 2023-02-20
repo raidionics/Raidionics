@@ -1,8 +1,9 @@
 import logging
 import os
-from PySide2.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QScrollArea, QLabel, QSpacerItem,\
-    QGridLayout, QTableWidget, QTableWidgetItem, QMenu, QAction
-from PySide2.QtCore import QSize, Qt, Signal
+from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QScrollArea, QLabel, QSpacerItem,\
+    QGridLayout, QTableWidget, QTableWidgetItem, QMenu
+from PySide6.QtCore import QSize, Qt, Signal
+from PySide6.QtGui import QAction
 from utils.software_config import SoftwareConfigResources
 
 

@@ -1,7 +1,7 @@
-from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QLineEdit, QComboBox, QGridLayout, QPushButton,\
-    QRadioButton, QMenu, QAction, QSlider, QColorDialog, QVBoxLayout, QSpacerItem, QSizePolicy
-from PySide2.QtCore import Qt, QSize, Signal, QPoint
-from PySide2.QtGui import QPixmap, QIcon, QColor
+from PySide6.QtWidgets import QWidget, QLabel, QHBoxLayout, QLineEdit, QComboBox, QGridLayout, QPushButton,\
+    QRadioButton, QMenu, QSlider, QColorDialog, QVBoxLayout, QSpacerItem, QSizePolicy
+from PySide6.QtCore import Qt, QSize, Signal, QPoint
+from PySide6.QtGui import QPixmap, QIcon, QColor, QAction
 import os
 import logging
 from gui.UtilsWidgets.CustomQGroupBox.QCollapsibleGroupBox import QCollapsibleGroupBox

@@ -5,6 +5,7 @@ import traceback
 import pandas as pd
 import hashlib
 import zipfile
+import requests
 from os.path import expanduser
 from utils.software_config import SoftwareConfigResources
 
@@ -13,7 +14,8 @@ def get_available_cloud_models_list():
     cloud_models_list = []
     cloud_models_list_url = 'https://drive.google.com/uc?id=1vRUr0VXgnDFNq7AlB5ILyBCmW_sGuciP'  # Initial v1.0/v1.1
     if SoftwareConfigResources.getInstance().software_version == "1.2":
-        cloud_models_list_url = 'https://drive.google.com/uc?id=12tFP9trt8CLS6UBfNpodlRUwfSqZJJNQ'
+        #cloud_models_list_url = 'https://drive.google.com/uc?id=12tFP9trt8CLS6UBfNpodlRUwfSqZJJNQ'
+        cloud_models_list_url = 'https://drive.google.com/uc?id=1lpy-BMqZsjjxvTzT2Qn95kG2XvN6RZ21'
     try:
         cloud_models_list_filename = os.path.join(expanduser("~"), '.raidionics', 'resources/models',
                                                   'cloud_models_list.csv')
@@ -29,7 +31,7 @@ def get_available_cloud_models_list():
     return cloud_models_list
 
 
-def download_model(model_name):
+def download_model_ori(model_name):
     """
     @TODO. In case the model could not be downloaded, maybe depending on firewall/security issues (e.g., on Windows),
     an error message with "Cannot retrieve the public link of the file" will appear. This should be then shown in a
@@ -64,6 +66,70 @@ def download_model(model_name):
                         extract_state = True
                 if extract_state:
                     gdown.extractall(path=models_archive_path, to=models_path)
+
+            for d in dep:
+                if d == d:
+                    download_model(d)
+        else:
+            print("No model exists with the provided name: {}.\n".format(model_name))
+            logging.error("No model exists with the provided name: {}.\n".format(model_name))
+    except Exception as e:
+        print('Issue trying to collect the latest {} model.\n'.format(model_name))
+        print('{}'.format(traceback.format_exc()))
+        logging.error('Issue trying to collect the latest {} model with: \n {}'.format(model_name,
+                                                                                       traceback.format_exc()))
+
+
+def download_model(model_name: str):
+    """
+    Utilitarian method for downloading a model, hosted on Github, if no local version can be found or if the local version
+    is outdated compared to the remote version.
+
+    Parameters
+    ----------
+    model_name: str
+        Unique name for the model to download, as specified inside the cloud models list file (.csv).
+    """
+    download_state = False
+    extract_state = False
+    try:
+        cloud_models_list = get_available_cloud_models_list()
+        if model_name in list(cloud_models_list['Model'].values):
+            model_params = cloud_models_list.loc[cloud_models_list['Model'] == model_name]
+            url = model_params['link'].values[0]
+            md5 = model_params['sum'].values[0]
+            dep = list(model_params['dependencies'].values)
+            models_path = os.path.join(expanduser('~'), '.raidionics', 'resources', 'models')
+            os.makedirs(models_path, exist_ok=True)
+            models_archive_path = os.path.join(expanduser('~'), '.raidionics', 'resources', 'models',
+                                               '.cache', model_name + '.zip')
+            os.makedirs(os.path.dirname(models_archive_path), exist_ok=True)
+
+            if not os.path.exists(models_archive_path) or\
+                    (hashlib.md5(open(models_archive_path, 'rb').read()).hexdigest() != md5 and SoftwareConfigResources.getInstance().user_preferences.active_model_update):
+                download_state = True
+
+            if download_state:
+                headers = {}
+
+                response = requests.get(url, headers=headers, stream=True)
+                response.raise_for_status()
+
+                if response.status_code == requests.codes.ok:
+                    with open(models_archive_path, "wb") as f:
+                        for chunk in response.iter_content(chunk_size=1048576):
+                            f.write(chunk)
+                    extract_state = True
+            else:
+                zip_content = zipfile.ZipFile(models_archive_path).namelist()
+                for f in zip_content:
+                    if not os.path.exists(os.path.join(models_path, f)):
+                        extract_state = True
+
+            if extract_state:
+                with zipfile.ZipFile(models_archive_path, 'r') as zip_ref:
+                    zip_ref.extractall(models_path)
+                # gdown.extractall(path=models_archive_path, to=models_path)
 
             for d in dep:
                 if d == d:

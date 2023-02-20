@@ -1,9 +1,10 @@
 import sys, os
-from PySide2.QtWidgets import QApplication, QLabel, QMainWindow, QMenuBar, QAction, QMessageBox,\
+from PySide6.QtWidgets import QApplication, QLabel, QMainWindow, QMenuBar, QMessageBox,\
     QHBoxLayout, QVBoxLayout, QStackedWidget, QSizePolicy
-from PySide2.QtCore import QUrl, QSize, QThread, Signal, Qt
-from PySide2.QtGui import QIcon, QDesktopServices, QCloseEvent
-import traceback, time
+from PySide6.QtCore import QUrl, QSize, QThread, Signal, Qt
+from PySide6.QtGui import QIcon, QDesktopServices, QCloseEvent, QAction
+import traceback
+import time
 import threading
 import numpy as np
 import logging

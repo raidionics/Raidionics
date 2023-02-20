@@ -1,8 +1,7 @@
 import traceback
 
-from PySide2.QtWidgets import QWidget, QLabel, QGridLayout, QPushButton
-from PySide2.QtCore import QSize, Signal
-from PySide2.QtDataVisualization import QtDataVisualization
+from PySide6.QtWidgets import QWidget, QLabel, QGridLayout, QPushButton
+from PySide6.QtCore import QSize, Signal
 import numpy as np
 import logging
 
@@ -58,10 +57,10 @@ class CentralDisplayAreaWidget(QWidget):
         self.vertical_line.setFixedWidth(3)
         self.layout.addWidget(self.axial_viewer, 0, 0)
         self.layout.addWidget(self.empty_label, 0, 2)
-        self.layout.addWidget(self.horizontal_line, 1, 0, columnSpan=3)
+        self.layout.addWidget(self.horizontal_line, 1, 0, 1, 3)
         self.layout.addWidget(self.sagittal_viewer, 2, 0)
         self.layout.addWidget(self.coronal_viewer, 2, 2)
-        self.layout.addWidget(self.vertical_line, 0, 1, rowSpan=3)
+        self.layout.addWidget(self.vertical_line, 0, 1, 3, 1)
 
     def __set_layout_dimensions(self):
         # self.setMinimumSize(QSize(1140, 850))

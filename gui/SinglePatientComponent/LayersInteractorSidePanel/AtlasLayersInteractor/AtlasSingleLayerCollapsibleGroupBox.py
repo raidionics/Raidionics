@@ -1,7 +1,7 @@
-from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QLineEdit, QSpacerItem, QGridLayout, QVBoxLayout,\
+from PySide6.QtWidgets import QWidget, QLabel, QHBoxLayout, QLineEdit, QSpacerItem, QGridLayout, QVBoxLayout,\
     QPushButton, QColorDialog, QSpinBox
-from PySide2.QtCore import Qt, QSize, Signal
-from PySide2.QtGui import QIcon, QPixmap, QColor
+from PySide6.QtCore import Qt, QSize, Signal
+from PySide6.QtGui import QIcon, QPixmap, QColor
 import os
 import collections
 import logging

@@ -1,8 +1,8 @@
 import time
 
-from PySide2.QtWidgets import QWidget, QVBoxLayout, QScrollArea, QTabWidget, QSizePolicy
-from PySide2.QtCore import Qt, QSize, Signal
-from PySide2.QtGui import QColor
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QScrollArea, QTabWidget, QSizePolicy
+from PySide6.QtCore import Qt, QSize, Signal
+from PySide6.QtGui import QColor
 
 import logging
 
