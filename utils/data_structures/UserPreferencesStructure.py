@@ -149,8 +149,10 @@ class UserPreferencesStructure:
                 self._use_manual_sequences = preferences['Processing']['use_manual_sequences']
             if 'use_manual_annotations' in preferences['Processing'].keys():
                 self._use_manual_annotations = preferences['Processing']['use_manual_annotations']
-            if 'use_preprocessed_inputs' in preferences['Processing'].keys():
-                self._use_preprocessed_inputs = preferences['Processing']['use_preprocessed_inputs']
+            if 'use_stripped_inputs' in preferences['Processing'].keys():
+                self._use_stripped_inputs = preferences['Processing']['use_stripped_inputs']
+            if 'use_registered_inputs' in preferences['Processing'].keys():
+                self._use_registered_inputs = preferences['Processing']['use_registered_inputs']
             if 'compute_cortical_structures' in preferences['Processing'].keys():
                 self._compute_cortical_structures = preferences['Processing']['compute_cortical_structures']
             if 'compute_subcortical_structures' in preferences['Processing'].keys():
@@ -168,7 +170,8 @@ class UserPreferencesStructure:
         preferences['Processing'] = {}
         preferences['Processing']['use_manual_sequences'] = self._use_manual_sequences
         preferences['Processing']['use_manual_annotations'] = self._use_manual_annotations
-        preferences['Processing']['use_preprocessed_inputs'] = self._use_preprocessed_inputs
+        preferences['Processing']['use_stripped_inputs'] = self._use_stripped_inputs
+        preferences['Processing']['use_registered_inputs'] = self._use_registered_inputs
         preferences['Processing']['compute_cortical_structures'] = self._compute_cortical_structures
         preferences['Processing']['compute_subcortical_structures'] = self._compute_subcortical_structures
         preferences['Appearance'] = {}
