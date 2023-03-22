@@ -53,7 +53,7 @@ def main(argv):
             app = QApplication(sys.argv)
             window = RaidionicsMainWindow(application=app)
             window.show()
-            app.exec_()
+            app.exec()
 
             #@TODO. Windows-specific stuff to check.
             # # ifdef Q_OS_WIN //this is Windows specific code, not portable

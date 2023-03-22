@@ -19,6 +19,20 @@ jobs:
       with:
         python-version: 3.7
 
+    - name: Download ANTs
+      uses: robinraju/release-downloader@main
+      with:
+        repository: "raidionics/Raidionics-dependencies"
+        latest: true
+        fileName: "ANTsX-v2.4.3_windows.zip"
+        out-file-path: "downloads"
+
+    - name: Extract ANTs
+      run: |
+        cd ${{github.workspace}}/downloads/
+        mkdir ${{github.workspace}}/ANTs/install
+        tar -xf ANTsX*.zip -C ${{github.workspace}}/ANTs/install/
+
     - name: Collect submodules
       uses: actions/checkout@v3
       with:
@@ -30,7 +44,6 @@ jobs:
         pip install matplotlib==3.3.4
         pip install -e git+https://github.com/dbouget/raidionics_rads_lib.git@master#egg=raidionicsrads
         pip install -r assets/requirements.txt
-#        pip install -e git+https://github.com/dbouget/raidionics_seg_lib.git@master#egg=raidionicsseg
 
     - name: Build software
       run: |              

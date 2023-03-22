@@ -113,6 +113,27 @@ class SoftwareSettingsDialog(QDialog):
         self.processing_options_use_annotations_layout.addWidget(self.processing_options_use_annotations_header_label)
         self.processing_options_use_annotations_layout.addStretch(1)
         self.processing_options_base_layout.addLayout(self.processing_options_use_annotations_layout)
+
+        self.processing_options_use_stripped_inputs_layout = QHBoxLayout()
+        self.processing_options_use_stripped_inputs_header_label = QLabel("Use stripped inputs")
+        self.processing_options_use_stripped_inputs_header_label.setToolTip("Tick the box to indicate that loaded patients' data have already been stripped (e.g., skull-stripped).\n")
+        self.processing_options_use_stripped_inputs_checkbox = QCheckBox()
+        self.processing_options_use_stripped_inputs_checkbox.setChecked(SoftwareConfigResources.getInstance().user_preferences.use_stripped_inputs)
+        self.processing_options_use_stripped_inputs_layout.addWidget(self.processing_options_use_stripped_inputs_checkbox)
+        self.processing_options_use_stripped_inputs_layout.addWidget(self.processing_options_use_stripped_inputs_header_label)
+        self.processing_options_use_stripped_inputs_layout.addStretch(1)
+        self.processing_options_base_layout.addLayout(self.processing_options_use_stripped_inputs_layout)
+
+        self.processing_options_use_registered_inputs_layout = QHBoxLayout()
+        self.processing_options_use_registered_inputs_header_label = QLabel("Use registered inputs")
+        self.processing_options_use_registered_inputs_header_label.setToolTip("Tick the box to indicate that loaded patients' data have already been registered (e.g., atlas-registered or co-registered).\n")
+        self.processing_options_use_registered_inputs_checkbox = QCheckBox()
+        self.processing_options_use_registered_inputs_checkbox.setChecked(SoftwareConfigResources.getInstance().user_preferences.use_registered_inputs)
+        self.processing_options_use_registered_inputs_layout.addWidget(self.processing_options_use_registered_inputs_checkbox)
+        self.processing_options_use_registered_inputs_layout.addWidget(self.processing_options_use_registered_inputs_header_label)
+        self.processing_options_use_registered_inputs_layout.addStretch(1)
+        self.processing_options_base_layout.addLayout(self.processing_options_use_registered_inputs_layout)
+
         self.separating_line = QLabel()
         self.separating_line.setFixedHeight(2)
         self.processing_options_base_layout.addWidget(self.separating_line)
@@ -183,6 +204,8 @@ class SoftwareSettingsDialog(QDialog):
         self.model_update_checkbox.stateChanged.connect(self.__on_active_model_status_changed)
         self.processing_options_use_sequences_checkbox.stateChanged.connect(self.__on_use_sequences_status_changed)
         self.processing_options_use_annotations_checkbox.stateChanged.connect(self.__on_use_manual_annotations_status_changed)
+        self.processing_options_use_stripped_inputs_checkbox.stateChanged.connect(self.__on_use_stripped_inputs_status_changed)
+        self.processing_options_use_registered_inputs_checkbox.stateChanged.connect(self.__on_use_registered_inputs_status_changed)
         self.processing_options_compute_corticalstructures_checkbox.stateChanged.connect(self.__on_compute_corticalstructures_status_changed)
         self.processing_options_compute_subcorticalstructures_checkbox.stateChanged.connect(self.__on_compute_subcorticalstructures_status_changed)
         self.dark_mode_checkbox.stateChanged.connect(self.__on_dark_mode_status_changed)
@@ -306,6 +329,12 @@ class SoftwareSettingsDialog(QDialog):
 
     def __on_use_manual_annotations_status_changed(self, status):
         SoftwareConfigResources.getInstance().user_preferences.use_manual_annotations = status
+
+    def __on_use_stripped_inputs_status_changed(self, status):
+        SoftwareConfigResources.getInstance().user_preferences.use_stripped_inputs = status
+
+    def __on_use_registered_inputs_status_changed(self, status):
+        SoftwareConfigResources.getInstance().user_preferences.use_registered_inputs = status
 
     def __on_compute_corticalstructures_status_changed(self, state):
         SoftwareConfigResources.getInstance().user_preferences.compute_cortical_structures = state

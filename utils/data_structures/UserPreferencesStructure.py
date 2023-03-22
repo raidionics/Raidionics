@@ -19,6 +19,8 @@ class UserPreferencesStructure:
     _active_model_update = False  # True for regularly checking if new models are available, False otherwise
     _use_manual_sequences = True  # True for using the manually set sequences, False to run classification on-the-fly
     _use_manual_annotations = False  # True to use annotation files provided by the user, False to recompute
+    _use_stripped_inputs = False  # True to use inputs already stripped (e.g., skull-stripped or lungs-stripped)
+    _use_registered_inputs = False  # True to use inputs already registered (e.g., altas-registered, multi-sequences co-registered)
     _compute_cortical_structures = True  # True to include cortical features computation in the standardized reporting
     _compute_subcortical_structures = True  # True to include subcortical features computation in the standardized reporting
     _use_dark_mode = False  # True for dark mode and False for regular mode
@@ -99,6 +101,24 @@ class UserPreferencesStructure:
         self.save_preferences()
 
     @property
+    def use_stripped_inputs(self) -> bool:
+        return self._use_stripped_inputs
+
+    @use_stripped_inputs.setter
+    def use_stripped_inputs(self, state) -> None:
+        self._use_stripped_inputs = state
+        self.save_preferences()
+
+    @property
+    def use_registered_inputs(self) -> bool:
+        return self._use_registered_inputs
+
+    @use_registered_inputs.setter
+    def use_registered_inputs(self, state) -> None:
+        self._use_registered_inputs = state
+        self.save_preferences()
+
+    @property
     def compute_cortical_structures(self) -> bool:
         return self._compute_cortical_structures
 
@@ -129,6 +149,8 @@ class UserPreferencesStructure:
                 self._use_manual_sequences = preferences['Processing']['use_manual_sequences']
             if 'use_manual_annotations' in preferences['Processing'].keys():
                 self._use_manual_annotations = preferences['Processing']['use_manual_annotations']
+            if 'use_preprocessed_inputs' in preferences['Processing'].keys():
+                self._use_preprocessed_inputs = preferences['Processing']['use_preprocessed_inputs']
             if 'compute_cortical_structures' in preferences['Processing'].keys():
                 self._compute_cortical_structures = preferences['Processing']['compute_cortical_structures']
             if 'compute_subcortical_structures' in preferences['Processing'].keys():
@@ -146,6 +168,7 @@ class UserPreferencesStructure:
         preferences['Processing'] = {}
         preferences['Processing']['use_manual_sequences'] = self._use_manual_sequences
         preferences['Processing']['use_manual_annotations'] = self._use_manual_annotations
+        preferences['Processing']['use_preprocessed_inputs'] = self._use_preprocessed_inputs
         preferences['Processing']['compute_cortical_structures'] = self._compute_cortical_structures
         preferences['Processing']['compute_subcortical_structures'] = self._compute_subcortical_structures
         preferences['Appearance'] = {}

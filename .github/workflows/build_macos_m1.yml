@@ -24,22 +24,51 @@ jobs:
         python3 -m virtualenv -p python3 venv --clear
         source venv/bin/activate
         python3 -m pip install wheel setuptools
+        deactivate
+
     - name: Install dependencies
       run: |
+        cd ${{github.workspace}}
+        source tmp/venv/bin/activate
         python3 -m pip install --upgrade pip
-        pip3 install matplotlib==3.3.4
+        pip3 install matplotlib
         pip3 install -e git+https://github.com/dbouget/raidionics_rads_lib.git@m1_test#egg=raidionicsrads
         pip3 install -r assets/requirements.txt
+        deactivate
+
+    - name: Install cmake
+      run: |
+        brew update
+        brew install cmake ninja
+        ninja --version
+        cmake --version
+
+    - name: Build ANTs
+      run: |
+        cd ${{github.workspace}}
+        mkdir ANTs
+        cd ANTs
+        git clone https://github.com/ANTsX/ANTs.git source
+        mkdir build
+        cd build
+        cmake -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/ANTs/install ../source
+        make -j4
+        cd ANTS-build
+        make install
+        cp -R ${{github.workspace}}/ANTs/source/Scripts ${{github.workspace}}/ANTs/install/
 
     - name: Build software
       run: |
-        pip install pyinstaller
+        cd ${{github.workspace}}
+        source tmp/venv/bin/activate
+        pip3 install pyinstaller
+        pip3 install --upgrade PyInstaller pyinstaller-hooks-contrib
         mkdir tmp_dependencies
         pyinstaller --noconfirm --clean assets/main.spec
 
     - name: Make installer
       run: |
-        git clone https://github.com/andreped/quickpkg.git
+        git clone https://github.com/dbouget/quickpkg.git
         quickpkg/quickpkg dist/Raidionics.app --output Raidionics-1.2.0-macOS.pkg
         cp -r Raidionics-1.2.0-macOS.pkg dist/Raidionics-1.2.0-macOS.pkg
 

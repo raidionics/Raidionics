@@ -46,6 +46,7 @@ def create_pipeline(model_name: str, patient_parameters, task: str) -> dict:
     Generates on-the-fly the pipeline that should be executed, based on predetermined use-cases.
     How to allow for all possible combinations of what to use/what to run/on which timestamps?
 
+    @TODO. Must include the following now for e.g., brain => "format": "thresholding",
     Returns
     -------
     dict
@@ -106,40 +107,6 @@ def __create_segmentation_pipeline(model_name, patient_parameters):
         pip[pip_num] = raw_pip[steps]
         download_model(raw_pip[steps]["model"])
 
-    # pip_num_int = pip_num_int + 1
-    # pip_num = str(pip_num_int)
-    # pip[pip_num] = {}
-    # pip[pip_num]["task"] = 'Segmentation'
-    # pip[pip_num]["inputs"] = {}
-    # pip[pip_num]["inputs"]["0"] = {}
-    # pip[pip_num]["inputs"]["0"]["timestamp"] = 0
-    # pip[pip_num]["inputs"]["0"]["sequence"] = "T1-CE"
-    # pip[pip_num]["inputs"]["0"]["labels"] = None
-    # pip[pip_num]["inputs"]["0"]["space"] = {}
-    # pip[pip_num]["inputs"]["0"]["space"]["timestamp"] = 0
-    # pip[pip_num]["inputs"]["0"]["space"]["sequence"] = "T1-CE"
-    # pip[pip_num]["target"] = ["Brain"]
-    # pip[pip_num]["model"] = "MRI_Brain"
-    # pip[pip_num]["description"] = "Brain segmentation in T1CE (T0)"
-    # download_model(model_name='MRI_Brain')
-    #
-    # pip_num_int = pip_num_int + 1
-    # pip_num = str(pip_num_int)
-    # pip[pip_num] = {}
-    # pip[pip_num]["task"] = 'Segmentation'
-    # pip[pip_num]["inputs"] = {}
-    # pip[pip_num]["inputs"]["0"] = {}
-    # pip[pip_num]["inputs"]["0"]["timestamp"] = 0
-    # pip[pip_num]["inputs"]["0"]["sequence"] = "T1-CE"
-    # pip[pip_num]["inputs"]["0"]["labels"] = None
-    # pip[pip_num]["inputs"]["0"]["space"] = {}
-    # pip[pip_num]["inputs"]["0"]["space"]["timestamp"] = 0
-    # pip[pip_num]["inputs"]["0"]["space"]["sequence"] = "T1-CE"
-    # pip[pip_num]["target"] = ["Tumor"]
-    # pip[pip_num]["model"] = model_name
-    # pip[pip_num]["description"] = "Tumor segmentation in T1CE (T0)"
-    # download_model(model_name=model_name)
-
     return pip
 
 
@@ -182,6 +149,7 @@ def __create_other_segmentation_pipeline(model_name, patient_parameters):
     download_model(model_name="CT_Airways")
 
     return pip
+
 
 def __create_postop_segmentation_pipeline(model_name, patient_parameters):
     """

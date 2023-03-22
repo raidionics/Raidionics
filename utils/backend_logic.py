@@ -104,6 +104,10 @@ def run_pipeline(task: str, model_name: str, patient_parameters: PatientParamete
         rads_config.add_section('Runtime')
         rads_config.set('Runtime', 'reconstruction_method', 'thresholding')
         rads_config.set('Runtime', 'reconstruction_order', 'resample_first')
+        rads_config.set('Runtime', 'use_stripped_data',
+                        "True" if SoftwareConfigResources.getInstance().user_preferences.use_stripped_inputs else "False")
+        rads_config.set('Runtime', 'use_registered_data',
+                        "True" if SoftwareConfigResources.getInstance().user_preferences.use_registered_inputs else "False")
         rads_config.add_section('Neuro')
         if SoftwareConfigResources.getInstance().user_preferences.compute_cortical_structures:
             rads_config.set('Neuro', 'cortical_features', 'MNI, Schaefer7, Schaefer17, Harvard-Oxford')

@@ -29,6 +29,7 @@ if os.path.exists(cwd + "/tmp_dependencies/"):
 shutil.copytree(cwd + "/assets/images/", cwd + "/tmp_dependencies/assets/images/")
 shutil.copytree(cwd + "/utils/", cwd + "/tmp_dependencies/utils/")
 shutil.copytree(cwd + "/gui/", cwd + "/tmp_dependencies/gui/")
+shutil.copytree(cwd + "/ANTs/install/", cwd + "/tmp_dependencies/ANTs/")
 
 a = Analysis([cwd + '/main.py'],
              pathex=[cwd],
@@ -37,7 +38,7 @@ a = Analysis([cwd + '/main.py'],
              hiddenimports=hidden_imports,
              hookspath=[cwd + "/assets/hooks/"],
              runtime_hooks=[],
-             excludes=[],
+             excludes=['PySide6.QtQml'],
              win_no_prefer_redirects=False,
              win_private_assemblies=False,
              cipher=block_cipher,
