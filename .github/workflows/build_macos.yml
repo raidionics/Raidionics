@@ -24,15 +24,14 @@ jobs:
       with:
         repository: "raidionics/Raidionics-dependencies"
         latest: true
-        fileName: "ANTsX-v2.4.3_macos.zip"
+        fileName: "ANTsX-v2.4.3_macos.tar.gz"
         out-file-path: "downloads"
 
     - name: Extract ANTs
       run: |
         cd ${{github.workspace}}/downloads/
         mkdir ${{github.workspace}}/ANTs
-        mkdir ${{github.workspace}}/ANTs/install
-        tar -xf ANTsX*.zip -C ${{github.workspace}}/ANTs/install/
+        tar -xzf ANTsX-v2.4.3_macos.tar.gz -C ${{github.workspace}}/ANTs/
 
     - name: Collect submodules
       uses: actions/checkout@v3
