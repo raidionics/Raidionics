@@ -19,6 +19,11 @@ jobs:
       with:
         python-version: 3.8
 
+    - name: Collect submodules
+      uses: actions/checkout@v3
+      with:
+        submodules: 'recursive'
+
     - name: Download ANTs
       uses: robinraju/release-downloader@main
       with:
@@ -33,11 +38,6 @@ jobs:
         tar -xzf ANTsX-v2.4.3_ubuntu.tar.gz -C ${{github.workspace}}/downloads/
         mkdir ${{github.workspace}}/ANTs
         mv ${{github.workspace}}/downloads/install ${{github.workspace}}/ANTs/
-
-    - name: Collect submodules
-      uses: actions/checkout@v3
-      with:
-        submodules: 'recursive'
 
     - name: Install dependencies
       run: |
