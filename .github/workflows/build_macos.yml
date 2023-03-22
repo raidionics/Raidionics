@@ -30,6 +30,7 @@ jobs:
     - name: Extract ANTs
       run: |
         cd ${{github.workspace}}/downloads/
+        mkdir ${{github.workspace}}/ANTs
         mkdir ${{github.workspace}}/ANTs/install
         tar -xf ANTsX*.zip -C ${{github.workspace}}/ANTs/install/
 
