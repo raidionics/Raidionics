@@ -1070,7 +1070,7 @@ class PatientParameters:
                 uid_taken = investigation_uid in self._investigation_timestamps.keys()
             curr_ts = InvestigationTimestamp(investigation_uid, order=order, output_patient_folder=self._output_folder)
             self._investigation_timestamps[investigation_uid] = curr_ts
-            logging.error("New investigation timestamp inserted with uid: {}".format(investigation_uid))
+            logging.info("New investigation timestamp inserted with uid: {}".format(investigation_uid))
             self._unsaved_changes = True
         except Exception as e:
             logging.error("Inserting a new investigation timestamp failed with: {}".format(traceback.format_exc()))

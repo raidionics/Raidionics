@@ -52,11 +52,16 @@ def create_pipeline(model_name: str, patient_parameters, task: str) -> dict:
     dict
         A dictionary containing the Pipeline structure, which will be saved on disk as json.
     """
+    # The model(s) must be downloaded first, since the pipeline.json file(s) must be used later for assembling
+    # the backend pipeline... Have to organize it better, and prepare reporting pipelines for download?
+    download_model(model_name)
+
     if task == 'folders_classification':
         return __create_folders_classification_pipeline()
     elif task == 'preop_segmentation':
         return __create_segmentation_pipeline(model_name, patient_parameters)
     elif task == 'postop_segmentation':
+        download_model(model_name='MRI_Tumor_Postop')
         return __create_postop_segmentation_pipeline(model_name, patient_parameters)
     elif task == 'other_segmentation':
         return __create_other_segmentation_pipeline(model_name, patient_parameters)
@@ -105,7 +110,6 @@ def __create_segmentation_pipeline(model_name, patient_parameters):
         pip_num_int = pip_num_int + 1
         pip_num = str(pip_num_int)
         pip[pip_num] = raw_pip[steps]
-        download_model(raw_pip[steps]["model"])
 
     return pip
 
@@ -155,6 +159,9 @@ def __create_postop_segmentation_pipeline(model_name, patient_parameters):
     """
 
     """
+    infile = open(os.path.join(SoftwareConfigResources.getInstance().models_path, "MRI_Tumor_Postop", 'pipeline.json'), 'rb')
+    raw_pip = json.load(infile)
+
     pip = {}
     pip_num_int = 0
     if not SoftwareConfigResources.getInstance().user_preferences.use_manual_sequences:
@@ -167,215 +174,23 @@ def __create_postop_segmentation_pipeline(model_name, patient_parameters):
         pip[pip_num]["description"] = "Classification of the MRI sequence type for all input scans"
         download_model(model_name='MRI_Sequence_Classifier')
 
-    pip_num_int = pip_num_int + 1
-    pip_num = str(pip_num_int)
-    pip[pip_num] = {}
-    pip[pip_num]["task"] = 'Segmentation'
-    pip[pip_num]["inputs"] = {}
-    pip[pip_num]["inputs"]["0"] = {}
-    pip[pip_num]["inputs"]["0"]["timestamp"] = 0
-    pip[pip_num]["inputs"]["0"]["sequence"] = "T1-CE"
-    pip[pip_num]["inputs"]["0"]["labels"] = None
-    pip[pip_num]["inputs"]["0"]["space"] = {}
-    pip[pip_num]["inputs"]["0"]["space"]["timestamp"] = 0
-    pip[pip_num]["inputs"]["0"]["space"]["sequence"] = "T1-CE"
-    pip[pip_num]["target"] = ["Brain"]
-    pip[pip_num]["model"] = "MRI_Brain"
-    pip[pip_num]["description"] = "Brain segmentation in T1CE (T0)"
-    download_model(model_name='MRI_Brain')
-
-    pip_num_int = pip_num_int + 1
-    pip_num = str(pip_num_int)
-    pip[pip_num] = {}
-    pip[pip_num]["task"] = 'Segmentation'
-    pip[pip_num]["inputs"] = {}
-    pip[pip_num]["inputs"]["0"] = {}
-    pip[pip_num]["inputs"]["0"]["timestamp"] = 0
-    pip[pip_num]["inputs"]["0"]["sequence"] = "T1-CE"
-    pip[pip_num]["inputs"]["0"]["labels"] = None
-    pip[pip_num]["inputs"]["0"]["space"] = {}
-    pip[pip_num]["inputs"]["0"]["space"]["timestamp"] = 0
-    pip[pip_num]["inputs"]["0"]["space"]["sequence"] = "T1-CE"
-    pip[pip_num]["target"] = ["Tumor"]
-    pip[pip_num]["model"] = model_name
-    pip[pip_num]["description"] = "Tumor segmentation in T1CE (T0)"
-    download_model(model_name=model_name)
-
-    pip_num_int = pip_num_int + 1
-    pip_num = str(pip_num_int)
-    pip[pip_num] = {}
-    pip[pip_num]["task"] = 'Segmentation'
-    pip[pip_num]["inputs"] = {}
-    pip[pip_num]["inputs"]["0"] = {}
-    pip[pip_num]["inputs"]["0"]["timestamp"] = 1
-    pip[pip_num]["inputs"]["0"]["sequence"] = "T1-CE"
-    pip[pip_num]["inputs"]["0"]["labels"] = None
-    pip[pip_num]["inputs"]["0"]["space"] = {}
-    pip[pip_num]["inputs"]["0"]["space"]["timestamp"] = 1
-    pip[pip_num]["inputs"]["0"]["space"]["sequence"] = "T1-CE"
-    pip[pip_num]["target"] = ["Brain"]
-    pip[pip_num]["model"] = "MRI_Brain"
-    pip[pip_num]["description"] = "Brain segmentation in T1CE (T1)"
-
-    pip_num_int = pip_num_int + 1
-    pip_num = str(pip_num_int)
-    pip[pip_num] = {}
-    pip[pip_num]["task"] = 'Registration'
-    pip[pip_num]["moving"] = {}
-    pip[pip_num]["moving"]["timestamp"] = 0
-    pip[pip_num]["moving"]["sequence"] = "T1-CE"
-    pip[pip_num]["fixed"] = {}
-    pip[pip_num]["fixed"]["timestamp"] = 1
-    pip[pip_num]["fixed"]["sequence"] = "T1-CE"
-    pip[pip_num]["description"] = "Registration from T1CE (T0) to T1CE (T1)"
-
-    pip_num_int = pip_num_int + 1
-    pip_num = str(pip_num_int)
-    pip[pip_num] = {}
-    pip[pip_num]["task"] = 'Apply registration'
-    pip[pip_num]["moving"] = {}
-    pip[pip_num]["moving"]["timestamp"] = 0
-    pip[pip_num]["moving"]["sequence"] = "T1-CE"
-    pip[pip_num]["fixed"] = {}
-    pip[pip_num]["fixed"]["timestamp"] = 1
-    pip[pip_num]["fixed"]["sequence"] = "T1-CE"
-    pip[pip_num]["direction"] = "forward"
-    pip[pip_num]["description"] = "Apply registration from T1CE (T0) to T1CE (T1)"
-
-    pip_num_int = pip_num_int + 1
-    pip_num = str(pip_num_int)
-    pip[pip_num] = {}
-    pip[pip_num]["task"] = 'Segmentation'
-    pip[pip_num]["inputs"] = {}
-    pip[pip_num]["inputs"]["0"] = {}
-    pip[pip_num]["inputs"]["0"]["timestamp"] = 1
-    pip[pip_num]["inputs"]["0"]["sequence"] = "FLAIR"
-    pip[pip_num]["inputs"]["0"]["labels"] = None
-    pip[pip_num]["inputs"]["0"]["space"] = {}
-    pip[pip_num]["inputs"]["0"]["space"]["timestamp"] = 1
-    pip[pip_num]["inputs"]["0"]["space"]["sequence"] = "FLAIR"
-    pip[pip_num]["target"] = ["Brain"]
-    pip[pip_num]["model"] = "MRI_Brain"
-    pip[pip_num]["description"] = "Brain segmentation in FLAIR (T1)"
-
-    pip_num_int = pip_num_int + 1
-    pip_num = str(pip_num_int)
-    pip[pip_num] = {}
-    pip[pip_num]["task"] = 'Registration'
-    pip[pip_num]["moving"] = {}
-    pip[pip_num]["moving"]["timestamp"] = 1
-    pip[pip_num]["moving"]["sequence"] = "FLAIR"
-    pip[pip_num]["fixed"] = {}
-    pip[pip_num]["fixed"]["timestamp"] = 1
-    pip[pip_num]["fixed"]["sequence"] = "T1-CE"
-    pip[pip_num]["description"] = "Registration from FLAIR (T1) to T1CE (T1)"
-
-    pip_num_int = pip_num_int + 1
-    pip_num = str(pip_num_int)
-    pip[pip_num] = {}
-    pip[pip_num]["task"] = 'Apply registration'
-    pip[pip_num]["moving"] = {}
-    pip[pip_num]["moving"]["timestamp"] = 1
-    pip[pip_num]["moving"]["sequence"] = "FLAIR"
-    pip[pip_num]["fixed"] = {}
-    pip[pip_num]["fixed"]["timestamp"] = 1
-    pip[pip_num]["fixed"]["sequence"] = "T1-CE"
-    pip[pip_num]["direction"] = "forward"
-    pip[pip_num]["description"] = "Apply registration from FLAIR (T1) to T1CE (T1)"
-
-    pip_num_int = pip_num_int + 1
-    pip_num = str(pip_num_int)
-    pip[pip_num] = {}
-    pip[pip_num]["task"] = 'Segmentation'
-    pip[pip_num]["inputs"] = {}
-    pip[pip_num]["inputs"]["0"] = {}
-    pip[pip_num]["inputs"]["0"]["timestamp"] = 1
-    pip[pip_num]["inputs"]["0"]["sequence"] = "T1-w"
-    pip[pip_num]["inputs"]["0"]["labels"] = None
-    pip[pip_num]["inputs"]["0"]["space"] = {}
-    pip[pip_num]["inputs"]["0"]["space"]["timestamp"] = 1
-    pip[pip_num]["inputs"]["0"]["space"]["sequence"] = "T1-w"
-    pip[pip_num]["target"] = ["Brain"]
-    pip[pip_num]["model"] = "MRI_Brain"
-    pip[pip_num]["description"] = "Brain segmentation in T1w (T1)"
-
-    pip_num_int = pip_num_int + 1
-    pip_num = str(pip_num_int)
-    pip[pip_num] = {}
-    pip[pip_num]["task"] = 'Registration'
-    pip[pip_num]["moving"] = {}
-    pip[pip_num]["moving"]["timestamp"] = 1
-    pip[pip_num]["moving"]["sequence"] = "T1-w"
-    pip[pip_num]["fixed"] = {}
-    pip[pip_num]["fixed"]["timestamp"] = 1
-    pip[pip_num]["fixed"]["sequence"] = "T1-CE"
-    pip[pip_num]["description"] = "Registration from T1w (T1) to T1CE (T1)"
-
-    pip_num_int = pip_num_int + 1
-    pip_num = str(pip_num_int)
-    pip[pip_num] = {}
-    pip[pip_num]["task"] = 'Apply registration'
-    pip[pip_num]["moving"] = {}
-    pip[pip_num]["moving"]["timestamp"] = 1
-    pip[pip_num]["moving"]["sequence"] = "T1-w"
-    pip[pip_num]["fixed"] = {}
-    pip[pip_num]["fixed"]["timestamp"] = 1
-    pip[pip_num]["fixed"]["sequence"] = "T1-CE"
-    pip[pip_num]["direction"] = "forward"
-    pip[pip_num]["description"] = "Apply registration from T1w (T1) to T1CE (T1)"
-
-    pip_num_int = pip_num_int + 1
-    pip_num = str(pip_num_int)
-    pip[pip_num] = {}
-    pip[pip_num]["task"] = 'Segmentation'
-    pip[pip_num]["inputs"] = {}
-    pip[pip_num]["inputs"]["0"] = {}
-    pip[pip_num]["inputs"]["0"]["timestamp"] = 1
-    pip[pip_num]["inputs"]["0"]["sequence"] = "T1-CE"
-    pip[pip_num]["inputs"]["0"]["labels"] = None
-    pip[pip_num]["inputs"]["0"]["space"] = {}
-    pip[pip_num]["inputs"]["0"]["space"]["timestamp"] = 1
-    pip[pip_num]["inputs"]["0"]["space"]["sequence"] = "T1-CE"
-    pip[pip_num]["inputs"]["1"] = {}
-    pip[pip_num]["inputs"]["1"]["timestamp"] = 1
-    pip[pip_num]["inputs"]["1"]["sequence"] = "T1-w"
-    pip[pip_num]["inputs"]["1"]["labels"] = None
-    pip[pip_num]["inputs"]["1"]["space"] = {}
-    pip[pip_num]["inputs"]["1"]["space"]["timestamp"] = 1
-    pip[pip_num]["inputs"]["1"]["space"]["sequence"] = "T1-CE"
-    pip[pip_num]["inputs"]["2"] = {}
-    pip[pip_num]["inputs"]["2"]["timestamp"] = 1
-    pip[pip_num]["inputs"]["2"]["sequence"] = "FLAIR"
-    pip[pip_num]["inputs"]["2"]["labels"] = None
-    pip[pip_num]["inputs"]["2"]["space"] = {}
-    pip[pip_num]["inputs"]["2"]["space"]["timestamp"] = 1
-    pip[pip_num]["inputs"]["2"]["space"]["sequence"] = "T1-CE"
-    pip[pip_num]["inputs"]["3"] = {}
-    pip[pip_num]["inputs"]["3"]["timestamp"] = 0
-    pip[pip_num]["inputs"]["3"]["sequence"] = "T1-CE"
-    pip[pip_num]["inputs"]["3"]["labels"] = None
-    pip[pip_num]["inputs"]["3"]["space"] = {}
-    pip[pip_num]["inputs"]["3"]["space"]["timestamp"] = 1
-    pip[pip_num]["inputs"]["3"]["space"]["sequence"] = "T1-CE"
-    pip[pip_num]["inputs"]["4"] = {}
-    pip[pip_num]["inputs"]["4"]["timestamp"] = 0
-    pip[pip_num]["inputs"]["4"]["sequence"] = "T1-CE"
-    pip[pip_num]["inputs"]["4"]["labels"] = "Tumor"
-    pip[pip_num]["inputs"]["4"]["space"] = {}
-    pip[pip_num]["inputs"]["4"]["space"]["timestamp"] = 1
-    pip[pip_num]["inputs"]["4"]["space"]["sequence"] = "T1-CE"
-    pip[pip_num]["target"] = ["Tumor"]
-    pip[pip_num]["model"] = "MRI_Tumor_Postop"
-    pip[pip_num]["description"] = "Tumor segmentation in T1CE (T1)"
-    # download_model(model_name='MRI_Tumor_Postop')
+    for steps in list(raw_pip.keys()):
+        pip_num_int = pip_num_int + 1
+        pip_num = str(pip_num_int)
+        pip[pip_num] = raw_pip[steps]
 
     return pip
 
 
 def __create_preop_reporting_pipeline(model_name, patient_parameters):
     """
-
+    @TODO. The pipeline should be more generic or adjustable to the required inputs. Could have a collection of
+    pipelines in .raidionics/resources/pipelines?
+    Hard-coded for now, so that in v1.2 reporting works for LGGs.
     """
+    infile = open(os.path.join(SoftwareConfigResources.getInstance().models_path, model_name, 'pipeline.json'), 'rb')
+    raw_pip = json.load(infile)
+
     pip = {}
     pip_num_int = 0
     if not SoftwareConfigResources.getInstance().user_preferences.use_manual_sequences:
@@ -388,39 +203,10 @@ def __create_preop_reporting_pipeline(model_name, patient_parameters):
         pip[pip_num]["description"] = "Classification of the MRI sequence type for all input scans"
         download_model(model_name='MRI_Sequence_Classifier')
 
-    pip_num_int = pip_num_int + 1
-    pip_num = str(pip_num_int)
-    pip[pip_num] = {}
-    pip[pip_num]["task"] = 'Segmentation'
-    pip[pip_num]["inputs"] = {}
-    pip[pip_num]["inputs"]["0"] = {}
-    pip[pip_num]["inputs"]["0"]["timestamp"] = 0
-    pip[pip_num]["inputs"]["0"]["sequence"] = "T1-CE"
-    pip[pip_num]["inputs"]["0"]["labels"] = None
-    pip[pip_num]["inputs"]["0"]["space"] = {}
-    pip[pip_num]["inputs"]["0"]["space"]["timestamp"] = 0
-    pip[pip_num]["inputs"]["0"]["space"]["sequence"] = "T1-CE"
-    pip[pip_num]["target"] = ["Brain"]
-    pip[pip_num]["model"] = "MRI_Brain"
-    pip[pip_num]["description"] = "Brain segmentation in T1CE (T0)"
-    download_model(model_name='MRI_Brain')
-
-    pip_num_int = pip_num_int + 1
-    pip_num = str(pip_num_int)
-    pip[pip_num] = {}
-    pip[pip_num]["task"] = 'Segmentation'
-    pip[pip_num]["inputs"] = {}
-    pip[pip_num]["inputs"]["0"] = {}
-    pip[pip_num]["inputs"]["0"]["timestamp"] = 0
-    pip[pip_num]["inputs"]["0"]["sequence"] = "T1-CE"
-    pip[pip_num]["inputs"]["0"]["labels"] = None
-    pip[pip_num]["inputs"]["0"]["space"] = {}
-    pip[pip_num]["inputs"]["0"]["space"]["timestamp"] = 0
-    pip[pip_num]["inputs"]["0"]["space"]["sequence"] = "T1-CE"
-    pip[pip_num]["target"] = ["Tumor"]
-    pip[pip_num]["model"] = model_name
-    pip[pip_num]["description"] = "Tumor segmentation in T1CE (T0)"
-    download_model(model_name=model_name)
+    for steps in list(raw_pip.keys()):
+        pip_num_int = pip_num_int + 1
+        pip_num = str(pip_num_int)
+        pip[pip_num] = raw_pip[steps]
 
     pip_num_int = pip_num_int + 1
     pip_num = str(pip_num_int)
@@ -428,11 +214,11 @@ def __create_preop_reporting_pipeline(model_name, patient_parameters):
     pip[pip_num]["task"] = 'Registration'
     pip[pip_num]["moving"] = {}
     pip[pip_num]["moving"]["timestamp"] = 0
-    pip[pip_num]["moving"]["sequence"] = "T1-CE"
+    pip[pip_num]["moving"]["sequence"] = "T1-CE" if "LGG" not in model_name else "FLAIR"
     pip[pip_num]["fixed"] = {}
     pip[pip_num]["fixed"]["timestamp"] = -1
     pip[pip_num]["fixed"]["sequence"] = "MNI"
-    pip[pip_num]["description"] = "Registration from T1CE (T0) to MNI space"
+    pip[pip_num]["description"] = "Registration from T1CE (T0) to MNI space" if "LGG" not in model_name else "Registration from FLAIR (T0) to MNI space"
 
     pip_num_int = pip_num_int + 1
     pip_num = str(pip_num_int)
@@ -440,12 +226,12 @@ def __create_preop_reporting_pipeline(model_name, patient_parameters):
     pip[pip_num]["task"] = 'Apply registration'
     pip[pip_num]["moving"] = {}
     pip[pip_num]["moving"]["timestamp"] = 0
-    pip[pip_num]["moving"]["sequence"] = "T1-CE"
+    pip[pip_num]["moving"]["sequence"] = "T1-CE" if "LGG" not in model_name else "FLAIR"
     pip[pip_num]["fixed"] = {}
     pip[pip_num]["fixed"]["timestamp"] = -1
     pip[pip_num]["fixed"]["sequence"] = "MNI"
     pip[pip_num]["direction"] = "forward"
-    pip[pip_num]["description"] = "Apply registration from T1CE (T0) to MNI space"
+    pip[pip_num]["description"] = "Apply registration from T1CE (T0) to MNI space" if "LGG" not in model_name else "Apply registration from FLAIR (T0) to MNI space"
 
     pip_num_int = pip_num_int + 1
     pip_num = str(pip_num_int)
@@ -453,12 +239,12 @@ def __create_preop_reporting_pipeline(model_name, patient_parameters):
     pip[pip_num]["task"] = 'Apply registration'
     pip[pip_num]["moving"] = {}
     pip[pip_num]["moving"]["timestamp"] = 0
-    pip[pip_num]["moving"]["sequence"] = "T1-CE"
+    pip[pip_num]["moving"]["sequence"] = "T1-CE" if "LGG" not in model_name else "FLAIR"
     pip[pip_num]["fixed"] = {}
     pip[pip_num]["fixed"]["timestamp"] = -1
     pip[pip_num]["fixed"]["sequence"] = "MNI"
     pip[pip_num]["direction"] = "inverse"
-    pip[pip_num]["description"] = "Apply inverse registration from MNI space to T1CE (T0)"
+    pip[pip_num]["description"] = "Apply inverse registration from MNI space to T1CE (T0)" if "LGG" not in model_name else "Apply inverse registration from MNI space to FLAIR (T0)"
 
     pip_num_int = pip_num_int + 1
     pip_num = str(pip_num_int)
@@ -466,10 +252,10 @@ def __create_preop_reporting_pipeline(model_name, patient_parameters):
     pip[pip_num]["task"] = 'Features computation'
     pip[pip_num]["input"] = {}
     pip[pip_num]["input"]["timestamp"] = 0
-    pip[pip_num]["input"]["sequence"] = "T1-CE"
+    pip[pip_num]["input"]["sequence"] = "T1-CE" if "LGG" not in model_name else "FLAIR"
     pip[pip_num]["target"] = "Tumor"
     pip[pip_num]["space"] = "MNI"
-    pip[pip_num]["description"] = "Tumor features computation from T1CE (T0) in MNI space"
+    pip[pip_num]["description"] = "Tumor features computation from T1CE (T0) in MNI space" if "LGG" not in model_name else "Tumor features computation from FLAIR (T0) in MNI space"
 
     return pip
 
