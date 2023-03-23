@@ -79,7 +79,7 @@ jobs:
         pip3 install pyinstaller
         pip3 install --upgrade PyInstaller pyinstaller-hooks-contrib
         mkdir tmp_dependencies
-        pyinstaller --noconfirm --clean assets/main.spec
+        pyinstaller --noconfirm --clean assets/main_arm.spec
 
     - name: Make installer
       run: |
