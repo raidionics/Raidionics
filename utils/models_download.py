@@ -1,5 +1,7 @@
 import logging
 import os
+import shutil
+
 import gdown
 import traceback
 import pandas as pd
@@ -127,9 +129,12 @@ def download_model(model_name: str):
                         extract_state = True
 
             if extract_state:
+                # Perform a force deletion of the model folder, if already existing, and before extraction
+                # to avoid mixing files.
+                if os.path.exists(os.path.join(models_path, model_name)):
+                    shutil.rmtree(os.path.join(models_path, model_name))
                 with zipfile.ZipFile(models_archive_path, 'r') as zip_ref:
                     zip_ref.extractall(models_path)
-                # gdown.extractall(path=models_archive_path, to=models_path)
 
             for d in dep:
                 if d == d:

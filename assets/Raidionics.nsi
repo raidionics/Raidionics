@@ -133,6 +133,7 @@ SectionEnd
 Section Uninstall
 ${INSTALL_TYPE}
 RmDir /r "$INSTDIR"
+# RmDir /r "$PROFILE/.raidionics/resources"
 
 !ifdef REG_START_MENU
 !insertmacro MUI_STARTMENU_GETFOLDER "Application" $SM_Folder

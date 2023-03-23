@@ -46,7 +46,7 @@ def create_pipeline(model_name: str, patient_parameters, task: str) -> dict:
     Generates on-the-fly the pipeline that should be executed, based on predetermined use-cases.
     How to allow for all possible combinations of what to use/what to run/on which timestamps?
 
-    @TODO. Must include the following now for e.g., brain => "format": "thresholding",
+    @TODO. Still heavily hard-coded atm, will need to rely only on the pipeline json files
     Returns
     -------
     dict
@@ -68,6 +68,7 @@ def create_pipeline(model_name: str, patient_parameters, task: str) -> dict:
     elif task == 'preop_reporting':
         return __create_preop_reporting_pipeline(model_name, patient_parameters)
     elif task == 'postop_reporting':
+        download_model(model_name='MRI_Tumor_Postop')
         return __create_postop_reporting_pipeline(model_name, patient_parameters)
     else:
         return __create_custom_pipeline(task, model_name, patient_parameters)
