@@ -36,26 +36,41 @@ jobs:
         pip3 install -r assets/requirements.txt
         deactivate
 
-    - name: Install cmake
-      run: |
-        brew update
-        brew install cmake ninja
-        ninja --version
-        cmake --version
+#    - name: Install cmake
+#      run: |
+#        brew update
+#        brew install cmake ninja
+#        ninja --version
+#        cmake --version
+#
+#    - name: Build ANTs
+#      run: |
+#        cd ${{github.workspace}}
+#        mkdir ANTs
+#        cd ANTs
+#        git clone https://github.com/ANTsX/ANTs.git source
+#        mkdir build
+#        cd build
+#        cmake -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/ANTs/install ../source
+#        make -j4
+#        cd ANTS-build
+#        make install
+#        cp -R ${{github.workspace}}/ANTs/source/Scripts ${{github.workspace}}/ANTs/install/
 
-    - name: Build ANTs
+    - name: Download ANTs
+      uses: robinraju/release-downloader@main
+      with:
+        repository: "raidionics/Raidionics-dependencies"
+        latest: true
+        fileName: "ANTsX-v2.4.3_macos_arm.tar.gz"
+        out-file-path: "downloads"
+
+    - name: Extract ANTs
       run: |
-        cd ${{github.workspace}}
-        mkdir ANTs
-        cd ANTs
-        git clone https://github.com/ANTsX/ANTs.git source
-        mkdir build
-        cd build
-        cmake -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/ANTs/install ../source
-        make -j4
-        cd ANTS-build
-        make install
-        cp -R ${{github.workspace}}/ANTs/source/Scripts ${{github.workspace}}/ANTs/install/
+        cd ${{github.workspace}}/downloads/
+        tar -xzf ANTsX-v2.4.3_macos_arm.tar.gz -C ${{github.workspace}}/downloads/
+        mkdir ${{github.workspace}}/ANTs
+        mv ${{github.workspace}}/downloads/install ${{github.workspace}}/ANTs/
 
     - name: Build software
       run: |

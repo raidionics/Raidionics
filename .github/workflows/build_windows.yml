@@ -33,11 +33,11 @@ jobs:
 #        fileName: "ANTsX-v2.4.3_windows.zip"
 #        out-file-path: "downloads"
 #
-#    - name: Extract ANTs
-#      run: |
-#        cd ${{github.workspace}}/downloads/
-#        mkdir ${{github.workspace}}/ANTs
-#        mkdir ${{github.workspace}}/ANTs/install
+    - name: Extract ANTs
+      run: |
+        cd ${{github.workspace}}/downloads/
+        mkdir ${{github.workspace}}/ANTs
+        mkdir ${{github.workspace}}/ANTs/install
 #        tar -xf ANTsX-v2.4.3_windows.zip -C ${{github.workspace}}/ANTs/install/
 
     - name: Install dependencies
