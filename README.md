@@ -23,7 +23,7 @@ The current version (i.e., v1.2) provides a more user-friendly graphical user in
 
 
 ## Installation
-An installer is provided for the three main Operating Systems: Windows (~v10, 64-bit), macOS (>= Catalina), and Ubuntu Linux (>= 18.04). 
+An installer is provided for the three main Operating Systems: Windows (v10, 64-bit), Ubuntu Linux (>= 18.04), macOS (>= 10.15 Catalina) and macOS ARM (M1 chip). 
 The software can be downloaded from [here](https://github.com/dbouget/Raidionics/releases) (see **Assets**).  
 N-B: For re-installation, it is recommended to manually delete the .raidionics folder located inside your home directory.
 
