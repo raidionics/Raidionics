@@ -130,10 +130,11 @@ SectionEnd
 
 ######################################################################
 
+# Remove location where program is installed as well as addition .raidionics/ directory in home directory
 Section Uninstall
 ${INSTALL_TYPE}
 RmDir /r "$INSTDIR"
-# RmDir /r "$PROFILE/.raidionics/resources"
+RmDir /r "$PROFILE/.raidionics/"
 
 !ifdef REG_START_MENU
 !insertmacro MUI_STARTMENU_GETFOLDER "Application" $SM_Folder
