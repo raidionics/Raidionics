@@ -82,6 +82,18 @@ class SoftwareSettingsDialog(QDialog):
         self.model_update_layout.addWidget(self.model_update_checkbox)
         self.model_update_layout.addStretch(1)
         self.default_options_base_layout.addLayout(self.model_update_layout)
+
+        self.model_purge_layout = QHBoxLayout()
+        self.model_purge_header_label = QLabel("Models purge ")
+        self.model_purge_header_label.setToolTip("Press the button to purge all local models.")
+        self.model_purge_pushbutton = QPushButton()
+        self.model_purge_pushbutton.setIcon(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                               '../../Images/trash-bin_icon.png')))
+        self.model_purge_layout.addWidget(self.model_purge_header_label)
+        self.model_purge_layout.addWidget(self.model_purge_pushbutton)
+        self.model_purge_layout.addStretch(1)
+        self.default_options_base_layout.addLayout(self.model_purge_layout)
+
         self.default_options_base_layout.addStretch(1)
         self.default_options_widget.setLayout(self.default_options_base_layout)
         self.options_stackedwidget.addWidget(self.default_options_widget)
@@ -190,6 +202,8 @@ class SoftwareSettingsDialog(QDialog):
         self.options_list_scrollarea.setFixedWidth(150)
         self.default_options_pushbutton.setFixedHeight(30)
         self.default_options_label.setFixedHeight(40)
+        self.model_purge_pushbutton.setFixedSize(QSize(20, 20))
+        self.model_purge_pushbutton.setIconSize(QSize(20, 20))
         self.processing_options_pushbutton.setFixedHeight(30)
         self.processing_options_label.setFixedHeight(40)
         self.appearance_options_pushbutton.setFixedHeight(30)
@@ -202,6 +216,7 @@ class SoftwareSettingsDialog(QDialog):
         self.appearance_options_pushbutton.clicked.connect(self.__on_display_appearance_options)
         self.home_directory_lineedit.textChanged.connect(self.__on_home_dir_changed)
         self.model_update_checkbox.stateChanged.connect(self.__on_active_model_status_changed)
+        self.model_purge_pushbutton.clicked.connect(self.__on_model_purge_clicked)
         self.processing_options_use_sequences_checkbox.stateChanged.connect(self.__on_use_sequences_status_changed)
         self.processing_options_use_annotations_checkbox.stateChanged.connect(self.__on_use_manual_annotations_status_changed)
         self.processing_options_use_stripped_inputs_checkbox.stateChanged.connect(self.__on_use_stripped_inputs_status_changed)
@@ -234,6 +249,23 @@ class SoftwareSettingsDialog(QDialog):
         font: 18px;
         font-style: bold;
         border-style: none;
+        }""")
+
+        self.model_purge_pushbutton.setStyleSheet("""
+        QPushButton{
+        background-color: """ + pressed_background_color + """;
+        color: """ + font_color + """;
+        font: 12px;
+        border-style: none;
+        }
+        QPushButton::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        }
+        QPushButton:pressed{
+        border-style:inset;
+        background-color: """ + pressed_background_color + """;
         }""")
 
         self.default_options_pushbutton.setStyleSheet("""
@@ -323,6 +355,18 @@ class SoftwareSettingsDialog(QDialog):
 
         """
         SoftwareConfigResources.getInstance().user_preferences.active_model_update = status
+
+    def __on_model_purge_clicked(self) -> None:
+        """
+
+        """
+        # @TODO. Should have another QMessageBox to ask if the user is sure to delete local models, which is
+        # irreversible
+        code = QMessageBox.warning(self, "Irreversible models deletion",
+                                   "Are you sure you want to delete all local models?",
+                                   QMessageBox.Ok | QMessageBox.Cancel, QMessageBox.Ok)
+        if code == QMessageBox.StandardButton.Ok:  # Deletion approved
+            pass
 
     def __on_use_sequences_status_changed(self, status):
         SoftwareConfigResources.getInstance().user_preferences.use_manual_sequences = status
