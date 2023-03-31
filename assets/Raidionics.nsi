@@ -108,6 +108,9 @@ WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}"  "DisplayIcon" "$INSTDIR\images\raid
 WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}"  "DisplayVersion" "${VERSION}"
 WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}"  "Publisher" "${COMP_NAME}"
 
+# Delete .raidionics/ directory if it exists
+RmDir /r "$PROFILE/.raidionics/"
+
 # Create directory
 CreateDirectory $INSTDIR
 
