@@ -109,7 +109,7 @@ WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}"  "DisplayVersion" "${VERSION}"
 WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}"  "Publisher" "${COMP_NAME}"
 
 # Delete .raidionics/ directory if it exists
-RmDir /r "$PROFILE/.raidionics/"
+RMDir /r "$PROFILE\.raidionics\"
 
 # Create directory
 CreateDirectory $INSTDIR
@@ -136,8 +136,8 @@ SectionEnd
 # Remove location where program is installed as well as addition .raidionics/ directory in home directory
 Section Uninstall
 ${INSTALL_TYPE}
-RmDir /r "$INSTDIR"
-RmDir /r "$PROFILE/.raidionics/"
+RMDir /r "$INSTDIR"
+RMDir /r "$PROFILE\.raidionics\"
 
 !ifdef REG_START_MENU
 !insertmacro MUI_STARTMENU_GETFOLDER "Application" $SM_Folder
@@ -145,7 +145,7 @@ Delete "$SMPROGRAMS\$SM_Folder\${APP_NAME}.lnk"
 Delete "$SMPROGRAMS\$SM_Folder\Uninstall ${APP_NAME}.lnk"
 Delete "$DESKTOP\${APP_NAME}.lnk"
 
-RmDir "$SMPROGRAMS\$SM_Folder"
+RMDir "$SMPROGRAMS\$SM_Folder"
 !endif
 
 DeleteRegKey ${REG_ROOT} "${REG_APP_PATH}"
