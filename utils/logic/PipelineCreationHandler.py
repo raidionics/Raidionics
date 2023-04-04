@@ -209,6 +209,24 @@ def __create_preop_reporting_pipeline(model_name, patient_parameters):
         pip_num = str(pip_num_int)
         pip[pip_num] = raw_pip[steps]
 
+    # @TODO. Hard-coded, to remove/improve
+    if "Meningioma" in model_name:
+        pip_num_int = pip_num_int + 1
+        pip_num = str(pip_num_int)
+        pip[pip_num] = {}
+        pip[pip_num]["task"] = 'Segmentation'
+        pip[pip_num]["inputs"] = {}
+        pip[pip_num]["inputs"]["0"] = {}
+        pip[pip_num]["inputs"]["0"]["timestamp"] = 0
+        pip[pip_num]["inputs"]["0"]["sequence"] = "T1-CE"
+        pip[pip_num]["inputs"]["0"]["labels"] = None
+        pip[pip_num]["inputs"]["0"]["space"] = {}
+        pip[pip_num]["inputs"]["0"]["space"]["timestamp"] = 0
+        pip[pip_num]["inputs"]["0"]["space"]["sequence"] = "T1-CE"
+        pip[pip_num]["target"] = ["Brain"]
+        pip[pip_num]["model"] = "MRI_Brain"
+        pip[pip_num]["description"] = "Brain segmentation in T1CE (T0)"
+
     pip_num_int = pip_num_int + 1
     pip_num = str(pip_num_int)
     pip[pip_num] = {}
