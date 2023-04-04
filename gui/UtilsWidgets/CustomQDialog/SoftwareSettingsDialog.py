@@ -1,3 +1,5 @@
+import shutil
+
 from PySide6.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QGridLayout, QDialog, QDialogButtonBox,\
     QComboBox, QPushButton, QScrollArea, QLineEdit, QFileDialog, QMessageBox, QSpinBox, QCheckBox, QStackedWidget
 from PySide6.QtCore import Qt, QSize, Signal
@@ -358,15 +360,15 @@ class SoftwareSettingsDialog(QDialog):
 
     def __on_model_purge_clicked(self) -> None:
         """
-
+        Will remove the whole content of the models folder.
         """
-        # @TODO. Should have another QMessageBox to ask if the user is sure to delete local models, which is
-        # irreversible
         code = QMessageBox.warning(self, "Irreversible models deletion",
                                    "Are you sure you want to delete all local models?",
                                    QMessageBox.Ok | QMessageBox.Cancel, QMessageBox.Ok)
         if code == QMessageBox.StandardButton.Ok:  # Deletion approved
-            pass
+            if os.path.exists(SoftwareConfigResources.getInstance().models_path):
+                shutil.rmtree(SoftwareConfigResources.getInstance().models_path)
+                os.makedirs(SoftwareConfigResources.getInstance().models_path)
 
     def __on_use_sequences_status_changed(self, status):
         SoftwareConfigResources.getInstance().user_preferences.use_manual_sequences = status
