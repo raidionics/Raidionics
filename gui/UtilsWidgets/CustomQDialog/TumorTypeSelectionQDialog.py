@@ -14,8 +14,8 @@ class TumorTypeSelectionQDialog(QDialog):
         self.select_tumor_type_label.setStyleSheet("""QLabel{background-color: rgba(248, 248, 248, 1);}""")
         self.base_layout.addWidget(self.select_tumor_type_label, 0, 0)
         self.select_tumor_type_combobox = QComboBox()
-        self.select_tumor_type_combobox.addItems(["High-Grade Glioma", "Low-Grade Glioma", "Meningioma", "Metastasis"])
-        self.tumor_type = "High-Grade Glioma"
+        self.select_tumor_type_combobox.addItems(["Glioblastoma", "Low-Grade Glioma", "Meningioma", "Metastasis"])
+        self.tumor_type = "Glioblastoma"
 
         self.base_layout.addWidget(self.select_tumor_type_combobox, 0, 1)
         self.exit_accept_pushbutton = QDialogButtonBox(QDialogButtonBox.Ok)

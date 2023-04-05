@@ -591,8 +591,8 @@ class SingleStudyWidget(QCollapsibleWidget):
             if code == 0:  # Operation was cancelled by the user
                 return
 
-            if diag.tumor_type == 'High-Grade Glioma':
-                self.model_name = "MRI_HGGlioma"
+            if diag.tumor_type == 'Glioblastoma':
+                self.model_name = "MRI_GBM"
             elif diag.tumor_type == 'Low-Grade Glioma':
                 self.model_name = "MRI_LGGlioma"
             elif diag.tumor_type == 'Metastasis':

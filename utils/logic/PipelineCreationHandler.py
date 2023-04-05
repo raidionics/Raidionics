@@ -31,7 +31,7 @@ class ModelNameType(Enum):
     """
     _init_ = 'value string'
 
-    HGGlioma = 0, 'MRI_HGGLioma'
+    HGGlioma = 0, 'MRI_GBM'
     LGGlioma = 1, 'MRI_LGGlioma'
     Meningioma = 2, 'MRI_Meningioma'
     Metastasis = 3, 'MRI_Metastase'
@@ -47,6 +47,7 @@ def create_pipeline(model_name: str, patient_parameters, task: str) -> dict:
     How to allow for all possible combinations of what to use/what to run/on which timestamps?
 
     @TODO. Still heavily hard-coded atm, will need to rely only on the pipeline json files
+    @TODO. Postop segmentation not adapting to the number of inputs, defaulting to the 4 inputs.
     Returns
     -------
     dict
@@ -61,14 +62,14 @@ def create_pipeline(model_name: str, patient_parameters, task: str) -> dict:
     elif task == 'preop_segmentation':
         return __create_segmentation_pipeline(model_name, patient_parameters)
     elif task == 'postop_segmentation':
-        download_model(model_name='MRI_Tumor_Postop')
+        download_model(model_name='MRI_GBM_Postop_FV_4p')
         return __create_postop_segmentation_pipeline(model_name, patient_parameters)
     elif task == 'other_segmentation':
         return __create_other_segmentation_pipeline(model_name, patient_parameters)
     elif task == 'preop_reporting':
         return __create_preop_reporting_pipeline(model_name, patient_parameters)
     elif task == 'postop_reporting':
-        download_model(model_name='MRI_Tumor_Postop')
+        download_model(model_name='MRI_GBM_Postop_FV_4p')
         return __create_postop_reporting_pipeline(model_name, patient_parameters)
     else:
         return __create_custom_pipeline(task, model_name, patient_parameters)
@@ -158,9 +159,15 @@ def __create_other_segmentation_pipeline(model_name, patient_parameters):
 
 def __create_postop_segmentation_pipeline(model_name, patient_parameters):
     """
-
+    The default postop segmentation model is the one with four inputs, but based on the loaded images another fitting
+    model could be used.
+    @TODO. Ideally, in the future, the disambiguation of the best model to use should be done in the backend. In that
+    case, how to properly retrieve the corresponding pipeline.json?
     """
-    infile = open(os.path.join(SoftwareConfigResources.getInstance().models_path, "MRI_Tumor_Postop", 'pipeline.json'), 'rb')
+    postop_model_name = "MRI_GBM_Postop_FV_4p"
+    if SoftwareConfigResources.getInstance().user_preferences.use_manual_sequences:
+        postop_model_name = select_appropriate_postop_model(patient_parameters)
+    infile = open(os.path.join(SoftwareConfigResources.getInstance().models_path, postop_model_name, 'pipeline.json'), 'rb')
     raw_pip = json.load(infile)
 
     pip = {}
@@ -226,6 +233,7 @@ def __create_preop_reporting_pipeline(model_name, patient_parameters):
         pip[pip_num]["target"] = ["Brain"]
         pip[pip_num]["model"] = "MRI_Brain"
         pip[pip_num]["description"] = "Brain segmentation in T1CE (T0)"
+        download_model("MRI_Brain")
 
     pip_num_int = pip_num_int + 1
     pip_num = str(pip_num_int)
@@ -493,9 +501,8 @@ def __create_postop_reporting_pipeline(model_name, patient_parameters):
     pip[pip_num]["inputs"]["4"]["space"]["timestamp"] = 1
     pip[pip_num]["inputs"]["4"]["space"]["sequence"] = "T1-CE"
     pip[pip_num]["target"] = ["Tumor"]
-    pip[pip_num]["model"] = "MRI_Tumor_Postop"
+    pip[pip_num]["model"] = "MRI_GBM_Postop_FV_4p"
     pip[pip_num]["description"] = "Tumor segmentation in T1CE (T1)"
-    # download_model(model_name='MRI_Tumor_Postop')
 
     pip_num_int = pip_num_int + 1
     pip_num = str(pip_num_int)
@@ -589,3 +596,13 @@ def __create_custom_pipeline(task, tumor_type, patient_parameters):
                 pip[pip_num]["description"] = k + " segmentation in T1CE (T{})".format(str(timestamp_order))
                 download_model(model_name=model_name)
     return pip
+
+
+def select_appropriate_postop_model(patient_parameters) -> str:
+    """
+    Temporary method, which will be deported in the backend, for selecting the best postoperative glioblastoma
+    segmentation model based on available inputs.
+    """
+    model_name = "MRI_GBM_Postop_FV_4p"
+
+    return model_name

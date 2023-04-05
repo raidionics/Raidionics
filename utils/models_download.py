@@ -100,7 +100,8 @@ def download_model(model_name: str):
             model_params = cloud_models_list.loc[cloud_models_list['Model'] == model_name]
             url = model_params['link'].values[0]
             md5 = model_params['sum'].values[0]
-            dep = list(model_params['dependencies'].values)
+            tmp_dep = model_params['dependencies'].values[0]
+            dep = list(tmp_dep.strip().split(';')) if tmp_dep == tmp_dep else []
             models_path = os.path.join(expanduser('~'), '.raidionics', 'resources', 'models')
             os.makedirs(models_path, exist_ok=True)
             models_archive_path = os.path.join(expanduser('~'), '.raidionics', 'resources', 'models',
@@ -112,6 +113,9 @@ def download_model(model_name: str):
                 download_state = True
 
             if download_state:
+                if os.path.exists(models_archive_path):
+                    # Just in case, deleting the old cached archive, if a new one is to be downloaded
+                    os.remove(models_archive_path)
                 headers = {}
 
                 response = requests.get(url, headers=headers, stream=True)
