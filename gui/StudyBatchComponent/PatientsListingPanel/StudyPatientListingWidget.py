@@ -52,6 +52,7 @@ class StudyPatientListingWidget(QWidget):
         self.header_layout.addStretch(1)
         self.header_layout.addWidget(self.header_label)
         self.header_layout.addStretch(1)
+        self.header_layout.setContentsMargins(0, 0, 10, 0)
         self.patients_refresh_pushbutton = QPushButton()
         self.patients_refresh_pushbutton.setIcon(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                                     '../../Images/restart_counterclockwise_icon.png')))

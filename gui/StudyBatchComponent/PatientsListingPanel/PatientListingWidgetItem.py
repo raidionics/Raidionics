@@ -30,7 +30,7 @@ class PatientListingWidgetItem(QWidget):
     def __set_interface(self):
         self.layout = QHBoxLayout(self)
         self.layout.setSpacing(0)
-        self.layout.setContentsMargins(0, 0, 0, 0)
+        self.layout.setContentsMargins(0, 0, 10, 0)
 
         self.patient_uid_label = QLabel(SoftwareConfigResources.getInstance().patients_parameters[self.patient_uid].display_name)
         self.patient_uid_label.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
