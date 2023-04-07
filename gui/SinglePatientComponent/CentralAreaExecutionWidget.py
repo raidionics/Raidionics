@@ -145,7 +145,7 @@ class CentralAreaExecutionWidget(QLabel):
 
         """
         self.model_name = ""
-        if "Classification" not in pipeline_code:
+        if ("Classification" not in pipeline_code) and ("Brain" not in pipeline_code) and ("postop" not in pipeline_code):
             diag = TumorTypeSelectionQDialog(self)
             code = diag.exec_()
             if code == 0:  # Operation cancelled
@@ -159,6 +159,10 @@ class CentralAreaExecutionWidget(QLabel):
                 self.model_name = "MRI_Metastasis"
             elif diag.tumor_type == 'Meningioma':
                 self.model_name = "MRI_Meningioma"
+        elif "Brain" in pipeline_code:
+            self.model_name = "MRI_Brain"
+        elif "postop" in pipeline_code:
+            self.model_name = "MRI_GBM_Postop_FV_4p"
 
         self.process_started.emit()
         self.pipeline_main_wrapper(pipeline_code)

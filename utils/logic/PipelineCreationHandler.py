@@ -558,24 +558,33 @@ def __create_custom_pipeline(task, tumor_type, patient_parameters):
             pip[pip_num]["description"] = "Lungs segmentation in T1CE (T{})".format(str(timestamp_order))
             download_model(model_name="CT_Lungs")
 
-        if split_task[1] != 'All':
-            model_name = base_model_name + split_task[1]
-            pip_num_int = pip_num_int + 1
-            pip_num = str(pip_num_int)
-            pip[pip_num] = {}
-            pip[pip_num]["task"] = 'Segmentation'
-            pip[pip_num]["inputs"] = {}
-            pip[pip_num]["inputs"]["0"] = {}
-            pip[pip_num]["inputs"]["0"]["timestamp"] = timestamp_order
-            pip[pip_num]["inputs"]["0"]["sequence"] = "T1-CE"
-            pip[pip_num]["inputs"]["0"]["labels"] = None
-            pip[pip_num]["inputs"]["0"]["space"] = {}
-            pip[pip_num]["inputs"]["0"]["space"]["timestamp"] = timestamp_order
-            pip[pip_num]["inputs"]["0"]["space"]["sequence"] = "T1-CE"
-            pip[pip_num]["target"] = [split_task[1]]
-            pip[pip_num]["model"] = model_name
-            pip[pip_num]["description"] = split_task[1] + " segmentation in T1CE (T{})".format(str(timestamp_order))
-            download_model(model_name=model_name)
+        if split_task[1] == 'Tumor':
+            infile = open(os.path.join(SoftwareConfigResources.getInstance().models_path, tumor_type, 'pipeline.json'),
+                          'rb')
+            raw_pip = json.load(infile)
+
+            for steps in list(raw_pip.keys()):
+                pip_num_int = pip_num_int + 1
+                pip_num = str(pip_num_int)
+                pip[pip_num] = raw_pip[steps]
+        if split_task[1] == 'Brain':
+            infile = open(os.path.join(SoftwareConfigResources.getInstance().models_path, tumor_type, 'pipeline.json'),
+                          'rb')
+            raw_pip = json.load(infile)
+            ts_inputs = patient_parameters.get_all_mri_volumes_for_timestamp(split_task[2])
+            for input in ts_inputs:
+                volume_input = patient_parameters.get_mri_by_uid(input)
+                matching_ts = patient_parameters.get_timestamp_by_uid(volume_input.timestamp_uid)
+                adjusted_pip = raw_pip
+                adjusted_pip["1"]["inputs"]["0"]["timestamp"] = int(matching_ts.order)
+                adjusted_pip["1"]["inputs"]["0"]["sequence"] = volume_input.get_sequence_type_str()
+                adjusted_pip["1"]["inputs"]["0"]["space"]["timestamp"] = int(matching_ts.order)
+                adjusted_pip["1"]["inputs"]["0"]["space"]["sequence"] = volume_input.get_sequence_type_str()
+                adjusted_pip["1"]["description"] = adjusted_pip["1"]["description"].replace("T1CE", volume_input.get_sequence_type_str()).replace("T0", "T"+str(matching_ts.order))
+                for steps in list(adjusted_pip.keys()):
+                    pip_num_int = pip_num_int + 1
+                    pip_num = str(pip_num_int)
+                    pip[pip_num] = adjusted_pip[steps]
         else:
             for k in SoftwareConfigResources.getInstance().get_annotation_types_for_specialty():
                 model_name = base_model_name + k if k != "Tumor" else tumor_type
