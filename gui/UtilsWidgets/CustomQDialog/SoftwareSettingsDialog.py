@@ -148,6 +148,16 @@ class SoftwareSettingsDialog(QDialog):
         self.processing_options_use_registered_inputs_layout.addStretch(1)
         self.processing_options_base_layout.addLayout(self.processing_options_use_registered_inputs_layout)
 
+        self.processing_options_export_results_rtstruct_layout = QHBoxLayout()
+        self.processing_options_export_results_rtstruct_header_label = QLabel("Export results as DICOM RTStruct")
+        self.processing_options_export_results_rtstruct_header_label.setToolTip("Tick the box to indicate that annotations or atlases mask should be also saved on disk as DICOM RTStruct.\n")
+        self.processing_options_export_results_rtstruct_checkbox = QCheckBox()
+        self.processing_options_export_results_rtstruct_checkbox.setChecked(SoftwareConfigResources.getInstance().user_preferences.export_results_as_rtstruct)
+        self.processing_options_export_results_rtstruct_layout.addWidget(self.processing_options_export_results_rtstruct_checkbox)
+        self.processing_options_export_results_rtstruct_layout.addWidget(self.processing_options_export_results_rtstruct_header_label)
+        self.processing_options_export_results_rtstruct_layout.addStretch(1)
+        self.processing_options_base_layout.addLayout(self.processing_options_export_results_rtstruct_layout)
+
         self.separating_line = QLabel()
         self.separating_line.setFixedHeight(2)
         self.processing_options_base_layout.addWidget(self.separating_line)
@@ -223,6 +233,7 @@ class SoftwareSettingsDialog(QDialog):
         self.processing_options_use_annotations_checkbox.stateChanged.connect(self.__on_use_manual_annotations_status_changed)
         self.processing_options_use_stripped_inputs_checkbox.stateChanged.connect(self.__on_use_stripped_inputs_status_changed)
         self.processing_options_use_registered_inputs_checkbox.stateChanged.connect(self.__on_use_registered_inputs_status_changed)
+        self.processing_options_export_results_rtstruct_checkbox.stateChanged.connect(self.__on_export_results_rtstruct_status_changed)
         self.processing_options_compute_corticalstructures_checkbox.stateChanged.connect(self.__on_compute_corticalstructures_status_changed)
         self.processing_options_compute_subcorticalstructures_checkbox.stateChanged.connect(self.__on_compute_subcorticalstructures_status_changed)
         self.dark_mode_checkbox.stateChanged.connect(self.__on_dark_mode_status_changed)
@@ -381,6 +392,9 @@ class SoftwareSettingsDialog(QDialog):
 
     def __on_use_registered_inputs_status_changed(self, status):
         SoftwareConfigResources.getInstance().user_preferences.use_registered_inputs = status
+
+    def __on_export_results_rtstruct_status_changed(self, status):
+        SoftwareConfigResources.getInstance().user_preferences._export_results_as_rtstruct = status
 
     def __on_compute_corticalstructures_status_changed(self, state):
         SoftwareConfigResources.getInstance().user_preferences.compute_cortical_structures = state

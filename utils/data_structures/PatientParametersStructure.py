@@ -19,7 +19,7 @@ from utils.data_structures.AnnotationStructure import AnnotationVolume, Annotati
 from utils.data_structures.AtlasStructure import AtlasVolume
 from utils.data_structures.InvestigationTimestampStructure import InvestigationTimestamp, InvestigationType
 from utils.data_structures.ReportingStructure import ReportingStructure
-from utils.utilities import input_file_category_disambiguation
+from utils.utilities import input_file_category_disambiguation, convert_results_as_dicom_rtstruct
 
 
 class PatientParameters:
@@ -627,6 +627,7 @@ class PatientParameters:
         for i, disp in enumerate(list(self._reportings.keys())):
             self._patient_parameters_dict['Reports'][disp] = self._reportings[disp].save()
 
+        convert_results_as_dicom_rtstruct(self)
         # Saving the json file last, as it must be populated from the previous dumps beforehand
         with open(self._patient_parameters_dict_filename, 'w') as outfile:
             json.dump(self._patient_parameters_dict, outfile, indent=4, sort_keys=True)

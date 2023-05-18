@@ -19,6 +19,7 @@ class UserPreferencesStructure:
     _active_model_update = False  # True for regularly checking if new models are available, False otherwise
     _use_manual_sequences = True  # True for using the manually set sequences, False to run classification on-the-fly
     _use_manual_annotations = False  # True to use annotation files provided by the user, False to recompute
+    _export_results_as_rtstruct = False  # True to export all masks as DICOM RTStruct in addition
     _use_stripped_inputs = False  # True to use inputs already stripped (e.g., skull-stripped or lungs-stripped)
     _use_registered_inputs = False  # True to use inputs already registered (e.g., altas-registered, multi-sequences co-registered)
     _compute_cortical_structures = True  # True to include cortical features computation in the standardized reporting
@@ -70,6 +71,16 @@ class UserPreferencesStructure:
     def use_manual_sequences(self, state: bool) -> None:
         logging.info("Use manual sequences set to {}.\n".format(state))
         self._use_manual_sequences = state
+        self.save_preferences()
+
+    @property
+    def export_results_as_rtstruct(self) -> bool:
+        return self._export_results_as_rtstruct
+
+    @export_results_as_rtstruct.setter
+    def export_results_as_rtstruct(self, state: bool) -> None:
+        logging.info("Exporting results as DICOM RTStruct set to {}.\n".format(state))
+        self._export_results_as_rtstruct = state
         self.save_preferences()
 
     @property
@@ -153,6 +164,8 @@ class UserPreferencesStructure:
                 self._use_stripped_inputs = preferences['Processing']['use_stripped_inputs']
             if 'use_registered_inputs' in preferences['Processing'].keys():
                 self._use_registered_inputs = preferences['Processing']['use_registered_inputs']
+            if 'export_results_as_rtstruct' in preferences['Processing'].keys():
+                self._export_results_as_rtstruct = preferences['Processing']['export_results_as_rtstruct']
             if 'compute_cortical_structures' in preferences['Processing'].keys():
                 self._compute_cortical_structures = preferences['Processing']['compute_cortical_structures']
             if 'compute_subcortical_structures' in preferences['Processing'].keys():
@@ -172,6 +185,7 @@ class UserPreferencesStructure:
         preferences['Processing']['use_manual_annotations'] = self._use_manual_annotations
         preferences['Processing']['use_stripped_inputs'] = self._use_stripped_inputs
         preferences['Processing']['use_registered_inputs'] = self._use_registered_inputs
+        preferences['Processing']['export_results_as_rtstruct'] = self._export_results_as_rtstruct
         preferences['Processing']['compute_cortical_structures'] = self._compute_cortical_structures
         preferences['Processing']['compute_subcortical_structures'] = self._compute_subcortical_structures
         preferences['Appearance'] = {}
