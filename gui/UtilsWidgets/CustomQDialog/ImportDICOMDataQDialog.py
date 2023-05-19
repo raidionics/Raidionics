@@ -6,7 +6,7 @@ from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QDialog, QDialo
     QPushButton, QScrollArea, QFileDialog, QSplitter, QTableWidget, QTableWidgetItem,\
     QProgressBar, QMessageBox
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QIcon, QPixmap
+from PySide6.QtGui import QIcon, QPixmap, QBrush
 import os
 
 from typing import List
@@ -477,7 +477,7 @@ class ImportDICOMDataQDialog(QDialog):
         for r in range(self.content_series_tablewidget.rowCount()):
             if self.content_series_tablewidget.item(r, 0).text() in loaded_series_id:
                 for c in range(self.content_series_tablewidget.columnCount()):
-                    self.content_series_tablewidget.item(r, c).setBackgroundColor(Qt.green)
+                    self.content_series_tablewidget.item(r, c).setBackground(QBrush(Qt.green))
 
     def __sort_selected_series_by_date(self, study_uids: List[str], series_uids: List[str]) -> dict:
         study_ids = []
