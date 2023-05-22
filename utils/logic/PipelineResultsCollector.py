@@ -5,7 +5,7 @@ import traceback
 
 import pandas as pd
 
-from utils.software_config import SoftwareConfigResources
+from utils.data_structures.UserPreferencesStructure import UserPreferencesStructure
 from utils.data_structures.MRIVolumeStructure import MRISequenceType
 from utils.utilities import get_type_from_string
 
@@ -80,7 +80,7 @@ def collect_results(patient_parameters, pipeline):
                     parent_mri_uid = parent_mri_uid[0]
 
                     # Collecting the atlas cortical structures
-                    if SoftwareConfigResources.getInstance().user_preferences.compute_cortical_structures:
+                    if UserPreferencesStructure.getInstance().compute_cortical_structures:
                         cortical_folder = os.path.join(patient_parameters.output_folder, 'reporting',
                                                        'T' + str(pip_step["moving"]["timestamp"]), 'Cortical-structures')
                         cortical_masks = []
@@ -110,7 +110,7 @@ def collect_results(patient_parameters, pipeline):
                             results['Atlas'].append(data_uid)
 
                     # Collecting the atlas subcortical structures
-                    if SoftwareConfigResources.getInstance().user_preferences.compute_subcortical_structures:
+                    if UserPreferencesStructure.getInstance().compute_subcortical_structures:
                         subcortical_folder = os.path.join(patient_parameters.output_folder, 'reporting',
                                                        'T' + str(pip_step["moving"]["timestamp"]), 'Subcortical-structures')
 

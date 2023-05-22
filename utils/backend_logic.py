@@ -14,6 +14,7 @@ import pandas as pd
 from typing import Any, Tuple
 import multiprocessing as mp
 from utils.software_config import SoftwareConfigResources
+from utils.data_structures.UserPreferencesStructure import UserPreferencesStructure
 from utils.data_structures.PatientParametersStructure import PatientParameters
 from utils.data_structures.AnnotationStructure import AnnotationGenerationType, AnnotationClassType
 from utils.logic.PipelineCreationHandler import create_pipeline
@@ -84,7 +85,7 @@ def run_pipeline(task: str, model_name: str, patient_parameters: PatientParamete
         surrogate_folder_path = generate_surrogate_folder(patient_parameters, patient_parameters.output_folder,
                                                           task)
 
-        if SoftwareConfigResources.getInstance().user_preferences.use_manual_sequences:
+        if UserPreferencesStructure.getInstance().use_manual_sequences:
             generate_sequences_file(patient_parameters, surrogate_folder_path)
 
         rads_config = configparser.ConfigParser()
@@ -107,13 +108,13 @@ def run_pipeline(task: str, model_name: str, patient_parameters: PatientParamete
         rads_config.set('Runtime', 'reconstruction_method', 'thresholding')
         rads_config.set('Runtime', 'reconstruction_order', 'resample_first')
         rads_config.set('Runtime', 'use_stripped_data',
-                        "True" if SoftwareConfigResources.getInstance().user_preferences.use_stripped_inputs else "False")
+                        "True" if UserPreferencesStructure.getInstance().use_stripped_inputs else "False")
         rads_config.set('Runtime', 'use_registered_data',
-                        "True" if SoftwareConfigResources.getInstance().user_preferences.use_registered_inputs else "False")
+                        "True" if UserPreferencesStructure.getInstance().use_registered_inputs else "False")
         rads_config.add_section('Neuro')
-        if SoftwareConfigResources.getInstance().user_preferences.compute_cortical_structures:
+        if UserPreferencesStructure.getInstance().compute_cortical_structures:
             rads_config.set('Neuro', 'cortical_features', 'MNI, Schaefer7, Schaefer17, Harvard-Oxford')
-        if SoftwareConfigResources.getInstance().user_preferences.compute_subcortical_structures:
+        if UserPreferencesStructure.getInstance().compute_subcortical_structures:
             rads_config.set('Neuro', 'subcortical_features', 'BCB')
         rads_config_filename = os.path.join(patient_parameters.output_folder, 'rads_config.ini')
         with open(rads_config_filename, 'w') as outfile:
@@ -232,7 +233,7 @@ def generate_surrogate_folder(patient_parameters: PatientParameters, output_fold
             shutil.rmtree(surrogate_folder)
 
         os.makedirs(surrogate_folder)
-        use_manual_files = SoftwareConfigResources.getInstance().user_preferences.use_manual_annotations
+        use_manual_files = UserPreferencesStructure.getInstance().use_manual_annotations
         for ts in patient_parameters.get_all_timestamps_uids():
             ts_object = patient_parameters.get_timestamp_by_uid(ts)
             os.makedirs(os.path.join(surrogate_folder, "T" + str(ts_object.order)))

@@ -5,6 +5,7 @@ from aenum import Enum, unique
 
 from utils.models_download import download_model
 from utils.software_config import SoftwareConfigResources
+from utils.data_structures.UserPreferencesStructure import UserPreferencesStructure
 
 
 @unique
@@ -98,7 +99,7 @@ def __create_segmentation_pipeline(model_name, patient_parameters):
 
     pip = {}
     pip_num_int = 0
-    if not SoftwareConfigResources.getInstance().user_preferences.use_manual_sequences:
+    if not UserPreferencesStructure.getInstance().use_manual_sequences:
         pip_num_int = pip_num_int + 1
         pip_num = str(pip_num_int)
         pip[pip_num] = {}
@@ -165,14 +166,14 @@ def __create_postop_segmentation_pipeline(model_name, patient_parameters):
     case, how to properly retrieve the corresponding pipeline.json?
     """
     postop_model_name = "MRI_GBM_Postop_FV_4p"
-    if SoftwareConfigResources.getInstance().user_preferences.use_manual_sequences:
+    if UserPreferencesStructure.getInstance().use_manual_sequences:
         postop_model_name = select_appropriate_postop_model(patient_parameters)
     infile = open(os.path.join(SoftwareConfigResources.getInstance().models_path, postop_model_name, 'pipeline.json'), 'rb')
     raw_pip = json.load(infile)
 
     pip = {}
     pip_num_int = 0
-    if not SoftwareConfigResources.getInstance().user_preferences.use_manual_sequences:
+    if not UserPreferencesStructure.getInstance().use_manual_sequences:
         pip_num_int = pip_num_int + 1
         pip_num = str(pip_num_int)
         pip[pip_num] = {}
@@ -201,7 +202,7 @@ def __create_preop_reporting_pipeline(model_name, patient_parameters):
 
     pip = {}
     pip_num_int = 0
-    if not SoftwareConfigResources.getInstance().user_preferences.use_manual_sequences:
+    if not UserPreferencesStructure.getInstance().use_manual_sequences:
         pip_num_int = pip_num_int + 1
         pip_num = str(pip_num_int)
         pip[pip_num] = {}
@@ -293,7 +294,7 @@ def __create_postop_reporting_pipeline(model_name, patient_parameters):
     """
     pip = {}
     pip_num_int = 0
-    if not SoftwareConfigResources.getInstance().user_preferences.use_manual_sequences:
+    if not UserPreferencesStructure.getInstance().use_manual_sequences:
         pip_num_int = pip_num_int + 1
         pip_num = str(pip_num_int)
         pip[pip_num] = {}
@@ -528,7 +529,7 @@ def __create_custom_pipeline(task, tumor_type, patient_parameters):
         pip[pip_num]["description"] = "Classification of the MRI sequence type for all input scans"
         download_model(model_name='MRI_Sequence_Classifier')
     elif split_task[0] == "Segmentation":
-        if not SoftwareConfigResources.getInstance().user_preferences.use_manual_sequences:
+        if not UserPreferencesStructure.getInstance().use_manual_sequences:
             pip_num_int = pip_num_int + 1
             pip_num = str(pip_num_int)
             pip[pip_num] = {}

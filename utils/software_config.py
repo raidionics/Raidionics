@@ -24,7 +24,6 @@ class SoftwareConfigResources:
     __instance = None
     _software_home_location = None  # Main dump location for the software elements (e.g., models, runtime log)
     _user_preferences_filename = None  # json file containing the user preferences (for when reopening the software).
-    _user_preferences = None  # Structure containing the parsed information stored in the aforementioned file.
     _session_log_filename = None  # log filename containing the runtime logging for each software execution.
     _software_version = "1.2"  # Current software version (minor) for selecting which models to use in the backend.
     _software_medical_specialty = "neurology"  # Overall medical target [neurology, thoracic]
@@ -61,7 +60,7 @@ class SoftwareConfigResources:
         self.accepted_study_file_format = ['sraidionics']
 
         self.__set_default_values()
-        self._user_preferences = UserPreferencesStructure(self._user_preferences_filename)
+        # self._user_preferences = UserPreferencesStructure(self._user_preferences_filename)
         self.__set_default_stylesheet_components()
 
     def __set_default_values(self):
@@ -80,7 +79,7 @@ class SoftwareConfigResources:
         self.stylesheet_components["Color6"] = "rgba(214, 214, 214, 1)"  # Darker almost white (when pressed)
         self.stylesheet_components["Color7"] = "rgba(67, 88, 90, 1)"  # Main font color ()
 
-        if self._user_preferences.use_dark_mode:  # Dark-mode alternative
+        if UserPreferencesStructure.getInstance().use_dark_mode:  # Dark-mode alternative
             self.stylesheet_components["Color2"] = "rgba(86, 92, 110, 1)"  # Main background color
             self.stylesheet_components["Color7"] = "rgba(250, 250, 250, 1)"  # Main font color (whiteish)
 
@@ -103,15 +102,11 @@ class SoftwareConfigResources:
     def get_session_log_filename(self):
         return self._session_log_filename
 
-    @property
-    def user_preferences(self) -> UserPreferencesStructure:
-        return self._user_preferences
-
     def get_accepted_image_formats(self) -> list:
         return self.accepted_image_format
 
     def set_dark_mode_state(self, state: bool) -> None:
-        self._user_preferences.use_dark_mode = state
+        UserPreferencesStructure.getInstance().use_dark_mode = state
         self.__set_default_stylesheet_components()
 
     def add_new_empty_patient(self, active: bool = True) -> Union[str, Any]:
@@ -130,7 +125,7 @@ class SoftwareConfigResources:
                     non_available_uid = False
 
             self.patients_parameters[patient_uid] = PatientParameters(id=patient_uid,
-                                                                      dest_location=self.user_preferences.user_home_location)
+                                                                      dest_location=UserPreferencesStructure.getInstance().user_home_location)
             random_name = names.get_full_name()
             code, error_msg = self.patients_parameters[patient_uid].set_display_name(random_name, manual_change=False)
             if active:
@@ -163,7 +158,7 @@ class SoftwareConfigResources:
         error_message = None
         logging.debug("Patient loading requested from {}.".format(filename))
         try:
-            patient_instance = PatientParameters(dest_location=self.user_preferences.user_home_location,
+            patient_instance = PatientParameters(dest_location=UserPreferencesStructure.getInstance().user_home_location,
                                                  patient_filename=filename)
             error_message = patient_instance.import_patient(filename)
             # To prevent the save changes dialog to pop-up straight up after loading a patient scene file.
@@ -293,7 +288,7 @@ class SoftwareConfigResources:
                     non_available_uid = False
 
             self.study_parameters[study_uid] = StudyParameters(uid=study_uid,
-                                                               dest_location=self.user_preferences.user_home_location)
+                                                               dest_location=UserPreferencesStructure.getInstance().user_home_location)
             # random_name = names.get_full_name()
             # self.study_parameters[study_uid].set_visible_name(random_name, manual_change=False)
             if active:

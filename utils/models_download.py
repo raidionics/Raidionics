@@ -10,6 +10,7 @@ import zipfile
 import requests
 from os.path import expanduser
 from utils.software_config import SoftwareConfigResources
+from utils.data_structures.UserPreferencesStructure import UserPreferencesStructure
 
 
 def get_available_cloud_models_list():
@@ -55,7 +56,7 @@ def download_model_ori(model_name):
             models_archive_path = os.path.join(expanduser('~'), '.raidionics', 'resources', 'models',
                                                '.cache', model_name + '.zip')
             os.makedirs(os.path.dirname(models_archive_path), exist_ok=True)
-            if not os.path.exists(models_archive_path) or (hashlib.md5(open(models_archive_path, 'rb').read()).hexdigest() != md5 and SoftwareConfigResources.getInstance().user_preferences.active_model_update):
+            if not os.path.exists(models_archive_path) or (hashlib.md5(open(models_archive_path, 'rb').read()).hexdigest() != md5 and UserPreferencesStructure.getInstance().active_model_update):
                 download_state = True
 
             if download_state:
@@ -109,7 +110,7 @@ def download_model(model_name: str):
             os.makedirs(os.path.dirname(models_archive_path), exist_ok=True)
 
             if not os.path.exists(models_archive_path) or\
-                    (hashlib.md5(open(models_archive_path, 'rb').read()).hexdigest() != md5 and SoftwareConfigResources.getInstance().user_preferences.active_model_update):
+                    (hashlib.md5(open(models_archive_path, 'rb').read()).hexdigest() != md5 and UserPreferencesStructure.getInstance().active_model_update):
                 download_state = True
 
             if download_state:

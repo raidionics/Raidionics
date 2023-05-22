@@ -21,6 +21,7 @@ from utils.data_structures.AtlasStructure import AtlasVolume
 from utils.data_structures.InvestigationTimestampStructure import InvestigationTimestamp, InvestigationType
 from utils.data_structures.ReportingStructure import ReportingStructure
 from utils.utilities import input_file_category_disambiguation, dicom_write_slice
+from utils.data_structures.UserPreferencesStructure import UserPreferencesStructure
 
 
 class PatientParameters:
@@ -628,8 +629,9 @@ class PatientParameters:
         for i, disp in enumerate(list(self._reportings.keys())):
             self._patient_parameters_dict['Reports'][disp] = self._reportings[disp].save()
 
-        # @TODO. How to take into account the preferences flag from here?
-        self.__convert_results_as_dicom_rtstruct()
+        if UserPreferencesStructure.getInstance().export_results_as_rtstruct:
+            self.__convert_results_as_dicom_rtstruct()
+
         # Saving the json file last, as it must be populated from the previous dumps beforehand
         with open(self._patient_parameters_dict_filename, 'w') as outfile:
             json.dump(self._patient_parameters_dict, outfile, indent=4, sort_keys=True)

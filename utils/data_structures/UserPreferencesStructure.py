@@ -14,6 +14,7 @@ from typing import Union, Any, Tuple
 class UserPreferencesStructure:
     """
     """
+    __instance = None
     _preferences_filename = ""
     _user_home_location = None  # Main dump location for patients/studies on disk.
     _active_model_update = False  # True for regularly checking if new models are available, False otherwise
@@ -26,12 +27,27 @@ class UserPreferencesStructure:
     _compute_subcortical_structures = True  # True to include subcortical features computation in the standardized reporting
     _use_dark_mode = False  # True for dark mode and False for regular mode
 
-    def __init__(self, preferences_filename: str) -> None:
+    @staticmethod
+    def getInstance():
+        """ Static access method. """
+        if UserPreferencesStructure.__instance == None:
+            UserPreferencesStructure()
+        return UserPreferencesStructure.__instance
+
+    def __init__(self):
+        """ Virtually private constructor. """
+        if UserPreferencesStructure.__instance != None:
+            raise Exception("This class is a singleton!")
+        else:
+            UserPreferencesStructure.__instance = self
+            self.__setup()
+
+    def __setup(self) -> None:
         """
 
         """
-        self._preferences_filename = preferences_filename
-        if os.path.exists(preferences_filename):
+        self._preferences_filename = os.path.join(expanduser('~'), '.raidionics', 'raidionics_preferences.json')
+        if os.path.exists(self._preferences_filename):
             self.__parse_preferences()
         else:
             self._user_home_location = os.path.join(expanduser('~'), '.raidionics')

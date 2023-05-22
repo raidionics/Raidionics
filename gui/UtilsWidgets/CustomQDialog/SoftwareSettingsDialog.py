@@ -8,6 +8,7 @@ from PySide6.QtWebEngineWidgets import QWebEngineView
 import os
 
 from utils.software_config import SoftwareConfigResources
+from utils.data_structures.UserPreferencesStructure import UserPreferencesStructure
 
 
 class SoftwareSettingsDialog(QDialog):
@@ -68,7 +69,7 @@ class SoftwareSettingsDialog(QDialog):
         self.home_directory_layout = QHBoxLayout()
         self.home_directory_header_label = QLabel("Home directory ")
         self.home_directory_header_label.setToolTip("Global folder on disk where patients and studies will be saved.")
-        self.home_directory_lineedit = CustomLineEdit(SoftwareConfigResources.getInstance().user_preferences.user_home_location)
+        self.home_directory_lineedit = CustomLineEdit(UserPreferencesStructure.getInstance().user_home_location)
         self.home_directory_lineedit.setReadOnly(True)
         self.home_directory_layout.addWidget(self.home_directory_header_label)
         self.home_directory_layout.addWidget(self.home_directory_lineedit)
@@ -79,7 +80,7 @@ class SoftwareSettingsDialog(QDialog):
         self.model_update_header_label.setToolTip("Tick the box in order to query the latest models.\n"
                                                   "Warning, the current models on disk will be overwritten.")
         self.model_update_checkbox = QCheckBox()
-        self.model_update_checkbox.setChecked(SoftwareConfigResources.getInstance().user_preferences.active_model_update)
+        self.model_update_checkbox.setChecked(UserPreferencesStructure.getInstance().active_model_update)
         self.model_update_layout.addWidget(self.model_update_header_label)
         self.model_update_layout.addWidget(self.model_update_checkbox)
         self.model_update_layout.addStretch(1)
@@ -113,7 +114,7 @@ class SoftwareSettingsDialog(QDialog):
         self.processing_options_use_sequences_header_label = QLabel("Use manual MRI sequences")
         self.processing_options_use_sequences_header_label.setToolTip("Tick the box in order to use the manually set sequence types (preferred). If left unticked, a sequence classification model will be applied on all loaded MRI scans.\n")
         self.processing_options_use_sequences_checkbox = QCheckBox()
-        self.processing_options_use_sequences_checkbox.setChecked(SoftwareConfigResources.getInstance().user_preferences.use_manual_sequences)
+        self.processing_options_use_sequences_checkbox.setChecked(UserPreferencesStructure.getInstance().use_manual_sequences)
         self.processing_options_use_sequences_layout.addWidget(self.processing_options_use_sequences_checkbox)
         self.processing_options_use_sequences_layout.addWidget(self.processing_options_use_sequences_header_label)
         self.processing_options_use_sequences_layout.addStretch(1)
@@ -122,7 +123,7 @@ class SoftwareSettingsDialog(QDialog):
         self.processing_options_use_annotations_header_label = QLabel("Use manual annotations")
         self.processing_options_use_annotations_header_label.setToolTip("Tick the box in order to use the loaded manual annotations during pipeline processing. If left unticked, segmentation models will be used to generate automatic annotations.\n")
         self.processing_options_use_annotations_checkbox = QCheckBox()
-        self.processing_options_use_annotations_checkbox.setChecked(SoftwareConfigResources.getInstance().user_preferences.use_manual_annotations)
+        self.processing_options_use_annotations_checkbox.setChecked(UserPreferencesStructure.getInstance().use_manual_annotations)
         self.processing_options_use_annotations_layout.addWidget(self.processing_options_use_annotations_checkbox)
         self.processing_options_use_annotations_layout.addWidget(self.processing_options_use_annotations_header_label)
         self.processing_options_use_annotations_layout.addStretch(1)
@@ -132,7 +133,7 @@ class SoftwareSettingsDialog(QDialog):
         self.processing_options_use_stripped_inputs_header_label = QLabel("Use stripped inputs")
         self.processing_options_use_stripped_inputs_header_label.setToolTip("Tick the box to indicate that loaded patients' data have already been stripped (e.g., skull-stripped).\n")
         self.processing_options_use_stripped_inputs_checkbox = QCheckBox()
-        self.processing_options_use_stripped_inputs_checkbox.setChecked(SoftwareConfigResources.getInstance().user_preferences.use_stripped_inputs)
+        self.processing_options_use_stripped_inputs_checkbox.setChecked(UserPreferencesStructure.getInstance().use_stripped_inputs)
         self.processing_options_use_stripped_inputs_layout.addWidget(self.processing_options_use_stripped_inputs_checkbox)
         self.processing_options_use_stripped_inputs_layout.addWidget(self.processing_options_use_stripped_inputs_header_label)
         self.processing_options_use_stripped_inputs_layout.addStretch(1)
@@ -142,7 +143,7 @@ class SoftwareSettingsDialog(QDialog):
         self.processing_options_use_registered_inputs_header_label = QLabel("Use registered inputs")
         self.processing_options_use_registered_inputs_header_label.setToolTip("Tick the box to indicate that loaded patients' data have already been registered (e.g., atlas-registered or co-registered).\n")
         self.processing_options_use_registered_inputs_checkbox = QCheckBox()
-        self.processing_options_use_registered_inputs_checkbox.setChecked(SoftwareConfigResources.getInstance().user_preferences.use_registered_inputs)
+        self.processing_options_use_registered_inputs_checkbox.setChecked(UserPreferencesStructure.getInstance().use_registered_inputs)
         self.processing_options_use_registered_inputs_layout.addWidget(self.processing_options_use_registered_inputs_checkbox)
         self.processing_options_use_registered_inputs_layout.addWidget(self.processing_options_use_registered_inputs_header_label)
         self.processing_options_use_registered_inputs_layout.addStretch(1)
@@ -152,7 +153,7 @@ class SoftwareSettingsDialog(QDialog):
         self.processing_options_export_results_rtstruct_header_label = QLabel("Export results as DICOM RTStruct")
         self.processing_options_export_results_rtstruct_header_label.setToolTip("Tick the box to indicate that annotations or atlases mask should be also saved on disk as DICOM RTStruct.\n")
         self.processing_options_export_results_rtstruct_checkbox = QCheckBox()
-        self.processing_options_export_results_rtstruct_checkbox.setChecked(SoftwareConfigResources.getInstance().user_preferences.export_results_as_rtstruct)
+        self.processing_options_export_results_rtstruct_checkbox.setChecked(UserPreferencesStructure.getInstance().export_results_as_rtstruct)
         self.processing_options_export_results_rtstruct_layout.addWidget(self.processing_options_export_results_rtstruct_checkbox)
         self.processing_options_export_results_rtstruct_layout.addWidget(self.processing_options_export_results_rtstruct_header_label)
         self.processing_options_export_results_rtstruct_layout.addStretch(1)
@@ -165,7 +166,7 @@ class SoftwareSettingsDialog(QDialog):
         self.processing_options_compute_corticalstructures_label = QLabel("Report cortical structures")
         self.processing_options_compute_corticalstructures_label.setToolTip("Tick the box in order to include cortical structures related features in the standardized report.\n")
         self.processing_options_compute_corticalstructures_checkbox = QCheckBox()
-        self.processing_options_compute_corticalstructures_checkbox.setChecked(SoftwareConfigResources.getInstance().user_preferences.compute_cortical_structures)
+        self.processing_options_compute_corticalstructures_checkbox.setChecked(UserPreferencesStructure.getInstance().compute_cortical_structures)
         self.processing_options_compute_corticalstructures_layout.addWidget(self.processing_options_compute_corticalstructures_checkbox)
         self.processing_options_compute_corticalstructures_layout.addWidget(self.processing_options_compute_corticalstructures_label)
         self.processing_options_compute_corticalstructures_layout.addStretch(1)
@@ -174,7 +175,7 @@ class SoftwareSettingsDialog(QDialog):
         self.processing_options_compute_subcorticalstructures_label = QLabel("Report subcortical structures")
         self.processing_options_compute_subcorticalstructures_label.setToolTip("Tick the box in order to include subcortical structures related features in the standardized report.\n")
         self.processing_options_compute_subcorticalstructures_checkbox = QCheckBox()
-        self.processing_options_compute_subcorticalstructures_checkbox.setChecked(SoftwareConfigResources.getInstance().user_preferences.compute_subcortical_structures)
+        self.processing_options_compute_subcorticalstructures_checkbox.setChecked(UserPreferencesStructure.getInstance().compute_subcortical_structures)
         self.processing_options_compute_subcorticalstructures_layout.addWidget(self.processing_options_compute_subcorticalstructures_checkbox)
         self.processing_options_compute_subcorticalstructures_layout.addWidget(self.processing_options_compute_subcorticalstructures_label)
         self.processing_options_compute_subcorticalstructures_layout.addStretch(1)
@@ -197,7 +198,7 @@ class SoftwareSettingsDialog(QDialog):
         self.dark_mode_header_label = QLabel("Dark mode ")
         self.dark_mode_header_label.setToolTip("Click to use a dark-theme appearance mode ( a restart is necessary).")
         self.dark_mode_checkbox = QCheckBox()
-        self.dark_mode_checkbox.setChecked(SoftwareConfigResources.getInstance().user_preferences.use_dark_mode)
+        self.dark_mode_checkbox.setChecked(UserPreferencesStructure.getInstance().use_dark_mode)
         self.color_theme_layout.addWidget(self.dark_mode_checkbox)
         self.color_theme_layout.addWidget(self.dark_mode_header_label)
         self.color_theme_layout.addStretch(1)
@@ -361,13 +362,13 @@ class SoftwareSettingsDialog(QDialog):
         """
         The user manually selected another location for storing patients/studies.
         """
-        SoftwareConfigResources.getInstance().user_preferences.user_home_location = directory
+        UserPreferencesStructure.getInstance().user_home_location = directory
 
     def __on_active_model_status_changed(self, status: bool) -> None:
         """
 
         """
-        SoftwareConfigResources.getInstance().user_preferences.active_model_update = status
+        UserPreferencesStructure.getInstance().active_model_update = status
 
     def __on_model_purge_clicked(self) -> None:
         """
@@ -382,25 +383,25 @@ class SoftwareSettingsDialog(QDialog):
                 os.makedirs(SoftwareConfigResources.getInstance().models_path)
 
     def __on_use_sequences_status_changed(self, status):
-        SoftwareConfigResources.getInstance().user_preferences.use_manual_sequences = status
+        UserPreferencesStructure.getInstance().use_manual_sequences = status
 
     def __on_use_manual_annotations_status_changed(self, status):
-        SoftwareConfigResources.getInstance().user_preferences.use_manual_annotations = status
+        UserPreferencesStructure.getInstance().use_manual_annotations = status
 
     def __on_use_stripped_inputs_status_changed(self, status):
-        SoftwareConfigResources.getInstance().user_preferences.use_stripped_inputs = status
+        UserPreferencesStructure.getInstance().use_stripped_inputs = status
 
     def __on_use_registered_inputs_status_changed(self, status):
-        SoftwareConfigResources.getInstance().user_preferences.use_registered_inputs = status
+        UserPreferencesStructure.getInstance().use_registered_inputs = status
 
     def __on_export_results_rtstruct_status_changed(self, status):
-        SoftwareConfigResources.getInstance().user_preferences._export_results_as_rtstruct = status
+        UserPreferencesStructure.getInstance()._export_results_as_rtstruct = status
 
     def __on_compute_corticalstructures_status_changed(self, state):
-        SoftwareConfigResources.getInstance().user_preferences.compute_cortical_structures = state
+        UserPreferencesStructure.getInstance().compute_cortical_structures = state
 
     def __on_compute_subcorticalstructures_status_changed(self, state):
-        SoftwareConfigResources.getInstance().user_preferences.compute_subcortical_structures = state
+        UserPreferencesStructure.getInstance().compute_subcortical_structures = state
 
     def __on_dark_mode_status_changed(self, state):
         # @TODO. Would have to bounce back to the QApplication class, to trigger a global setStyleSheet on-the-fly?
