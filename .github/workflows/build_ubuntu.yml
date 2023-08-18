@@ -37,6 +37,7 @@ jobs:
         tar -xzf ANTsX-v2.4.3_ubuntu.tar.gz -C ${{github.workspace}}/downloads/
         mkdir ${{github.workspace}}/ANTs
         mv ${{github.workspace}}/downloads/install ${{github.workspace}}/ANTs/
+        rm ANTsX-v2.4.3_ubuntu.tar.gz
 
     - name: Install dependencies
       run: |
