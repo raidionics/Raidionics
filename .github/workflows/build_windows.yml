@@ -2,7 +2,7 @@ name: Build Windows
 
 on:
   push:
-    branches: [master]
+    branches: [master, update]
   pull_request:
     branches:
       - '*'
@@ -59,7 +59,7 @@ jobs:
         cp -r assets/Raidionics-1.2.1-win.exe dist/Raidionics-1.2.1-win.exe
 
     - name: Upload package
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: Package
         path: ${{github.workspace}}/dist/Raidionics-*
