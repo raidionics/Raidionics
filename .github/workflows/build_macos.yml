@@ -2,7 +2,7 @@ name: Build macOS
 
 on:
   push:
-    branches: [master]
+    branches: [master, update]
   pull_request:
     branches:
       - '*'
@@ -40,6 +40,7 @@ jobs:
         tar -xzf ANTsX-v2.4.3_macos.tar.gz -C ${{github.workspace}}/downloads/
         mkdir ${{github.workspace}}/ANTs
         mv ${{github.workspace}}/downloads/install ${{github.workspace}}/ANTs/
+        rm ANTsX-v2.4.3_macos.tar.gz
 
     - name: Install dependencies
       run: |
@@ -61,7 +62,7 @@ jobs:
         cp -r Raidionics-1.2.1-macOS.pkg dist/Raidionics-1.2.1-macOS.pkg
 
     - name: Upload package
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: Package
         path: ${{github.workspace}}/dist/Raidionics-*
