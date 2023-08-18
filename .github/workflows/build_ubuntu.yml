@@ -23,6 +23,19 @@ jobs:
       with:
         submodules: 'recursive'
 
+    - name: Free Up GitHub Actions Ubuntu Runner Disk Space
+      uses: jlumbroso/free-disk-space@main
+      with:
+        # This might remove tools that are actually needed, if set to "true" but frees about 6 GB
+        tool-cache: false
+
+        # All of these default to true, but feel free to set to "false" if necessary for your workflow
+        android: true
+        dotnet: true
+        haskell: true
+        large-packages: true
+        swap-storage: true
+
     - name: Download ANTs
       uses: robinraju/release-downloader@main
       with:
@@ -33,6 +46,7 @@ jobs:
 
     - name: Extract ANTs
       run: |
+        df -h
         cd ${{github.workspace}}/downloads/
         tar -xzf ANTsX-v2.4.3_ubuntu.tar.gz -C ${{github.workspace}}/downloads/
         mkdir ${{github.workspace}}/ANTs
