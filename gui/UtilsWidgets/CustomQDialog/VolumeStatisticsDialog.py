@@ -451,11 +451,11 @@ class VolumeStatisticsDialog(QDialog):
             attached_annos = active_patient.get_all_annotations_for_mri(mri_volume_uid=image_object.unique_id)
             for anno_uid in attached_annos:
                 anno = active_patient.get_annotation_by_uid(annotation_uid=anno_uid)
-                anno_volume = nib.load(anno.usable_input_filepath).get_data()[:]
+                anno_volume = nib.load(anno.usable_input_filepath).get_fdata()[:]
                 anno_voxels = np.count_nonzero(anno_volume)
                 anno_volume_mm = np.round(anno_voxels * np.prod(image_nib.header.get_zooms()), 3)
                 anno_volume_ml = np.round(anno_volume_mm * 1e-3, 3)
-                masked_volume = np.ma.array(image_nib.get_data()[:], mask=anno_volume)
+                masked_volume = np.ma.array(image_nib.get_fdata()[:], mask=anno_volume)
                 masked_mean_intensity = np.round(masked_volume.mean(), 2)
                 masked_mean_std = np.round(masked_volume.std(), 3)
                 self.annotation_statistics_table.insertRow(self.annotation_statistics_table.rowCount())
