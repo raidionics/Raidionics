@@ -2,7 +2,7 @@ name: Build Windows
 
 on:
   push:
-    branches: [master]
+    branches: [master,update]
   pull_request:
     branches:
       - '*'
@@ -49,7 +49,7 @@ jobs:
 
     - name: Build software
       run: |              
-        pip install pyinstaller==5.0
+        pip install pyinstaller==5.3
         mkdir tmp_dependencies
         pyinstaller --noconfirm --clean assets/main.spec
 
