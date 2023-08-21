@@ -1103,103 +1103,103 @@ class PatientParameters:
                 res.append(im)
         return res
 
-    def __convert_results_as_dicom_rtstruct(self) -> None:
-        """
-        Exporting all annotations into a DICOM RTStruct.
-        """
-        # @TODO. Preferences option to always dump the RTStruct additionally.
-        # Create one structure for each MRI, and save on disk only if not empty.
-
-        ts_uids = self.get_all_timestamps_uids()
-        for ts in ts_uids:
-            image_uids = self.get_all_mri_volumes_for_timestamp(timestamp_uid=ts)
-            for im_uid in image_uids:
-                image_object = self.get_mri_by_uid(mri_uid=im_uid)
-                linked_annotation_uids = self.get_all_annotations_for_mri(mri_volume_uid=im_uid)
-                existing_annotations = len(linked_annotation_uids) != 0
-                if existing_annotations:
-                    # @TODO. Should the original DICOM files be used, or just convert on the fly with the existing
-                    # DICOM tags, already stored in the Image structure?
-                    existing_dicom = image_object.get_dicom_metadata() is not None
-                    dicom_folderpath = os.path.join(os.path.dirname(image_object.get_usable_input_filepath()),
-                                                    image_object.display_name, 'volume')
-                    os.makedirs(dicom_folderpath, exist_ok=True)
-                    original_image_sitk = sitk.ReadImage(image_object.get_usable_input_filepath())
-                    direction = original_image_sitk.GetDirection()
-                    writer = sitk.ImageFileWriter()
-                    writer.KeepOriginalImageUIDOn()
-                    modification_time = time.strftime("%H%M%S")
-                    modification_date = time.strftime("%Y%m%d")
-
-                    if not existing_dicom:
-                        series_tag_values = [("0010|0020", self.unique_id),  # Patient ID
-                                             ("0008|0031", modification_time),  # Series Time
-                                             ("0008|0021", modification_date),  # Series Date
-                                             ("0008|0008", "DERIVED\\SECONDARY"),  # Image Type
-                                             ("0020|000e", "0000000." + modification_date + ".1" + modification_time), # Series Instance UID
-                                             ("0020|0037", '\\'.join(map(str, (
-                                             direction[0], direction[3], direction[6],  # Image Orientation (Patient)
-                                             direction[1], direction[4], direction[7])))),
-                                             ("0008|103e", image_object.display_name + '-' + ts + '-' + image_object.get_sequence_type_str())]  # Series Description
-                    else:
-                        # @TODO. Bug when using all the existing tags, not properly loadable in 3D Slicer...
-                        original_series_tag_values = image_object.get_dicom_metadata()
-                        # original_series_tag_values["0020|0037"] = '\\'.join(map(str, (
-                        #                      direction[0], direction[3], direction[6],  # Image Orientation (Patient)
-                        #                      direction[1], direction[4], direction[7])))
-                        # original_series_tag_values["0008|103e"] = "Created-Raidionics"
-                        # original_series_tag_values["0008|0008"] = "DERIVED\\SECONDARY"
-                        # original_series_tag_values["0008|0031"] = modification_time
-                        # original_series_tag_values["0008|0021"] = modification_date
-                        # original_series_tag_values = list(original_series_tag_values.items())
-                        series_tag_values = [("0010|0020", original_series_tag_values['0010|0020']),  # Patient ID
-                                             ("0008|0031", modification_time),  # Series Time
-                                             ("0008|0021", modification_date),  # Series Date
-                                             ("0008|0008", "DERIVED\\SECONDARY"),  # Image Type
-                                             ("0020|000e", original_series_tag_values['0020|000e'] + modification_date + ".1" + modification_time), # Series Instance UID
-                                             ("0020|0037", '\\'.join(map(str, (
-                                             direction[0], direction[3], direction[6],  # Image Orientation (Patient)
-                                             direction[1], direction[4], direction[7])))),
-                                             ("0008|103e", image_object.display_name + '-' + ts + '-' + image_object.get_sequence_type_str())]  # Series Description
-
-                    # Write slices to output directory
-                    list(map(lambda i: dicom_write_slice(writer, series_tag_values, original_image_sitk, i,
-                                                         dicom_folderpath), range(original_image_sitk.GetDepth())))
-
-                    # @TODO. Should we check that it already exists on disk, to append to it, rather than building it from scratch?
-                    rt_struct = rt_utils.RTStructBuilder.create_new(dicom_series_path=dicom_folderpath)
-                    for anno_uid in linked_annotation_uids:
-                        anno = self.get_annotation_by_uid(annotation_uid=anno_uid)
-                        anno_sitk = sitk.ReadImage(anno.raw_input_filepath)
-                        anno_roi = sitk.GetArrayFromImage(anno_sitk).transpose((1, 2, 0)).astype('bool')
-                        rt_struct.add_roi(mask=anno_roi, color=anno.get_display_color()[0:3],
-                                          name=anno.get_annotation_class_str())
-                    # # The atlas structures inclusion is slow, and heavy on disk, might not do it by default
-                    # # @TODO. Maybe add specific export options to convert only upon specific user request.
-                    # # @TODO. Might dump one RTStruct per atlas, to alleviate some weight
-                    # linked_atlas_uids = self.get_all_atlases_for_mri(mri_volume_uid=im_uid)
-                    # for atlas_uid in linked_atlas_uids:
-                    #     atlas = self.get_atlas_by_uid(atlas_uid=atlas_uid)
-                    #     atlas_sitk = sitk.ReadImage(atlas._raw_input_filepath)
-                    #     atlas_roi = sitk.GetArrayFromImage(atlas_sitk).transpose((1, 2, 0))
-                    #     atlas_description = atlas.get_class_description()
-                    #     for s in range(atlas_description.shape[0]):
-                    #         try:
-                    #             label_value = atlas_description.values[s][1]
-                    #             struct_name = atlas_description.values[s][2]
-                    #             struct_mask = deepcopy(atlas_roi)
-                    #             struct_mask[struct_mask != label_value] = 0
-                    #             struct_mask[struct_mask == label_value] = 1
-                    #             rt_struct.add_roi(mask=struct_mask.astype('bool'),
-                    #                               color=atlas.get_class_display_color_by_index(s+1)[0:3],
-                    #                               name=atlas.display_name + '_' + struct_name)
-                    #         except Exception:
-                    #             logging.warning("Failure to save {} atlas structure number {} as RTStruct.".format(atlas.display_name, s))
-
-                    dest_rt_struct_filename = os.path.join(os.path.dirname(image_object.get_usable_input_filepath()),
-                                                           image_object.display_name,
-                                                           image_object.display_name + '_structures')
-                    rt_struct.save(dest_rt_struct_filename)
-                else:
-                    # Skipping radiological volumes without any annotation linked to.
-                    pass
+    # def __convert_results_as_dicom_rtstruct(self) -> None:
+    #     """
+    #     Exporting all annotations into a DICOM RTStruct.
+    #     """
+    #     # @TODO. Preferences option to always dump the RTStruct additionally.
+    #     # Create one structure for each MRI, and save on disk only if not empty.
+    #
+    #     ts_uids = self.get_all_timestamps_uids()
+    #     for ts in ts_uids:
+    #         image_uids = self.get_all_mri_volumes_for_timestamp(timestamp_uid=ts)
+    #         for im_uid in image_uids:
+    #             image_object = self.get_mri_by_uid(mri_uid=im_uid)
+    #             linked_annotation_uids = self.get_all_annotations_for_mri(mri_volume_uid=im_uid)
+    #             existing_annotations = len(linked_annotation_uids) != 0
+    #             if existing_annotations:
+    #                 # @TODO. Should the original DICOM files be used, or just convert on the fly with the existing
+    #                 # DICOM tags, already stored in the Image structure?
+    #                 existing_dicom = image_object.get_dicom_metadata() is not None
+    #                 dicom_folderpath = os.path.join(os.path.dirname(image_object.get_usable_input_filepath()),
+    #                                                 image_object.display_name, 'volume')
+    #                 os.makedirs(dicom_folderpath, exist_ok=True)
+    #                 original_image_sitk = sitk.ReadImage(image_object.get_usable_input_filepath())
+    #                 direction = original_image_sitk.GetDirection()
+    #                 writer = sitk.ImageFileWriter()
+    #                 writer.KeepOriginalImageUIDOn()
+    #                 modification_time = time.strftime("%H%M%S")
+    #                 modification_date = time.strftime("%Y%m%d")
+    #
+    #                 if not existing_dicom:
+    #                     series_tag_values = [("0010|0020", self.unique_id),  # Patient ID
+    #                                          ("0008|0031", modification_time),  # Series Time
+    #                                          ("0008|0021", modification_date),  # Series Date
+    #                                          ("0008|0008", "DERIVED\\SECONDARY"),  # Image Type
+    #                                          ("0020|000e", "0000000." + modification_date + ".1" + modification_time), # Series Instance UID
+    #                                          ("0020|0037", '\\'.join(map(str, (
+    #                                          direction[0], direction[3], direction[6],  # Image Orientation (Patient)
+    #                                          direction[1], direction[4], direction[7])))),
+    #                                          ("0008|103e", image_object.display_name + '-' + ts + '-' + image_object.get_sequence_type_str())]  # Series Description
+    #                 else:
+    #                     # @TODO. Bug when using all the existing tags, not properly loadable in 3D Slicer...
+    #                     original_series_tag_values = image_object.get_dicom_metadata()
+    #                     # original_series_tag_values["0020|0037"] = '\\'.join(map(str, (
+    #                     #                      direction[0], direction[3], direction[6],  # Image Orientation (Patient)
+    #                     #                      direction[1], direction[4], direction[7])))
+    #                     # original_series_tag_values["0008|103e"] = "Created-Raidionics"
+    #                     # original_series_tag_values["0008|0008"] = "DERIVED\\SECONDARY"
+    #                     # original_series_tag_values["0008|0031"] = modification_time
+    #                     # original_series_tag_values["0008|0021"] = modification_date
+    #                     # original_series_tag_values = list(original_series_tag_values.items())
+    #                     series_tag_values = [("0010|0020", original_series_tag_values['0010|0020']),  # Patient ID
+    #                                          ("0008|0031", modification_time),  # Series Time
+    #                                          ("0008|0021", modification_date),  # Series Date
+    #                                          ("0008|0008", "DERIVED\\SECONDARY"),  # Image Type
+    #                                          ("0020|000e", original_series_tag_values['0020|000e'] + modification_date + ".1" + modification_time), # Series Instance UID
+    #                                          ("0020|0037", '\\'.join(map(str, (
+    #                                          direction[0], direction[3], direction[6],  # Image Orientation (Patient)
+    #                                          direction[1], direction[4], direction[7])))),
+    #                                          ("0008|103e", image_object.display_name + '-' + ts + '-' + image_object.get_sequence_type_str())]  # Series Description
+    #
+    #                 # Write slices to output directory
+    #                 list(map(lambda i: dicom_write_slice(writer, series_tag_values, original_image_sitk, i,
+    #                                                      dicom_folderpath), range(original_image_sitk.GetDepth())))
+    #
+    #                 # @TODO. Should we check that it already exists on disk, to append to it, rather than building it from scratch?
+    #                 rt_struct = rt_utils.RTStructBuilder.create_new(dicom_series_path=dicom_folderpath)
+    #                 for anno_uid in linked_annotation_uids:
+    #                     anno = self.get_annotation_by_uid(annotation_uid=anno_uid)
+    #                     anno_sitk = sitk.ReadImage(anno.raw_input_filepath)
+    #                     anno_roi = sitk.GetArrayFromImage(anno_sitk).transpose((1, 2, 0)).astype('bool')
+    #                     rt_struct.add_roi(mask=anno_roi, color=anno.get_display_color()[0:3],
+    #                                       name=anno.get_annotation_class_str())
+    #                 # # The atlas structures inclusion is slow, and heavy on disk, might not do it by default
+    #                 # # @TODO. Maybe add specific export options to convert only upon specific user request.
+    #                 # # @TODO. Might dump one RTStruct per atlas, to alleviate some weight
+    #                 # linked_atlas_uids = self.get_all_atlases_for_mri(mri_volume_uid=im_uid)
+    #                 # for atlas_uid in linked_atlas_uids:
+    #                 #     atlas = self.get_atlas_by_uid(atlas_uid=atlas_uid)
+    #                 #     atlas_sitk = sitk.ReadImage(atlas._raw_input_filepath)
+    #                 #     atlas_roi = sitk.GetArrayFromImage(atlas_sitk).transpose((1, 2, 0))
+    #                 #     atlas_description = atlas.get_class_description()
+    #                 #     for s in range(atlas_description.shape[0]):
+    #                 #         try:
+    #                 #             label_value = atlas_description.values[s][1]
+    #                 #             struct_name = atlas_description.values[s][2]
+    #                 #             struct_mask = deepcopy(atlas_roi)
+    #                 #             struct_mask[struct_mask != label_value] = 0
+    #                 #             struct_mask[struct_mask == label_value] = 1
+    #                 #             rt_struct.add_roi(mask=struct_mask.astype('bool'),
+    #                 #                               color=atlas.get_class_display_color_by_index(s+1)[0:3],
+    #                 #                               name=atlas.display_name + '_' + struct_name)
+    #                 #         except Exception:
+    #                 #             logging.warning("Failure to save {} atlas structure number {} as RTStruct.".format(atlas.display_name, s))
+    #
+    #                 dest_rt_struct_filename = os.path.join(os.path.dirname(image_object.get_usable_input_filepath()),
+    #                                                        image_object.display_name,
+    #                                                        image_object.display_name + '_structures')
+    #                 rt_struct.save(dest_rt_struct_filename)
+    #             else:
+    #                 # Skipping radiological volumes without any annotation linked to.
+    #                 pass

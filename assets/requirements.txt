@@ -2,4 +2,4 @@ gdown==4.7.1
 names==0.3.0
 PySide6==6.2.4
 plotly==5.8.0
-rt_utils==1.2.7
+#rt_utils==1.2.7
