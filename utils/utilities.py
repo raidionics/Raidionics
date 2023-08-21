@@ -9,7 +9,7 @@ from typing import Union
 import os
 import SimpleITK as sitk
 import numpy as np
-# import rt_utils
+import rt_utils
 
 
 def get_type_from_string(enum_type: Enum, string: str) -> Union[str, int]:
