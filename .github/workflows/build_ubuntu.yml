@@ -2,7 +2,7 @@ name: Build Ubuntu
 
 on:
   push:
-    branches: [master,update]
+    branches: [master]
   pull_request:
     branches:
       - '*'

@@ -46,6 +46,7 @@ jobs:
         pip install matplotlib==3.3.4
         pip install -e git+https://github.com/dbouget/raidionics_rads_lib.git@update#egg=raidionicsrads
         pip install -r assets/requirements.txt
+        pip install scipy==1.9.3 
 
     - name: Build software
       run: |              
