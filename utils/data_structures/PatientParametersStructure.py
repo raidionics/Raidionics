@@ -9,7 +9,7 @@ import nibabel as nib
 import SimpleITK as sitk
 from copy import deepcopy
 import time
-import rt_utils
+# import rt_utils
 import numpy as np
 import json
 import logging
