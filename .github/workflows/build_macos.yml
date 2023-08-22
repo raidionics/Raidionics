@@ -7,17 +7,19 @@ on:
   pull_request:
     branches:
       - '*'
+env:
+  MACOSX_DEPLOYMENT_TARGET: 10.15
 
 jobs:
   build:
     name: Build packages
-    runs-on: macos-10.15
+    runs-on: macos-11
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v3
     - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: "3.7"
 
     - name: Collect submodules
       uses: actions/checkout@v3
@@ -42,9 +44,9 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install matplotlib==3.3.4
         pip install -e git+https://github.com/dbouget/raidionics_rads_lib.git@master#egg=raidionicsrads
         pip install -r assets/requirements.txt
+#        pip install matplotlib==3.3.4
 
     - name: Build software
       run: |
@@ -55,8 +57,8 @@ jobs:
     - name: Make installer
       run: |
         git clone https://github.com/dbouget/quickpkg.git
-        quickpkg/quickpkg dist/Raidionics.app --output Raidionics-1.2.0-macOS.pkg
-        cp -r Raidionics-1.2.0-macOS.pkg dist/Raidionics-1.2.0-macOS.pkg
+        quickpkg/quickpkg dist/Raidionics.app --output Raidionics-1.2.1-macOS.pkg
+        cp -r Raidionics-1.2.1-macOS.pkg dist/Raidionics-1.2.1-macOS.pkg
 
     - name: Upload package
       uses: actions/upload-artifact@v2

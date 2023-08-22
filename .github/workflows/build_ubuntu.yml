@@ -13,11 +13,11 @@ jobs:
     name: Build packages
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v1
-    - name: Set up Python 3.8
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.8
+        python-version: "3.7"
 
     - name: Collect submodules
       uses: actions/checkout@v3
@@ -57,7 +57,7 @@ jobs:
         cp -r dist/Raidionics assets/Raidionics_ubuntu/usr/local/bin
         dpkg-deb --build --root-owner-group assets/Raidionics_ubuntu
         ls -la
-        cp -r assets/Raidionics_ubuntu.deb dist/Raidionics-1.2.0-ubuntu.deb
+        cp -r assets/Raidionics_ubuntu.deb dist/Raidionics-1.2.1-ubuntu.deb
 
     - name: Upload package
       uses: actions/upload-artifact@v2
