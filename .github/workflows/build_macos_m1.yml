@@ -76,7 +76,7 @@ jobs:
       run: |
         cd ${{github.workspace}}
         source tmp/venv/bin/activate
-        pip3 install pyinstaller
+        pip3 install pyinstaller==5.0
         pip3 install --upgrade PyInstaller pyinstaller-hooks-contrib
         mkdir tmp_dependencies
         pyinstaller --noconfirm --clean assets/main_arm.spec
@@ -88,7 +88,7 @@ jobs:
         cp -r Raidionics-1.2.0-macOS.pkg dist/Raidionics-1.2.0-macOS.pkg
 
     - name: Upload package
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: Package
         path: ${{github.workspace}}/dist/Raidionics-*

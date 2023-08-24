@@ -61,7 +61,7 @@ jobs:
         cp -r Raidionics-1.2.1-macOS.pkg dist/Raidionics-1.2.1-macOS.pkg
 
     - name: Upload package
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: Package
         path: ${{github.workspace}}/dist/Raidionics-*
