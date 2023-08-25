@@ -52,7 +52,7 @@ jobs:
       run: |
         pip install pyinstaller==5.0
         mkdir tmp_dependencies
-        pyinstaller --noconfirm --clean assets/main.spec
+        pyinstaller --log-level DEBUG --noconfirm --clean assets/main.spec
 
     - name: Make installer
       run: |
