@@ -40,7 +40,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        ls -la
+        ls
         pip install -r assets/requirements.txt
         pip install matplotlib==3.3.4
 
