@@ -7,6 +7,8 @@ on:
   pull_request:
     branches:
       - '*'
+  workflow_dispatch:
+
 jobs:
   build:
     name: Build packages
@@ -17,11 +19,6 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: "3.7"
-
-#    - name: Collect submodules
-#      uses: actions/checkout@v3
-#      with:
-#        submodules: 'recursive'
 
     # Not using the ANTs c++ backend on Windows, have to investigate how to execute the bash scripts.
     # But have to download it due to the expected copying of the install folder...
@@ -44,7 +41,6 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         ls -la
-#        pip install -e git+https://github.com/dbouget/raidionics_rads_lib.git@master#egg=raidionicsrads
         pip install -r assets/requirements.txt
         pip install matplotlib==3.3.4
 
