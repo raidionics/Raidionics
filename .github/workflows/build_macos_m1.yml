@@ -11,11 +11,6 @@ jobs:
     steps:
     - uses: actions/checkout@v1
 
-    - name: Collect submodules
-      uses: actions/checkout@v3
-      with:
-        submodules: 'recursive'
-
     - name: Create environment and install python packages
       run: |
         cd ${{github.workspace}}
@@ -83,8 +78,8 @@ jobs:
     - name: Make installer
       run: |
         git clone https://github.com/dbouget/quickpkg.git
-        quickpkg/quickpkg dist/Raidionics.app --output Raidionics-1.2.0-macOS.pkg
-        cp -r Raidionics-1.2.0-macOS.pkg dist/Raidionics-1.2.0-macOS.pkg
+        quickpkg/quickpkg dist/Raidionics.app --output Raidionics-1.2.1-macOS.pkg
+        cp -r Raidionics-1.2.1-macOS.pkg dist/Raidionics-1.2.1-macOS.pkg
 
     - name: Upload package
       uses: actions/upload-artifact@v3

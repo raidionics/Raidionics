@@ -184,4 +184,5 @@ def collect_results(patient_parameters, pipeline):
         except Exception:
             logging.error("Could not collect results for step {}.\n Received: {}".format(pipeline[step]["description"],
                                                                                          traceback.format_exc()))
+            continue
     return results

@@ -395,7 +395,7 @@ class SoftwareSettingsDialog(QDialog):
         UserPreferencesStructure.getInstance().use_registered_inputs = status
 
     def __on_export_results_rtstruct_status_changed(self, status):
-        UserPreferencesStructure.getInstance()._export_results_as_rtstruct = status
+        UserPreferencesStructure.getInstance().export_results_as_rtstruct = status
 
     def __on_compute_corticalstructures_status_changed(self, state):
         UserPreferencesStructure.getInstance().compute_cortical_structures = state
