@@ -1,7 +1,7 @@
 import shutil
 
 from PySide6.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QGridLayout, QDialog, QDialogButtonBox,\
-    QComboBox, QPushButton, QScrollArea, QLineEdit, QFileDialog, QMessageBox, QSpinBox, QCheckBox, QStackedWidget
+    QComboBox, QPushButton, QScrollArea, QLineEdit, QFileDialog, QMessageBox, QSpinBox, QCheckBox, QStackedWidget, QGroupBox
 from PySide6.QtCore import Qt, QSize, Signal
 from PySide6.QtGui import QIcon, QMouseEvent
 from PySide6.QtWebEngineWidgets import QWebEngineView
@@ -46,6 +46,8 @@ class SoftwareSettingsDialog(QDialog):
         self.options_stackedwidget = QStackedWidget()
         self.__set_default_options_interface()
         self.__set_processing_options_interface()
+        self.__set_processing_segmentation_options_interface()
+        self.__set_processing_reporting_options_interface()
         self.__set_appearance_options_interface()
 
         self.options_layout.addWidget(self.options_list_scrollarea)
@@ -88,7 +90,7 @@ class SoftwareSettingsDialog(QDialog):
 
         self.model_purge_layout = QHBoxLayout()
         self.model_purge_header_label = QLabel("Models purge ")
-        self.model_purge_header_label.setToolTip("Press the button to purge all local models.")
+        self.model_purge_header_label.setToolTip("Press the button to remove all local models from disk.")
         self.model_purge_pushbutton = QPushButton()
         self.model_purge_pushbutton.setIcon(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                                '../../Images/trash-bin_icon.png')))
@@ -107,7 +109,7 @@ class SoftwareSettingsDialog(QDialog):
     def __set_processing_options_interface(self):
         self.processing_options_widget = QWidget()
         self.processing_options_base_layout = QVBoxLayout()
-        self.processing_options_label = QLabel("Processing settings")
+        self.processing_options_label = QLabel("Inputs / Outputs")
         self.processing_options_base_layout.addWidget(self.processing_options_label)
 
         self.processing_options_use_sequences_layout = QHBoxLayout()
@@ -161,7 +163,79 @@ class SoftwareSettingsDialog(QDialog):
 
         self.separating_line = QLabel()
         self.separating_line.setFixedHeight(2)
-        self.processing_options_base_layout.addWidget(self.separating_line)
+        self.processing_options_base_layout.addStretch(1)
+
+        self.processing_options_widget.setLayout(self.processing_options_base_layout)
+        self.options_stackedwidget.addWidget(self.processing_options_widget)
+
+        self.options_stackedwidget.addWidget(self.processing_options_widget)
+        self.processing_options_pushbutton = QPushButton('Inputs / Outputs')
+        self.options_list_scrollarea_layout.insertWidget(self.options_list_scrollarea_layout.count() - 1,
+                                                         self.processing_options_pushbutton)
+
+    def __set_processing_segmentation_options_interface(self):
+        self.processing_segmentation_options_widget = QWidget()
+        self.processing_segmentation_options_base_layout = QVBoxLayout()
+        self.processing_segmentation_options_label = QLabel("Processing - Segmentation")
+        self.processing_segmentation_options_base_layout.addWidget(self.processing_segmentation_options_label)
+        self.processing_segmentation_refinement_groupbox = QGroupBox()
+        self.processing_segmentation_refinement_groupbox.setTitle("Refinement")
+        self.processing_segmentation_refinement_groupboxlayout = QVBoxLayout()
+
+        self.processing_options_segmentation_refinement_layout = QHBoxLayout()
+        self.processing_options_segmentation_refinement_label = QLabel("Perform segmentation refinement")
+        self.processing_options_segmentation_refinement_label.setToolTip("Tick the box in order to run a post-processing step of segmentation refinement.\n")
+        self.processing_options_segmentation_refinement_checkbox = QCheckBox()
+        self.processing_options_segmentation_refinement_checkbox.setChecked(UserPreferencesStructure.getInstance().perform_segmentation_refinement)
+        self.processing_options_segmentation_refinement_layout.addWidget(self.processing_options_segmentation_refinement_checkbox)
+        self.processing_options_segmentation_refinement_layout.addWidget(self.processing_options_segmentation_refinement_label)
+        self.processing_options_segmentation_refinement_layout.addStretch(1)
+        self.processing_options_segmentation_refinement_selector_label = QLabel("Refinement")
+        self.processing_options_segmentation_refinement_selector_combobox = QComboBox()
+        self.processing_options_segmentation_refinement_selector_combobox.addItems(["Dilation"])
+        self.processing_options_segmentation_refinement_selector_combobox.setEnabled(UserPreferencesStructure.getInstance().perform_segmentation_refinement)
+        self.processing_options_segmentation_refinement_layout.addWidget(self.processing_options_segmentation_refinement_selector_label)
+        self.processing_options_segmentation_refinement_layout.addWidget(self.processing_options_segmentation_refinement_selector_combobox)
+        self.processing_options_segmentation_refinement_layout.addStretch(1)
+        self.processing_segmentation_refinement_groupboxlayout.addLayout(self.processing_options_segmentation_refinement_layout)
+
+        self.processing_segmentation_refinement_dilation_layout = QHBoxLayout()
+        self.processing_options_segmentation_refinement_dilation_threshold_label = QLabel("Volume margin (%)")
+        self.processing_options_segmentation_refinement_dilation_threshold_label.setToolTip(
+            "Dilation volume percentage to perform on the segmentation mask.\n")
+        self.processing_options_segmentation_refinement_dilation_threshold_spinbox = QSpinBox()
+        self.processing_options_segmentation_refinement_dilation_threshold_spinbox.setMinimum(5)
+        self.processing_options_segmentation_refinement_dilation_threshold_spinbox.setMaximum(200)
+        self.processing_options_segmentation_refinement_dilation_threshold_spinbox.setSingleStep(5)
+        self.processing_options_segmentation_refinement_dilation_threshold_spinbox.blockSignals(True)
+        self.processing_options_segmentation_refinement_dilation_threshold_spinbox.setValue(UserPreferencesStructure.getInstance().segmentation_refinement_dilation_percentage)
+        self.processing_options_segmentation_refinement_dilation_threshold_spinbox.blockSignals(False)
+        # @TODO. Should be enabled only if the selected refinement is dilation
+        self.processing_options_segmentation_refinement_dilation_threshold_spinbox.setEnabled(UserPreferencesStructure.getInstance().perform_segmentation_refinement)
+        self.processing_segmentation_refinement_dilation_layout.addWidget(self.processing_options_segmentation_refinement_dilation_threshold_label)
+        self.processing_segmentation_refinement_dilation_layout.addWidget(self.processing_options_segmentation_refinement_dilation_threshold_spinbox)
+        self.processing_segmentation_refinement_dilation_layout.addStretch(1)
+        self.processing_segmentation_refinement_groupboxlayout.addLayout(self.processing_segmentation_refinement_dilation_layout)
+
+        self.processing_segmentation_refinement_groupbox.setLayout(self.processing_segmentation_refinement_groupboxlayout)
+        self.processing_segmentation_options_base_layout.addWidget(self.processing_segmentation_refinement_groupbox)
+
+        self.processing_segmentation_options_base_layout.addStretch(1)
+        self.processing_segmentation_options_widget.setLayout(self.processing_segmentation_options_base_layout)
+        self.options_stackedwidget.addWidget(self.processing_segmentation_options_widget)
+        self.processing_segmentation_options_pushbutton = QPushButton('Processing - Segmentation')
+        self.options_list_scrollarea_layout.insertWidget(self.options_list_scrollarea_layout.count() - 1,
+                                                         self.processing_segmentation_options_pushbutton)
+
+    def __set_processing_reporting_options_interface(self):
+        self.processing_reporting_options_widget = QWidget()
+        self.processing_reporting_options_base_layout = QVBoxLayout()
+        self.processing_reporting_options_label = QLabel("Processing - Reporting")
+        self.processing_reporting_options_base_layout.addWidget(self.processing_reporting_options_label)
+        self.processing_reporting_cortical_groupbox = QGroupBox()
+        self.processing_reporting_cortical_groupbox.setTitle("Cortical structures")
+        self.processing_reporting_cortical_groupboxlayout = QVBoxLayout()
+
         self.processing_options_compute_corticalstructures_layout = QHBoxLayout()
         self.processing_options_compute_corticalstructures_label = QLabel("Report cortical structures")
         self.processing_options_compute_corticalstructures_label.setToolTip("Tick the box in order to include cortical structures related features in the standardized report.\n")
@@ -170,7 +244,48 @@ class SoftwareSettingsDialog(QDialog):
         self.processing_options_compute_corticalstructures_layout.addWidget(self.processing_options_compute_corticalstructures_checkbox)
         self.processing_options_compute_corticalstructures_layout.addWidget(self.processing_options_compute_corticalstructures_label)
         self.processing_options_compute_corticalstructures_layout.addStretch(1)
-        self.processing_options_base_layout.addLayout(self.processing_options_compute_corticalstructures_layout)
+        self.processing_reporting_cortical_groupboxlayout.addLayout(self.processing_options_compute_corticalstructures_layout)
+        self.processing_options_corticalstructures_selection_layout = QHBoxLayout()
+        self.corticalstructures_mni_label = QLabel("MNI")
+        self.corticalstructures_mni_label.setToolTip("Brain lobes from the McConnell Brain Imaging Centre (e.g., frontal, parietal, occipital)")
+        self.corticalstructures_mni_checkbox = QCheckBox()
+        self.corticalstructures_mni_checkbox.setChecked("MNI" in UserPreferencesStructure.getInstance().cortical_structures_list if UserPreferencesStructure.getInstance().cortical_structures_list != None else False)
+        self.corticalstructures_mni_checkbox.setEnabled(UserPreferencesStructure.getInstance().compute_cortical_structures)
+        self.processing_options_corticalstructures_selection_layout.addWidget(self.corticalstructures_mni_checkbox)
+        self.processing_options_corticalstructures_selection_layout.addWidget(self.corticalstructures_mni_label)
+        self.processing_options_corticalstructures_selection_layout.addStretch(1)
+        self.corticalstructures_schaefer7_label = QLabel("Schaefer7")
+        self.corticalstructures_schaefer7_label.setToolTip("Functional connectivity from 400 parcels reduced to its 7-structures version.")
+        self.corticalstructures_schaefer7_checkbox = QCheckBox()
+        self.corticalstructures_schaefer7_checkbox.setChecked("Schaefer7" in UserPreferencesStructure.getInstance().cortical_structures_list if UserPreferencesStructure.getInstance().cortical_structures_list != None else False)
+        self.corticalstructures_schaefer7_checkbox.setEnabled(UserPreferencesStructure.getInstance().compute_cortical_structures)
+        self.processing_options_corticalstructures_selection_layout.addWidget(self.corticalstructures_schaefer7_checkbox)
+        self.processing_options_corticalstructures_selection_layout.addWidget(self.corticalstructures_schaefer7_label)
+        self.processing_options_corticalstructures_selection_layout.addStretch(1)
+        self.corticalstructures_schaefer17_label = QLabel("Schaefer17")
+        self.corticalstructures_schaefer17_label.setToolTip("Functional connectivity from 400 parcels reduced to its 17-structures version.")
+        self.corticalstructures_schaefer17_checkbox = QCheckBox()
+        self.corticalstructures_schaefer17_checkbox.setChecked("Schaefer17" in UserPreferencesStructure.getInstance().cortical_structures_list if UserPreferencesStructure.getInstance().cortical_structures_list != None else False)
+        self.corticalstructures_schaefer17_checkbox.setEnabled(UserPreferencesStructure.getInstance().compute_cortical_structures)
+        self.processing_options_corticalstructures_selection_layout.addWidget(self.corticalstructures_schaefer17_checkbox)
+        self.processing_options_corticalstructures_selection_layout.addWidget(self.corticalstructures_schaefer17_label)
+        self.processing_options_corticalstructures_selection_layout.addStretch(1)
+        self.corticalstructures_harvardoxford_label = QLabel("Harvard-Oxford")
+        self.corticalstructures_harvardoxford_label.setToolTip("Based upon the Desikan's brain parcellation, for a total of 48 cortical structures")
+        self.corticalstructures_harvardoxford_checkbox = QCheckBox()
+        self.corticalstructures_harvardoxford_checkbox.setChecked("Harvard-Oxford" in UserPreferencesStructure.getInstance().cortical_structures_list if UserPreferencesStructure.getInstance().cortical_structures_list != None else False)
+        self.corticalstructures_harvardoxford_checkbox.setEnabled(UserPreferencesStructure.getInstance().compute_cortical_structures)
+        self.processing_options_corticalstructures_selection_layout.addWidget(self.corticalstructures_harvardoxford_checkbox)
+        self.processing_options_corticalstructures_selection_layout.addWidget(self.corticalstructures_harvardoxford_label)
+        self.processing_options_corticalstructures_selection_layout.addStretch(1)
+        self.processing_reporting_cortical_groupboxlayout.addLayout(self.processing_options_corticalstructures_selection_layout)
+        self.processing_reporting_cortical_groupbox.setLayout(self.processing_reporting_cortical_groupboxlayout)
+        self.processing_reporting_options_base_layout.addWidget(self.processing_reporting_cortical_groupbox)
+
+        self.processing_reporting_subcortical_groupbox = QGroupBox()
+        self.processing_reporting_subcortical_groupbox.setTitle("Subcortical structures")
+        self.processing_reporting_subcortical_groupboxlayout = QVBoxLayout()
+
         self.processing_options_compute_subcorticalstructures_layout = QHBoxLayout()
         self.processing_options_compute_subcorticalstructures_label = QLabel("Report subcortical structures")
         self.processing_options_compute_subcorticalstructures_label.setToolTip("Tick the box in order to include subcortical structures related features in the standardized report.\n")
@@ -179,20 +294,31 @@ class SoftwareSettingsDialog(QDialog):
         self.processing_options_compute_subcorticalstructures_layout.addWidget(self.processing_options_compute_subcorticalstructures_checkbox)
         self.processing_options_compute_subcorticalstructures_layout.addWidget(self.processing_options_compute_subcorticalstructures_label)
         self.processing_options_compute_subcorticalstructures_layout.addStretch(1)
-        self.processing_options_base_layout.addLayout(self.processing_options_compute_subcorticalstructures_layout)
-        self.processing_options_base_layout.addStretch(1)
-        self.processing_options_widget.setLayout(self.processing_options_base_layout)
-        self.options_stackedwidget.addWidget(self.processing_options_widget)
+        self.processing_reporting_subcortical_groupboxlayout.addLayout(self.processing_options_compute_subcorticalstructures_layout)
+        self.processing_options_subcorticalstructures_selection_layout = QHBoxLayout()
+        self.subcorticalstructures_bcb_label = QLabel("BCB")
+        self.subcorticalstructures_bcb_label.setToolTip("From the Brain Connectivity Behaviour group, a total of 40 unique structures with left and right disambiguation.")
+        self.subcorticalstructures_bcb_checkbox = QCheckBox()
+        self.subcorticalstructures_bcb_checkbox.setChecked("BCB" in UserPreferencesStructure.getInstance().subcortical_structures_list if UserPreferencesStructure.getInstance().subcortical_structures_list != None else False)
+        self.subcorticalstructures_bcb_checkbox.setEnabled(UserPreferencesStructure.getInstance().compute_subcortical_structures)
+        self.processing_options_subcorticalstructures_selection_layout.addWidget(self.subcorticalstructures_bcb_checkbox)
+        self.processing_options_subcorticalstructures_selection_layout.addWidget(self.subcorticalstructures_bcb_label)
+        self.processing_options_subcorticalstructures_selection_layout.addStretch(1)
+        self.processing_reporting_subcortical_groupboxlayout.addLayout(self.processing_options_subcorticalstructures_selection_layout)
+        self.processing_reporting_subcortical_groupbox.setLayout(self.processing_reporting_subcortical_groupboxlayout)
+        self.processing_reporting_options_base_layout.addWidget(self.processing_reporting_subcortical_groupbox)
 
-        self.options_stackedwidget.addWidget(self.processing_options_widget)
-        self.processing_options_pushbutton = QPushButton('Processing')
+        self.processing_reporting_options_base_layout.addStretch(1)
+        self.processing_reporting_options_widget.setLayout(self.processing_reporting_options_base_layout)
+        self.options_stackedwidget.addWidget(self.processing_reporting_options_widget)
+        self.processing_reporting_options_pushbutton = QPushButton('Processing - Reporting')
         self.options_list_scrollarea_layout.insertWidget(self.options_list_scrollarea_layout.count() - 1,
-                                                         self.processing_options_pushbutton)
+                                                         self.processing_reporting_options_pushbutton)
 
     def __set_appearance_options_interface(self):
         self.appearance_options_widget = QWidget()
         self.appearance_options_base_layout = QVBoxLayout()
-        self.appearance_options_label = QLabel("Appearance settings")
+        self.appearance_options_label = QLabel("Appearance")
         self.appearance_options_base_layout.addWidget(self.appearance_options_label)
         self.color_theme_layout = QHBoxLayout()
         self.dark_mode_header_label = QLabel("Dark mode ")
@@ -221,11 +347,25 @@ class SoftwareSettingsDialog(QDialog):
         self.processing_options_label.setFixedHeight(40)
         self.appearance_options_pushbutton.setFixedHeight(30)
         self.appearance_options_label.setFixedHeight(40)
+        self.__set_layout_dimensions_processing_segmentation()
+        self.__set_layout_dimensions_processing_reporting()
         self.setMinimumSize(800, 600)
+
+    def __set_layout_dimensions_processing_segmentation(self):
+        self.processing_segmentation_options_pushbutton.setFixedHeight(30)
+        self.processing_segmentation_options_label.setFixedHeight(40)
+        self.processing_options_segmentation_refinement_dilation_threshold_label.setFixedHeight(20)
+        self.processing_options_segmentation_refinement_dilation_threshold_spinbox.setFixedHeight(20)
+
+    def __set_layout_dimensions_processing_reporting(self):
+        self.processing_reporting_options_pushbutton.setFixedHeight(30)
+        self.processing_reporting_options_label.setFixedHeight(40)
 
     def __set_connections(self):
         self.default_options_pushbutton.clicked.connect(self.__on_display_default_options)
         self.processing_options_pushbutton.clicked.connect(self.__on_display_processing_options)
+        self.processing_segmentation_options_pushbutton.clicked.connect(self.__on_display_processing_segmentation_options)
+        self.processing_reporting_options_pushbutton.clicked.connect(self.__on_display_processing_reporting_options)
         self.appearance_options_pushbutton.clicked.connect(self.__on_display_appearance_options)
         self.home_directory_lineedit.textChanged.connect(self.__on_home_dir_changed)
         self.model_update_checkbox.stateChanged.connect(self.__on_active_model_status_changed)
@@ -235,8 +375,15 @@ class SoftwareSettingsDialog(QDialog):
         self.processing_options_use_stripped_inputs_checkbox.stateChanged.connect(self.__on_use_stripped_inputs_status_changed)
         self.processing_options_use_registered_inputs_checkbox.stateChanged.connect(self.__on_use_registered_inputs_status_changed)
         self.processing_options_export_results_rtstruct_checkbox.stateChanged.connect(self.__on_export_results_rtstruct_status_changed)
+        self.processing_options_segmentation_refinement_checkbox.stateChanged.connect(self.__on_perform_segmentation_refinement_status_changed)
+        self.processing_options_segmentation_refinement_dilation_threshold_spinbox.valueChanged.connect(self.__on_perform_segmentation_refinement_dilation_value_changed)
         self.processing_options_compute_corticalstructures_checkbox.stateChanged.connect(self.__on_compute_corticalstructures_status_changed)
+        self.corticalstructures_mni_checkbox.stateChanged.connect(self.__on_corticalstructure_mni_status_changed)
+        self.corticalstructures_schaefer7_checkbox.stateChanged.connect(self.__on_corticalstructure_schaefer7_status_changed)
+        self.corticalstructures_schaefer17_checkbox.stateChanged.connect(self.__on_corticalstructure_schaefer17_status_changed)
+        self.corticalstructures_harvardoxford_checkbox.stateChanged.connect(self.__on_corticalstructure_harvardoxford_status_changed)
         self.processing_options_compute_subcorticalstructures_checkbox.stateChanged.connect(self.__on_compute_subcorticalstructures_status_changed)
+        self.subcorticalstructures_bcb_checkbox.stateChanged.connect(self.__on_subcorticalstructure_bcb_status_changed)
         self.dark_mode_checkbox.stateChanged.connect(self.__on_dark_mode_status_changed)
         self.exit_accept_pushbutton.clicked.connect(self.__on_exit_accept_clicked)
         self.exit_cancel_pushbutton.clicked.connect(self.__on_exit_cancel_clicked)
@@ -326,6 +473,109 @@ class SoftwareSettingsDialog(QDialog):
         background-color: """ + pressed_background_color + """;
         }""")
 
+        self.processing_segmentation_options_label.setStyleSheet("""
+        QLabel{
+        background-color: """ + background_color + """;
+        color: """ + font_color + """;
+        text-align: center;
+        font: 18px;
+        font-style: bold;
+        border-style: none;
+        }""")
+
+        self.processing_segmentation_options_pushbutton.setStyleSheet("""
+        QPushButton{
+        background-color: """ + background_color + """;
+        color: """ + font_color + """;
+        font: 12px;
+        border-style: none;
+        }
+        QPushButton::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        }
+        QPushButton:pressed{
+        border-style:inset;
+        background-color: """ + pressed_background_color + """;
+        }""")
+
+        # if os.name == 'nt':
+        #     self.processing_options_segmentation_refinement_selector_combobox.setStyleSheet("""
+        #     QComboBox{
+        #     color: """ + font_color + """;
+        #     background-color: """ + background_color + """;
+        #     font: bold;
+        #     font-size: 12px;
+        #     border-style:none;
+        #     }
+        #     QComboBox::hover{
+        #     border-style: solid;
+        #     border-width: 1px;
+        #     border-color: rgba(196, 196, 196, 1);
+        #     }
+        #     QComboBox::drop-down {
+        #     subcontrol-origin: padding;
+        #     subcontrol-position: top right;
+        #     width: 30px;
+        #     }
+        #     """)
+        # else:
+        #     self.processing_options_segmentation_refinement_selector_combobox.setStyleSheet("""
+        #     QComboBox{
+        #     color: """ + font_color + """;
+        #     background-color: """ + background_color + """;
+        #     font: bold;
+        #     font-size: 12px;
+        #     border-style:none;
+        #     }
+        #     QComboBox::hover{
+        #     border-style: solid;
+        #     border-width: 1px;
+        #     border-color: rgba(196, 196, 196, 1);
+        #     }
+        #     QComboBox::drop-down {
+        #     subcontrol-origin: padding;
+        #     subcontrol-position: top right;
+        #     width: 30px;
+        #     border-left-width: 1px;
+        #     border-left-color: darkgray;
+        #     border-left-style: none;
+        #     border-top-right-radius: 3px; /* same radius as the QComboBox */
+        #     border-bottom-right-radius: 3px;
+        #     }
+        #     QComboBox::down-arrow{
+        #     image: url(""" + os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../Images/combobox-arrow-icon-10x7.png') + """)
+        #     }
+        #     """)
+
+        self.processing_reporting_options_label.setStyleSheet("""
+        QLabel{
+        background-color: """ + background_color + """;
+        color: """ + font_color + """;
+        text-align: center;
+        font: 18px;
+        font-style: bold;
+        border-style: none;
+        }""")
+
+        self.processing_reporting_options_pushbutton.setStyleSheet("""
+        QPushButton{
+        background-color: """ + background_color + """;
+        color: """ + font_color + """;
+        font: 12px;
+        border-style: none;
+        }
+        QPushButton::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        }
+        QPushButton:pressed{
+        border-style:inset;
+        background-color: """ + pressed_background_color + """;
+        }""")
+
         self.appearance_options_label.setStyleSheet("""
         QLabel{
         background-color: """ + background_color + """;
@@ -397,11 +647,102 @@ class SoftwareSettingsDialog(QDialog):
     def __on_export_results_rtstruct_status_changed(self, status):
         UserPreferencesStructure.getInstance().export_results_as_rtstruct = status
 
+    def __on_perform_segmentation_refinement_status_changed(self, status):
+        UserPreferencesStructure.getInstance().perform_segmentation_refinement = status
+        if status:
+            self.processing_options_segmentation_refinement_selector_combobox.setEnabled(True)
+            self.processing_options_segmentation_refinement_dilation_threshold_spinbox.setEnabled(True)
+        else:
+            self.processing_options_segmentation_refinement_selector_combobox.setEnabled(False)
+            self.processing_options_segmentation_refinement_dilation_threshold_spinbox.setEnabled(False)
+
+    def __on_perform_segmentation_refinement_dilation_value_changed(self, value):
+        UserPreferencesStructure.getInstance().segmentation_refinement_dilation_percentage = value
+
     def __on_compute_corticalstructures_status_changed(self, state):
         UserPreferencesStructure.getInstance().compute_cortical_structures = state
+        if state:
+            self.corticalstructures_mni_checkbox.setEnabled(True)
+            self.corticalstructures_mni_label.setEnabled(True)
+            self.corticalstructures_schaefer7_checkbox.setEnabled(True)
+            self.corticalstructures_schaefer7_label.setEnabled(True)
+            self.corticalstructures_schaefer17_checkbox.setEnabled(True)
+            self.corticalstructures_schaefer17_label.setEnabled(True)
+            self.corticalstructures_harvardoxford_checkbox.setEnabled(True)
+            self.corticalstructures_harvardoxford_label.setEnabled(True)
+        else:
+            self.corticalstructures_mni_checkbox.setEnabled(False)
+            self.corticalstructures_mni_label.setEnabled(False)
+            self.corticalstructures_schaefer7_checkbox.setEnabled(False)
+            self.corticalstructures_schaefer7_label.setEnabled(False)
+            self.corticalstructures_schaefer17_checkbox.setEnabled(False)
+            self.corticalstructures_schaefer17_label.setEnabled(False)
+            self.corticalstructures_harvardoxford_checkbox.setEnabled(False)
+            self.corticalstructures_harvardoxford_label.setEnabled(False)
+
+    def __on_corticalstructure_mni_status_changed(self, state):
+        structs = UserPreferencesStructure.getInstance().cortical_structures_list
+        if state:
+            if structs is None:
+                structs = ["MNI"]
+            else:
+                structs = structs.append("MNI")
+        else:
+            structs.remove("MNI")
+        UserPreferencesStructure.getInstance().cortical_structures_list = structs
+
+    def __on_corticalstructure_schaefer7_status_changed(self, state):
+        structs = UserPreferencesStructure.getInstance().cortical_structures_list
+        if state:
+            if structs is None:
+                structs = ["Schaefer7"]
+            else:
+                structs.append("Schaefer7")
+        else:
+            structs.remove("Schaefer7")
+        UserPreferencesStructure.getInstance().cortical_structures_list = structs
+
+    def __on_corticalstructure_schaefer17_status_changed(self, state):
+        structs = UserPreferencesStructure.getInstance().cortical_structures_list
+        if state:
+            if structs is None:
+                structs = ["Schaefer17"]
+            else:
+                structs.append("Schaefer17")
+        else:
+            structs.remove("Schaefer17")
+        UserPreferencesStructure.getInstance().cortical_structures_list = structs
+
+    def __on_corticalstructure_harvardoxford_status_changed(self, state):
+        structs = UserPreferencesStructure.getInstance().cortical_structures_list
+        if state:
+            if structs is None:
+                structs = ["Harvard-Oxford"]
+            else:
+                structs.append("Harvard-Oxford")
+        else:
+            structs.remove("Harvard-Oxford")
+        UserPreferencesStructure.getInstance().cortical_structures_list = structs
 
     def __on_compute_subcorticalstructures_status_changed(self, state):
         UserPreferencesStructure.getInstance().compute_subcortical_structures = state
+        if state:
+            self.subcorticalstructures_bcb_checkbox.setEnabled(True)
+            self.subcorticalstructures_bcb_label.setEnabled(True)
+        else:
+            self.subcorticalstructures_bcb_checkbox.setEnabled(False)
+            self.subcorticalstructures_bcb_label.setEnabled(False)
+
+    def __on_subcorticalstructure_bcb_status_changed(self, state):
+        structs = UserPreferencesStructure.getInstance().subcortical_structures_list
+        if state:
+            if structs is None:
+                structs = ["BCB"]
+            else:
+                structs.append("BCB")
+        else:
+            structs.remove("BCB")
+        UserPreferencesStructure.getInstance().subcortical_structures_list = structs
 
     def __on_dark_mode_status_changed(self, state):
         # @TODO. Would have to bounce back to the QApplication class, to trigger a global setStyleSheet on-the-fly?
@@ -428,6 +769,14 @@ class SoftwareSettingsDialog(QDialog):
         QPushButton{
         background-color: """ + software_ss["Color5"] + """;
         }""")
+        self.processing_segmentation_options_pushbutton.setStyleSheet(self.processing_options_pushbutton.styleSheet() + """
+        QPushButton{
+        background-color: """ + software_ss["Color5"] + """;
+        }""")
+        self.processing_reporting_options_pushbutton.setStyleSheet(self.processing_options_pushbutton.styleSheet() + """
+        QPushButton{
+        background-color: """ + software_ss["Color5"] + """;
+        }""")
         self.appearance_options_pushbutton.setStyleSheet(self.appearance_options_pushbutton.styleSheet() + """
         QPushButton{
         background-color: """ + software_ss["Color5"] + """;
@@ -444,13 +793,69 @@ class SoftwareSettingsDialog(QDialog):
         QPushButton{
         background-color: """ + software_ss["Color5"] + """;
         }""")
+        self.processing_segmentation_options_pushbutton.setStyleSheet(self.processing_options_pushbutton.styleSheet() + """
+        QPushButton{
+        background-color: """ + software_ss["Color5"] + """;
+        }""")
+        self.processing_reporting_options_pushbutton.setStyleSheet(self.processing_options_pushbutton.styleSheet() + """
+        QPushButton{
+        background-color: """ + software_ss["Color5"] + """;
+        }""")
+        self.appearance_options_pushbutton.setStyleSheet(self.appearance_options_pushbutton.styleSheet() + """
+        QPushButton{
+        background-color: """ + software_ss["Color5"] + """;
+        }""")
+
+    def __on_display_processing_segmentation_options(self):
+        self.options_stackedwidget.setCurrentIndex(2)
+        software_ss = SoftwareConfigResources.getInstance().stylesheet_components
+        self.processing_segmentation_options_pushbutton.setStyleSheet(self.processing_options_pushbutton.styleSheet() + """
+        QPushButton{
+        background-color: """ + software_ss["Color6"] + """;
+        }""")
+        self.default_options_pushbutton.setStyleSheet(self.default_options_pushbutton.styleSheet() + """
+        QPushButton{
+        background-color: """ + software_ss["Color5"] + """;
+        }""")
+        self.processing_options_pushbutton.setStyleSheet(self.processing_options_pushbutton.styleSheet() + """
+        QPushButton{
+        background-color: """ + software_ss["Color5"] + """;
+        }""")
+        self.processing_reporting_options_pushbutton.setStyleSheet(self.processing_options_pushbutton.styleSheet() + """
+        QPushButton{
+        background-color: """ + software_ss["Color5"] + """;
+        }""")
+        self.appearance_options_pushbutton.setStyleSheet(self.appearance_options_pushbutton.styleSheet() + """
+        QPushButton{
+        background-color: """ + software_ss["Color5"] + """;
+        }""")
+
+    def __on_display_processing_reporting_options(self):
+        self.options_stackedwidget.setCurrentIndex(3)
+        software_ss = SoftwareConfigResources.getInstance().stylesheet_components
+        self.processing_reporting_options_pushbutton.setStyleSheet(self.processing_options_pushbutton.styleSheet() + """
+        QPushButton{
+        background-color: """ + software_ss["Color6"] + """;
+        }""")
+        self.default_options_pushbutton.setStyleSheet(self.default_options_pushbutton.styleSheet() + """
+        QPushButton{
+        background-color: """ + software_ss["Color5"] + """;
+        }""")
+        self.processing_options_pushbutton.setStyleSheet(self.processing_options_pushbutton.styleSheet() + """
+        QPushButton{
+        background-color: """ + software_ss["Color5"] + """;
+        }""")
+        self.processing_segmentation_options_pushbutton.setStyleSheet(self.processing_options_pushbutton.styleSheet() + """
+        QPushButton{
+        background-color: """ + software_ss["Color5"] + """;
+        }""")
         self.appearance_options_pushbutton.setStyleSheet(self.appearance_options_pushbutton.styleSheet() + """
         QPushButton{
         background-color: """ + software_ss["Color5"] + """;
         }""")
 
     def __on_display_appearance_options(self):
-        self.options_stackedwidget.setCurrentIndex(2)
+        self.options_stackedwidget.setCurrentIndex(4)
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
         self.appearance_options_pushbutton.setStyleSheet(self.appearance_options_pushbutton.styleSheet() + """
         QPushButton{
@@ -461,6 +866,14 @@ class SoftwareSettingsDialog(QDialog):
         background-color: """ + software_ss["Color5"] + """;
         }""")
         self.processing_options_pushbutton.setStyleSheet(self.processing_options_pushbutton.styleSheet() + """
+        QPushButton{
+        background-color: """ + software_ss["Color5"] + """;
+        }""")
+        self.processing_segmentation_options_pushbutton.setStyleSheet(self.processing_options_pushbutton.styleSheet() + """
+        QPushButton{
+        background-color: """ + software_ss["Color5"] + """;
+        }""")
+        self.processing_reporting_options_pushbutton.setStyleSheet(self.processing_options_pushbutton.styleSheet() + """
         QPushButton{
         background-color: """ + software_ss["Color5"] + """;
         }""")

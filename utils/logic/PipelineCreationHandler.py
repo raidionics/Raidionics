@@ -1,6 +1,7 @@
 import json
 import os
 import logging
+from copy import deepcopy
 from aenum import Enum, unique
 
 from utils.models_download import download_model
@@ -113,6 +114,18 @@ def __create_segmentation_pipeline(model_name, patient_parameters):
         pip_num_int = pip_num_int + 1
         pip_num = str(pip_num_int)
         pip[pip_num] = raw_pip[steps]
+
+    # @TODO. Very experimental for the time-being
+    if UserPreferencesStructure.getInstance().perform_segmentation_refinement:
+        pip_num_int = pip_num_int + 1
+        pip_num = str(pip_num_int)
+        pip[pip_num] = {}
+        pip[pip_num]["task"] = 'Segmentation refinement'
+        pip[pip_num]["inputs"] = deepcopy(raw_pip[str(len(raw_pip.keys()) - 1)]["inputs"])
+        pip[pip_num]["inputs"]["0"]["labels"] = "Tumor"
+        pip[pip_num]["operation"] = "dilation"
+        pip[pip_num]["args"] = str(UserPreferencesStructure.getInstance().segmentation_refinement_dilation_percentage)
+        pip[pip_num]["description"] = "Tumor segmentation refinement in T1CE (T0)"
 
     return pip
 

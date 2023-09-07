@@ -1132,7 +1132,8 @@ class PatientParameters:
                     modification_date = time.strftime("%Y%m%d")
 
                     if not existing_dicom:
-                        series_tag_values = [("0010|0020", self.unique_id),  # Patient ID
+                        series_tag_values = [("0010|0010", self.display_name),  # Patient Name
+                                             ("0010|0020", self.unique_id),  # Patient ID
                                              ("0008|0031", modification_time),  # Series Time
                                              ("0008|0021", modification_date),  # Series Date
                                              ("0008|0008", "DERIVED\\SECONDARY"),  # Image Type
@@ -1152,7 +1153,8 @@ class PatientParameters:
                         # original_series_tag_values["0008|0031"] = modification_time
                         # original_series_tag_values["0008|0021"] = modification_date
                         # original_series_tag_values = list(original_series_tag_values.items())
-                        series_tag_values = [("0010|0020", original_series_tag_values['0010|0020']),  # Patient ID
+                        series_tag_values = [("0010|0010", original_series_tag_values['0010|0010']),  # Patient Name
+                                             ("0010|0020", original_series_tag_values['0010|0020']),  # Patient ID
                                              ("0008|0031", modification_time),  # Series Time
                                              ("0008|0021", modification_date),  # Series Date
                                              ("0008|0008", "DERIVED\\SECONDARY"),  # Image Type
