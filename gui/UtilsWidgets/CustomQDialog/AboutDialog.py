@@ -85,14 +85,17 @@ class AboutDialog(QDialog):
 
     def __textfill(self):
         text = "<p style=\"font-size: 32px;\"> <strong> Raidionics </strong> </p>"
-        text = text + """<p style=\"font-size: 16px; white-space: pre-line\"> Developed by the Medical Technology group, Health Research Department, SINTEF Digital:\n
-        * David Bouget, contact: david.bouget@sintef.no
+        text = text + """<p style=\"font-size: 16px; white-space: pre-line\"> Initially developed by the Medical Image Analysis group, Health Research Department,
+         SINTEF Digital, Trondheim, Norway:\n
+        * David Bouget (lead developer - maintainer), contact: david.bouget@sintef.no
         * André Pedersen (deployment and multi-platform support)
         * Demah Alsinan (design)
         * Valeria Gaitan (design)
         * Javier Pérez de Frutos (logo design)
         * Ingerid Reinertsen (project leader) \n\n 
         For questions about the methodological aspect, please refer to the following published articles:
+        * Raidionics: an open software for pre-and postoperative central nervous system tumor 
+        segmentation and standardized reporting (<a href=https://arxiv.org/abs/2305.14351>article</a>)
         * Preoperative brain tumor imaging: models and software for segmentation and standardized
          reporting (<a href=https://www.frontiersin.org/articles/10.3389/fneur.2022.932219/full>article</a>)
         * Glioblastoma Surgery Imaging-Reporting and Data System: Validation and Performance of
@@ -103,7 +106,7 @@ class AboutDialog(QDialog):
          Attention Mechanisms (<a href=https://www.frontiersin.org/articles/10.3389/fradi.2021.711514/full>article</a>) \n
         <b> Current software version: """ + SoftwareConfigResources.getInstance().software_version + """ </b>\n
         <a href=https://raidionics.github.io> Website </a>
-        <a href=https://github.com/dbouget/Raidionics> Github </a>
+        <a href=https://github.com/raidionics/Raidionics> Github </a>
         Feel free to contact us with any feedback or suggestion for improvement.
         </p>
         """
