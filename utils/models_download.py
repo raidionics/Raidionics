@@ -9,6 +9,7 @@ import hashlib
 import zipfile
 import requests
 from os.path import expanduser
+from packaging import version
 from utils.software_config import SoftwareConfigResources
 from utils.data_structures.UserPreferencesStructure import UserPreferencesStructure
 
@@ -16,7 +17,7 @@ from utils.data_structures.UserPreferencesStructure import UserPreferencesStruct
 def get_available_cloud_models_list():
     cloud_models_list = []
     cloud_models_list_url = 'https://drive.google.com/uc?id=1vRUr0VXgnDFNq7AlB5ILyBCmW_sGuciP'  # Initial v1.0/v1.1
-    if SoftwareConfigResources.getInstance().software_version == "1.2":
+    if version.parse(SoftwareConfigResources.getInstance().software_version) >= version.parse("1.2"):
         #cloud_models_list_url = 'https://drive.google.com/uc?id=12tFP9trt8CLS6UBfNpodlRUwfSqZJJNQ'
         cloud_models_list_url = 'https://drive.google.com/uc?id=1lpy-BMqZsjjxvTzT2Qn95kG2XvN6RZ21'
     try:
