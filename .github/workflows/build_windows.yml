@@ -43,6 +43,7 @@ jobs:
         ls
         pip install -r assets/requirements.txt
         pip install matplotlib==3.3.4
+        pip install --force-reinstall --no-cache-dir pyside6
 
     - name: Build software
       run: |              
