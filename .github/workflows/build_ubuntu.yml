@@ -55,7 +55,7 @@ jobs:
 
     - name: Build software
       run: |
-        pip install pyinstaller==6.0.0
+        pip install pyinstaller==5.13.2
         mkdir tmp_dependencies
         pyinstaller --log-level DEBUG --noconfirm --clean assets/main.spec
 
