@@ -1,4 +1,4 @@
-name: Build macOS M1
+name: Build macOS ARM
 
 on:
   # Allows to run the workflow manually from the Actions tab
@@ -80,7 +80,7 @@ jobs:
       run: |
         git clone https://github.com/dbouget/quickpkg.git
         quickpkg/quickpkg dist/Raidionics.app --output Raidionics-1.2.1-macOS.pkg
-        cp -r Raidionics-1.2.1-macOS.pkg dist/Raidionics-1.2.1-macOS.pkg
+        cp -r Raidionics-1.2.1-macOS.pkg dist/Raidionics-1.2.1-macOS-arm64.pkg
 
     - name: Upload package
       uses: actions/upload-artifact@v3
