@@ -26,6 +26,7 @@ jobs:
         cd ${{github.workspace}}
         source tmp/venv/bin/activate
         python3 -m pip install --upgrade pip
+        pip3 install ffmpeg
         pip3 install matplotlib
         pip3 install -r assets/requirements.txt
         pip install --force-reinstall --no-cache-dir pyside6
