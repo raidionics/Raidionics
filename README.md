@@ -47,6 +47,20 @@ Very simple demonstrations of the software can be found on [Youtube](https://www
 ## [How to cite](https://github.com/raidionics/Raidionics#how-to-cite)
 If you are using Raidionics in your research, please cite the following references.
 
+The final software including updated performance metrics for preoperative tumors and introducing postoperative tumor segmentation:
+```
+@article{bouget2023raidionics,
+    author = {Bouget, David and Alsinan, Demah and Gaitan, Valeria and Holden Helland, Ragnhild and Pedersen, André and Solheim, Ole and Reinertsen, Ingerid},
+    year = {2023},
+    month = {09},
+    pages = {},
+    title = {Raidionics: an open software for pre-and postoperative central nervous system tumor segmentation and standardized reporting},
+    volume = {13},
+    journal = {Scientific Reports},
+    doi = {10.1038/s41598-023-42048-7},
+}
+```
+
 For the preliminary preoperative tumor segmentation validation and software features:
 ```
 @article{bouget2022preoptumorseg,
@@ -58,20 +72,5 @@ For the preliminary preoperative tumor segmentation validation and software feat
     url={https://www.frontiersin.org/articles/10.3389/fneur.2022.932219},
     doi={10.3389/fneur.2022.932219},
     issn={1664-2295}
-}
-```
-
-The final software including updated performance metrics for preoperative tumors and introducing postoperative tumor segmentation:
-```
-@article{article,
-    author = {Bouget, David and Alsinan, Demah and Gaitan, Valeria and Holden Helland, Ragnhild and Pedersen, André and Solheim, Ole and Reinertsen, Ingerid},
-    year = {2023},
-    month = {09},
-    pages = {},
-    title = {Raidionics: an open software for pre-and postoperative central nervous system tumor segmentation and standardized reporting},
-    volume = {13},
-    journal = {Scientific Reports},
-    doi = {10.1038/s41598-023-42048-7},
-
 }
 ```
