@@ -37,12 +37,13 @@ jobs:
         tar -xzf ANTsX-v2.4.3_macos.tar.gz -C ${{github.workspace}}/downloads/
         mkdir ${{github.workspace}}/ANTs
         mv ${{github.workspace}}/downloads/install ${{github.workspace}}/ANTs/
-
+      
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r assets/requirements.txt
         pip install matplotlib==3.3.4
+        pip install --force-reinstall --no-cache-dir pyside6
 
     - name: Build software
       run: |
