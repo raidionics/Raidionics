@@ -4,4 +4,4 @@ names==0.3.0
 PySide6==6.5.2
 plotly==5.8.0
 rt_utils==1.2.5
-opencv-python==4.5.3.56
+opencv-python==4.5.5.64
