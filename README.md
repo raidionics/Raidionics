@@ -39,10 +39,10 @@ Very simple demonstrations of the software can be found on [Youtube](https://www
 
 | Operating System | Status |
 | - | - |
-| **Windows** | ![CI](https://github.com/raidionics/Raidionics/workflows/Build%20Windows/badge.svg?branch=master&event=push) |
-| **Ubuntu** | ![CI](https://github.com/raidionics/Raidionics/workflows/Build%20Ubuntu/badge.svg?branch=master&event=push) |
-| **macOS_x86-64** | ![CI](https://github.com/raidionics/Raidionics/workflows/Build%20macOS/badge.svg?branch=master&event=push) |
-| **macOS_ARM** | ![CI](https://github.com/raidionics/Raidionics/workflows/Build%20macOS%20ARM/badge.svg?branch=master&event=push) |
+| **Windows** | ![CI](https://github.com/raidionics/Raidionics/workflows/Build%20Windows/badge.svg?branch=master) |
+| **Ubuntu** | ![CI](https://github.com/raidionics/Raidionics/workflows/Build%20Ubuntu/badge.svg?branch=master) |
+| **macOS_x86-64** | ![CI](https://github.com/raidionics/Raidionics/workflows/Build%20macOS/badge.svg?branch=master) |
+| **macOS_ARM** | ![CI](https://github.com/raidionics/Raidionics/workflows/Build%20macOS%20ARM/badge.svg?branch=master) |
 
 ## [How to cite](https://github.com/raidionics/Raidionics#how-to-cite)
 If you are using Raidionics in your research, please cite the following references.
