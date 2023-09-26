@@ -41,7 +41,8 @@ Very simple demonstrations of the software can be found on [Youtube](https://www
 | - | - |
 | **Windows** | ![CI](https://github.com/AICAN-Research/FAST-Pathology/workflows/Build%20Windows/badge.svg?branch=master&event=push) |
 | **Ubuntu** | ![CI](https://github.com/AICAN-Research/FAST-Pathology/workflows/Build%20Ubuntu/badge.svg?branch=master&event=push) |
-| **macOS** | ![CI](https://github.com/AICAN-Research/FAST-Pathology/workflows/Build%20macOS/badge.svg?branch=master&event=push) |
+| **macOS_x86-64** | ![CI](https://github.com/AICAN-Research/FAST-Pathology/workflows/Build%20macOS/badge.svg?branch=master&event=push) |
+| **macOS_ARM** | ![CI](https://github.com/AICAN-Research/FAST-Pathology/workflows/Build%20macOS%20ARM/badge.svg?branch=master&event=push) |
 
 ## [How to cite](https://github.com/raidionics/Raidionics#how-to-cite)
 If you are using Raidionics in your research, please cite the following references.
