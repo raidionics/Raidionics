@@ -3,10 +3,10 @@ import traceback
 import os
 import platform
 from pathlib import PurePath
-import PySide2
+import PySide6
 import sys
-from PySide2.QtWidgets import QApplication
-from gui2.RaidionicsMainWindow import RaidionicsMainWindow
+from PySide6.QtWidgets import QApplication
+from gui.RaidionicsMainWindow import RaidionicsMainWindow
 import logging
 
 
@@ -18,7 +18,7 @@ os.environ['LANG'] = "en_US.UTF-8"
 os.environ['QT_MAC_WANTS_LAYER'] = '1'
 
 # relevant for PySide, Qt stuff. See issue here: https://www.programmersought.com/article/8605863159/
-dirname = os.path.dirname(PySide2.__file__)
+dirname = os.path.dirname(PySide6.__file__)
 plugin_path = os.path.join(dirname, 'plugins', 'platforms')
 os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = plugin_path
 
@@ -38,15 +38,22 @@ def main(argv):
         #     gui_usage = int(arg)
     try:
         from utils.software_config import SoftwareConfigResources
-        logging.basicConfig(filename=SoftwareConfigResources.getInstance().get_session_log_filename(), filemode='w',
-                            format="%(asctime)s ; %(name)s ; %(levelname)s ; %(message)s", datefmt='%d/%m/%Y %H.%M')
-        logging.getLogger().setLevel(logging.DEBUG)
+        # logging.basicConfig(filename=SoftwareConfigResources.getInstance().get_session_log_filename(), filemode='w',
+        #                     format="%(asctime)s ; %(name)s ; %(levelname)s ; %(message)s", datefmt='%d/%m/%Y %H.%M')
+        # logging.getLogger().setLevel(logging.DEBUG)
+        logger = logging.getLogger()
+        handler = logging.FileHandler(filename=SoftwareConfigResources.getInstance().get_session_log_filename(),
+                                      mode='w', encoding='utf-8')
+        handler.setFormatter(logging.Formatter(fmt="%(asctime)s ; %(name)s ; %(levelname)s ; %(message)s",
+                                               datefmt='%d/%m/%Y %H.%M'))
+        logger.setLevel(logging.DEBUG)
+        logger.addHandler(handler)
 
         if gui_usage == 1:
             app = QApplication(sys.argv)
             window = RaidionicsMainWindow(application=app)
             window.show()
-            app.exec_()
+            app.exec()
 
             #@TODO. Windows-specific stuff to check.
             # # ifdef Q_OS_WIN //this is Windows specific code, not portable

@@ -10,6 +10,7 @@ import nibabel as nib
 from nibabel.processing import resample_to_output
 import numpy as np
 import json
+from pathlib import PurePath
 
 from utils.utilities import get_type_from_string, input_file_type_conversion
 
@@ -35,27 +36,32 @@ class MRIVolume:
     Class defining how an MRI volume should be handled.
     """
     _unique_id = ""  # Internal unique identifier for the MRI volume
+    _timestamp_uid = ""  # Internal unique identifier for the investigation timestamp this MRI belongs to.
+    _timestamp_folder_name = ""  # Folder name for the aforementioned timestamp (based off its display name)
     _raw_input_filepath = ""  # Original MRI volume filepath on the user's machine
     _usable_input_filepath = ""  # Usable MRI volume filepath, e.g., after conversion from nrrd to nifti (or other)
     _output_patient_folder = ""
-    _sequence_type = MRISequenceType.T1c
+    _sequence_type = MRISequenceType.T1c  # Acquisition sequence type from MRISequenceType
     _resampled_input_volume = None  # np.ndarray with the raw intensity values from the display volume
     _resampled_input_volume_filepath = None  # Filepath for storing the aforementioned volume
     _dicom_metadata = None  # If the MRI series originate from a DICOM folder, the metadata tags are stored here
     _dicom_metadata_filepath = None  # Filepath for storing the aforementioned DICOM metadata, if needed
     _contrast_window = [None, None]  # Min and max intensity values for the display of the current MRI volume
     _intensity_histogram = None  #
-    _display_name = ""
+    _display_name = ""  # Name shown to the user to identify the current volume, and which can be modified.
     _display_volume = None
     _display_volume_filepath = ""  # Display MRI volume filepath, in its latest state after potential user modifiers
-    _default_affine = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]  # Affine matrix for dumping resampled files
+    _default_affine = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0],
+                       [0, 0, 0, 0]]  # Affine matrix for dumping resampled files
     _unsaved_changes = False  # Documenting any change, for suggesting saving when swapping between patients
+    _contrast_changed = False
 
-    def __init__(self, uid: str, input_filename: str, output_patient_folder: str, reload_params: dict = None) -> None:
+    def __init__(self, uid: str, inv_ts_uid: str, input_filename: str, output_patient_folder: str,
+                 reload_params: dict = None) -> None:
         # @TODO. Should also add the registered versions in here.
-        # @TODO. Should add a date/timestamp field.
         self.__reset()
         self._unique_id = uid
+        self._timestamp_uid = inv_ts_uid
         self._raw_input_filepath = input_filename
         self._output_patient_folder = output_patient_folder
         self._display_name = uid
@@ -71,6 +77,7 @@ class MRIVolume:
         An instance or non-static variables are different for different objects (every object has a copy).
         """
         self._unique_id = ""
+        self._timestamp_uid = ""
         self._raw_input_filepath = ""
         self._usable_input_filepath = ""
         self._output_patient_folder = ""
@@ -86,6 +93,7 @@ class MRIVolume:
         self._display_volume_filepath = ""
         self._default_affine = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]
         self._unsaved_changes = False
+        self._contrast_changed = False
 
     def load_in_memory(self) -> None:
         if self._resampled_input_volume_filepath and os.path.exists(self._resampled_input_volume_filepath):
@@ -104,8 +112,85 @@ class MRIVolume:
         self._resampled_input_volume = None
         self._display_volume = None
 
-    def get_unique_id(self) -> str:
+    @property
+    def unique_id(self) -> str:
         return self._unique_id
+
+    @property
+    def timestamp_uid(self) -> str:
+        return self._timestamp_uid
+
+    @property
+    def timestamp_folder_name(self) -> str:
+        return self._timestamp_folder_name
+
+    @timestamp_folder_name.setter
+    def timestamp_folder_name(self, folder_name: str) -> None:
+        """
+        @Behaviour. Should we also adjust the raw_input_filepath, in case it is inside the patient folder
+        (i.e., DICOM import)?
+        """
+        self._timestamp_folder_name = folder_name
+        if self._output_patient_folder in self._usable_input_filepath:
+            if os.name == 'nt':
+                path_parts = list(
+                    PurePath(os.path.relpath(self._usable_input_filepath, self._output_patient_folder)).parts[1:])
+                rel_path = PurePath()
+                rel_path = rel_path.joinpath(self._output_patient_folder)
+                rel_path = rel_path.joinpath(self._timestamp_folder_name)
+                for x in path_parts:
+                    rel_path = rel_path.joinpath(x)
+                self._usable_input_filepath = os.fspath(rel_path)
+            else:
+                rel_path = '/'.join(os.path.relpath(self._usable_input_filepath,
+                                                    self._output_patient_folder).split('/')[1:])
+                self._usable_input_filepath = os.path.join(self._output_patient_folder, self._timestamp_folder_name,
+                                                           rel_path)
+        if self._dicom_metadata_filepath:
+            if os.name == 'nt':
+                path_parts = list(PurePath(os.path.relpath(self._dicom_metadata_filepath,
+                                                           self._output_patient_folder)).parts[1:])
+                rel_path = PurePath()
+                rel_path = rel_path.joinpath(self._output_patient_folder)
+                rel_path = rel_path.joinpath(self._timestamp_folder_name)
+                for x in path_parts:
+                    rel_path = rel_path.joinpath(x)
+                self._dicom_metadata_filepath = os.fspath(rel_path)
+            else:
+                rel_path = '/'.join(os.path.relpath(self._dicom_metadata_filepath,
+                                                    self._output_patient_folder).split('/')[1:])
+                self._dicom_metadata_filepath = os.path.join(self._output_patient_folder, self._timestamp_folder_name,
+                                                             rel_path)
+        if self._resampled_input_volume_filepath:
+            if os.name == 'nt':
+                path_parts = list(PurePath(os.path.relpath(self._resampled_input_volume_filepath,
+                                                           self._output_patient_folder)).parts[1:])
+                rel_path = PurePath()
+                rel_path = rel_path.joinpath(self._output_patient_folder)
+                rel_path = rel_path.joinpath(self._timestamp_folder_name)
+                for x in path_parts:
+                    rel_path = rel_path.joinpath(x)
+                self._resampled_input_volume_filepath = os.fspath(rel_path)
+            else:
+                rel_path = '/'.join(os.path.relpath(self._resampled_input_volume_filepath,
+                                                    self._output_patient_folder).split('/')[1:])
+                self._resampled_input_volume_filepath = os.path.join(self._output_patient_folder,
+                                                                     self._timestamp_folder_name, rel_path)
+        if self._display_volume_filepath:
+            if os.name == 'nt':
+                path_parts = list(PurePath(os.path.relpath(self._display_volume_filepath,
+                                                           self._output_patient_folder)).parts[1:])
+                rel_path = PurePath()
+                rel_path = rel_path.joinpath(self._output_patient_folder)
+                rel_path = rel_path.joinpath(self._timestamp_folder_name)
+                for x in path_parts:
+                    rel_path = rel_path.joinpath(x)
+                self._display_volume_filepath = os.fspath(rel_path)
+            else:
+                rel_path = '/'.join(os.path.relpath(self._display_volume_filepath,
+                                                    self._output_patient_folder).split('/')[1:])
+                self._display_volume_filepath = os.path.join(self._output_patient_folder,
+                                                             self._timestamp_folder_name, rel_path)
 
     def set_unsaved_changes_state(self, state: bool) -> None:
         self._unsaved_changes = state
@@ -113,18 +198,53 @@ class MRIVolume:
     def has_unsaved_changes(self) -> bool:
         return self._unsaved_changes
 
-    def get_display_name(self) -> str:
+    @property
+    def display_name(self) -> str:
         return self._display_name
 
-    def set_display_name(self, text: str) -> None:
+    @display_name.setter
+    def display_name(self, text: str) -> None:
         self._display_name = text
         self._unsaved_changes = True
         logging.debug("Unsaved changes - MRI volume display name changed to {}".format(self._display_name))
 
+    @property
+    def raw_input_filepath(self) -> str:
+        return self._raw_input_filepath
+
+    def set_usable_filepath_as_raw(self) -> None:
+        """
+        In case of DICOM MRI Series loading, the raw input filepath is a temporary conversion as nifti format of
+        the raw DICOM content, which is deleted upon creation completion, and as such the filepath should be adjusted.
+        """
+        self._raw_input_filepath = self._usable_input_filepath
+
     def set_output_patient_folder(self, output_folder: str) -> None:
+        """
+        When a patient renaming is performed by the user, the disk location where the patient is saved changed.
+        All related filepaths, local to the patient inside the designated 'patients' folder, must be adjusted
+
+        Parameters
+        ----------
+        output_folder: str
+            New folder name where the patient data will be saved on disk.
+        """
+        if self._resampled_input_volume_filepath:
+            self._resampled_input_volume_filepath = self._resampled_input_volume_filepath.replace(
+                self._output_patient_folder, output_folder)
+        if self._usable_input_filepath:
+            self._usable_input_filepath = self._usable_input_filepath.replace(self._output_patient_folder,
+                                                                              output_folder)
+        if self._display_volume_filepath:
+            self._display_volume_filepath = self._display_volume_filepath.replace(self._output_patient_folder,
+                                                                                  output_folder)
+        if self._dicom_metadata_filepath:
+            self._dicom_metadata_filepath = self._dicom_metadata_filepath.replace(self._output_patient_folder,
+                                                                                  output_folder)
         self._output_patient_folder = output_folder
 
-    def get_output_patient_folder(self) -> str:
+    @property
+    def output_patient_folder(self) -> str:
         return self._output_patient_folder
 
     def get_sequence_type_enum(self) -> Enum:
@@ -212,7 +332,7 @@ class MRIVolume:
         if self._resampled_input_volume_filepath and os.path.exists(self._resampled_input_volume_filepath):
             os.remove(self._resampled_input_volume_filepath)
 
-        if self._usable_input_filepath and self._output_patient_folder in self._usable_input_filepath\
+        if self._usable_input_filepath and self._output_patient_folder in self._usable_input_filepath \
                 and os.path.exists(self._usable_input_filepath):
             os.remove(self._usable_input_filepath)
 
@@ -221,36 +341,46 @@ class MRIVolume:
 
     def save(self) -> dict:
         """
-
+        Saving all volumes on disk everytime is an issue with many loaded patients/volumes.
+        Only storing when a change of contrast happened, or if they don't exist already on disk.
         """
         try:
             # Disk operations
             if not self._display_volume is None:
-                self._display_volume_filepath = os.path.join(self._output_patient_folder, 'display',
-                                                             self._unique_id + '_display.nii.gz')
-                nib.save(nib.Nifti1Image(self._display_volume, affine=self._default_affine),
-                         self._display_volume_filepath)
+                self._display_volume_filepath = os.path.join(self._output_patient_folder, self._timestamp_folder_name,
+                                                             'display', self._unique_id + '_display.nii.gz')
+                if not os.path.exists(self._display_volume_filepath) or self._contrast_changed:
+                    nib.save(nib.Nifti1Image(self._display_volume, affine=self._default_affine),
+                             self._display_volume_filepath)
 
             if not self._resampled_input_volume is None:
-                self._resampled_input_volume_filepath = os.path.join(self._output_patient_folder, 'display',
+                self._resampled_input_volume_filepath = os.path.join(self._output_patient_folder,
+                                                                     self._timestamp_folder_name, 'display',
                                                                      self._unique_id + '_resampled.nii.gz')
-                nib.save(nib.Nifti1Image(self._resampled_input_volume, affine=self._default_affine),
-                         self._resampled_input_volume_filepath)
+                if not os.path.exists(self._resampled_input_volume_filepath):
+                    nib.save(nib.Nifti1Image(self._resampled_input_volume, affine=self._default_affine),
+                             self._resampled_input_volume_filepath)
 
-            if not self._dicom_metadata is None:
-                self._dicom_metadata_filepath = os.path.join(self._output_patient_folder, 'display',
-                                                             self._unique_id + '_dicom_metadata.json')
-
-                with open(self._dicom_metadata_filepath, 'w') as outfile:
-                    json.dump(self._dicom_metadata, outfile, indent=4)
+            if self._dicom_metadata:
+                self._dicom_metadata_filepath = os.path.join(self._output_patient_folder, self._timestamp_folder_name,
+                                                             'display', self._unique_id + '_dicom_metadata.json')
+                if not os.path.exists(self._dicom_metadata_filepath):
+                    with open(self._dicom_metadata_filepath, 'w') as outfile:
+                        json.dump(self._dicom_metadata, outfile, indent=4)
 
             # Parameters-filling operations
             volume_params = {}
             volume_params['display_name'] = self._display_name
+            volume_params['investigation_timestamp_uid'] = self._timestamp_uid
             volume_params['raw_input_filepath'] = self._raw_input_filepath
+
+            if self._output_patient_folder in self._usable_input_filepath:
+                volume_params['usable_input_filepath'] = os.path.relpath(self._usable_input_filepath,
+                                                                         self._output_patient_folder)
+            else:
+                volume_params['usable_input_filepath'] = self._usable_input_filepath
             volume_params['resample_input_filepath'] = os.path.relpath(self._resampled_input_volume_filepath,
                                                                        self._output_patient_folder)
-            volume_params['usable_input_filepath'] = self._usable_input_filepath
             volume_params['display_volume_filepath'] = os.path.relpath(self._display_volume_filepath,
                                                                        self._output_patient_folder)
             volume_params['sequence_type'] = str(self._sequence_type)
@@ -259,13 +389,21 @@ class MRIVolume:
                 volume_params['dicom_metadata_filepath'] = os.path.relpath(self._dicom_metadata_filepath,
                                                                            self._output_patient_folder)
             self._unsaved_changes = False
+            self._contrast_changed = False
             return volume_params
         except Exception:
             logging.error("MRIVolumeStructure saving failed with:\n {}".format(traceback.format_exc()))
 
     def __init_from_scratch(self) -> None:
+        self._timestamp_folder_name = self._timestamp_uid
+        os.makedirs(os.path.join(self._output_patient_folder, self._timestamp_folder_name), exist_ok=True)
+        os.makedirs(os.path.join(self._output_patient_folder, self._timestamp_folder_name, 'raw'), exist_ok=True)
+        os.makedirs(os.path.join(self._output_patient_folder, self._timestamp_folder_name, 'display'), exist_ok=True)
+
         self._usable_input_filepath = input_file_type_conversion(input_filename=self._raw_input_filepath,
-                                                                 output_folder=self._output_patient_folder)
+                                                                 output_folder=os.path.join(self._output_patient_folder,
+                                                                                            self._timestamp_folder_name,
+                                                                                            'raw'))
         self.__parse_sequence_type()
         self.__generate_display_volume()
 
@@ -291,6 +429,9 @@ class MRIVolume:
         self._display_volume_filepath = os.path.join(self._output_patient_folder, parameters['display_volume_filepath'])
         self._display_volume = nib.load(self._display_volume_filepath).get_data()[:]
         self._display_name = parameters['display_name']
+        self._timestamp_folder_name = parameters['display_volume_filepath'].split('/')[0]
+        if os.name == 'nt':
+            self._timestamp_folder_name = list(PurePath(parameters['display_volume_filepath']).parts)[0]
         self.set_sequence_type(type=parameters['sequence_type'], manual=False)
         self.__generate_intensity_histogram()
 
@@ -344,3 +485,4 @@ class MRIVolume:
         image_res = image_res.astype('uint8')
 
         self._display_volume = deepcopy(image_res)
+        self._contrast_changed = True

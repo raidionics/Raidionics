@@ -1,8 +1,0 @@
-[Desktop Entry]
-Name=Raidionics
-Comment=Raidionics
-Exec=/usr/local/bin/Raidionics/Raidionics
-Terminal=false
-Type=Application
-Icon=/usr/local/bin/Raidionics/images/raidionics-logo.png
-Categories=public.app-categorical.medical

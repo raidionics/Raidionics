@@ -4,14 +4,16 @@ import platform
 import traceback
 from os.path import expanduser
 import numpy as np
-from typing import Union, Any
+from typing import Union, Any, List
 import names
-from PySide2.QtCore import QSize
+from PySide6.QtCore import QSize
 import logging
 import json
 
 from utils.data_structures.PatientParametersStructure import PatientParameters
 from utils.data_structures.StudyParametersStructure import StudyParameters
+from utils.data_structures.UserPreferencesStructure import UserPreferencesStructure
+from utils.data_structures.AnnotationStructure import AnnotationClassType, AnnotationGenerationType
 
 
 class SoftwareConfigResources:
@@ -21,10 +23,10 @@ class SoftwareConfigResources:
     """
     __instance = None
     _software_home_location = None  # Main dump location for the software elements (e.g., models, runtime log)
-    _user_home_location = None  # Main dump location for patients/studies on disk.
     _user_preferences_filename = None  # json file containing the user preferences (for when reopening the software).
-    _active_model_update = False  # True for regularly checking if new models are available, False otherwise
     _session_log_filename = None  # log filename containing the runtime logging for each software execution.
+    _software_version = "1.2.1"  # Current software version (minor) for selecting which models to use in the backend.
+    _software_medical_specialty = "neurology"  # Overall medical target [neurology, thoracic]
 
     @staticmethod
     def getInstance():
@@ -46,7 +48,6 @@ class SoftwareConfigResources:
         self._software_home_location = os.path.join(expanduser('~'), '.raidionics')
         if not os.path.exists(self._software_home_location):
             os.makedirs(self._software_home_location)
-        self._user_home_location = self._software_home_location
         self._user_preferences_filename = os.path.join(expanduser('~'), '.raidionics', 'raidionics_preferences.json')
         self._session_log_filename = os.path.join(expanduser('~'), '.raidionics', 'session_log.log')
         self.models_path = os.path.join(expanduser('~'), '.raidionics', 'resources', 'models')
@@ -59,11 +60,8 @@ class SoftwareConfigResources:
         self.accepted_study_file_format = ['sraidionics']
 
         self.__set_default_values()
+        # self._user_preferences = UserPreferencesStructure(self._user_preferences_filename)
         self.__set_default_stylesheet_components()
-        if os.path.exists(self._user_preferences_filename):
-            self.__parse_user_preferences()
-        else:
-            self.__save_user_preferences_file()
 
     def __set_default_values(self):
         self.patients_parameters = {}  # Storing open patients with a key (name) and a class instance
@@ -71,68 +69,45 @@ class SoftwareConfigResources:
         self.study_parameters = {}  # Storing open studies with a key and a class instance
         self.active_study_name = None  # ID of the study currently opened in the batch study mode
 
-    def __save_user_preferences_file(self):
-        preferences = {}
-        preferences['System'] = {}
-        preferences['System']['user_home_location'] = self._user_home_location
-        preferences['Models'] = {}
-        preferences['Models']['active_update'] = self._active_model_update
-
-        with open(self._user_preferences_filename, 'w') as outfile:
-            json.dump(preferences, outfile, indent=4, sort_keys=True)
-
     def __set_default_stylesheet_components(self):
         self.stylesheet_components = {}
         self.stylesheet_components["Color1"] = "rgba(0, 0, 0, 1)"  # Black
-        self.stylesheet_components["Color2"] = "rgba(255, 255, 255, 1)"  # White
+        self.stylesheet_components["Color2"] = "rgba(235, 250, 255, 1)"  # Main background color (blueish white)
         self.stylesheet_components["Color3"] = "rgba(239, 255, 245, 1)"  # Light green
         self.stylesheet_components["Color4"] = "rgba(209, 241, 222, 1)"  # Darker light green (when pressed)
         self.stylesheet_components["Color5"] = "rgba(248, 248, 248, 1)"  # Almost white (standard background)
         self.stylesheet_components["Color6"] = "rgba(214, 214, 214, 1)"  # Darker almost white (when pressed)
-        self.stylesheet_components["Color7"] = "rgba(67, 88, 90, 1)"
+        self.stylesheet_components["Color7"] = "rgba(67, 88, 90, 1)"  # Main font color ()
 
-    def __parse_user_preferences(self):
-        with open(self._user_preferences_filename, 'r') as infile:
-            preferences = json.load(infile)
+        if UserPreferencesStructure.getInstance().use_dark_mode:  # Dark-mode alternative
+            self.stylesheet_components["Color2"] = "rgba(86, 92, 110, 1)"  # Main background color
+            self.stylesheet_components["Color7"] = "rgba(250, 250, 250, 1)"  # Main font color (whiteish)
 
-        self._user_home_location = preferences['System']['user_home_location']
-        if 'Models' in preferences.keys():
-            if 'active_update' in preferences['Models'].keys():
-                self._active_model_update = preferences['Models']['active_update']
+        self.stylesheet_components["White"] = "rgba(255, 255, 255, 1)"  # White
+        self.stylesheet_components["Process"] = "rgba(255, 191, 128, 1)"  # Light orange
+        self.stylesheet_components["Process_pressed"] = "rgba(204, 102, 0, 1)"  # Dark orange
+        self.stylesheet_components["Import"] = "rgba(73, 99, 171, 1)"  # Greyish blue
+        self.stylesheet_components["Import_pressed"] = "rgba(81, 101, 153, 1)"  # Dark greyish blue
+        self.stylesheet_components["Data"] = "rgba(204, 224, 255, 1)"  # Greyish blue
+        self.stylesheet_components["Background_pressed"] = "rgba(0, 120, 230, 1)"  # Dark blue
+
+    @property
+    def software_version(self) -> str:
+        return self._software_version
+
+    @property
+    def software_medical_specialty(self) -> str:
+        return self._software_medical_specialty
 
     def get_session_log_filename(self):
         return self._session_log_filename
 
-    def get_user_home_location(self) -> str:
-        return self._user_home_location
-
-    def set_user_home_location(self, directory: str) -> None:
-        """
-        Update the default location where all created patients and studies will be stored on disk.
-        ...
-
-        Parameters
-        ----------
-        directory : str
-            The full filepath to the root place where to save data in the future
-        Returns
-        ----------
-
-        """
-        logging.info("User home location changed from {} to {}.\n".format(self._user_home_location, directory))
-        self._user_home_location = directory
-        self.__save_user_preferences_file()
-
-    def get_active_model_check_status(self) -> bool:
-        return self._active_model_update
-
-    def set_active_model_check_status(self, status):
-        logging.info("Active model checking set to {}.\n".format(status))
-        self._active_model_update = status
-        self.__save_user_preferences_file()
-
     def get_accepted_image_formats(self) -> list:
         return self.accepted_image_format
+
+    def set_dark_mode_state(self, state: bool) -> None:
+        UserPreferencesStructure.getInstance().use_dark_mode = state
+        self.__set_default_stylesheet_components()
 
     def add_new_empty_patient(self, active: bool = True) -> Union[str, Any]:
         """
@@ -150,9 +125,9 @@ class SoftwareConfigResources:
                     non_available_uid = False
 
             self.patients_parameters[patient_uid] = PatientParameters(id=patient_uid,
-                                                                      dest_location=self._user_home_location)
+                                                                      dest_location=UserPreferencesStructure.getInstance().user_home_location)
             random_name = names.get_full_name()
-            self.patients_parameters[patient_uid].set_display_name(random_name, manual_change=False)
+            code, error_msg = self.patients_parameters[patient_uid].set_display_name(random_name, manual_change=False)
             if active:
                 self.set_active_patient(patient_uid)
         except Exception:
@@ -183,11 +158,12 @@ class SoftwareConfigResources:
         error_message = None
         logging.debug("Patient loading requested from {}.".format(filename))
         try:
-            patient_instance = PatientParameters(dest_location=self._user_home_location, patient_filename=filename)
+            patient_instance = PatientParameters(dest_location=UserPreferencesStructure.getInstance().user_home_location,
+                                                 patient_filename=filename)
             error_message = patient_instance.import_patient(filename)
             # To prevent the save changes dialog to pop-up straight up after loading a patient scene file.
             patient_instance.set_unsaved_changes_state(False)
-            patient_id = patient_instance.get_unique_id()
+            patient_id = patient_instance.unique_id
             if patient_id in self.patients_parameters.keys():
                 # @TODO. The random unique key number is encountered twice, have to randomize it again.
                 error_message = error_message + '\nImport patient failed, unique id already exists.\n'
@@ -226,11 +202,12 @@ class SoftwareConfigResources:
                 return error_message
 
             # NB: At the very first call, there is no previously active patient, hence the need for an if statement
-            if self.active_patient_name:
+            if self.active_patient_name and self.active_patient_name in list(self.patients_parameters.keys()):
                 self.patients_parameters[self.active_patient_name].release_from_memory()
             logging.debug("Active patient uid changed from {} to {}.".format(self.active_patient_name, patient_uid))
             self.active_patient_name = patient_uid
-            self.patients_parameters[self.active_patient_name].load_in_memory()
+            if patient_uid:
+                self.patients_parameters[self.active_patient_name].load_in_memory()
         except Exception:
             logging.error("Setting {} as active patient failed, with {}.\n".format(os.path.basename(patient_uid),
                                                                                      str(traceback.format_exc())))
@@ -259,7 +236,44 @@ class SoftwareConfigResources:
     def get_patient(self, uid: str):
         return self.patients_parameters[uid]
 
-    def add_new_empty_study(self) -> Union[str, Any]:
+    def get_patient_by_display_name(self, display_name: str) -> Union[PatientParameters, None]:
+        for uid in list(self.patients_parameters.keys()):
+            if self.patients_parameters[uid].display_name == display_name:
+                return self.patients_parameters[uid]
+        return None
+
+    def remove_patient(self, uid: str) -> None:
+        """
+        Removing the patient from memory, the patient is still kept on disk.
+
+        Parameters
+        ----------
+        uid: str
+            Internal unique identifier for the patient to remove.
+        """
+        del self.patients_parameters[uid]
+
+    def is_patient_in_studies(self, patient_uid: str) -> bool:
+        """
+        Verifies if the requested patient is part of any currently loaded studies.
+
+        Parameters
+        ----------
+        patient_uid: str
+            Internal unique identifier for the patient.
+
+        Returns
+        -------
+        presence_state: bool
+            True if the patient belongs to one of the opened studies, False otherwise.
+        """
+        for s in list(self.study_parameters.keys()):
+            if patient_uid in self.study_parameters[s].included_patients_uids:
+                return True
+
+        return False
+
+    def add_new_empty_study(self, active: bool = True) -> Union[str, Any]:
         """
 
         """
@@ -273,10 +287,12 @@ class SoftwareConfigResources:
                 if study_uid not in list(self.study_parameters.keys()):
                     non_available_uid = False
 
-            self.study_parameters[study_uid] = StudyParameters(uid=study_uid, dest_location=self._user_home_location)
+            self.study_parameters[study_uid] = StudyParameters(uid=study_uid,
+                                                               dest_location=UserPreferencesStructure.getInstance().user_home_location)
             # random_name = names.get_full_name()
             # self.study_parameters[study_uid].set_visible_name(random_name, manual_change=False)
-            self.set_active_study(study_uid)
+            if active:
+                self.set_active_study(study_uid)
         except Exception:
             error_message = "Error while trying to create a new empty study: \n"
             error_message = error_message + traceback.format_exc()
@@ -309,7 +325,7 @@ class SoftwareConfigResources:
             error_message = study_instance.import_study(filename)
             # To prevent the save changes dialog to pop-up straight up after loading a patient scene file.
             study_instance.set_unsaved_changes_state(False)
-            study_id = study_instance.get_unique_id()
+            study_id = study_instance.unique_id
             if study_id in self.study_parameters.keys():
                 # @TODO. The random unique key number is encountered twice, have to randomize it again.
                 error_message = error_message + '\nImport study failed, unique id already exists.\n'
@@ -319,11 +335,11 @@ class SoftwareConfigResources:
                 self.active_study_name = study_id
 
             # After loading the study, all connected patients should also be reloaded
-            included_pat_uids = study_instance.get_included_patients_uids()
+            included_pat_uids = study_instance.included_patients_uids
             for p in included_pat_uids.keys():
                 if p not in self.patients_parameters.keys():
                     logging.info("Importing patient {} linked to study {}.".format(p, study_id))
-                    assumed_patient_filename = os.path.join(study_instance.get_output_study_directory(), 'patients',
+                    assumed_patient_filename = os.path.join(study_instance.output_study_directory, 'patients',
                                                             included_pat_uids[p],
                                                             included_pat_uids[p] + '_scene.raidionics')
                     pat_id, pat_err_mnsg = self.load_patient(filename=assumed_patient_filename, active=False)
@@ -363,22 +379,37 @@ class SoftwareConfigResources:
                 return error_message
 
             logging.debug("Active study uid changed from {} to {}.".format(self.active_study_name, study_uid))
-            # NB: At the very first call, there is no previously active patient, hence the need for an if statement
-            if self.active_study_name:
+            # Offloading from memory the previous study, then loading the new active study (unless None)
+            if self.active_study_name and self.active_study_name in list(self.study_parameters.keys()):
                 self.study_parameters[self.active_study_name].release_from_memory()
             self.active_study_name = study_uid
-            self.study_parameters[self.active_study_name].load_in_memory()
+            if self.active_study_name:
+                self.study_parameters[self.active_study_name].load_in_memory()
         except Exception:
             error_message = "Setting {} as active study failed, with {}.\n".format(os.path.basename(study_uid),
                                                                                    str(traceback.format_exc()))
             logging.error(error_message)
         return error_message
 
+    def remove_study(self, uid: str) -> None:
+        """
+        Removing the study from memory, the study is still kept on disk.
+
+        Parameters
+        ----------
+        uid: str
+            Internal unique identifier for the study to remove.
+        """
+        del self.study_parameters[uid]
+
     def is_study_list_empty(self):
         if len(self.study_parameters.keys()) == 0:
             return True
         else:
             return False
+
+    def get_active_study_uid(self) -> str:
+        return self.active_study_name
 
     def get_active_study(self) -> str:
         return self.study_parameters[self.active_study_name]
@@ -401,10 +432,27 @@ class SoftwareConfigResources:
             Internal unique identifier for the patient who underwent a display name alteration.
         """
         for s in self.study_parameters.keys():
-            if patient_uid in self.study_parameters[s].get_included_patients_uids().keys():
+            if patient_uid in self.study_parameters[s].included_patients_uids.keys():
                 self.study_parameters[s].change_study_patient_folder(uid=patient_uid,
-                                                                     folder_name=self.patients_parameters[patient_uid].get_output_folder())
+                                                                     folder_name=self.patients_parameters[patient_uid].output_folder)
                 self.study_parameters[s].save()
 
     def get_optimal_dimensions(self):
         return self.optimal_dimensions
+
+    def get_annotation_types_for_specialty(self) -> List[str]:
+        results = []
+
+        for anno in AnnotationClassType:
+            if self._software_medical_specialty == "neurology" and 0 <= anno.value < 100:
+                results.append(anno.name)
+            elif self._software_medical_specialty == "thoracic" and 100 <= anno.value < 200:
+                results.append(anno.name)
+        return results
+
+    def get_annotation_generation_types(self) -> List[str]:
+        results = []
+
+        for anno in AnnotationGenerationType:
+            results.append(anno.name)
+        return results

@@ -7,46 +7,70 @@ on:
   pull_request:
     branches:
       - '*'
+  workflow_dispatch:
 
 jobs:
   build:
     name: Build packages
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v3
     - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: "3.7"
 
-    - name: Collect submodules
-      uses: actions/checkout@v3
+    - name: Free Up GitHub Actions Ubuntu Runner Disk Space
+      uses: dbouget/free-disk-space@main
       with:
-        submodules: 'recursive'
+        # This might remove tools that are actually needed, if set to "true" but frees about 6 GB
+        tool-cache: false
+
+        # All of these default to true, but feel free to set to "false" if necessary for your workflow
+        android: true
+        dotnet: true
+        haskell: true
+        large-packages: true
+        swap-storage: true
+
+    - name: Download ANTs
+      uses: robinraju/release-downloader@main
+      with:
+        repository: "raidionics/Raidionics-dependencies"
+        latest: true
+        fileName: "ANTsX-v2.4.3_ubuntu.tar.gz"
+        out-file-path: "downloads"
+
+    - name: Extract ANTs
+      run: |
+        cd ${{github.workspace}}/downloads/
+        tar -xzf ANTsX-v2.4.3_ubuntu.tar.gz -C ${{github.workspace}}/downloads/
+        mkdir ${{github.workspace}}/ANTs
+        mv ${{github.workspace}}/downloads/install ${{github.workspace}}/ANTs/
 
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r misc/requirements.txt
-        pip install -e git+https://github.com/dbouget/raidionics_rads_lib.git@release#egg=raidionicsrads
-        pip install -e git+https://github.com/dbouget/raidionics_seg_lib.git@release#egg=raidionicsseg
+        pip install -r assets/requirements.txt
+        pip uninstall -y PySide6 PySide6-Addons PySide6-Essentials
+        pip install --force-reinstall --no-cache-dir pyside6==6.2.4
 
     - name: Build software
       run: |
-        pip install pyinstaller
+        pip install pyinstaller==5.13.2
         mkdir tmp_dependencies
-        pyinstaller --noconfirm --clean misc/main.spec
+        pyinstaller --log-level DEBUG --noconfirm --clean assets/main.spec
 
     - name: Make installer
       run: |
-        mkdir -p misc/Raidionics_ubuntu/usr/local/bin
-        cp -r dist/Raidionics misc/Raidionics_ubuntu/usr/local/bin
-        dpkg-deb --build --root-owner-group misc/Raidionics_ubuntu
+        mkdir -p assets/Raidionics_ubuntu/usr/local/bin
+        cp -r dist/Raidionics assets/Raidionics_ubuntu/usr/local/bin
+        dpkg-deb --build --root-owner-group assets/Raidionics_ubuntu
         ls -la
-        cp -r misc/Raidionics_ubuntu.deb dist/Raidionics-1.1.0-ubuntu.deb
+        cp -r assets/Raidionics_ubuntu.deb dist/Raidionics-1.2.1-ubuntu.deb
 
     - name: Upload package
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: Package
         path: ${{github.workspace}}/dist/Raidionics-*

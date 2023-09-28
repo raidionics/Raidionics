@@ -1,0 +1,6 @@
+Package: Raidionics
+Version: 1.2.1
+Architecture: i386
+Maintainer: David Bouget <david.bouget@sintef.no>
+Description: Raidionics—Reporting and Data System.
+ Software to automatically segment tumors and their from pre-operative CTs and MRIs, and report them in a standardized manner.

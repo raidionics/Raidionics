@@ -10,6 +10,8 @@ class PatientDICOM:
     def __init__(self, dicom_folder):
         self.dicom_folder = dicom_folder
         self.patient_id = None
+        self.gender = ""
+        self.birth_date = ""
         self.studies = {}
 
     def parse_dicom_folder(self):
@@ -39,6 +41,8 @@ class PatientDICOM:
                     # Filling the patient info as the iteration over the series goes.
                     if self.patient_id is None and dicom_series.get_patient_id() is not None:
                         self.patient_id = dicom_series.get_patient_id()
+                    if self.gender == "" and dicom_series.get_patient_gender() is not None:
+                        self.gender = dicom_series.get_patient_gender()
 
             except Exception as e:
                 error_msg = """Provided folder does not contain any DICOM folder tree, nor can it be parsed as a
@@ -122,6 +126,8 @@ class PatientDICOM:
                                 # Filling the patient info as the iteration over the series goes.
                                 if self.patient_id is None and dicom_series.get_patient_id() is not None:
                                     self.patient_id = dicom_series.get_patient_id()
+                                if self.gender == "" and dicom_series.get_patient_gender() is not None:
+                                    self.gender = dicom_series.get_patient_gender()
 
                         except Exception as e:
                             # @TODO. Would have to couple the message to a code int, because an exception here is not
@@ -132,6 +138,7 @@ class PatientDICOM:
                             #     error_msg = curr_msg
                             # else:
                             #     error_msg = error_msg + curr_msg
+                            logging.warning("DICOM Series reading issue with:\n {}".format(traceback.format_exc()))
                             continue
         except Exception as e:
             error_msg = """Provided DICOM could not be processed.\n 
@@ -191,6 +198,12 @@ class DICOMSeries():
         if '0010|0020' in list(self.dicom_tags.keys()):
             res = self.dicom_tags['0010|0020'].strip()
         return res
+
+    def get_patient_gender(self):
+        return self.get_metadata_value('0010|0040')
+
+    def get_study_id(self):
+        return self.get_metadata_value('0020|0010')
 
     def get_unique_readable_name(self):
         name = self.get_patient_id()
