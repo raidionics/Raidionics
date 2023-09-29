@@ -75,7 +75,7 @@ jobs:
         source tmp/venv/bin/activate
         pip3 install pyinstaller==5.13.2
         mkdir tmp_dependencies
-        pyinstaller --log-level DEBUG --noconfirm --clean assets/main_arm.spec
+        pyinstaller --log-level INFO --noconfirm --clean assets/main_arm.spec
     
     - name: Test executable
       run: QT_QPA_PLATFORM="offscreen" ./dist/Raidionics/Raidionics & sleep 5; kill -INT %+
