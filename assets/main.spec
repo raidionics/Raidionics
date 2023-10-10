@@ -19,8 +19,8 @@ print("PLATFORM:", sys.platform)
 
 # fix hidden imports
 hidden_imports = loadtxt(cwd + "/assets/requirements.txt", comments="#", delimiter=",", unpack=False, dtype=str)
-hidden_imports = [x.split("=")[0] for x in hidden_imports] + ["ants", "sklearn", "scikit-learn", "scipy",
- "statsmodels", "gevent", "distutils", "PySide6", "gdown", "pydicom", "rt_utils", "raidionicsrads", "raidionicsseg"]
+hidden_imports = [x.split("=")[0] for x in hidden_imports] + ["ants", "sklearn", "scikit-learn",
+ "statsmodels", "gevent", "distutils", "PySide6", "gdown", "raidionicsrads", "raidionicsseg", "rt-utils"]
 hidden_imports = [x.lower() for x in hidden_imports]
 
 # copy dependencies and images, remove if folder already exists
@@ -85,7 +85,7 @@ if sys.platform == "darwin":
                     'CFBundleIdentifier': 'Raidionics',
                     'CFBundleInfoDictionaryVersion': '6.0',
                     'CFBundleName': 'Raidionics',
-                    'CFBundleVersion': '1.2.1',
+                    'CFBundleVersion': '1.2.2',
                     'CFBundlePackageType': 'APPL',
                     'LSBackgroundOnly': 'false',
                 },

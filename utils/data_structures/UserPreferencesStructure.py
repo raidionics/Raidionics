@@ -8,7 +8,7 @@ import dateutil
 import json
 import traceback
 from copy import deepcopy
-from typing import Union, Any, Tuple
+from typing import Union, Any, Tuple, List
 
 
 class UserPreferencesStructure:
@@ -23,8 +23,13 @@ class UserPreferencesStructure:
     _export_results_as_rtstruct = False  # True to export all masks as DICOM RTStruct in addition
     _use_stripped_inputs = False  # True to use inputs already stripped (e.g., skull-stripped or lungs-stripped)
     _use_registered_inputs = False  # True to use inputs already registered (e.g., altas-registered, multi-sequences co-registered)
+    _perform_segmentation_refinement = False  # True to enable any kind of segmentation refinement
+    _segmentation_refinement_type = "dilation"  # String indicating the type of refinement to perform, to select from ["dilation"]
+    _segmentation_refinement_dilation_percentage = 0  # Integer indicating the volume percentage increase to reach after dilation
     _compute_cortical_structures = True  # True to include cortical features computation in the standardized reporting
+    _cortical_structures_list = ["MNI", "Schaefer7", "Schaefer17", "Harvard-Oxford"]  # List of cortical atlases to include
     _compute_subcortical_structures = True  # True to include subcortical features computation in the standardized reporting
+    _subcortical_structures_list = ["BCB"]  # List of subcortical atlases to include
     _use_dark_mode = False  # True for dark mode and False for regular mode
 
     @staticmethod
@@ -146,12 +151,39 @@ class UserPreferencesStructure:
         self.save_preferences()
 
     @property
+    def perform_segmentation_refinement(self) -> bool:
+        return self._perform_segmentation_refinement
+
+    @perform_segmentation_refinement.setter
+    def perform_segmentation_refinement(self, state: bool) -> None:
+        self._perform_segmentation_refinement = state
+        self.save_preferences()
+
+    @property
+    def segmentation_refinement_dilation_percentage(self) -> int:
+        return self._segmentation_refinement_dilation_percentage
+
+    @segmentation_refinement_dilation_percentage.setter
+    def segmentation_refinement_dilation_percentage(self, value: int) -> None:
+        self._segmentation_refinement_dilation_percentage = value
+        self.save_preferences()
+
+    @property
     def compute_cortical_structures(self) -> bool:
         return self._compute_cortical_structures
 
     @compute_cortical_structures.setter
     def compute_cortical_structures(self, state: bool) -> None:
         self._compute_cortical_structures = state
+        self.save_preferences()
+
+    @property
+    def cortical_structures_list(self) -> List[str]:
+        return self._cortical_structures_list
+
+    @cortical_structures_list.setter
+    def cortical_structures_list(self, structures: List[str]) -> None:
+        self._cortical_structures_list = structures
         self.save_preferences()
 
     @property
@@ -163,29 +195,51 @@ class UserPreferencesStructure:
         self._compute_subcortical_structures = state
         self.save_preferences()
 
+    @property
+    def subcortical_structures_list(self) -> List[str]:
+        return self._subcortical_structures_list
+
+    @subcortical_structures_list.setter
+    def subcortical_structures_list(self, structures: List[str]) -> None:
+        self._subcortical_structures_list = structures
+        self.save_preferences()
+
     def __parse_preferences(self):
         with open(self._preferences_filename, 'r') as infile:
             preferences = json.load(infile)
 
-        self._user_home_location = preferences['System']['user_home_location']
+        self.user_home_location = preferences['System']['user_home_location']
         if 'Models' in preferences.keys():
             if 'active_update' in preferences['Models'].keys():
-                self._active_model_update = preferences['Models']['active_update']
+                self.active_model_update = preferences['Models']['active_update']
         if 'Processing' in preferences.keys():
             if 'use_manual_sequences' in preferences['Processing'].keys():
-                self._use_manual_sequences = preferences['Processing']['use_manual_sequences']
+                self.use_manual_sequences = preferences['Processing']['use_manual_sequences']
             if 'use_manual_annotations' in preferences['Processing'].keys():
-                self._use_manual_annotations = preferences['Processing']['use_manual_annotations']
+                self.use_manual_annotations = preferences['Processing']['use_manual_annotations']
             if 'use_stripped_inputs' in preferences['Processing'].keys():
-                self._use_stripped_inputs = preferences['Processing']['use_stripped_inputs']
+                self.use_stripped_inputs = preferences['Processing']['use_stripped_inputs']
             if 'use_registered_inputs' in preferences['Processing'].keys():
-                self._use_registered_inputs = preferences['Processing']['use_registered_inputs']
+                self.use_registered_inputs = preferences['Processing']['use_registered_inputs']
             if 'export_results_as_rtstruct' in preferences['Processing'].keys():
-                self._export_results_as_rtstruct = preferences['Processing']['export_results_as_rtstruct']
-            if 'compute_cortical_structures' in preferences['Processing'].keys():
-                self._compute_cortical_structures = preferences['Processing']['compute_cortical_structures']
-            if 'compute_subcortical_structures' in preferences['Processing'].keys():
-                self._compute_subcortical_structures = preferences['Processing']['compute_subcortical_structures']
+                self.export_results_as_rtstruct = preferences['Processing']['export_results_as_rtstruct']
+            if 'perform_segmentation_refinement' in preferences['Processing'].keys():
+                self.perform_segmentation_refinement = preferences['Processing']['perform_segmentation_refinement']
+            if 'SegmentationRefinement' in preferences['Processing'].keys():
+                if 'type' in preferences['Processing']['SegmentationRefinement'].keys():
+                    self.segmentation_refinement_type = preferences['Processing']['SegmentationRefinement']['type']
+            if 'SegmentationRefinement' in preferences['Processing'].keys():
+                if 'dilation_percentage' in preferences['Processing']['SegmentationRefinement'].keys():
+                    self.segmentation_refinement_dilation_percentage = preferences['Processing']['SegmentationRefinement']['dilation_percentage']
+            if 'Reporting' in preferences['Processing'].keys():
+                if 'compute_cortical_structures' in preferences['Processing']['Reporting'].keys():
+                    self.compute_cortical_structures = preferences['Processing']['Reporting']['compute_cortical_structures']
+                if 'cortical_structures_list' in preferences['Processing']['Reporting'].keys():
+                    self.cortical_structures_list = preferences['Processing']['Reporting']['cortical_structures_list']
+                if 'compute_subcortical_structures' in preferences['Processing']['Reporting'].keys():
+                    self.compute_subcortical_structures = preferences['Processing']['Reporting']['compute_subcortical_structures']
+                if 'subcortical_structures_list' in preferences['Processing']['Reporting'].keys():
+                    self.subcortical_structures_list = preferences['Processing']['Reporting']['subcortical_structures_list']
         if 'Appearance' in preferences.keys():
             if 'dark_mode' in preferences['Appearance'].keys():
                 self._use_dark_mode = preferences['Appearance']['dark_mode']
@@ -202,8 +256,15 @@ class UserPreferencesStructure:
         preferences['Processing']['use_stripped_inputs'] = self._use_stripped_inputs
         preferences['Processing']['use_registered_inputs'] = self._use_registered_inputs
         preferences['Processing']['export_results_as_rtstruct'] = self._export_results_as_rtstruct
-        preferences['Processing']['compute_cortical_structures'] = self._compute_cortical_structures
-        preferences['Processing']['compute_subcortical_structures'] = self._compute_subcortical_structures
+        preferences['Processing']['perform_segmentation_refinement'] = self._perform_segmentation_refinement
+        preferences['Processing']['SegmentationRefinement'] = {}
+        preferences['Processing']['SegmentationRefinement']['type'] = self._segmentation_refinement_type
+        preferences['Processing']['SegmentationRefinement']['dilation_percentage'] = self._segmentation_refinement_dilation_percentage
+        preferences['Processing']['Reporting'] = {}
+        preferences['Processing']['Reporting']['compute_cortical_structures'] = self._compute_cortical_structures
+        preferences['Processing']['Reporting']['cortical_structures_list'] = self._cortical_structures_list
+        preferences['Processing']['Reporting']['compute_subcortical_structures'] = self._compute_subcortical_structures
+        preferences['Processing']['Reporting']['subcortical_structures_list'] = self._subcortical_structures_list
         preferences['Appearance'] = {}
         preferences['Appearance']['dark_mode'] = self._use_dark_mode
 

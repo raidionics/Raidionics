@@ -2,10 +2,12 @@ name: Build macOS
 
 on:
   push:
-    branches: [master]
+    branches:
+      - '*'
   pull_request:
     branches:
       - '*'
+  workflow_dispatch:
 
 env:
   MACOSX_DEPLOYMENT_TARGET: 10.15
@@ -16,15 +18,10 @@ jobs:
     runs-on: macos-11
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python 3.8
+    - name: Set up Python 3.7
       uses: actions/setup-python@v4
       with:
-        python-version: "3.8"
-
-    - name: Collect submodules
-      uses: actions/checkout@v3
-      with:
-        submodules: 'recursive'
+        python-version: "3.7"
 
     - name: Download ANTs
       uses: robinraju/release-downloader@main
@@ -40,26 +37,29 @@ jobs:
         tar -xzf ANTsX-v2.4.3_macos.tar.gz -C ${{github.workspace}}/downloads/
         mkdir ${{github.workspace}}/ANTs
         mv ${{github.workspace}}/downloads/install ${{github.workspace}}/ANTs/
-        rm ANTsX-v2.4.3_macos.tar.gz
 
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install matplotlib==3.3.4
-        pip install -e git+https://github.com/dbouget/raidionics_rads_lib.git@update#egg=raidionicsrads
         pip install -r assets/requirements.txt
+        pip install matplotlib==3.3.4
+        pip install --force-reinstall --no-cache-dir pyside6
 
     - name: Build software
       run: |
-        pip install pyinstaller==5.3
+        pip install pyinstaller==5.13.2
         mkdir tmp_dependencies
-        pyinstaller --noconfirm --clean assets/main.spec
+        pyinstaller --log-level INFO --noconfirm --clean assets/main.spec
+
+    - name: Test executable
+      run: QT_QPA_PLATFORM="offscreen" ./dist/Raidionics/Raidionics & sleep 5; kill -INT %+
+      shell: bash
 
     - name: Make installer
       run: |
         git clone https://github.com/dbouget/quickpkg.git
-        quickpkg/quickpkg dist/Raidionics.app --output Raidionics-1.2.1-macOS.pkg
-        cp -r Raidionics-1.2.1-macOS.pkg dist/Raidionics-1.2.1-macOS.pkg
+        quickpkg/quickpkg dist/Raidionics.app --output Raidionics-1.2.2-macOS.pkg
+        cp -r Raidionics-1.2.2-macOS.pkg dist/Raidionics-1.2.2-macOS-x86_64.pkg
 
     - name: Upload package
       uses: actions/upload-artifact@v3

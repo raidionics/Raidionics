@@ -2,10 +2,12 @@ name: Build Windows
 
 on:
   push:
-    branches: [master,update]
+    branches:
+      - '*'
   pull_request:
     branches:
       - '*'
+  workflow_dispatch:
 
 jobs:
   build:
@@ -13,15 +15,10 @@ jobs:
     runs-on: windows-2019
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python 3.8
+    - name: Set up Python 3.7
       uses: actions/setup-python@v4
       with:
-        python-version: "3.8"
-
-    - name: Collect submodules
-      uses: actions/checkout@v3
-      with:
-        submodules: 'recursive'
+        python-version: "3.7"
 
     # Not using the ANTs c++ backend on Windows, have to investigate how to execute the bash scripts.
     # But have to download it due to the expected copying of the install folder...
@@ -43,21 +40,25 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install matplotlib==3.3.4
-        pip install -e git+https://github.com/dbouget/raidionics_rads_lib.git@update#egg=raidionicsrads
+        ls
         pip install -r assets/requirements.txt
-        pip install scipy==1.9.3
+        pip install matplotlib==3.3.4
+        pip install --force-reinstall --no-cache-dir pyside6
 
     - name: Build software
       run: |              
-        pip install pyinstaller==5.3
+        pip install pyinstaller==5.13.2
         mkdir tmp_dependencies
-        pyinstaller --noconfirm --clean assets/main.spec
+        pyinstaller --log-level INFO --noconfirm --clean assets/main.spec
+
+    - name: Test executable
+      run: QT_QPA_PLATFORM="offscreen" ./dist/Raidionics/Raidionics & sleep 5; kill -INT %+
+      shell: bash
 
     - name: Make installer
       run: |
         makensis.exe assets/Raidionics.nsi
-        cp -r assets/Raidionics-1.2.1-win.exe dist/Raidionics-1.2.1-win.exe
+        cp -r assets/Raidionics-1.2.2-win.exe dist/Raidionics-1.2.2-win.exe
 
     - name: Upload package
       uses: actions/upload-artifact@v3

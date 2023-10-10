@@ -1,5 +1,7 @@
-gdown==4.7.1
+git+https://github.com/dbouget/raidionics_rads_lib.git@software_test
+gdown==4.6.0
 names==0.3.0
-PySide6==6.2.4
+PySide6==6.5.2
 plotly==5.8.0
-rt_utils==1.2.7
+rt_utils==1.2.5
+opencv-python-headless==4.5.5.64

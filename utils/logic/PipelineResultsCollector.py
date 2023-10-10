@@ -167,6 +167,13 @@ def collect_results(patient_parameters, pipeline):
                 # Also moving the csv version, for the statistics part.
                 shutil.move(report_filename_csv, dest_file_csv)
 
+                # Necessary to keep the text version in addition?
+                report_filename_txt = os.path.join(patient_parameters.output_folder, 'reporting',
+                                                   'neuro_clinical_report.txt')
+                dest_file_txt = os.path.join(patient_parameters.output_folder, dest_ts_object.folder_name,
+                                             os.path.basename(report_filename_txt))
+                shutil.move(report_filename_txt, dest_file_txt)
+
                 if os.path.exists(dest_file):  # Should always exist
                     report_uid, error_msg = patient_parameters.import_report(dest_file, dest_ts_object.unique_id)
                     patient_parameters.reportings[report_uid].set_reporting_type("Tumor characteristics")
@@ -184,4 +191,5 @@ def collect_results(patient_parameters, pipeline):
         except Exception:
             logging.error("Could not collect results for step {}.\n Received: {}".format(pipeline[step]["description"],
                                                                                          traceback.format_exc()))
+            continue
     return results

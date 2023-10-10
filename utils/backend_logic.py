@@ -113,9 +113,9 @@ def run_pipeline(task: str, model_name: str, patient_parameters: PatientParamete
                         "True" if UserPreferencesStructure.getInstance().use_registered_inputs else "False")
         rads_config.add_section('Neuro')
         if UserPreferencesStructure.getInstance().compute_cortical_structures:
-            rads_config.set('Neuro', 'cortical_features', 'MNI, Schaefer7, Schaefer17, Harvard-Oxford')
+            rads_config.set('Neuro', 'cortical_features', ",".join(UserPreferencesStructure.getInstance().cortical_structures_list))
         if UserPreferencesStructure.getInstance().compute_subcortical_structures:
-            rads_config.set('Neuro', 'subcortical_features', 'BCB')
+            rads_config.set('Neuro', 'subcortical_features', ",".join(UserPreferencesStructure.getInstance().subcortical_structures_list))
         rads_config_filename = os.path.join(patient_parameters.output_folder, 'rads_config.ini')
         with open(rads_config_filename, 'w') as outfile:
             rads_config.write(outfile)

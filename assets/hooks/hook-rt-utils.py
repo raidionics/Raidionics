@@ -1,7 +1,6 @@
 from PyInstaller.utils.hooks import collect_submodules
-from PyInstaller.utils.hooks import collect_data_files, copy_metadata
+from PyInstaller.utils.hooks import collect_data_files
 
-hiddenimports = collect_submodules("rt_utils")
+hiddenimports = collect_submodules("rt-utils")
 
-datas = copy_metadata("rt_utils")
-datas += collect_data_files("rt_utils")
+datas = collect_data_files("rt-utils")
