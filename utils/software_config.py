@@ -25,7 +25,7 @@ class SoftwareConfigResources:
     _software_home_location = None  # Main dump location for the software elements (e.g., models, runtime log)
     _user_preferences_filename = None  # json file containing the user preferences (for when reopening the software).
     _session_log_filename = None  # log filename containing the runtime logging for each software execution.
-    _software_version = "1.2.1"  # Current software version (minor) for selecting which models to use in the backend.
+    _software_version = "1.2.2"  # Current software version (minor) for selecting which models to use in the backend.
     _software_medical_specialty = "neurology"  # Overall medical target [neurology, thoracic]
 
     @staticmethod
