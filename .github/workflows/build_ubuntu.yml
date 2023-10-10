@@ -59,8 +59,12 @@ jobs:
       run: |
         pip install pyinstaller==5.13.2
         mkdir tmp_dependencies
-        pyinstaller --log-level DEBUG --noconfirm --clean assets/main.spec
-
+        pyinstaller --log-level INFO --noconfirm --clean assets/main.spec
+  
+    - name: Test executable
+      run: QT_QPA_PLATFORM="offscreen" ./dist/Raidionics/Raidionics & sleep 5; kill -INT %+
+      shell: bash
+  
     - name: Make installer
       run: |
         mkdir -p assets/Raidionics_ubuntu/usr/local/bin
