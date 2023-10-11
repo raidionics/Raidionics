@@ -28,6 +28,7 @@ jobs:
         python3 -m pip install --upgrade pip
         pip3 install ffmpeg
         pip3 install matplotlib
+        pip install git+https://github.com/dbouget/raidionics_rads_lib.git@macos_arm
         pip3 install -r assets/requirements.txt
         pip install --force-reinstall --no-cache-dir pyside6
         pip install urllib3==1.26.6
@@ -80,6 +81,9 @@ jobs:
     - name: Test executable
       run: QT_QPA_PLATFORM="offscreen" ./dist/Raidionics/Raidionics & sleep 5; kill -INT %+
       shell: bash
+
+    - name: Test GUI startup
+      run: cd ${{github.workspace}}/tests && python software_launch_test.py
 
     - name: Make installer
       run: |

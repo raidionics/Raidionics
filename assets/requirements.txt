@@ -1,4 +1,3 @@
-git+https://github.com/dbouget/raidionics_rads_lib.git@software_test
 gdown==4.6.0
 names==0.3.0
 PySide6==6.5.2
