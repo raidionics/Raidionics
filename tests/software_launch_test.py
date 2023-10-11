@@ -21,10 +21,17 @@ def software_launch_test():
         #     subprocess.check_call([os.path.join(build_executable_path, 'Raidionics')], shell=True)
         # else:
         #     subprocess.check_call([os.path.join(build_executable_path, 'Raidionics')])
-        proc = subprocess.Popen([os.path.join(build_executable_path, 'Raidionics')], stdout=subprocess.PIPE,
-                                shell=True, preexec_fn=os.setsid)
-        time.sleep(10)
-        os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
+        if platform.system() == 'Windows':
+            proc = subprocess.Popen([os.path.join(build_executable_path, 'Raidionics')], stdout=subprocess.PIPE,
+                                    shell=True, creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
+            time.sleep(10)
+            proc.send_signal(signal.CTRL_BREAK_EVENT)
+            proc.kill()
+        else:
+            proc = subprocess.Popen([os.path.join(build_executable_path, 'Raidionics')], stdout=subprocess.PIPE,
+                                    shell=True, preexec_fn=os.setsid)
+            time.sleep(10)
+            os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
     except Exception as e:
         logging.error("Error during software launch unit test with: \n {}.\n".format(traceback.format_exc()))
         raise ValueError("Error during software launch unit test with.\n")
