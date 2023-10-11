@@ -1,12 +1,10 @@
 import os
-import json
 import shutil
-import configparser
 import logging
 import sys
 import subprocess
 import traceback
-import zipfile
+import platform
 
 
 def software_launch_test():
@@ -15,12 +13,12 @@ def software_launch_test():
     logging.info("Running software launch unit test.\n")
 
     try:
-
-        import platform
+        build_executable_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../', 'dist', 'Raidionics')
+        logging.info("Running executable from: {}.\n".format(build_executable_path))
         if platform.system() == 'Windows':
-            subprocess.check_call(['./dist/Raidionics/Raidionics'], shell=True)
+            subprocess.check_call([os.path.join(build_executable_path, 'Raidionics')], shell=True)
         else:
-            subprocess.check_call(['./dist/Raidionics/Raidionics'])
+            subprocess.check_call([os.path.join(build_executable_path, 'Raidionics')])
     except Exception as e:
         logging.error("Error during software launch unit test with: \n {}.\n".format(traceback.format_exc()))
         raise ValueError("Error during software launch unit test with.\n")
