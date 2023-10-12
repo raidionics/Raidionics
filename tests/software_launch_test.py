@@ -17,10 +17,6 @@ def software_launch_test():
     try:
         build_executable_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../', 'dist', 'Raidionics')
         logging.info("Running executable from: {}.\n".format(build_executable_path))
-        # if platform.system() == 'Windows':
-        #     subprocess.check_call([os.path.join(build_executable_path, 'Raidionics')], shell=True)
-        # else:
-        #     subprocess.check_call([os.path.join(build_executable_path, 'Raidionics')])
         if platform.system() == 'Windows':
             proc = subprocess.Popen([os.path.join(build_executable_path, 'Raidionics')], stdout=subprocess.PIPE,
                                     shell=True, creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
@@ -36,6 +32,7 @@ def software_launch_test():
         logging.error("Error during software launch unit test with: \n {}.\n".format(traceback.format_exc()))
         raise ValueError("Error during software launch unit test with.\n")
 
+    # @TODO. Should likely parse the stdout or stderr content to identify any potential issue!
     logging.info("Software launch unit test succeeded.\n")
 
 
