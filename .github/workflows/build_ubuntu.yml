@@ -20,6 +20,12 @@ jobs:
       with:
         python-version: "3.7"
 
+    - name: Setup OpenGL for GUI test
+      run: |
+        apt update && apt install -y sudo
+        sudo apt-get update
+        sudo apt install -y libgl1
+
     - name: Free Up GitHub Actions Ubuntu Runner Disk Space
       uses: dbouget/free-disk-space@main
       with:
@@ -48,11 +54,6 @@ jobs:
         mkdir ${{github.workspace}}/ANTs
         mkdir ${{github.workspace}}/ANTs/install
 #        mv ${{github.workspace}}/downloads/install ${{github.workspace}}/ANTs/
-
-    - name: Setup OpenGL for GUI test
-      run: |
-        apt update && apt install -y sudo
-        sudo apt install -y libgl1
 
     - name: Install dependencies
       run: |
