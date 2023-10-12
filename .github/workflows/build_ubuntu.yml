@@ -49,6 +49,9 @@ jobs:
         mkdir ${{github.workspace}}/ANTs/install
 #        mv ${{github.workspace}}/downloads/install ${{github.workspace}}/ANTs/
 
+    - name: Setup OpenGL for GUI test
+      run: apt-get update && apt-get install libgl1
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
