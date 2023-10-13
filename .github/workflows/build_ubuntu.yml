@@ -24,9 +24,9 @@ jobs:
       run: |
         apt update && apt install -y sudo
         sudo apt-get update
-        sudo apt install -y libglu1-mesa-dev libgl1
+        sudo apt install -y libglu1-mesa-dev
         find /usr -name libGL.so.1
-        sudo ln -s /usr/lib/x86_64-linux-gnu/libGL.so.1 /usr/lib/libGL.so.1
+        sudo ln -s /usr/local/lib/android/sdk/emulator/lib64/gles_mesa/libGL.so.1 /usr/lib/libGL.so.1
 
     - name: Free Up GitHub Actions Ubuntu Runner Disk Space
       uses: dbouget/free-disk-space@main

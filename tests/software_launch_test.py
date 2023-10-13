@@ -37,11 +37,11 @@ def software_launch_test():
             os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
 
         # @TODO. Should likely parse the stdout or stderr content to identify any potential issue!
-        print(stdout.read())
-        print(stderr.read())
-        # if stderr is not None:
-        #     if 'error' in stderr.read().lower() or 'failed' in stderr.read().lower():
-        #         raise ValueError("Error during software launch unit test with.\n")
+        print("Collected stdout: {}\n".format(stdout.read().decode("utf-8")))
+        print("Collected stderr: {}\n".format(stderr.read().decode("utf-8")))
+        if stderr is not None:
+            if 'error' in stderr.read().decode("utf-8").lower() or 'failed' in stderr.read().decode("utf-8").lower():
+                raise ValueError("Error during software launch unit test.\n")
     except Exception as e:
         logging.error("Error during software launch unit test with: \n {}.\n".format(traceback.format_exc()))
         raise ValueError("Error during software launch unit test with.\n")
