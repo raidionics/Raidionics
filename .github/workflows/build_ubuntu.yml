@@ -62,7 +62,6 @@ jobs:
         pip install -r assets/requirements.txt
         pip uninstall -y PySide6 PySide6-Addons PySide6-Essentials
         pip install --force-reinstall --no-cache-dir pyside6==6.2.4
-        pip uninstall -y opencv-python
 
     - name: Build software
       run: |
