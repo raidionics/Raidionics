@@ -20,6 +20,10 @@ jobs:
       with:
         python-version: "3.7"
 
+    - name: Cleanup
+      if: always()
+      run: rm -Rf ${{github.workspace}}
+
     - name: Free Up GitHub Actions Ubuntu Runner Disk Space
       uses: dbouget/free-disk-space@main
       with:

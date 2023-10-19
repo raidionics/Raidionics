@@ -2,4 +2,4 @@ gdown==4.6.0
 names==0.3.0
 PySide6==6.5.2
 plotly==5.8.0
-git+https://github.com/dbouget/rt-utils.git@scikit-image
+rt-utils@git+https://github.com/dbouget/rt-utils.git@scikit-image
