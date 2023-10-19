@@ -20,9 +20,22 @@ jobs:
       with:
         python-version: "3.7"
 
-    - name: Cleanup
-      if: always()
-      run: rm -Rf ${{github.workspace}}
+    - name: Install CL dependencies
+      run: |
+          apt update && apt install -y sudo
+          sudo apt install -y clinfo
+
+    - name: Setup OpenCL
+      run: |
+          sudo add-apt-repository ppa:ocl-icd/ppa
+          sudo apt update
+          sudo apt-get install -y pocl-opencl-icd
+
+    - name: Setup OpenGL
+      run: sudo apt-get install -y libopengl0
+
+    - name: Debug clinfo
+      run: clinfo
 
     - name: Free Up GitHub Actions Ubuntu Runner Disk Space
       uses: dbouget/free-disk-space@main
@@ -88,3 +101,7 @@ jobs:
         name: Package
         path: ${{github.workspace}}/dist/Raidionics-*
         if-no-files-found: error
+
+    - name: Cleanup
+      if: always()
+      run: rm -Rf ${{github.workspace}}
