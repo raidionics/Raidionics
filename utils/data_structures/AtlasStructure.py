@@ -126,7 +126,7 @@ class AtlasVolume:
 
     def load_in_memory(self) -> None:
         if self._display_volume_filepath and os.path.exists(self._display_volume_filepath):
-            self._display_volume = nib.load(self._display_volume_filepath).get_data()[:]
+            self._display_volume = nib.load(self._display_volume_filepath).get_fdata()[:]
         else:
             pass
 
@@ -358,7 +358,7 @@ class AtlasVolume:
 
         # Resampling to standard output for viewing purposes.
         resampled_input_ni = resample_to_output(image_nib, order=0)
-        self._resampled_input_volume = resampled_input_ni.get_data()[:].astype('uint8')
+        self._resampled_input_volume = resampled_input_ni.get_fdata()[:].astype('uint8')
 
         self._display_volume = deepcopy(self._resampled_input_volume)
         self._visible_class_labels = list(np.unique(self._display_volume))
