@@ -46,11 +46,13 @@ jobs:
         cd ${{github.workspace}}/downloads/
         tar -xzf ANTsX-v2.4.3_ubuntu.tar.gz -C ${{github.workspace}}/downloads/
         mkdir ${{github.workspace}}/ANTs
-        mv ${{github.workspace}}/downloads/install ${{github.workspace}}/ANTs/
+        mkdir ${{github.workspace}}/ANTs/install
+#        mv ${{github.workspace}}/downloads/install ${{github.workspace}}/ANTs/
 
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
+        pip install git+https://github.com/dbouget/raidionics_rads_lib.git@software_test
         pip install -r assets/requirements.txt
         pip uninstall -y PySide6 PySide6-Addons PySide6-Essentials
         pip install --force-reinstall --no-cache-dir pyside6==6.2.4
@@ -60,18 +62,21 @@ jobs:
         pip install pyinstaller==5.13.2
         mkdir tmp_dependencies
         pyinstaller --log-level INFO --noconfirm --clean assets/main.spec
-  
+
     - name: Test executable
       run: QT_QPA_PLATFORM="offscreen" ./dist/Raidionics/Raidionics & sleep 5; kill -INT %+
       shell: bash
-  
+
+    - name: Test GUI startup
+      run: cd ${{github.workspace}}/tests && python software_launch_test.py
+
     - name: Make installer
       run: |
         mkdir -p assets/Raidionics_ubuntu/usr/local/bin
         cp -r dist/Raidionics assets/Raidionics_ubuntu/usr/local/bin
         dpkg-deb --build --root-owner-group assets/Raidionics_ubuntu
         ls -la
-        cp -r assets/Raidionics_ubuntu.deb dist/Raidionics-1.2.1-ubuntu.deb
+        cp -r assets/Raidionics_ubuntu.deb dist/Raidionics-1.2.2-ubuntu.deb
 
     - name: Upload package
       uses: actions/upload-artifact@v3

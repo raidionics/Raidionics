@@ -97,14 +97,14 @@ class MRIVolume:
 
     def load_in_memory(self) -> None:
         if self._resampled_input_volume_filepath and os.path.exists(self._resampled_input_volume_filepath):
-            self._resampled_input_volume = nib.load(self._resampled_input_volume_filepath).get_data()[:]
+            self._resampled_input_volume = nib.load(self._resampled_input_volume_filepath).get_fdata()[:]
         else:
             # Should not occur unless the patient was not saved after being loaded.
             # @behaviour. it is wanted?
             self.__generate_display_volume()
 
         if self._display_volume_filepath and os.path.exists(self._display_volume_filepath):
-            self._display_volume = nib.load(self._display_volume_filepath).get_data()[:]
+            self._display_volume = nib.load(self._display_volume_filepath).get_fdata()[:]
         else:
             self.__generate_display_volume()
 
@@ -420,14 +420,14 @@ class MRIVolume:
         self._resampled_input_volume_filepath = os.path.join(self._output_patient_folder,
                                                              parameters['resample_input_filepath'])
         if os.path.exists(self._resampled_input_volume_filepath):
-            self._resampled_input_volume = nib.load(self._resampled_input_volume_filepath).get_data()[:]
+            self._resampled_input_volume = nib.load(self._resampled_input_volume_filepath).get_fdata()[:]
         else:
             # Patient wasn't saved after loading, hence the volume was not stored on disk and must be recomputed
             self.__generate_display_volume()
 
         # @TODO. Must include a reloading of the DICOM metadata, if they exist.
         self._display_volume_filepath = os.path.join(self._output_patient_folder, parameters['display_volume_filepath'])
-        self._display_volume = nib.load(self._display_volume_filepath).get_data()[:]
+        self._display_volume = nib.load(self._display_volume_filepath).get_fdata()[:]
         self._display_name = parameters['display_name']
         self._timestamp_folder_name = parameters['display_volume_filepath'].split('/')[0]
         if os.name == 'nt':
@@ -461,7 +461,7 @@ class MRIVolume:
 
         # Resampling to standard output for viewing purposes.
         resampled_input_ni = resample_to_output(image_nib, order=1)
-        self._resampled_input_volume = resampled_input_ni.get_data()[:]
+        self._resampled_input_volume = resampled_input_ni.get_fdata()[:]
 
         self.__generate_intensity_histogram()
 

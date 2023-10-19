@@ -125,9 +125,9 @@ class AnnotationVolume:
 
     def load_in_memory(self) -> None:
         if self._display_volume_filepath and os.path.exists(self._display_volume_filepath):
-            self._display_volume = nib.load(self._display_volume_filepath).get_data()[:]
+            self._display_volume = nib.load(self._display_volume_filepath).get_fdata()[:]
         if self._resampled_input_volume_filepath and os.path.exists(self._resampled_input_volume_filepath):
-            self._resampled_input_volume = nib.load(self._resampled_input_volume_filepath).get_data()[:]
+            self._resampled_input_volume = nib.load(self._resampled_input_volume_filepath).get_fdata()[:]
 
     def release_from_memory(self) -> None:
         self._display_volume = None
@@ -436,14 +436,14 @@ class AnnotationVolume:
         self._resampled_input_volume_filepath = os.path.join(self._output_patient_folder,
                                                              parameters['resample_input_filepath'])
         if os.path.exists(self._resampled_input_volume_filepath):
-            self._resampled_input_volume = nib.load(self._resampled_input_volume_filepath).get_data()[:]
+            self._resampled_input_volume = nib.load(self._resampled_input_volume_filepath).get_fdata()[:]
         else:
             # Patient wasn't saved after loading, hence the volume was not stored on disk and must be recomputed
             self.__generate_display_volume()
 
         self._display_volume_filepath = os.path.join(self._output_patient_folder, parameters['display_volume_filepath'])
         if os.path.exists(self._display_volume_filepath):
-            self._display_volume = nib.load(self._display_volume_filepath).get_data()[:]
+            self._display_volume = nib.load(self._display_volume_filepath).get_fdata()[:]
         else:
             self.__generate_display_volume()
         self.set_annotation_class_type(anno_type=parameters['annotation_class'], manual=False)
@@ -461,6 +461,6 @@ class AnnotationVolume:
         # @TODO. Check if more than one label?
         image_nib = nib.load(self._usable_input_filepath)
         resampled_input_ni = resample_to_output(image_nib, order=0)
-        self._resampled_input_volume = resampled_input_ni.get_data()[:].astype('uint8')
+        self._resampled_input_volume = resampled_input_ni.get_fdata()[:].astype('uint8')
 
         self._display_volume = deepcopy(self._resampled_input_volume)

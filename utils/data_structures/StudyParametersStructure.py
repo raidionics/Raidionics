@@ -323,7 +323,7 @@ class StudyParameters:
         for anno in annotation_uids:
             anno_object = patient_parameters.get_annotation_by_uid(anno)
             volume_nib = nib.load(anno_object.raw_input_filepath)
-            anno_volume = np.count_nonzero(volume_nib.get_data()[:]) * np.prod(volume_nib.header.get_zooms()) * 1e-3
+            anno_volume = np.count_nonzero(volume_nib.get_fdata()[:]) * np.prod(volume_nib.header.get_zooms()) * 1e-3
             row_values = [patient_uid, patient_parameters.display_name, anno_object.timestamp_folder_name,
                           patient_parameters.get_mri_by_uid(anno_object.get_parent_mri_uid()).get_sequence_type_str(),
                           anno_object.get_generation_type_str(), anno_object.get_annotation_class_str(),
