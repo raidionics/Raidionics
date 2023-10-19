@@ -41,6 +41,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         ls
+        pip install git+https://github.com/dbouget/raidionics_rads_lib.git@software_test
         pip install -r assets/requirements.txt
         pip install matplotlib==3.3.4
         pip install --force-reinstall --no-cache-dir pyside6
@@ -50,10 +51,13 @@ jobs:
         pip install pyinstaller==5.13.2
         mkdir tmp_dependencies
         pyinstaller --log-level INFO --noconfirm --clean assets/main.spec
-      
+
     - name: Test executable
       run: QT_QPA_PLATFORM="offscreen" ./dist/Raidionics/Raidionics & sleep 5; kill -INT %+
       shell: bash
+
+    - name: Test GUI startup
+      run: cd ${{github.workspace}}/tests && python software_launch_test.py
 
     - name: Make installer
       run: |
