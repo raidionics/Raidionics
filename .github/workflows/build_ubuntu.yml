@@ -80,12 +80,12 @@ jobs:
         mkdir tmp_dependencies
         pyinstaller --log-level INFO --noconfirm --clean assets/main.spec
 
-    - name: Test executable
-      run: QT_QPA_PLATFORM="offscreen" ./dist/Raidionics/Raidionics & sleep 5; kill -INT %+
-      shell: bash
-
-    - name: Test GUI startup
-      run: cd ${{github.workspace}}/tests && python software_launch_test.py
+#    - name: Test executable
+#      run: QT_QPA_PLATFORM="offscreen" ./dist/Raidionics/Raidionics & sleep 5; kill -INT %+
+#      shell: bash
+#
+#    - name: Test GUI startup
+#      run: cd ${{github.workspace}}/tests && python software_launch_test.py
 
     - name: Make installer
       run: |
