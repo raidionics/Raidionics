@@ -101,7 +101,3 @@ jobs:
         name: Package
         path: ${{github.workspace}}/dist/Raidionics-*
         if-no-files-found: error
-
-    - name: Cleanup
-      if: always()
-      run: rm -Rf ${{github.workspace}}
