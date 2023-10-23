@@ -9,7 +9,7 @@ import nibabel as nib
 import SimpleITK as sitk
 from copy import deepcopy
 import time
-import rt_utils
+import rtutils
 import numpy as np
 import json
 import logging
@@ -1169,7 +1169,7 @@ class PatientParameters:
                                                          dicom_folderpath), range(original_image_sitk.GetDepth())))
 
                     # @TODO. Should we check that it already exists on disk, to append to it, rather than building it from scratch?
-                    rt_struct = rt_utils.RTStructBuilder.create_new(dicom_series_path=dicom_folderpath)
+                    rt_struct = rtutils.RTStructBuilder.create_new(dicom_series_path=dicom_folderpath)
                     for anno_uid in linked_annotation_uids:
                         anno = self.get_annotation_by_uid(annotation_uid=anno_uid)
                         anno_sitk = sitk.ReadImage(anno.raw_input_filepath, outputPixelType=sitk.sitkUInt8)
