@@ -31,7 +31,7 @@ These steps are only needed to do once:
 
 ## [Demos and tutorials](https://github.com/raidionics/Raidionics/demos-and-tutorials)
 
-Very simple demonstrations of the software can be found on [Youtube](https://www.youtube.com/@davidbouget5649). Wikis and tutorials can be found in the [wiki](https://github.com/dbouget/Raidionics/wiki).
+Very simple demonstrations of the software can be found on [YouTube](https://www.youtube.com/@davidbouget5649). Tutorials can be found in the [wiki](https://github.com/dbouget/Raidionics/wiki).
 
 [![Watch the video](assets/images/raidionics_yt_thumbnail.png)](https://www.youtube.com/watch?v=cm9Mxg7Fuj8)
 

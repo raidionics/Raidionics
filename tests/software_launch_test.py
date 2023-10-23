@@ -10,6 +10,10 @@ import time
 
 
 def software_launch_test():
+    """
+    The purpose of the unit test is to assert that the software launches, that the GUI is visible, and that no
+    library linking or DLL issues arised during startup.
+    """
     logging.basicConfig()
     logging.getLogger().setLevel(logging.DEBUG)
     logging.info("Running software launch unit test.\n")
