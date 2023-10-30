@@ -15,10 +15,10 @@ jobs:
     runs-on: windows-2019
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python 3.7
+    - name: Set up Python 3.8
       uses: actions/setup-python@v4
       with:
-        python-version: "3.7"
+        python-version: "3.8"
 
     # Not using the ANTs c++ backend on Windows, have to investigate how to execute the bash scripts.
     # But have to download it due to the expected copying of the install folder...
