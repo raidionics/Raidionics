@@ -16,6 +16,7 @@ from utils.models_download import download_model
 from gui.UtilsWidgets.CustomQDialog.TumorTypeSelectionQDialog import TumorTypeSelectionQDialog
 from utils.data_structures.PatientParametersStructure import MRISequenceType
 from utils.data_structures.AnnotationStructure import AnnotationGenerationType, AnnotationClassType
+from utils.data_structures.UserPreferencesStructure import UserPreferencesStructure
 
 
 class CentralAreaExecutionWidget(QLabel):
@@ -159,6 +160,11 @@ class CentralAreaExecutionWidget(QLabel):
                 self.model_name = "MRI_Metastasis"
             elif diag.tumor_type == 'Meningioma':
                 self.model_name = "MRI_Meningioma"
+
+            if UserPreferencesStructure.getInstance().segmentation_tumor_model_type != "Tumor":
+                self.model_name = self.model_name + '_multiclass'
+                if diag.tumor_type == 'Low-Grade Glioma':
+                    self.model_name = "MRI_GBM_multiclass"
         elif "Brain" in pipeline_code:
             self.model_name = "MRI_Brain"
         elif "postop" in pipeline_code:

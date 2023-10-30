@@ -178,6 +178,23 @@ class SoftwareSettingsDialog(QDialog):
         self.processing_segmentation_options_base_layout = QVBoxLayout()
         self.processing_segmentation_options_label = QLabel("Processing - Segmentation")
         self.processing_segmentation_options_base_layout.addWidget(self.processing_segmentation_options_label)
+        self.processing_segmentation_models_groupbox = QGroupBox()
+        self.processing_segmentation_models_groupbox.setTitle("Segmentation models")
+        self.processing_segmentation_models_groupboxlayout = QVBoxLayout()
+
+        self.processing_options_segmentation_models_layout = QHBoxLayout()
+        self.processing_options_segmentation_models_label = QLabel("Output classes")
+        self.processing_options_segmentation_models_label.setToolTip("Select the segmented output classes desired in the drop-down menu. N-B: all four MR sequences (i.e., T1-CE, T1-w, FLAIR, and T2) are required as input for the second choice.\n")
+        self.processing_options_segmentation_models_selector_combobox = QComboBox()
+        self.processing_options_segmentation_models_selector_combobox.addItems(["Tumor", "Tumor, Necrosis, Edema"])
+        self.processing_options_segmentation_models_selector_combobox.setCurrentText(UserPreferencesStructure.getInstance().segmentation_tumor_model_type)
+        self.processing_options_segmentation_models_layout.addWidget(self.processing_options_segmentation_models_label)
+        self.processing_options_segmentation_models_layout.addWidget(self.processing_options_segmentation_models_selector_combobox)
+        self.processing_options_segmentation_models_layout.addStretch(1)
+        self.processing_segmentation_models_groupboxlayout.addLayout(self.processing_options_segmentation_models_layout)
+        self.processing_segmentation_models_groupbox.setLayout(self.processing_segmentation_models_groupboxlayout)
+        self.processing_segmentation_options_base_layout.addWidget(self.processing_segmentation_models_groupbox)
+
         self.processing_segmentation_refinement_groupbox = QGroupBox()
         self.processing_segmentation_refinement_groupbox.setTitle("Refinement")
         self.processing_segmentation_refinement_groupboxlayout = QVBoxLayout()
@@ -375,6 +392,7 @@ class SoftwareSettingsDialog(QDialog):
         self.processing_options_use_stripped_inputs_checkbox.stateChanged.connect(self.__on_use_stripped_inputs_status_changed)
         self.processing_options_use_registered_inputs_checkbox.stateChanged.connect(self.__on_use_registered_inputs_status_changed)
         self.processing_options_export_results_rtstruct_checkbox.stateChanged.connect(self.__on_export_results_rtstruct_status_changed)
+        self.processing_options_segmentation_models_selector_combobox.currentTextChanged.connect(self.__on_segmentation_model_type_changed)
         self.processing_options_segmentation_refinement_checkbox.stateChanged.connect(self.__on_perform_segmentation_refinement_status_changed)
         self.processing_options_segmentation_refinement_dilation_threshold_spinbox.valueChanged.connect(self.__on_perform_segmentation_refinement_dilation_value_changed)
         self.processing_options_compute_corticalstructures_checkbox.stateChanged.connect(self.__on_compute_corticalstructures_status_changed)
@@ -633,19 +651,22 @@ class SoftwareSettingsDialog(QDialog):
                 os.makedirs(SoftwareConfigResources.getInstance().models_path)
 
     def __on_use_sequences_status_changed(self, status):
-        UserPreferencesStructure.getInstance().use_manual_sequences = status
+        UserPreferencesStructure.getInstance().use_manual_sequences = self.processing_options_use_sequences_checkbox.isChecked()
 
     def __on_use_manual_annotations_status_changed(self, status):
-        UserPreferencesStructure.getInstance().use_manual_annotations = status
+        UserPreferencesStructure.getInstance().use_manual_annotations = self.processing_options_use_annotations_checkbox.isChecked()
 
     def __on_use_stripped_inputs_status_changed(self, status):
-        UserPreferencesStructure.getInstance().use_stripped_inputs = status
+        UserPreferencesStructure.getInstance().use_stripped_inputs = self.processing_options_use_stripped_inputs_checkbox.isChecked()
 
     def __on_use_registered_inputs_status_changed(self, status):
-        UserPreferencesStructure.getInstance().use_registered_inputs = status
+        UserPreferencesStructure.getInstance().use_registered_inputs = self.processing_options_use_registered_inputs_checkbox.isChecked()
 
     def __on_export_results_rtstruct_status_changed(self, status):
-        UserPreferencesStructure.getInstance().export_results_as_rtstruct = status
+        UserPreferencesStructure.getInstance().export_results_as_rtstruct = self.processing_options_export_results_rtstruct_checkbox.isChecked()
+
+    def __on_segmentation_model_type_changed(self, text):
+        UserPreferencesStructure.getInstance().segmentation_tumor_model_type = text
 
     def __on_perform_segmentation_refinement_status_changed(self, status):
         UserPreferencesStructure.getInstance().perform_segmentation_refinement = status
@@ -660,7 +681,7 @@ class SoftwareSettingsDialog(QDialog):
         UserPreferencesStructure.getInstance().segmentation_refinement_dilation_percentage = value
 
     def __on_compute_corticalstructures_status_changed(self, state):
-        UserPreferencesStructure.getInstance().compute_cortical_structures = state
+        UserPreferencesStructure.getInstance().compute_cortical_structures = self.processing_options_compute_corticalstructures_checkbox.isChecked()
         if state:
             self.corticalstructures_mni_checkbox.setEnabled(True)
             self.corticalstructures_mni_label.setEnabled(True)
@@ -725,7 +746,7 @@ class SoftwareSettingsDialog(QDialog):
         UserPreferencesStructure.getInstance().cortical_structures_list = structs
 
     def __on_compute_subcorticalstructures_status_changed(self, state):
-        UserPreferencesStructure.getInstance().compute_subcortical_structures = state
+        UserPreferencesStructure.getInstance().compute_subcortical_structures = self.processing_options_compute_subcorticalstructures_checkbox.isChecked()
         if state:
             self.subcorticalstructures_bcb_checkbox.setEnabled(True)
             self.subcorticalstructures_bcb_label.setEnabled(True)

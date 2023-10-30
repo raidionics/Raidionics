@@ -42,7 +42,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install git+https://github.com/dbouget/raidionics_rads_lib.git@software_test
+        pip install git+https://github.com/dbouget/raidionics_rads_lib.git@software
         pip install -r assets/requirements.txt
         pip install matplotlib==3.3.4
         pip install --force-reinstall --no-cache-dir pyside6

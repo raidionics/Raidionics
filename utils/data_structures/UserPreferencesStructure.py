@@ -23,6 +23,7 @@ class UserPreferencesStructure:
     _export_results_as_rtstruct = False  # True to export all masks as DICOM RTStruct in addition
     _use_stripped_inputs = False  # True to use inputs already stripped (e.g., skull-stripped or lungs-stripped)
     _use_registered_inputs = False  # True to use inputs already registered (e.g., altas-registered, multi-sequences co-registered)
+    _segmentation_tumor_model_type = "Tumor"  # Type of output to expect from the tumor segmentation model (i.e., indicating if a BraTS model should be used)
     _perform_segmentation_refinement = False  # True to enable any kind of segmentation refinement
     _segmentation_refinement_type = "dilation"  # String indicating the type of refinement to perform, to select from ["dilation"]
     _segmentation_refinement_dilation_percentage = 0  # Integer indicating the volume percentage increase to reach after dilation
@@ -128,7 +129,7 @@ class UserPreferencesStructure:
         return self._use_manual_annotations
 
     @use_manual_annotations.setter
-    def use_manual_annotations(self, state) -> None:
+    def use_manual_annotations(self, state: bool) -> None:
         self._use_manual_annotations = state
         self.save_preferences()
 
@@ -137,7 +138,7 @@ class UserPreferencesStructure:
         return self._use_stripped_inputs
 
     @use_stripped_inputs.setter
-    def use_stripped_inputs(self, state) -> None:
+    def use_stripped_inputs(self, state: bool) -> None:
         self._use_stripped_inputs = state
         self.save_preferences()
 
@@ -146,8 +147,17 @@ class UserPreferencesStructure:
         return self._use_registered_inputs
 
     @use_registered_inputs.setter
-    def use_registered_inputs(self, state) -> None:
+    def use_registered_inputs(self, state: bool) -> None:
         self._use_registered_inputs = state
+        self.save_preferences()
+
+    @property
+    def segmentation_tumor_model_type(self) -> str:
+        return self._segmentation_tumor_model_type
+
+    @segmentation_tumor_model_type.setter
+    def segmentation_tumor_model_type(self, model_type: str) -> None:
+        self._segmentation_tumor_model_type = model_type
         self.save_preferences()
 
     @property
@@ -204,7 +214,11 @@ class UserPreferencesStructure:
         self._subcortical_structures_list = structures
         self.save_preferences()
 
-    def __parse_preferences(self):
+    def __parse_preferences(self) -> None:
+        """
+        Loads the saved user preferences from disk (located in raidionics_preferences.json) and updates all internal
+        variables accordingly.
+        """
         with open(self._preferences_filename, 'r') as infile:
             preferences = json.load(infile)
 
@@ -223,6 +237,8 @@ class UserPreferencesStructure:
                 self.use_registered_inputs = preferences['Processing']['use_registered_inputs']
             if 'export_results_as_rtstruct' in preferences['Processing'].keys():
                 self.export_results_as_rtstruct = preferences['Processing']['export_results_as_rtstruct']
+            if 'segmentation_tumor_model_type' in preferences['Processing'].keys():
+                self.segmentation_tumor_model_type = preferences['Processing']['segmentation_tumor_model_type']
             if 'perform_segmentation_refinement' in preferences['Processing'].keys():
                 self.perform_segmentation_refinement = preferences['Processing']['perform_segmentation_refinement']
             if 'SegmentationRefinement' in preferences['Processing'].keys():
@@ -244,7 +260,10 @@ class UserPreferencesStructure:
             if 'dark_mode' in preferences['Appearance'].keys():
                 self._use_dark_mode = preferences['Appearance']['dark_mode']
 
-    def save_preferences(self):
+    def save_preferences(self) -> None:
+        """
+        Automatically saving on disk the user preferences inside the .raidionics folder, as raidionics_preferences.json
+        """
         preferences = {}
         preferences['System'] = {}
         preferences['System']['user_home_location'] = self._user_home_location
@@ -256,6 +275,7 @@ class UserPreferencesStructure:
         preferences['Processing']['use_stripped_inputs'] = self._use_stripped_inputs
         preferences['Processing']['use_registered_inputs'] = self._use_registered_inputs
         preferences['Processing']['export_results_as_rtstruct'] = self._export_results_as_rtstruct
+        preferences['Processing']['segmentation_tumor_model_type'] = self.segmentation_tumor_model_type
         preferences['Processing']['perform_segmentation_refinement'] = self._perform_segmentation_refinement
         preferences['Processing']['SegmentationRefinement'] = {}
         preferences['Processing']['SegmentationRefinement']['type'] = self._segmentation_refinement_type
