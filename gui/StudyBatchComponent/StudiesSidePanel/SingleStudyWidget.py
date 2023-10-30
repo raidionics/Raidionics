@@ -14,6 +14,7 @@ from gui.UtilsWidgets.CustomQDialog.ImportFoldersQDialog import ImportFoldersQDi
 from gui.UtilsWidgets.CustomQDialog.TumorTypeSelectionQDialog import TumorTypeSelectionQDialog
 from gui.UtilsWidgets.CustomQDialog.SavePatientChangesDialog import SavePatientChangesDialog
 from utils.software_config import SoftwareConfigResources
+from utils.data_structures.UserPreferencesStructure import UserPreferencesStructure
 
 
 class SingleStudyWidget(QCollapsibleWidget):
@@ -599,6 +600,10 @@ class SingleStudyWidget(QCollapsibleWidget):
                 self.model_name = "MRI_Metastasis"
             elif diag.tumor_type == 'Meningioma':
                 self.model_name = "MRI_Meningioma"
+            if UserPreferencesStructure.getInstance().segmentation_tumor_model_type != "Tumor":
+                self.model_name = self.model_name + '_multiclass'
+                if diag.tumor_type == 'Low-Grade Glioma':
+                    self.model_name = "MRI_GBM_multiclass"
 
         self.on_processing_started()
         self.batch_pipeline_execution_requested.emit(self.uid, pipeline_task, self.model_name)

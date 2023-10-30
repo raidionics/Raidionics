@@ -111,6 +111,10 @@ def __create_segmentation_pipeline(model_name, patient_parameters):
         download_model(model_name='MRI_Sequence_Classifier')
 
     for steps in list(raw_pip.keys()):
+        # Excluding brain segmentation step if the inputs are already skull-stripped
+        if (UserPreferencesStructure.getInstance().use_stripped_inputs and
+                (raw_pip[steps]["task"] == "Segmentation" and raw_pip[steps]["model"] == "MRI_Brain")):
+            continue
         pip_num_int = pip_num_int + 1
         pip_num = str(pip_num_int)
         pip[pip_num] = raw_pip[steps]
@@ -197,6 +201,10 @@ def __create_postop_segmentation_pipeline(model_name, patient_parameters):
         download_model(model_name='MRI_Sequence_Classifier')
 
     for steps in list(raw_pip.keys()):
+        # Excluding brain segmentation step if the inputs are already skull-stripped
+        if (UserPreferencesStructure.getInstance().use_stripped_inputs and
+                (raw_pip[steps]["task"] == "Segmentation" and raw_pip[steps]["model"] == "MRI_Brain")):
+            continue
         pip_num_int = pip_num_int + 1
         pip_num = str(pip_num_int)
         pip[pip_num] = raw_pip[steps]
@@ -226,12 +234,16 @@ def __create_preop_reporting_pipeline(model_name, patient_parameters):
         download_model(model_name='MRI_Sequence_Classifier')
 
     for steps in list(raw_pip.keys()):
+        # Excluding brain segmentation step if the inputs are already skull-stripped
+        if (UserPreferencesStructure.getInstance().use_stripped_inputs and
+                (raw_pip[steps]["task"] == "Segmentation" and raw_pip[steps]["model"] == "MRI_Brain")):
+            continue
         pip_num_int = pip_num_int + 1
         pip_num = str(pip_num_int)
         pip[pip_num] = raw_pip[steps]
 
     # @TODO. Hard-coded, to remove/improve
-    if "Meningioma" in model_name:
+    if "Meningioma" in model_name and not UserPreferencesStructure.getInstance().use_stripped_inputs:
         pip_num_int = pip_num_int + 1
         pip_num = str(pip_num_int)
         pip[pip_num] = {}
