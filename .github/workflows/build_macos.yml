@@ -24,9 +24,7 @@ jobs:
         python-version: "3.8"
 
     - name: Setup OpenGL
-      run: |
-          apt update && apt install -y sudo
-          sudo apt install -y '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev
+      run: brew install '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev
 
     - name: Download ANTs
       uses: robinraju/release-downloader@main
