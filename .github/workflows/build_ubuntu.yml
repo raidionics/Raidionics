@@ -45,7 +45,7 @@ jobs:
           sudo apt-get install -y pocl-opencl-icd
 
     - name: Setup OpenGL
-      run: sudo apt-get install -y libopengl0
+      run: sudo apt install -y '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev
 
     - name: Debug clinfo
       run: clinfo
@@ -84,10 +84,14 @@ jobs:
         pyinstaller --log-level INFO --noconfirm --clean assets/main.spec
 
     - name: Test executable xvfb
+      env:
+        DISPLAY: ':1'
       run: xvfb-run ./dist/Raidionics/Raidionics & sleep 5; kill -INT %+
       shell: bash
 
     - name: Test executable
+      env:
+        DISPLAY: ':1'
       run: QT_QPA_PLATFORM="offscreen" ./dist/Raidionics/Raidionics & sleep 5; kill -INT %+
       shell: bash
 #
