@@ -33,8 +33,8 @@ def software_launch_test():
             proc.send_signal(signal.CTRL_BREAK_EVENT)
             proc.kill()
         else:
-            proc = subprocess.Popen(["QT_QPA_PLATFORM=\"offscreen\"",
-                                     os.path.join(build_executable_path, 'Raidionics')],
+            os.environ['QT_QPA_PLATFORM'] = "offscreen"
+            proc = subprocess.Popen([os.path.join(build_executable_path, 'Raidionics')],
                                     stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=os.setsid)
             time.sleep(10)
             stdout = proc.stdout

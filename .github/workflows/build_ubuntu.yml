@@ -98,7 +98,9 @@ jobs:
     - name: Test GUI startup
       env:
         DISPLAY: ':1'
-      run: cd ${{github.workspace}}/tests && python software_launch_test.py
+      run: |
+          export QT_QPA_PLATFORM="offscreen"
+          cd ${{github.workspace}}/tests && python software_launch_test.py
 
     - name: Make installer
       run: |
