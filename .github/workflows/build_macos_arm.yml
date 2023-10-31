@@ -34,27 +34,6 @@ jobs:
         pip install urllib3==1.26.6
         deactivate
 
-#    - name: Install cmake
-#      run: |
-#        brew update
-#        brew install cmake ninja
-#        ninja --version
-#        cmake --version
-#
-#    - name: Build ANTs
-#      run: |
-#        cd ${{github.workspace}}
-#        mkdir ANTs
-#        cd ANTs
-#        git clone https://github.com/ANTsX/ANTs.git source
-#        mkdir build
-#        cd build
-#        cmake -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/ANTs/install ../source
-#        make -j4
-#        cd ANTS-build
-#        make install
-#        cp -R ${{github.workspace}}/ANTs/source/Scripts ${{github.workspace}}/ANTs/install/
-
     - name: Download ANTs
       uses: robinraju/release-downloader@main
       with:
@@ -79,17 +58,17 @@ jobs:
         pyinstaller --log-level INFO --noconfirm --clean assets/main_arm.spec
 
     - name: Test executable
-      run: QT_QPA_PLATFORM="offscreen" ./dist/Raidionics/Raidionics & sleep 5; kill -INT %+
+      run: ./dist/Raidionics/Raidionics & sleep 5; kill -INT %+
       shell: bash
 
     - name: Test GUI startup
-      run: cd ${{github.workspace}}/tests && python software_launch_test.py
+      run: cd ${{github.workspace}}/tests && python3 software_launch_test.py
 
     - name: Make installer
       run: |
         git clone https://github.com/dbouget/quickpkg.git
-        quickpkg/quickpkg dist/Raidionics.app --output Raidionics-1.2.1-macOS.pkg
-        cp -r Raidionics-1.2.1-macOS.pkg dist/Raidionics-1.2.1-macOS-arm64.pkg
+        quickpkg/quickpkg dist/Raidionics.app --output Raidionics-1.2.2-macOS.pkg
+        cp -r Raidionics-1.2.2-macOS.pkg dist/Raidionics-1.2.2-macOS-arm64.pkg
 
     - name: Upload package
       uses: actions/upload-artifact@v3

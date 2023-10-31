@@ -23,6 +23,9 @@ jobs:
       with:
         python-version: "3.8"
 
+    - name: Setup OpenGL
+      run: brew install mesa-glu libxrender libxi libxkbcommon
+
     - name: Download ANTs
       uses: robinraju/release-downloader@main
       with:
@@ -53,12 +56,18 @@ jobs:
         mkdir tmp_dependencies
         pyinstaller --log-level INFO --noconfirm --clean assets/main.spec
 
-#    - name: Test executable
-#      run: QT_QPA_PLATFORM="offscreen" ./dist/Raidionics/Raidionics & sleep 5; kill -INT %+
-#      shell: bash
-#
-#    - name: Test GUI startup
-#      run: cd ${{github.workspace}}/tests && python software_launch_test.py
+    - name: Test executable
+      env:
+        DISPLAY: ':1'
+      run: QT_QPA_PLATFORM="offscreen" ./dist/Raidionics/Raidionics & sleep 5; kill -INT %+
+      shell: bash
+
+    - name: Test GUI startup
+      env:
+        DISPLAY: ':1'
+      run: |
+          export QT_QPA_PLATFORM="offscreen"
+          cd ${{github.workspace}}/tests && python software_launch_test.py
 
     - name: Make installer
       run: |
