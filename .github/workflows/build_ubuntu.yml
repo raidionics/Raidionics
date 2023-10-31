@@ -38,12 +38,12 @@ jobs:
       run: clinfo
 
     - name: Setup X virtual framebuffer
-      run: sudo apt-get install -y xvfb
+      run: |
+          sudo apt-get install -y xvfb
+          sudo apt-get install -y nautilus
 
     - name: Dummy test executable xvfb
-      run: |
-          sudo apt-get install -y nautilus
-          xvfb-run nautilus & sleep 5; kill -INT %+
+      run: xvfb-run nautilus & sleep 5; kill -INT %+
       shell: bash
 
     - name: Free Up GitHub Actions Ubuntu Runner Disk Space
