@@ -79,7 +79,7 @@ jobs:
         pyinstaller --log-level INFO --noconfirm --clean assets/main_arm.spec
 
     - name: Test executable
-      run: QT_QPA_PLATFORM="offscreen" ./dist/Raidionics/Raidionics & sleep 5; kill -INT %+
+      run: ./dist/Raidionics/Raidionics & sleep 5; kill -INT %+
       shell: bash
 
     - name: Test GUI startup
