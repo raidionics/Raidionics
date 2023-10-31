@@ -50,9 +50,6 @@ jobs:
     - name: Debug clinfo
       run: clinfo
 
-    - name: Setup X virtual framebuffer
-      run: sudo apt-get install -y xvfb
-
     - name: Download ANTs
       uses: robinraju/release-downloader@main
       with:
@@ -83,20 +80,16 @@ jobs:
         mkdir tmp_dependencies
         pyinstaller --log-level INFO --noconfirm --clean assets/main.spec
 
-    - name: Test executable xvfb
-      env:
-        DISPLAY: ':1'
-      run: xvfb-run ./dist/Raidionics/Raidionics & sleep 5; kill -INT %+
-      shell: bash
-
     - name: Test executable
       env:
         DISPLAY: ':1'
       run: QT_QPA_PLATFORM="offscreen" ./dist/Raidionics/Raidionics & sleep 5; kill -INT %+
       shell: bash
-#
-#    - name: Test GUI startup
-#      run: cd ${{github.workspace}}/tests && python software_launch_test.py
+
+    - name: Test GUI startup
+      env:
+        DISPLAY: ':1'
+      run: cd ${{github.workspace}}/tests && python software_launch_test.py
 
     - name: Make installer
       run: |
