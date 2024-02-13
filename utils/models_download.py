@@ -16,22 +16,40 @@ from utils.data_structures.UserPreferencesStructure import UserPreferencesStruct
 
 def get_available_cloud_models_list():
     cloud_models_list = []
-    cloud_models_list_url = 'https://drive.google.com/uc?id=1vRUr0VXgnDFNq7AlB5ILyBCmW_sGuciP'  # Initial v1.0/v1.1
-    if version.parse(SoftwareConfigResources.getInstance().software_version) >= version.parse("1.2"):
-        #cloud_models_list_url = 'https://drive.google.com/uc?id=12tFP9trt8CLS6UBfNpodlRUwfSqZJJNQ'
-        cloud_models_list_url = 'https://drive.google.com/uc?id=1lpy-BMqZsjjxvTzT2Qn95kG2XvN6RZ21'
-    try:
-        cloud_models_list_filename = os.path.join(expanduser("~"), '.raidionics', 'resources/models',
-                                                  'cloud_models_list.csv')
-        os.makedirs(os.path.dirname(cloud_models_list_filename), exist_ok=True)
-        # Always downloading the models list, to make sure the latest models are always available.
-        gdown.download(url=cloud_models_list_url, output=cloud_models_list_filename)
-        cloud_models_list = pd.read_csv(cloud_models_list_filename)
-    except Exception as e:
-        print('Impossible to access the cloud models list.\n')
-        print('{}'.format(traceback.format_exc()))
-        logging.warning('Impossible to access the cloud models list with: \n {}'.format(traceback.format_exc()))
+    cloud_models_list_url = 'https://drive.google.com/uc?id=1vRUr0VXgnDFNq7AlB5ILyBCmW_sGuciP'
+    cloud_models_list_filename = os.path.join(expanduser("~"), '.raidionics', 'resources/models',
+                                              'cloud_models_list.csv')
 
+    # Initial v1.0/v1.1 - to deprecate!
+    if version.parse(SoftwareConfigResources.getInstance().software_version) < version.parse("1.2"):
+        try:
+            os.makedirs(os.path.dirname(cloud_models_list_filename), exist_ok=True)
+            # Always downloading the models list, to make sure the latest models are always available.
+            gdown.download(url=cloud_models_list_url, output=cloud_models_list_filename)
+        except Exception as e:
+            print('Impossible to access the cloud models list on Google Drive.\n')
+            print('{}'.format(traceback.format_exc()))
+            logging.warning('Impossible to access the cloud models list on Google Drive with: \n {}'.format(traceback.format_exc()))
+
+    if version.parse(SoftwareConfigResources.getInstance().software_version) >= version.parse("1.2"):
+        cloud_models_list_url = 'https://github.com/raidionics/Raidionics-models/releases/download/1.2.0/raidionics_cloud_models_list_github.csv'
+        try:
+            headers = {}
+            response = requests.get(cloud_models_list_url, headers=headers, stream=True)
+            response.raise_for_status()
+
+            if response.status_code == requests.codes.ok:
+                with open(cloud_models_list_filename, "wb") as f:
+                    for chunk in response.iter_content(chunk_size=1048576):
+                        f.write(chunk)
+        except Exception as e:
+            print('Impossible to access the cloud models list on Github.\n')
+            print('{}'.format(traceback.format_exc()))
+            logging.warning('Impossible to access the cloud models list on Github with: \n {}'.format(traceback.format_exc()))
+
+    if not os.path.exists(cloud_models_list_filename):
+        logging.error('The cloud models list does not exist on disk at: {}'.format(cloud_models_list_filename))
+    cloud_models_list = pd.read_csv(cloud_models_list_filename)
     return cloud_models_list
 
 
