@@ -61,7 +61,7 @@ jobs:
           cd ${{github.workspace}}/downloads/
           tar -xzf ANTsX-v2.4.3_macos_arm.tar.gz -C ${{github.workspace}}/downloads/
           mkdir ${{github.workspace}}/ANTs
-#          mv ${{github.workspace}}/downloads/install ${{github.workspace}}/ANTs/
+          mv ${{github.workspace}}/downloads/install ${{github.workspace}}/ANTs/
 
       - name: Build software
         run: |
