@@ -1,96 +1,83 @@
 name: Build macOS ARM
 
 on:
-  push:
-    branches:
-      - '*'
-  pull_request:
-    branches: [master, release]
+  # Allows to run the workflow manually from the Actions tab
   workflow_dispatch:
-
-env:
-  MACOSX_DEPLOYMENT_TARGET: 11.0
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        include:
-          - os: macos-14
-            TARGET: macos
-
+    name: Build packages
+    runs-on: self-hosted
     steps:
-      - uses: actions/checkout@v4
-      - name: Install dependencies
-        run: arch -arm64 brew reinstall zlib
+    - uses: actions/checkout@v4
 
-      - name: Setup pyenv
-        env:
-          ACTIONS_ALLOW_UNSECURE_COMMANDS: true
-          MACOSX_DEPLOYMENT_TARGET: 11.0
-          PYTHON_CONFIGURE_OPTS: "--enable-framework"
-          CFLAGS: "-Wno-implicit-function-declaration"
-          LDFLAGS: "-L/usr/local/opt/zlib/lib"
-          CPPFLAGS: "-I/usr/local/opt/zlib/include"
-          PKG_CONFIG_PATH: "/usr/local/opt/zlib/lib/pkgconfig"
-        uses: "gabrielfalcao/pyenv-action@v18"
-        with:
-            default: 3.9.16
+    - name: Create environment and install python packages
+      run: |
+        cd ${{github.workspace}}
+        mkdir tmp
+        cd tmp
+        python3 -m virtualenv -p python3 venv --clear
+        source venv/bin/activate
+        python3 -m pip install wheel setuptools
+        deactivate
 
-      - name: Install dependencies
-        run: |
-          pip3 install --upgrade pip
-          pip3 install wheel setuptools
-          pip3 install ffmpeg
-          pip3 install matplotlib
-          pip3 install git+https://github.com/dbouget/raidionics_rads_lib.git@master
-          pip3 install -r assets/requirements.txt
-          pip3 install --force-reinstall --no-cache-dir pyside6
-          pip3 install urllib3==1.26.6
+    - name: Install dependencies
+      run: |
+        cd ${{github.workspace}}
+        source tmp/venv/bin/activate
+        python3 -m pip install --upgrade pip
+        pip3 install ffmpeg
+        pip3 install matplotlib
+        pip install git+https://github.com/dbouget/raidionics_rads_lib.git@master
+        pip3 install -r assets/requirements.txt
+        pip install --force-reinstall --no-cache-dir pyside6
+        pip install urllib3==1.26.6
+        deactivate
 
-      - name: Download ANTs
-        uses: robinraju/release-downloader@main
-        with:
-          repository: "raidionics/Raidionics-dependencies"
-          latest: true
-          fileName: "ANTsX-v2.4.3_macos_arm.tar.gz"
-          out-file-path: "downloads"
+    - name: Download ANTs
+      uses: robinraju/release-downloader@main
+      with:
+        repository: "raidionics/Raidionics-dependencies"
+        latest: true
+        fileName: "ANTsX-v2.4.3_macos_arm.tar.gz"
+        out-file-path: "downloads"
 
-      - name: Extract ANTs
-        run: |
-          cd ${{github.workspace}}/downloads/
-          tar -xzf ANTsX-v2.4.3_macos_arm.tar.gz -C ${{github.workspace}}/downloads/
-          mkdir ${{github.workspace}}/ANTs
-          mv ${{github.workspace}}/downloads/install ${{github.workspace}}/ANTs/
+    - name: Extract ANTs
+      run: |
+        cd ${{github.workspace}}/downloads/
+        tar -xzf ANTsX-v2.4.3_macos_arm.tar.gz -C ${{github.workspace}}/downloads/
+        mkdir ${{github.workspace}}/ANTs
+        mv ${{github.workspace}}/downloads/install ${{github.workspace}}/ANTs/
 
-      - name: Build software
-        run: |
-          pip3 install pyinstaller==5.13.2
-          mkdir tmp_dependencies
-          pyinstaller --log-level INFO --noconfirm --clean assets/main_arm.spec
+    - name: Build software
+      run: |
+        cd ${{github.workspace}}
+        source tmp/venv/bin/activate
+        pip3 install pyinstaller==5.13.2
+        mkdir tmp_dependencies
+        pyinstaller --log-level INFO --noconfirm --clean assets/main_arm.spec
 
-      - name: Test executable
-        run: ./dist/Raidionics/Raidionics & sleep 5; kill -INT %+
-        shell: bash
+    - name: Test executable
+      run: ./dist/Raidionics/Raidionics & sleep 5; kill -INT %+
+      shell: bash
 
-      - name: Test GUI startup
-        run: cd ${{github.workspace}}/tests && python3 software_launch_test.py
+    - name: Test GUI startup
+      run: cd ${{github.workspace}}/tests && python3 software_launch_test.py
 
-      - name: Make installer
-        run: |
-          git clone https://github.com/dbouget/quickpkg.git
-          quickpkg/quickpkg dist/Raidionics.app --output Raidionics-1.2.3-macOS.pkg
-          cp -r Raidionics-1.2.3-macOS.pkg dist/Raidionics-1.2.3-macOS-arm64.pkg
+    - name: Make installer
+      run: |
+        git clone https://github.com/dbouget/quickpkg.git
+        quickpkg/quickpkg dist/Raidionics.app --output Raidionics-1.2.3-macOS.pkg
+        cp -r Raidionics-1.2.3-macOS.pkg dist/Raidionics-1.2.3-macOS-arm64.pkg
 
-      - name: Upload package
-        uses: actions/upload-artifact@v4
-        with:
-          name: Package
-          path: ${{github.workspace}}/dist/Raidionics-*
-          if-no-files-found: error
+    - name: Upload package
+      uses: actions/upload-artifact@v4
+      with:
+        name: Package
+        path: ${{github.workspace}}/dist/Raidionics-*
+        if-no-files-found: error
 
-      - name: Cleanup
-        if: always()
-        run: |
-          rm -rf ${{github.workspace}}/tmp/
+    - name: Cleanup
+      if: always()
+      run: |
+        rm -rf ${{github.workspace}}/tmp/
