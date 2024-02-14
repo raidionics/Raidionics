@@ -40,7 +40,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip3 install -U pip3 wheel setuptools
+          pip3 install --upgrade pip
+          pip3 install wheel setuptools
           pip3 install ffmpeg
           pip3 install matplotlib
           pip3 install git+https://github.com/dbouget/raidionics_rads_lib.git@master
