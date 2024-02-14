@@ -43,10 +43,10 @@ jobs:
         run: |
           pip3 install ffmpeg
           pip3 install matplotlib
-          pip install git+https://github.com/dbouget/raidionics_rads_lib.git@master
+          pip3 install git+https://github.com/dbouget/raidionics_rads_lib.git@master
           pip3 install -r assets/requirements.txt
-          pip install --force-reinstall --no-cache-dir pyside6
-          pip install urllib3==1.26.6
+          pip3 install --force-reinstall --no-cache-dir pyside6
+          pip3 install urllib3==1.26.6
 
       - name: Download ANTs
         uses: robinraju/release-downloader@main
