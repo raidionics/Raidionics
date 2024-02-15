@@ -14,9 +14,9 @@ jobs:
     name: Build packages
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Python 3.8
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: "3.8"
 
@@ -72,7 +72,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install git+https://github.com/dbouget/raidionics_rads_lib.git@software
+        pip install git+https://github.com/dbouget/raidionics_rads_lib.git@master
         pip install -r assets/requirements.txt
         pip uninstall -y PySide6 PySide6-Addons PySide6-Essentials
         pip install --force-reinstall --no-cache-dir pyside6==6.2.4
@@ -108,10 +108,10 @@ jobs:
         cp -r dist/Raidionics assets/Raidionics_ubuntu/usr/local/bin
         dpkg-deb --build --root-owner-group assets/Raidionics_ubuntu
         ls -la
-        cp -r assets/Raidionics_ubuntu.deb dist/Raidionics-1.2.2-ubuntu.deb
+        cp -r assets/Raidionics_ubuntu.deb dist/Raidionics-1.2.3-ubuntu.deb
 
     - name: Upload package
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: Package
         path: ${{github.workspace}}/dist/Raidionics-*
