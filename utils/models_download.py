@@ -1,7 +1,7 @@
 import logging
 import os
 import shutil
-
+from pathlib import PurePath
 import gdown
 import traceback
 import pandas as pd
@@ -17,8 +17,14 @@ from utils.data_structures.UserPreferencesStructure import UserPreferencesStruct
 def get_available_cloud_models_list():
     cloud_models_list = []
     cloud_models_list_url = 'https://drive.google.com/uc?id=1vRUr0VXgnDFNq7AlB5ILyBCmW_sGuciP'
-    cloud_models_list_filename = os.path.join(expanduser("~"), '.raidionics', 'resources/models',
+    cloud_models_list_filename = os.path.join(expanduser("~"), '.raidionics', 'resources', 'models',
                                               'cloud_models_list.csv')
+    if os.name == 'nt':
+        script_path_parts = list(PurePath(expanduser("~")).parts[:] + ('.raidionics', 'resources', 'models',
+                                                                       'cloud_models_list.csv'))
+        cloud_models_list_filename = PurePath()
+        for x in script_path_parts:
+            cloud_models_list_filename = cloud_models_list_filename.joinpath(x)
 
     # Initial v1.0/v1.1 - to deprecate!
     if version.parse(SoftwareConfigResources.getInstance().software_version) < version.parse("1.2"):
@@ -30,10 +36,10 @@ def get_available_cloud_models_list():
             print('Impossible to access the cloud models list on Google Drive.\n')
             print('{}'.format(traceback.format_exc()))
             logging.warning('Impossible to access the cloud models list on Google Drive with: \n {}'.format(traceback.format_exc()))
-
-    if version.parse(SoftwareConfigResources.getInstance().software_version) >= version.parse("1.2"):
+    elif version.parse(SoftwareConfigResources.getInstance().software_version) >= version.parse("1.2"):
         cloud_models_list_url = 'https://github.com/raidionics/Raidionics-models/releases/download/1.2.0/raidionics_cloud_models_list_github.csv'
         try:
+            os.makedirs(os.path.dirname(cloud_models_list_filename), exist_ok=True)
             headers = {}
             response = requests.get(cloud_models_list_url, headers=headers, stream=True)
             response.raise_for_status()
