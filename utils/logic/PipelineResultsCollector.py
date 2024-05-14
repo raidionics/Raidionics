@@ -115,13 +115,13 @@ def collect_results(patient_parameters, pipeline):
                                                        'T' + str(pip_step["moving"]["timestamp"]), 'Subcortical-structures')
 
                         # @TODO. Hardcoded for now, have to improve the RADS backend here if we are to support more atlases.
-                        subcortical_masks = ['MNI_BCB_atlas.nii.gz']
-                        # subcortical_masks = []
-                        # for _, _, files in os.walk(subcortical_folder):
-                        #     for f in files:
-                        #         if '_mask' in f:
-                        #             subcortical_masks.append(f)
-                        #     break
+                        # subcortical_masks = ['MNI_BCB_atlas.nii.gz']
+                        subcortical_masks = []
+                        for _, _, files in os.walk(subcortical_folder):
+                            for f in files:
+                                if '_overall_mask' in f:
+                                    subcortical_masks.append(f)
+                            break
 
                         for m in subcortical_masks:
                             atlas_filename = os.path.join(subcortical_folder, m)
@@ -142,6 +142,37 @@ def collect_results(patient_parameters, pipeline):
                                                                                              reference='Patient')
 
                             results['Atlas'].append(data_uid)
+
+                    # Collecting the atlas BrainGrid structures
+                    if UserPreferencesStructure.getInstance().compute_braingrid_structures:
+                        braingrid_folder = os.path.join(patient_parameters.output_folder, 'reporting',
+                                                        'T' + str(pip_step["moving"]["timestamp"]), 'Braingrid-structures')
+                        braingrid_masks = []
+                        for _, _, files in os.walk(braingrid_folder):
+                            for f in files:
+                                braingrid_masks.append(f)
+                            break
+
+                        for m in braingrid_masks:
+                            atlas_filename = os.path.join(braingrid_folder, m)
+                            dest_atlas_filename = os.path.join(patient_parameters.output_folder, dest_ts_object.folder_name,
+                                                               'raw', m)
+                            shutil.move(atlas_filename, dest_atlas_filename)
+                            description_filename = os.path.join(patient_parameters.output_folder, 'reporting',
+                                                                'atlas_descriptions', m.split('_')[1] + '_description.csv')
+                            dest_desc_filename = os.path.join(patient_parameters.output_folder, 'atlas_descriptions',
+                                                               m.split('_')[1] + '_description.csv')
+                            os.makedirs(os.path.dirname(dest_desc_filename), exist_ok=True)
+                            if not os.path.exists(dest_desc_filename):
+                                shutil.move(description_filename, dest_desc_filename)
+                            data_uid, error_msg = patient_parameters.import_atlas_structures(dest_atlas_filename,
+                                                                                             parent_mri_uid=parent_mri_uid,
+                                                                                             investigation_ts_folder_name=dest_ts_object.folder_name,
+                                                                                             description=dest_desc_filename,
+                                                                                             reference='Patient')
+
+                            results['Atlas'].append(data_uid)
+
             elif pip_step["task"] == "Features computation":
                 report_filename = os.path.join(patient_parameters.output_folder, 'reporting',
                                                'neuro_clinical_report.json')

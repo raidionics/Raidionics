@@ -7,6 +7,7 @@ from PySide6.QtGui import QIcon, QPixmap
 
 from gui.UtilsWidgets.CustomQGroupBox.QCollapsibleWidget import QCollapsibleWidget
 from utils.software_config import SoftwareConfigResources
+from utils.data_structures.UserPreferencesStructure import UserPreferencesStructure
 from gui.UtilsWidgets.CustomQDialog.SavePatientChangesDialog import SavePatientChangesDialog
 
 
@@ -35,6 +36,7 @@ class TumorCharacteristicsWidget(QWidget):
         self.__set_resectability_part()
         self.__set_cortical_structures_part()
         self.__set_subcortical_structures_part()
+        self.__set_braingrid_structures_part()
         self.layout.addStretch(1)
 
     def __set_volumes_part(self):
@@ -179,6 +181,16 @@ class TumorCharacteristicsWidget(QWidget):
         self.subcorticalstructures_collapsiblegroupbox.content_layout.setSpacing(0)
         self.layout.addWidget(self.subcorticalstructures_collapsiblegroupbox)
 
+    def __set_braingrid_structures_part(self):
+        self.braingridstructures_collapsiblegroupbox = QCollapsibleWidget("BrainGrid structures")
+        self.braingridstructures_collapsiblegroupbox.set_icon_filenames(expand_fn=os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                                                                 '../../Images/collapsed_icon.png'),
+                                                                          collapse_fn=os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                                                                   '../../Images/uncollapsed_icon.png'))
+        self.braingridstructures_collapsiblegroupbox.content_layout.setContentsMargins(20, 0, 20, 0)
+        self.braingridstructures_collapsiblegroupbox.content_layout.setSpacing(0)
+        self.layout.addWidget(self.braingridstructures_collapsiblegroupbox)
+
     def __set_layout_dimensions(self):
         self.original_space_volume_header_label.setFixedHeight(20)
         self.original_space_volume_label.setFixedHeight(20)
@@ -232,6 +244,11 @@ class TumorCharacteristicsWidget(QWidget):
         self.subcorticalstructures_collapsiblegroupbox.header.title_label.setFixedHeight(35)
         self.subcorticalstructures_collapsiblegroupbox.header.background_label.setFixedHeight(40)
 
+        self.braingridstructures_collapsiblegroupbox.header.setFixedHeight(40)
+        self.braingridstructures_collapsiblegroupbox.header.set_icon_size(QSize(35, 35))
+        self.braingridstructures_collapsiblegroupbox.header.title_label.setFixedHeight(35)
+        self.braingridstructures_collapsiblegroupbox.header.background_label.setFixedHeight(40)
+
     def __set_connections(self):
         self.volumes_collapsiblegroupbox.toggled.connect(self.on_size_request)
         self.laterality_collapsiblegroupbox.toggled.connect(self.on_size_request)
@@ -239,6 +256,7 @@ class TumorCharacteristicsWidget(QWidget):
         self.multifocality_collapsiblegroupbox.toggled.connect(self.on_size_request)
         self.corticalstructures_collapsiblegroupbox.toggled.connect(self.on_size_request)
         self.subcorticalstructures_collapsiblegroupbox.toggled.connect(self.on_size_request)
+        self.braingridstructures_collapsiblegroupbox.toggled.connect(self.on_size_request)
 
     def set_stylesheets(self, selected: bool) -> None:
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
@@ -539,6 +557,33 @@ class TumorCharacteristicsWidget(QWidget):
         }""")
         self.subcorticalstructures_collapsiblegroupbox.content_widget.setStyleSheet("QWidget{background-color:rgb(254,254,254);}")
 
+        ###################################### BRAINGRID STRUCTURES GROUPBOX #########################################
+        self.braingridstructures_collapsiblegroupbox.header.background_label.setStyleSheet("""
+        QLabel{
+        background-color:rgb(248, 248, 248);
+        border-width: 1px;
+        border-style: solid;
+        border-color: black rgb(248, 248, 248) black rgb(248, 248, 248);
+        border-radius: 2px;
+        }""")
+        self.braingridstructures_collapsiblegroupbox.header.title_label.setStyleSheet("""
+        QLabel{
+        background-color:rgb(248, 248, 248);
+        color: """ + font_color + """;
+        text-align:left;
+        font:bold;
+        font-size:14px;
+        padding-left:20px;
+        padding-right:20px;
+        border: none;
+        }""")
+        self.braingridstructures_collapsiblegroupbox.header.icon_label.setStyleSheet("""
+        QLabel{
+        border: none;
+        padding-left:20px;
+        }""")
+        self.braingridstructures_collapsiblegroupbox.content_widget.setStyleSheet("QWidget{background-color:rgb(254,254,254);}")
+
     def adjustSize(self):
         pass
 
@@ -745,6 +790,90 @@ class TumorCharacteristicsWidget(QWidget):
                     lay.addStretch(1)
                     self.subcorticalstructures_collapsiblegroupbox.content_layout.addLayout(lay)
         self.subcorticalstructures_collapsiblegroupbox.adjustSize()
+
+        # BrainGrid structures
+        self.braingridstructures_collapsiblegroupbox.clear_content_layout()
+        if UserPreferencesStructure.getInstance().compute_braingrid_structures:
+            lay = QHBoxLayout()
+            label_header = QLabel("Infiltration count:")
+            label_header.setStyleSheet("""
+            QLabel{
+            font-size:13px;
+            color: rgba(67, 88, 90, 1);
+            border-style: none;
+            }""")
+            label = QLabel("{}".format(str(report_json['Main']['Total']['BrainGrid']["Infiltration count"])))
+            label_header.setFixedHeight(20)
+            label_header.setFixedWidth(190)
+            label.setFixedHeight(20)
+            label.setFixedWidth(80)
+            label.setAlignment(Qt.AlignRight)
+            label.setStyleSheet("""
+            QLabel{
+            color: rgba(67, 88, 90, 1);
+            text-align:right;
+            font:semibold;
+            font-size:13px;
+            }""")
+            lay.addWidget(label_header)
+            lay.addWidget(label)
+            lay.addStretch(1)
+            self.braingridstructures_collapsiblegroupbox.content_layout.addLayout(lay)
+            for atlas in UserPreferencesStructure.getInstance().braingrid_structures_list:  # report_json['Main']['Total']['BrainGrid']
+                sorted_overlaps = dict(sorted(report_json['Main']['Total']['BrainGrid'][atlas].items(), key=lambda item: item[1], reverse=True))
+                label = QLabel("{} atlas".format(atlas))
+                label.setFixedHeight(20)
+                label.setStyleSheet("""
+                QLabel{
+                color: """ + software_ss["Color7"] + """;
+                text-align:left;
+                font:bold;
+                font-size:14px;
+                }""")
+                line_label = QLabel()
+                line_label.setFixedHeight(3)
+                line_label.setStyleSheet("QLabel{background-color: rgb(214, 214, 214);}")
+                if list(report_json['Main']['Total']['BrainGrid'].keys()).index(atlas) != 0:
+                    upper_line_label = QLabel()
+                    upper_line_label.setFixedHeight(3)
+                    upper_line_label.setStyleSheet("QLabel{background-color: rgb(214, 214, 214);}")
+                    self.braingridstructures_collapsiblegroupbox.content_layout.addWidget(upper_line_label)
+                self.braingridstructures_collapsiblegroupbox.content_layout.addWidget(label)
+                self.braingridstructures_collapsiblegroupbox.content_layout.addWidget(line_label)
+                for struct, val in sorted_overlaps.items():
+                    if val >= 1.0:
+                        lay = QHBoxLayout()
+                        struct_display_name = struct.replace('_', ' ').replace('-', ' ')
+                        label_header = QLineEdit("{} ".format(struct_display_name))
+                        label_header.setReadOnly(True)
+                        label_header.setCursorPosition(0)
+                        label_header.home(True)
+                        label_header.setStyleSheet("""
+                        QLineEdit{
+                        font-size:13px;
+                        color: rgba(67, 88, 90, 1);
+                        border-style: none;
+                        }""")
+                        label = QLabel("{:.2f} %".format(val))
+                        label_header.setFixedHeight(20)
+                        label_header.setFixedWidth(190)
+                        label.setFixedHeight(20)
+                        label.setFixedWidth(80)
+                        label.setAlignment(Qt.AlignRight)
+                        label.setStyleSheet("""
+                        QLabel{
+                        color: rgba(67, 88, 90, 1);
+                        text-align:right;
+                        font:semibold;
+                        font-size:13px;
+                        }""")
+                        lay.addWidget(label_header)
+                        # lay.addStretch(1)
+                        lay.addWidget(label)
+                        lay.addStretch(1)
+                        self.braingridstructures_collapsiblegroupbox.content_layout.addLayout(lay)
+
+            self.braingridstructures_collapsiblegroupbox.adjustSize()
 
         self.adjustSize()
 
