@@ -30,7 +30,9 @@ class UserPreferencesStructure:
     _compute_cortical_structures = True  # True to include cortical features computation in the standardized reporting
     _cortical_structures_list = ["MNI", "Schaefer7", "Schaefer17", "Harvard-Oxford"]  # List of cortical atlases to include
     _compute_subcortical_structures = True  # True to include subcortical features computation in the standardized reporting
-    _subcortical_structures_list = ["BCB"]  # List of subcortical atlases to include
+    _subcortical_structures_list = ["BCB", "BrainGrid"]  # List of subcortical atlases to include
+    _compute_braingrid_structures = False  # True to include braingrid features computation in the standardized reporting
+    _braingrid_structures_list = ["Voxels"]  # List of BrainGrid features to include
     _use_dark_mode = False  # True for dark mode and False for regular mode
 
     @staticmethod
@@ -214,6 +216,24 @@ class UserPreferencesStructure:
         self._subcortical_structures_list = structures
         self.save_preferences()
 
+    @property
+    def compute_braingrid_structures(self) -> bool:
+        return self._compute_braingrid_structures
+
+    @compute_braingrid_structures.setter
+    def compute_braingrid_structures(self, state: bool) -> None:
+        self._compute_braingrid_structures = state
+        self.save_preferences()
+
+    @property
+    def braingrid_structures_list(self) -> List[str]:
+        return self._braingrid_structures_list
+
+    @braingrid_structures_list.setter
+    def braingrid_structures_list(self, structures: List[str]) -> None:
+        self._braingrid_structures_list = structures
+        self.save_preferences()
+
     def __parse_preferences(self) -> None:
         """
         Loads the saved user preferences from disk (located in raidionics_preferences.json) and updates all internal
@@ -256,6 +276,10 @@ class UserPreferencesStructure:
                     self.compute_subcortical_structures = preferences['Processing']['Reporting']['compute_subcortical_structures']
                 if 'subcortical_structures_list' in preferences['Processing']['Reporting'].keys():
                     self.subcortical_structures_list = preferences['Processing']['Reporting']['subcortical_structures_list']
+                if 'compute_braingrid_structures' in preferences['Processing']['Reporting'].keys():
+                    self.compute_braingrid_structures = preferences['Processing']['Reporting']['compute_braingrid_structures']
+                if 'braingrid_structures_list' in preferences['Processing']['Reporting'].keys():
+                    self.braingrid_structures_list = preferences['Processing']['Reporting']['braingrid_structures_list']
         if 'Appearance' in preferences.keys():
             if 'dark_mode' in preferences['Appearance'].keys():
                 self._use_dark_mode = preferences['Appearance']['dark_mode']
@@ -285,6 +309,8 @@ class UserPreferencesStructure:
         preferences['Processing']['Reporting']['cortical_structures_list'] = self._cortical_structures_list
         preferences['Processing']['Reporting']['compute_subcortical_structures'] = self._compute_subcortical_structures
         preferences['Processing']['Reporting']['subcortical_structures_list'] = self._subcortical_structures_list
+        preferences['Processing']['Reporting']['compute_braingrid_structures'] = self._compute_braingrid_structures
+        preferences['Processing']['Reporting']['braingrid_structures_list'] = self._braingrid_structures_list
         preferences['Appearance'] = {}
         preferences['Appearance']['dark_mode'] = self._use_dark_mode
 

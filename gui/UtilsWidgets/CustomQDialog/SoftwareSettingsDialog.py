@@ -321,9 +321,43 @@ class SoftwareSettingsDialog(QDialog):
         self.processing_options_subcorticalstructures_selection_layout.addWidget(self.subcorticalstructures_bcb_checkbox)
         self.processing_options_subcorticalstructures_selection_layout.addWidget(self.subcorticalstructures_bcb_label)
         self.processing_options_subcorticalstructures_selection_layout.addStretch(1)
+        self.subcorticalstructures_braingrid_label = QLabel("BrainGrid")
+        self.subcorticalstructures_braingrid_label.setToolTip("From the BrainGrid research, a total of 20 unique structures with left and right disambiguation.")
+        self.subcorticalstructures_braingrid_checkbox = QCheckBox()
+        self.subcorticalstructures_braingrid_checkbox.setChecked("BrainGrid" in UserPreferencesStructure.getInstance().subcortical_structures_list if UserPreferencesStructure.getInstance().subcortical_structures_list != None else False)
+        self.subcorticalstructures_braingrid_checkbox.setEnabled(UserPreferencesStructure.getInstance().compute_subcortical_structures)
+        self.processing_options_subcorticalstructures_selection_layout.addWidget(self.subcorticalstructures_braingrid_checkbox)
+        self.processing_options_subcorticalstructures_selection_layout.addWidget(self.subcorticalstructures_braingrid_label)
+        self.processing_options_subcorticalstructures_selection_layout.addStretch(1)
         self.processing_reporting_subcortical_groupboxlayout.addLayout(self.processing_options_subcorticalstructures_selection_layout)
         self.processing_reporting_subcortical_groupbox.setLayout(self.processing_reporting_subcortical_groupboxlayout)
         self.processing_reporting_options_base_layout.addWidget(self.processing_reporting_subcortical_groupbox)
+
+        self.processing_reporting_braingrid_groupbox = QGroupBox()
+        self.processing_reporting_braingrid_groupbox.setTitle("BrainGrid structures")
+        self.processing_reporting_braingrid_groupboxlayout = QVBoxLayout()
+
+        self.processing_options_compute_braingridstructures_layout = QHBoxLayout()
+        self.processing_options_compute_braingridstructures_label = QLabel("Report BrainGrid structures")
+        self.processing_options_compute_braingridstructures_label.setToolTip("Tick the box in order to include BrainGrid structures related features in the standardized report.\n")
+        self.processing_options_compute_braingridstructures_checkbox = QCheckBox()
+        self.processing_options_compute_braingridstructures_checkbox.setChecked(UserPreferencesStructure.getInstance().compute_braingrid_structures)
+        self.processing_options_compute_braingridstructures_layout.addWidget(self.processing_options_compute_braingridstructures_checkbox)
+        self.processing_options_compute_braingridstructures_layout.addWidget(self.processing_options_compute_braingridstructures_label)
+        self.processing_options_compute_braingridstructures_layout.addStretch(1)
+        self.processing_reporting_braingrid_groupboxlayout.addLayout(self.processing_options_compute_braingridstructures_layout)
+        self.processing_options_braingridstructures_selection_layout = QHBoxLayout()
+        self.braingridstructures_voxels_label = QLabel("Voxels")
+        self.braingridstructures_voxels_label.setToolTip("From the BrainGrid research, super-voxels brain parcellation.")
+        self.braingridstructures_voxels_checkbox = QCheckBox()
+        self.braingridstructures_voxels_checkbox.setChecked("Voxels" in UserPreferencesStructure.getInstance().braingrid_structures_list if UserPreferencesStructure.getInstance().braingrid_structures_list != None else False)
+        self.braingridstructures_voxels_checkbox.setEnabled(UserPreferencesStructure.getInstance().compute_braingrid_structures)
+        self.processing_options_braingridstructures_selection_layout.addWidget(self.braingridstructures_voxels_checkbox)
+        self.processing_options_braingridstructures_selection_layout.addWidget(self.braingridstructures_voxels_label)
+        self.processing_options_braingridstructures_selection_layout.addStretch(1)
+        self.processing_reporting_braingrid_groupboxlayout.addLayout(self.processing_options_braingridstructures_selection_layout)
+        self.processing_reporting_braingrid_groupbox.setLayout(self.processing_reporting_braingrid_groupboxlayout)
+        self.processing_reporting_options_base_layout.addWidget(self.processing_reporting_braingrid_groupbox)
 
         self.processing_reporting_options_base_layout.addStretch(1)
         self.processing_reporting_options_widget.setLayout(self.processing_reporting_options_base_layout)
@@ -402,6 +436,9 @@ class SoftwareSettingsDialog(QDialog):
         self.corticalstructures_harvardoxford_checkbox.stateChanged.connect(self.__on_corticalstructure_harvardoxford_status_changed)
         self.processing_options_compute_subcorticalstructures_checkbox.stateChanged.connect(self.__on_compute_subcorticalstructures_status_changed)
         self.subcorticalstructures_bcb_checkbox.stateChanged.connect(self.__on_subcorticalstructure_bcb_status_changed)
+        self.subcorticalstructures_braingrid_checkbox.stateChanged.connect(self.__on_subcorticalstructure_braingrid_status_changed)
+        self.processing_options_compute_braingridstructures_checkbox.stateChanged.connect(self.__on_compute_braingridstructures_status_changed)
+        self.braingridstructures_voxels_checkbox.stateChanged.connect(self.__on_braingridstructure_voxels_status_changed)
         self.dark_mode_checkbox.stateChanged.connect(self.__on_dark_mode_status_changed)
         self.exit_accept_pushbutton.clicked.connect(self.__on_exit_accept_clicked)
         self.exit_cancel_pushbutton.clicked.connect(self.__on_exit_cancel_clicked)
@@ -750,9 +787,13 @@ class SoftwareSettingsDialog(QDialog):
         if state:
             self.subcorticalstructures_bcb_checkbox.setEnabled(True)
             self.subcorticalstructures_bcb_label.setEnabled(True)
+            self.subcorticalstructures_braingrid_checkbox.setEnabled(True)
+            self.subcorticalstructures_braingrid_label.setEnabled(True)
         else:
             self.subcorticalstructures_bcb_checkbox.setEnabled(False)
             self.subcorticalstructures_bcb_label.setEnabled(False)
+            self.subcorticalstructures_braingrid_checkbox.setEnabled(False)
+            self.subcorticalstructures_braingrid_label.setEnabled(False)
 
     def __on_subcorticalstructure_bcb_status_changed(self, state):
         structs = UserPreferencesStructure.getInstance().subcortical_structures_list
@@ -764,6 +805,37 @@ class SoftwareSettingsDialog(QDialog):
         else:
             structs.remove("BCB")
         UserPreferencesStructure.getInstance().subcortical_structures_list = structs
+
+    def __on_subcorticalstructure_braingrid_status_changed(self, state):
+        structs = UserPreferencesStructure.getInstance().subcortical_structures_list
+        if state:
+            if structs is None:
+                structs = ["BrainGrid"]
+            else:
+                structs.append("BrainGrid")
+        else:
+            structs.remove("BrainGrid")
+        UserPreferencesStructure.getInstance().subcortical_structures_list = structs
+
+    def __on_compute_braingridstructures_status_changed(self, state):
+        UserPreferencesStructure.getInstance().compute_braingrid_structures = self.processing_options_compute_braingridstructures_checkbox.isChecked()
+        if state:
+            self.braingridstructures_voxels_checkbox.setEnabled(True)
+            self.braingridstructures_voxels_label.setEnabled(True)
+        else:
+            self.braingridstructures_voxels_checkbox.setEnabled(False)
+            self.braingridstructures_voxels_label.setEnabled(False)
+
+    def __on_braingridstructure_voxels_status_changed(self, state):
+        structs = UserPreferencesStructure.getInstance().braingrid_structures_list
+        if state:
+            if structs is None:
+                structs = ["Voxels"]
+            else:
+                structs.append("Voxels")
+        else:
+            structs.remove("Voxels")
+        UserPreferencesStructure.getInstance().braingrid_structures_list = structs
 
     def __on_dark_mode_status_changed(self, state):
         # @TODO. Would have to bounce back to the QApplication class, to trigger a global setStyleSheet on-the-fly?

@@ -64,14 +64,16 @@ def create_pipeline(model_name: str, patient_parameters, task: str) -> dict:
     elif task == 'preop_segmentation':
         return __create_segmentation_pipeline(model_name, patient_parameters)
     elif task == 'postop_segmentation':
-        download_model(model_name='MRI_GBM_Postop_FV_4p')
+        model_name = select_appropriate_postop_model(patient_parameters)
+        download_model(model_name=model_name)
         return __create_postop_segmentation_pipeline(model_name, patient_parameters)
     elif task == 'other_segmentation':
         return __create_other_segmentation_pipeline(model_name, patient_parameters)
     elif task == 'preop_reporting':
         return __create_preop_reporting_pipeline(model_name, patient_parameters)
     elif task == 'postop_reporting':
-        download_model(model_name='MRI_GBM_Postop_FV_4p')
+        model_name = select_appropriate_postop_model(patient_parameters)
+        download_model(model_name=model_name)
         return __create_postop_reporting_pipeline(model_name, patient_parameters)
     else:
         return __create_custom_pipeline(task, model_name, patient_parameters)
@@ -179,13 +181,8 @@ def __create_postop_segmentation_pipeline(model_name, patient_parameters):
     """
     The default postop segmentation model is the one with four inputs, but based on the loaded images another fitting
     model could be used.
-    @TODO. Ideally, in the future, the disambiguation of the best model to use should be done in the backend. In that
-    case, how to properly retrieve the corresponding pipeline.json?
     """
-    postop_model_name = "MRI_GBM_Postop_FV_4p"
-    if UserPreferencesStructure.getInstance().use_manual_sequences:
-        postop_model_name = select_appropriate_postop_model(patient_parameters)
-    infile = open(os.path.join(SoftwareConfigResources.getInstance().models_path, postop_model_name, 'pipeline.json'), 'rb')
+    infile = open(os.path.join(SoftwareConfigResources.getInstance().models_path, model_name, 'pipeline.json'), 'rb')
     raw_pip = json.load(infile)
 
     pip = {}
@@ -317,6 +314,9 @@ def __create_postop_reporting_pipeline(model_name, patient_parameters):
     """
 
     """
+    infile = open(os.path.join(SoftwareConfigResources.getInstance().models_path, model_name, 'pipeline.json'), 'rb')
+    raw_pip = json.load(infile)
+
     pip = {}
     pip_num_int = 0
     if not UserPreferencesStructure.getInstance().use_manual_sequences:
@@ -329,206 +329,14 @@ def __create_postop_reporting_pipeline(model_name, patient_parameters):
         pip[pip_num]["description"] = "Classification of the MRI sequence type for all input scans"
         download_model(model_name='MRI_Sequence_Classifier')
 
-    pip_num_int = pip_num_int + 1
-    pip_num = str(pip_num_int)
-    pip[pip_num] = {}
-    pip[pip_num]["task"] = 'Segmentation'
-    pip[pip_num]["inputs"] = {}
-    pip[pip_num]["inputs"]["0"] = {}
-    pip[pip_num]["inputs"]["0"]["timestamp"] = 0
-    pip[pip_num]["inputs"]["0"]["sequence"] = "T1-CE"
-    pip[pip_num]["inputs"]["0"]["labels"] = None
-    pip[pip_num]["inputs"]["0"]["space"] = {}
-    pip[pip_num]["inputs"]["0"]["space"]["timestamp"] = 0
-    pip[pip_num]["inputs"]["0"]["space"]["sequence"] = "T1-CE"
-    pip[pip_num]["target"] = ["Brain"]
-    pip[pip_num]["model"] = "MRI_Brain"
-    pip[pip_num]["description"] = "Brain segmentation in T1CE (T0)"
-    download_model(model_name='MRI_Brain')
-
-    pip_num_int = pip_num_int + 1
-    pip_num = str(pip_num_int)
-    pip[pip_num] = {}
-    pip[pip_num]["task"] = 'Segmentation'
-    pip[pip_num]["inputs"] = {}
-    pip[pip_num]["inputs"]["0"] = {}
-    pip[pip_num]["inputs"]["0"]["timestamp"] = 0
-    pip[pip_num]["inputs"]["0"]["sequence"] = "T1-CE"
-    pip[pip_num]["inputs"]["0"]["labels"] = None
-    pip[pip_num]["inputs"]["0"]["space"] = {}
-    pip[pip_num]["inputs"]["0"]["space"]["timestamp"] = 0
-    pip[pip_num]["inputs"]["0"]["space"]["sequence"] = "T1-CE"
-    pip[pip_num]["target"] = ["Tumor"]
-    pip[pip_num]["model"] = model_name
-    pip[pip_num]["description"] = "Tumor segmentation in T1CE (T0)"
-    download_model(model_name=model_name)
-
-    pip_num_int = pip_num_int + 1
-    pip_num = str(pip_num_int)
-    pip[pip_num] = {}
-    pip[pip_num]["task"] = 'Segmentation'
-    pip[pip_num]["inputs"] = {}
-    pip[pip_num]["inputs"]["0"] = {}
-    pip[pip_num]["inputs"]["0"]["timestamp"] = 1
-    pip[pip_num]["inputs"]["0"]["sequence"] = "T1-CE"
-    pip[pip_num]["inputs"]["0"]["labels"] = None
-    pip[pip_num]["inputs"]["0"]["space"] = {}
-    pip[pip_num]["inputs"]["0"]["space"]["timestamp"] = 1
-    pip[pip_num]["inputs"]["0"]["space"]["sequence"] = "T1-CE"
-    pip[pip_num]["target"] = ["Brain"]
-    pip[pip_num]["model"] = "MRI_Brain"
-    pip[pip_num]["description"] = "Brain segmentation in T1CE (T1)"
-
-    pip_num_int = pip_num_int + 1
-    pip_num = str(pip_num_int)
-    pip[pip_num] = {}
-    pip[pip_num]["task"] = 'Registration'
-    pip[pip_num]["moving"] = {}
-    pip[pip_num]["moving"]["timestamp"] = 0
-    pip[pip_num]["moving"]["sequence"] = "T1-CE"
-    pip[pip_num]["fixed"] = {}
-    pip[pip_num]["fixed"]["timestamp"] = 1
-    pip[pip_num]["fixed"]["sequence"] = "T1-CE"
-    pip[pip_num]["description"] = "Registration from T1CE (T0) to T1CE (T1)"
-
-    pip_num_int = pip_num_int + 1
-    pip_num = str(pip_num_int)
-    pip[pip_num] = {}
-    pip[pip_num]["task"] = 'Apply registration'
-    pip[pip_num]["moving"] = {}
-    pip[pip_num]["moving"]["timestamp"] = 0
-    pip[pip_num]["moving"]["sequence"] = "T1-CE"
-    pip[pip_num]["fixed"] = {}
-    pip[pip_num]["fixed"]["timestamp"] = 1
-    pip[pip_num]["fixed"]["sequence"] = "T1-CE"
-    pip[pip_num]["direction"] = "forward"
-    pip[pip_num]["description"] = "Apply registration from T1CE (T0) to T1CE (T1)"
-
-    pip_num_int = pip_num_int + 1
-    pip_num = str(pip_num_int)
-    pip[pip_num] = {}
-    pip[pip_num]["task"] = 'Segmentation'
-    pip[pip_num]["inputs"] = {}
-    pip[pip_num]["inputs"]["0"] = {}
-    pip[pip_num]["inputs"]["0"]["timestamp"] = 1
-    pip[pip_num]["inputs"]["0"]["sequence"] = "FLAIR"
-    pip[pip_num]["inputs"]["0"]["labels"] = None
-    pip[pip_num]["inputs"]["0"]["space"] = {}
-    pip[pip_num]["inputs"]["0"]["space"]["timestamp"] = 1
-    pip[pip_num]["inputs"]["0"]["space"]["sequence"] = "FLAIR"
-    pip[pip_num]["target"] = ["Brain"]
-    pip[pip_num]["model"] = "MRI_Brain"
-    pip[pip_num]["description"] = "Brain segmentation in FLAIR (T1)"
-
-    pip_num_int = pip_num_int + 1
-    pip_num = str(pip_num_int)
-    pip[pip_num] = {}
-    pip[pip_num]["task"] = 'Registration'
-    pip[pip_num]["moving"] = {}
-    pip[pip_num]["moving"]["timestamp"] = 1
-    pip[pip_num]["moving"]["sequence"] = "FLAIR"
-    pip[pip_num]["fixed"] = {}
-    pip[pip_num]["fixed"]["timestamp"] = 1
-    pip[pip_num]["fixed"]["sequence"] = "T1-CE"
-    pip[pip_num]["description"] = "Registration from FLAIR (T1) to T1CE (T1)"
-
-    pip_num_int = pip_num_int + 1
-    pip_num = str(pip_num_int)
-    pip[pip_num] = {}
-    pip[pip_num]["task"] = 'Apply registration'
-    pip[pip_num]["moving"] = {}
-    pip[pip_num]["moving"]["timestamp"] = 1
-    pip[pip_num]["moving"]["sequence"] = "FLAIR"
-    pip[pip_num]["fixed"] = {}
-    pip[pip_num]["fixed"]["timestamp"] = 1
-    pip[pip_num]["fixed"]["sequence"] = "T1-CE"
-    pip[pip_num]["direction"] = "forward"
-    pip[pip_num]["description"] = "Apply registration from FLAIR (T1) to T1CE (T1)"
-
-    pip_num_int = pip_num_int + 1
-    pip_num = str(pip_num_int)
-    pip[pip_num] = {}
-    pip[pip_num]["task"] = 'Segmentation'
-    pip[pip_num]["inputs"] = {}
-    pip[pip_num]["inputs"]["0"] = {}
-    pip[pip_num]["inputs"]["0"]["timestamp"] = 1
-    pip[pip_num]["inputs"]["0"]["sequence"] = "T1-w"
-    pip[pip_num]["inputs"]["0"]["labels"] = None
-    pip[pip_num]["inputs"]["0"]["space"] = {}
-    pip[pip_num]["inputs"]["0"]["space"]["timestamp"] = 1
-    pip[pip_num]["inputs"]["0"]["space"]["sequence"] = "T1-w"
-    pip[pip_num]["target"] = ["Brain"]
-    pip[pip_num]["model"] = "MRI_Brain"
-    pip[pip_num]["description"] = "Brain segmentation in T1w (T1)"
-
-    pip_num_int = pip_num_int + 1
-    pip_num = str(pip_num_int)
-    pip[pip_num] = {}
-    pip[pip_num]["task"] = 'Registration'
-    pip[pip_num]["moving"] = {}
-    pip[pip_num]["moving"]["timestamp"] = 1
-    pip[pip_num]["moving"]["sequence"] = "T1-w"
-    pip[pip_num]["fixed"] = {}
-    pip[pip_num]["fixed"]["timestamp"] = 1
-    pip[pip_num]["fixed"]["sequence"] = "T1-CE"
-    pip[pip_num]["description"] = "Registration from T1w (T1) to T1CE (T1)"
-
-    pip_num_int = pip_num_int + 1
-    pip_num = str(pip_num_int)
-    pip[pip_num] = {}
-    pip[pip_num]["task"] = 'Apply registration'
-    pip[pip_num]["moving"] = {}
-    pip[pip_num]["moving"]["timestamp"] = 1
-    pip[pip_num]["moving"]["sequence"] = "T1-w"
-    pip[pip_num]["fixed"] = {}
-    pip[pip_num]["fixed"]["timestamp"] = 1
-    pip[pip_num]["fixed"]["sequence"] = "T1-CE"
-    pip[pip_num]["direction"] = "forward"
-    pip[pip_num]["description"] = "Apply registration from T1w (T1) to T1CE (T1)"
-
-    pip_num_int = pip_num_int + 1
-    pip_num = str(pip_num_int)
-    pip[pip_num] = {}
-    pip[pip_num]["task"] = 'Segmentation'
-    pip[pip_num]["inputs"] = {}
-    pip[pip_num]["inputs"]["0"] = {}
-    pip[pip_num]["inputs"]["0"]["timestamp"] = 1
-    pip[pip_num]["inputs"]["0"]["sequence"] = "T1-CE"
-    pip[pip_num]["inputs"]["0"]["labels"] = None
-    pip[pip_num]["inputs"]["0"]["space"] = {}
-    pip[pip_num]["inputs"]["0"]["space"]["timestamp"] = 1
-    pip[pip_num]["inputs"]["0"]["space"]["sequence"] = "T1-CE"
-    pip[pip_num]["inputs"]["1"] = {}
-    pip[pip_num]["inputs"]["1"]["timestamp"] = 1
-    pip[pip_num]["inputs"]["1"]["sequence"] = "T1-w"
-    pip[pip_num]["inputs"]["1"]["labels"] = None
-    pip[pip_num]["inputs"]["1"]["space"] = {}
-    pip[pip_num]["inputs"]["1"]["space"]["timestamp"] = 1
-    pip[pip_num]["inputs"]["1"]["space"]["sequence"] = "T1-CE"
-    pip[pip_num]["inputs"]["2"] = {}
-    pip[pip_num]["inputs"]["2"]["timestamp"] = 1
-    pip[pip_num]["inputs"]["2"]["sequence"] = "FLAIR"
-    pip[pip_num]["inputs"]["2"]["labels"] = None
-    pip[pip_num]["inputs"]["2"]["space"] = {}
-    pip[pip_num]["inputs"]["2"]["space"]["timestamp"] = 1
-    pip[pip_num]["inputs"]["2"]["space"]["sequence"] = "T1-CE"
-    pip[pip_num]["inputs"]["3"] = {}
-    pip[pip_num]["inputs"]["3"]["timestamp"] = 0
-    pip[pip_num]["inputs"]["3"]["sequence"] = "T1-CE"
-    pip[pip_num]["inputs"]["3"]["labels"] = None
-    pip[pip_num]["inputs"]["3"]["space"] = {}
-    pip[pip_num]["inputs"]["3"]["space"]["timestamp"] = 1
-    pip[pip_num]["inputs"]["3"]["space"]["sequence"] = "T1-CE"
-    pip[pip_num]["inputs"]["4"] = {}
-    pip[pip_num]["inputs"]["4"]["timestamp"] = 0
-    pip[pip_num]["inputs"]["4"]["sequence"] = "T1-CE"
-    pip[pip_num]["inputs"]["4"]["labels"] = "Tumor"
-    pip[pip_num]["inputs"]["4"]["space"] = {}
-    pip[pip_num]["inputs"]["4"]["space"]["timestamp"] = 1
-    pip[pip_num]["inputs"]["4"]["space"]["sequence"] = "T1-CE"
-    pip[pip_num]["target"] = ["Tumor"]
-    pip[pip_num]["model"] = "MRI_GBM_Postop_FV_4p"
-    pip[pip_num]["description"] = "Tumor segmentation in T1CE (T1)"
+    for steps in list(raw_pip.keys()):
+        # Excluding brain segmentation step if the inputs are already skull-stripped
+        if (UserPreferencesStructure.getInstance().use_stripped_inputs and
+                (raw_pip[steps]["task"] == "Segmentation" and raw_pip[steps]["model"] == "MRI_Brain")):
+            continue
+        pip_num_int = pip_num_int + 1
+        pip_num = str(pip_num_int)
+        pip[pip_num] = raw_pip[steps]
 
     pip_num_int = pip_num_int + 1
     pip_num = str(pip_num_int)
@@ -635,9 +443,39 @@ def __create_custom_pipeline(task, tumor_type, patient_parameters):
 
 def select_appropriate_postop_model(patient_parameters) -> str:
     """
-    Temporary method, which will be deported in the backend, for selecting the best postoperative glioblastoma
-    segmentation model based on available inputs.
+    Method for selecting the best postoperative glioblastoma segmentation model based on available inputs.
+    Should it be deported in the RADS backend?
     """
-    model_name = "MRI_GBM_Postop_FV_4p"
+    model_name = "MRI_GBM_Postop_FV_1p"
+    if not UserPreferencesStructure.getInstance().use_manual_sequences:
+        # Case where the model selection should then be deported to the backend, or the MRI sequence identification
+        # should happen before calling a segmentation/reporting pipeline?
+        return "MRI_GBM_Postop_FV_4p"
 
+    exist_preop_t1 = False
+    exist_postop_t1ce = False
+    exist_postop_t1w = False
+    exist_postop_flair = False
+
+    for v in list(patient_parameters.mri_volumes.keys()):
+        volume_object = patient_parameters.mri_volumes[v]
+        if volume_object.timestamp_uid == "T0":
+            if volume_object.get_sequence_type_str() == "T1-CE":
+                exist_preop_t1 = True
+        elif volume_object.timestamp_uid == "T1":
+            if volume_object.get_sequence_type_str() == "T1-CE":
+                exist_postop_t1ce = True
+            elif volume_object.get_sequence_type_str() == "T1-w":
+                exist_postop_t1w = True
+            elif volume_object.get_sequence_type_str() == "FLAIR":
+                exist_postop_flair = True
+
+    if exist_postop_t1ce and exist_postop_t1w:
+        model_name = "MRI_GBM_Postop_FV_2p"
+    if exist_postop_t1ce and exist_postop_t1w and exist_postop_flair:
+        model_name = "MRI_GBM_Postop_FV_3p"
+    if exist_postop_t1ce and exist_postop_t1w and exist_preop_t1:
+        model_name = "MRI_GBM_Postop_FV_4p"
+    if exist_postop_t1ce and exist_postop_t1w and exist_postop_flair and exist_preop_t1:
+        model_name = "MRI_GBM_Postop_FV_5p"
     return model_name

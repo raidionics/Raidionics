@@ -99,7 +99,11 @@ class AtlasVolume:
         elif "Harvard" in self._unique_id:
             self._display_name = "Harvard-Oxford"
         elif "BCB" in self._unique_id:
-            self._display_name = "BCB group"
+            self._display_name = "BCB WM"
+        elif "Voxels" in self._unique_id:
+            self._display_name = "BrainGrid Voxels"
+        elif "BrainGrid" in self._unique_id:
+            self._display_name = "BrainGrid WM"
         elif "MNI" in self._unique_id:
             self._display_name = "MNI group"
 
