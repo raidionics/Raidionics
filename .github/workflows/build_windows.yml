@@ -41,7 +41,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         ls
-        pip install git+https://github.com/dbouget/raidionics_rads_lib.git@master
+        pip install git+https://github.com/dbouget/raidionics_rads_lib.git@req
         pip install -r assets/requirements.txt
         pip install matplotlib==3.3.4
         pip install --force-reinstall --no-cache-dir pyside6
