@@ -63,8 +63,10 @@ def create_pipeline(model_name: str, patient_parameters, task: str) -> dict:
         return __create_folders_classification_pipeline()
     elif task == 'preop_segmentation':
         return __create_segmentation_pipeline(model_name, patient_parameters)
-    elif task == 'postop_segmentation':
-        model_name = select_appropriate_postop_model(patient_parameters)
+    elif 'postop_segmentation' in task:
+        # @TODO. Will have to clean up all this for dealing with the new use-cases...
+        if "GBM" in task:
+            model_name = select_appropriate_postop_model(patient_parameters)
         download_model(model_name=model_name)
         return __create_postop_segmentation_pipeline(model_name, patient_parameters)
     elif task == 'other_segmentation':
@@ -392,7 +394,7 @@ def __create_custom_pipeline(task, tumor_type, patient_parameters):
             pip[pip_num]["description"] = "Lungs segmentation in T1CE (T{})".format(str(timestamp_order))
             download_model(model_name="CT_Lungs")
 
-        if split_task[1] == 'Tumor':
+        if split_task[1] == 'Tumor' or split_task[1] == 'Edema' or split_task[1] == 'Cavity':
             infile = open(os.path.join(SoftwareConfigResources.getInstance().models_path, tumor_type, 'pipeline.json'),
                           'rb')
             raw_pip = json.load(infile)
@@ -401,7 +403,7 @@ def __create_custom_pipeline(task, tumor_type, patient_parameters):
                 pip_num_int = pip_num_int + 1
                 pip_num = str(pip_num_int)
                 pip[pip_num] = raw_pip[steps]
-        if split_task[1] == 'Brain':
+        elif split_task[1] == 'Brain':
             infile = open(os.path.join(SoftwareConfigResources.getInstance().models_path, tumor_type, 'pipeline.json'),
                           'rb')
             raw_pip = json.load(infile)
