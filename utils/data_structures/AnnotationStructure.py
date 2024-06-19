@@ -25,6 +25,7 @@ class AnnotationClassType(Enum):
     Tumor = 1, 'Tumor'
     Necrosis = 2, 'Necrosis'
     Edema = 3, 'Edema'
+    Cavity = 4, 'Cavity'
 
     Lungs = 100, 'Lungs'
     Airways = 101, 'Airways'

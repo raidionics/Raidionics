@@ -146,7 +146,7 @@ class CentralAreaExecutionWidget(QLabel):
 
         """
         self.model_name = ""
-        if ("Classification" not in pipeline_code) and ("Brain" not in pipeline_code) and ("postop" not in pipeline_code) and ("Edema" not in pipeline_code):
+        if ("Classification" not in pipeline_code) and ("Brain" not in pipeline_code) and ("postop" not in pipeline_code) and ("Edema" not in pipeline_code) and ("Cavity" not in pipeline_code):
             diag = TumorTypeSelectionQDialog(self)
             code = diag.exec_()
             if code == 0:  # Operation cancelled
@@ -165,12 +165,23 @@ class CentralAreaExecutionWidget(QLabel):
                 self.model_name = self.model_name + '_multiclass'
                 if diag.tumor_type == 'Low-Grade Glioma':
                     self.model_name = "MRI_GBM_multiclass"
+        elif "postop" in pipeline_code:
+            diag = TumorTypeSelectionQDialog(self)
+            code = diag.exec_()
+            if code == 0:  # Operation cancelled
+                return
+            if diag.tumor_type == 'Glioblastoma':
+                self.model_name = "MRI_GBM_Postop_FV_4p"
+                pipeline_code = pipeline_code + '_GBM'
+            elif diag.tumor_type == 'Low-Grade Glioma':
+                self.model_name = "MRI_LGGlioma_Postop"
+                pipeline_code = pipeline_code + '_LGGlioma'
         elif "Brain" in pipeline_code:
             self.model_name = "MRI_Brain"
-        elif "postop" in pipeline_code:
-            self.model_name = "MRI_GBM_Postop_FV_4p"
         elif "Edema" in pipeline_code:
             self.model_name = "MRI_Edema"
+        elif "Cavity" in pipeline_code:
+            self.model_name = "MRI_Cavity"
 
         self.process_started.emit()
         self.pipeline_main_wrapper(pipeline_code)
