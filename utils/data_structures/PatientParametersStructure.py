@@ -847,19 +847,34 @@ class PatientParameters:
         ----------
         mri_volume_uid : str
             Unique id for the queried MRI volume object.
-
+        annotation_class: AnnotationClassType
+            Type of the annotation class to retrieve.
+        generation_type: AnnotationGenerationType
+            Method the annotations to retrieve were generated
         Returns
         -------
-        bool
-            True if an automatic segmentation exists for the given class, False otherwise.
+        List[str]
+            List of annotation object UIDs matching the query.
         """
         res = []
 
         for an in self._annotation_volumes:
-            if self._annotation_volumes[an].get_parent_mri_uid() == mri_volume_uid \
-                    and self._annotation_volumes[an].get_annotation_class_enum() == annotation_class \
-                    and self._annotation_volumes[an].get_generation_type_enum() == generation_type:
-                res.append(self._annotation_volumes[an].unique_id)
+            if annotation_class and generation_type:
+                if self._annotation_volumes[an].get_parent_mri_uid() == mri_volume_uid \
+                        and self._annotation_volumes[an].get_annotation_class_enum() == annotation_class \
+                        and self._annotation_volumes[an].get_generation_type_enum() == generation_type:
+                    res.append(self._annotation_volumes[an].unique_id)
+            elif annotation_class:
+                if self._annotation_volumes[an].get_parent_mri_uid() == mri_volume_uid \
+                        and self._annotation_volumes[an].get_annotation_class_enum() == annotation_class:
+                    res.append(self._annotation_volumes[an].unique_id)
+            elif generation_type:
+                if self._annotation_volumes[an].get_parent_mri_uid() == mri_volume_uid \
+                        and self._annotation_volumes[an].get_generation_type_enum() == generation_type:
+                    res.append(self._annotation_volumes[an].unique_id)
+            else:
+                if self._annotation_volumes[an].get_parent_mri_uid() == mri_volume_uid:
+                    res.append(self._annotation_volumes[an].unique_id)
         return res
 
     def is_annotation_raw_filepath_already_loaded(self, volume_filepath: str) -> bool:

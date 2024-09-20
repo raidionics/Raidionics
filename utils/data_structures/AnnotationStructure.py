@@ -1,5 +1,5 @@
 import traceback
-
+import shutil
 from aenum import Enum, unique
 import logging
 from typing import Union, Any, Tuple
@@ -11,7 +11,7 @@ import os
 from pathlib import PurePath
 
 from utils.utilities import get_type_from_string, input_file_type_conversion
-
+from utils.data_structures.UserPreferencesStructure import UserPreferencesStructure
 
 @unique
 class AnnotationClassType(Enum):
@@ -74,6 +74,8 @@ class AnnotationVolume:
     _display_name = ""
     _display_volume = None  # Displayable version of the annotation volume (e.g., resampled isotropically)
     _display_volume_filepath = None
+    _registered_volume_filepaths = {}  # List of filepaths on disk with the registered volumes
+    _registered_volumes = {}  # List of numpy arrays with the registered volumes
     _display_opacity = 50  # Percentage indicating the opacity for blending the annotation with the rest
     _display_color = [255, 255, 255, 255]  # Visible color for the annotation, with format: [r, g, b, a]
     _default_affine = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]  # Affine matrix for dumping resampled files
@@ -117,6 +119,8 @@ class AnnotationVolume:
         self._display_name = ""
         self._display_volume = None
         self._display_volume_filepath = None
+        self._registered_volume_filepaths = {}
+        self._registered_volumes = {}
         self._display_opacity = 50
         self._display_color = [255, 255, 255, 255]
         self._default_affine = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]
@@ -127,14 +131,18 @@ class AnnotationVolume:
         return self._unique_id
 
     def load_in_memory(self) -> None:
-        if self._display_volume_filepath and os.path.exists(self._display_volume_filepath):
-            self._display_volume = nib.load(self._display_volume_filepath).get_fdata()[:]
-        if self._resampled_input_volume_filepath and os.path.exists(self._resampled_input_volume_filepath):
-            self._resampled_input_volume = nib.load(self._resampled_input_volume_filepath).get_fdata()[:]
+        if UserPreferencesStructure.getInstance().display_space == 'Patient':
+            if self._display_volume_filepath and os.path.exists(self._display_volume_filepath):
+                self._display_volume = nib.load(self._display_volume_filepath).get_fdata()[:]
+            if self._resampled_input_volume_filepath and os.path.exists(self._resampled_input_volume_filepath):
+                self._resampled_input_volume = nib.load(self._resampled_input_volume_filepath).get_fdata()[:]
+        else:
+            self.__generate_display_volume()
 
     def release_from_memory(self) -> None:
         self._display_volume = None
         self._resampled_input_volume = None
+        self.registered_volumes = {}
 
     def delete(self):
         if self._display_volume_filepath and os.path.exists(self._display_volume_filepath):
@@ -149,6 +157,10 @@ class AnnotationVolume:
         if self._usable_input_filepath and self._output_patient_folder in self._usable_input_filepath\
                 and os.path.exists(self._usable_input_filepath):
             os.remove(self._usable_input_filepath)
+
+        if self.registered_volume_filepaths and len(self.registered_volume_filepaths.keys()) > 0:
+            for k in list(self.registered_volume_filepaths.keys()):
+                os.remove(self.registered_volume_filepaths[k])
 
     def set_unsaved_changes_state(self, state: bool) -> None:
         self._unsaved_changes = state
@@ -192,6 +204,22 @@ class AnnotationVolume:
     @property
     def usable_input_filepath(self) -> str:
         return self._usable_input_filepath
+
+    @property
+    def registered_volume_filepaths(self) -> dict:
+        return self._registered_volume_filepaths
+
+    @registered_volume_filepaths.setter
+    def registered_volume_filepaths(self, new_filepaths: dict) -> None:
+        self._registered_volume_filepaths = new_filepaths
+
+    @property
+    def registered_volumes(self) -> dict:
+        return self._registered_volumes
+
+    @registered_volumes.setter
+    def registered_volumes(self, new_volumes: dict) -> None:
+        self._registered_volumes = new_volumes
 
     @property
     def display_name(self) -> str:
@@ -392,6 +420,13 @@ class AnnotationVolume:
                                                                        base_patient_folder)
             volume_params['display_volume_filepath'] = os.path.relpath(self._display_volume_filepath,
                                                                        base_patient_folder)
+
+            if self.registered_volume_filepaths and len(self.registered_volume_filepaths.keys()) != 0:
+                reg_volumes = {}
+                for k in list(self.registered_volume_filepaths.keys()):
+                    reg_volumes[k] = os.path.relpath(self.registered_volume_filepaths[k], base_patient_folder)
+                volume_params['registered_volume_filepaths'] = reg_volumes
+
             volume_params['annotation_class'] = str(self._annotation_class)
             volume_params['generation_type'] = str(self._generation_type)
             volume_params['parent_mri_uid'] = self._parent_mri_uid
@@ -403,6 +438,24 @@ class AnnotationVolume:
             return volume_params
         except Exception:
             logging.error("AnnotationStructure saving failed with:\n {}".format(traceback.format_exc()))
+
+    def import_registered_volume(self, filepath: str, registration_space: str) -> None:
+        """
+
+        """
+        try:
+            registered_space_folder = os.path.join(self._output_patient_folder,
+                                                   self._timestamp_folder_name, 'raw', registration_space)
+            os.makedirs(registered_space_folder, exist_ok=True)
+            dest_path = os.path.join(registered_space_folder, os.path.basename(filepath))
+            shutil.copyfile(filepath, dest_path)
+            self.registered_volume_filepaths[registration_space] = dest_path
+            self.registered_volumes[registration_space] = nib.load(dest_path).get_fdata()[:]
+            logging.debug("""Unsaved changes - Registered annotation volume to space {} added in {}.""".format(
+                registration_space, dest_path))
+            self._unsaved_changes = True
+        except Exception:
+            logging.error("Error while importing a registered annotation volume.\n {}".format(traceback.format_exc()))
 
     def __init_from_scratch(self) -> None:
         os.makedirs(self.output_patient_folder, exist_ok=True)
@@ -422,48 +475,72 @@ class AnnotationVolume:
         potentially missing variables without crashing.
         @TODO. Might need a prompt if the loading of some elements failed to warn the user.
         """
-        if os.path.exists(parameters['raw_input_filepath']):
-            self._raw_input_filepath = parameters['raw_input_filepath']
+        try:
+            if os.path.exists(parameters['raw_input_filepath']):
+                self._raw_input_filepath = parameters['raw_input_filepath']
+            else:
+                self._raw_input_filepath = os.path.join(self._output_patient_folder, parameters['raw_input_filepath'])
+
+            # To check whether the usable filepath has been provided by the user (hence lies somewhere on the machine)
+            # or was generated by the software and lies within the patient folder.
+            if os.path.exists(parameters['usable_input_filepath']):
+                self._usable_input_filepath = parameters['usable_input_filepath']
+            else:
+                self._usable_input_filepath = os.path.join(self._output_patient_folder, parameters['usable_input_filepath'])
+
+            # The resampled volume can only be inside the output patient folder as it is internally computed and cannot be
+            # manually imported into the software.
+            self._resampled_input_volume_filepath = os.path.join(self._output_patient_folder,
+                                                                 parameters['resample_input_filepath'])
+            if os.path.exists(self._resampled_input_volume_filepath):
+                self._resampled_input_volume = nib.load(self._resampled_input_volume_filepath).get_fdata()[:]
+            else:
+                # Patient wasn't saved after loading, hence the volume was not stored on disk and must be recomputed
+                self.__generate_display_volume()
+
+            self._display_volume_filepath = os.path.join(self._output_patient_folder, parameters['display_volume_filepath'])
+            if os.path.exists(self._display_volume_filepath):
+                self._display_volume = nib.load(self._display_volume_filepath).get_fdata()[:]
+            else:
+                self.__generate_display_volume()
+
+            if 'registered_volume_filepaths' in parameters.keys():
+                for k in list(parameters['registered_volume_filepaths'].keys()):
+                    self.registered_volume_filepaths[k] = os.path.join(self._output_patient_folder,
+                                                                       parameters['registered_volume_filepaths'][k])
+                    self.registered_volumes[k] = nib.load(self.registered_volume_filepaths[k]).get_fdata()[:]
+
+            self.set_annotation_class_type(anno_type=parameters['annotation_class'], manual=False)
+            self.set_generation_type(generation_type=parameters['generation_type'], manual=False)
+            self._parent_mri_uid = parameters['parent_mri_uid']
+            self._timestamp_uid = parameters['investigation_timestamp_uid']
+            self._timestamp_folder_name = parameters['display_volume_filepath'].split('/')[0]
+            if os.name == 'nt':
+                self._timestamp_folder_name = list(PurePath(parameters['display_volume_filepath']).parts)[0]
+            self._display_name = parameters['display_name']
+            self._display_color = parameters['display_color']
+            self._display_opacity = parameters['display_opacity']
+        except Exception:
+            logging.error("""Reloading annotation structure from disk failed 
+            for: {}.\n {}""".format(self.display_name, traceback.format_exc()))
+
+    def __generate_display_volume(self) -> None:
+        """
+        @TODO. What if there is no annotation in the registration space?
+        @TODO. Check if more than one label in the file?
+        """
+        if UserPreferencesStructure.getInstance().display_space != 'Patient' and\
+            UserPreferencesStructure.getInstance().display_space in self.registered_volumes.keys():
+            display_space_anno = self.registered_volumes[UserPreferencesStructure.getInstance().display_space]
+            self._display_volume = deepcopy(display_space_anno)
         else:
-            self._raw_input_filepath = os.path.join(self._output_patient_folder, parameters['raw_input_filepath'])
+            image_nib = nib.load(self._usable_input_filepath)
+            resampled_input_ni = resample_to_output(image_nib, order=0)
+            self._resampled_input_volume = resampled_input_ni.get_fdata()[:].astype('uint8')
 
-        # To check whether the usable filepath has been provided by the user (hence lies somewhere on the machine)
-        # or was generated by the software and lies within the patient folder.
-        if os.path.exists(parameters['usable_input_filepath']):
-            self._usable_input_filepath = parameters['usable_input_filepath']
-        else:
-            self._usable_input_filepath = os.path.join(self._output_patient_folder, parameters['usable_input_filepath'])
+            self._display_volume = deepcopy(self._resampled_input_volume)
 
-        # The resampled volume can only be inside the output patient folder as it is internally computed and cannot be
-        # manually imported into the software.
-        self._resampled_input_volume_filepath = os.path.join(self._output_patient_folder,
-                                                             parameters['resample_input_filepath'])
-        if os.path.exists(self._resampled_input_volume_filepath):
-            self._resampled_input_volume = nib.load(self._resampled_input_volume_filepath).get_fdata()[:]
-        else:
-            # Patient wasn't saved after loading, hence the volume was not stored on disk and must be recomputed
-            self.__generate_display_volume()
-
-        self._display_volume_filepath = os.path.join(self._output_patient_folder, parameters['display_volume_filepath'])
-        if os.path.exists(self._display_volume_filepath):
-            self._display_volume = nib.load(self._display_volume_filepath).get_fdata()[:]
-        else:
-            self.__generate_display_volume()
-        self.set_annotation_class_type(anno_type=parameters['annotation_class'], manual=False)
-        self.set_generation_type(generation_type=parameters['generation_type'], manual=False)
-        self._parent_mri_uid = parameters['parent_mri_uid']
-        self._timestamp_uid = parameters['investigation_timestamp_uid']
-        self._timestamp_folder_name = parameters['display_volume_filepath'].split('/')[0]
-        if os.name == 'nt':
-            self._timestamp_folder_name = list(PurePath(parameters['display_volume_filepath']).parts)[0]
-        self._display_name = parameters['display_name']
-        self._display_color = parameters['display_color']
-        self._display_opacity = parameters['display_opacity']
-
-    def __generate_display_volume(self):
-        # @TODO. Check if more than one label?
-        image_nib = nib.load(self._usable_input_filepath)
-        resampled_input_ni = resample_to_output(image_nib, order=0)
-        self._resampled_input_volume = resampled_input_ni.get_fdata()[:].astype('uint8')
-
-        self._display_volume = deepcopy(self._resampled_input_volume)
+        if UserPreferencesStructure.getInstance().display_space != 'Patient' and \
+        UserPreferencesStructure.getInstance().display_space not in self.registered_volumes.keys():
+            logging.warning(""" The selected annotation ({}) does not have any expression in {} space.\n The default annotation in patient space is therefore used.""".format(self.get_annotation_class_str(),
+                       UserPreferencesStructure.getInstance().display_space))

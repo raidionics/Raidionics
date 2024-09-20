@@ -1,5 +1,6 @@
 import os
 import logging
+import shutil
 from typing import Union, List, Tuple
 import pandas as pd
 import numpy as np
@@ -9,6 +10,7 @@ import traceback
 from copy import deepcopy
 from pathlib import PurePath
 
+from utils.data_structures.UserPreferencesStructure import UserPreferencesStructure
 
 class AtlasVolume:
     """
@@ -26,6 +28,8 @@ class AtlasVolume:
     _display_name = ""  # Visible and editable name for identifying the current Atlas
     _display_volume = None
     _display_volume_filepath = ""  # Display MRI volume filepath, in its latest state after potential user modifiers
+    _atlas_space_filepaths = {}  # List of atlas structures filepaths on disk expressed in an atlas space
+    _atlas_space_volumes = {}  # List of numpy arrays with the atlases structures expressed in an atlas space
     _parent_mri_uid = ""  # Internal unique identifier for the MRI volume to which this annotation is linked
     _one_hot_display_volume = None
     _visible_class_labels = []
@@ -72,6 +76,8 @@ class AtlasVolume:
         self._display_name = ""
         self._display_volume = None
         self._display_volume_filepath = ""
+        self._atlas_space_filepaths = {}
+        self._atlas_space_volumes = {}
         self._parent_mri_uid = ""
         self._one_hot_display_volume = None
         self._visible_class_labels = []
@@ -123,19 +129,29 @@ class AtlasVolume:
         if os.name == 'nt':
             self._timestamp_folder_name = list(PurePath(parameters['display_volume_filepath']).parts)[0]
 
+        if 'atlas_space_filepaths' in parameters.keys():
+            for k in list(parameters['atlas_space_filepaths'].keys()):
+                self.atlas_space_filepaths[k] = os.path.join(self._output_patient_folder,
+                                                                   parameters['atlas_space_filepaths'][k])
+                self.atlas_space_volumes[k] = nib.load(self.atlas_space_filepaths[k]).get_fdata()[:]
+
         if 'display_colors' in parameters.keys():
             self._class_display_color = {int(k): v for k, v in parameters['display_colors'].items()}
         if 'display_opacities' in parameters.keys():
             self._class_display_opacity = {int(k): v for k, v in parameters['display_opacities'].items()}
 
     def load_in_memory(self) -> None:
-        if self._display_volume_filepath and os.path.exists(self._display_volume_filepath):
-            self._display_volume = nib.load(self._display_volume_filepath).get_fdata()[:]
+        if UserPreferencesStructure.getInstance().display_space == 'Patient':
+            if self._display_volume_filepath and os.path.exists(self._display_volume_filepath):
+                self._display_volume = nib.load(self._display_volume_filepath).get_fdata()[:]
+            else:
+                self.__generate_display_volume()
         else:
-            pass
+            self.__generate_display_volume()
 
     def release_from_memory(self) -> None:
         self._display_volume = None
+        self.atlas_space_volumes = {}
 
     @property
     def unique_id(self) -> str:
@@ -156,6 +172,22 @@ class AtlasVolume:
         self._display_name = name
         self._unsaved_changes = True
         logging.debug("Unsaved changes - Atlas volume display name changed to {}.".format(name))
+
+    @property
+    def atlas_space_filepaths(self) -> dict:
+        return self._atlas_space_filepaths
+
+    @atlas_space_filepaths.setter
+    def atlas_space_filepaths(self, new_filepaths: dict) -> None:
+        self._atlas_space_filepaths = new_filepaths
+
+    @property
+    def atlas_space_volumes(self) -> dict:
+        return self._atlas_space_volumes
+
+    @atlas_space_volumes.setter
+    def atlas_space_volumes(self, new_volumes: dict) -> None:
+        self._atlas_space_volumes = new_volumes
 
     def get_parent_mri_uid(self) -> str:
         return self._parent_mri_uid
@@ -303,6 +335,20 @@ class AtlasVolume:
         if self._class_description_filename and os.path.exists(self._class_description_filename):
             os.remove(self._class_description_filename)
 
+    def import_atlas_in_registration_space(self, filepath: str, registration_space: str) -> None:
+        """
+
+        """
+        try:
+            self.atlas_space_filepaths[registration_space] = filepath
+            image_nib = nib.load(filepath)
+            self.atlas_space_volumes[registration_space] = image_nib.get_fdata()[:]
+            logging.debug("""Unsaved changes - Structures atlas in space {} added in {}.""".format(
+                registration_space, filepath))
+            self._unsaved_changes = True
+        except Exception:
+            logging.error("Error while importing a registered radiological volume.\n {}".format(traceback.format_exc()))
+
     def save(self) -> dict:
         """
 
@@ -345,6 +391,13 @@ class AtlasVolume:
                 #         base_patient_folder = base_patient_folder.joinpath(x)
                 volume_params['description_filepath'] = os.path.relpath(self._class_description_filename,
                                                                         self._output_patient_folder)
+
+            if self.atlas_space_filepaths and len(self.atlas_space_filepaths.keys()) != 0:
+                atlas_volumes = {}
+                for k in list(self.atlas_space_filepaths.keys()):
+                    atlas_volumes[k] = os.path.relpath(self.atlas_space_filepaths[k], self._output_patient_folder)
+                volume_params['atlas_space_filepaths'] = atlas_volumes
+
             volume_params['parent_mri_uid'] = self._parent_mri_uid
             volume_params['investigation_timestamp_uid'] = self._timestamp_uid
             volume_params['display_colors'] = self._class_display_color
@@ -358,13 +411,24 @@ class AtlasVolume:
         """
         Generate a display-compatible volume from the raw MRI volume the first time it is loaded in the software.
         """
-        image_nib = nib.load(self._raw_input_filepath)
+        if UserPreferencesStructure.getInstance().display_space != 'Patient' and\
+            UserPreferencesStructure.getInstance().display_space in self.atlas_space_volumes.keys():
+            display_space_atlas = self.atlas_space_volumes[UserPreferencesStructure.getInstance().display_space]
+            self._display_volume = deepcopy(display_space_atlas)
+        else:
+            image_nib = nib.load(self._raw_input_filepath)
 
-        # Resampling to standard output for viewing purposes.
-        resampled_input_ni = resample_to_output(image_nib, order=0)
-        self._resampled_input_volume = resampled_input_ni.get_fdata()[:].astype('uint8')
+            # Resampling to standard output for viewing purposes.
+            resampled_input_ni = resample_to_output(image_nib, order=0)
+            self._resampled_input_volume = resampled_input_ni.get_fdata()[:].astype('uint8')
 
-        self._display_volume = deepcopy(self._resampled_input_volume)
+            self._display_volume = deepcopy(self._resampled_input_volume)
+
+        if UserPreferencesStructure.getInstance().display_space != 'Patient' and \
+        UserPreferencesStructure.getInstance().display_space not in self.atlas_space_volumes.keys():
+            logging.warning(""" The selected structure atlas ({}) does not have any expression in {} space.\n The default structure atlas in patient space is therefore used.""".format(self.display_name,
+                       UserPreferencesStructure.getInstance().display_space))
+
         self._visible_class_labels = list(np.unique(self._display_volume))
         self._class_number = len(self._visible_class_labels) - 1
         self._one_hot_display_volume = np.zeros(shape=(self._display_volume.shape + (self._class_number + 1,)),

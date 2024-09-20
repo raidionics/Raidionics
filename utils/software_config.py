@@ -24,7 +24,7 @@ class SoftwareConfigResources:
     __instance = None
     _software_home_location = None  # Main dump location for the software elements (e.g., models, runtime log)
     _user_preferences_filename = None  # json file containing the user preferences (for when reopening the software).
-    _session_log_filename = None  # log filename containing the runtime logging for each software execution.
+    _session_log_filename = None  # log filename containing the runtime logging for each software execution and backend.
     _software_version = "1.2.3"  # Current software version (minor) for selecting which models to use in the backend.
     _software_medical_specialty = "neurology"  # Overall medical target [neurology, thoracic]
 
@@ -48,6 +48,7 @@ class SoftwareConfigResources:
         self._software_home_location = os.path.join(expanduser('~'), '.raidionics')
         if not os.path.exists(self._software_home_location):
             os.makedirs(self._software_home_location)
+            os.makedirs(self._software_home_location)
         self._user_preferences_filename = os.path.join(expanduser('~'), '.raidionics', 'raidionics_preferences.json')
         self._session_log_filename = os.path.join(expanduser('~'), '.raidionics', 'session_log.log')
         self.models_path = os.path.join(expanduser('~'), '.raidionics', 'resources', 'models')
@@ -58,6 +59,13 @@ class SoftwareConfigResources:
         self.accepted_image_format = ['nii', 'nii.gz', 'mhd', 'mha', 'nrrd']
         self.accepted_scene_file_format = ['raidionics']
         self.accepted_study_file_format = ['sraidionics']
+
+        logger = logging.getLogger()
+        handler = logging.FileHandler(filename=self._session_log_filename, mode='a', encoding='utf-8')
+        handler.setFormatter(logging.Formatter(fmt="%(asctime)s ; %(name)s ; %(levelname)s ; %(message)s",
+                                               datefmt='%d/%m/%Y %H.%M'))
+        logger.setLevel(logging.DEBUG)
+        logger.addHandler(handler)
 
         self.__set_default_values()
         # self._user_preferences = UserPreferencesStructure(self._user_preferences_filename)

@@ -9,6 +9,9 @@ import threading
 import numpy as np
 import logging
 import warnings
+
+from utils.data_structures.UserPreferencesStructure import UserPreferencesStructure
+
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 from utils.software_config import SoftwareConfigResources
@@ -39,7 +42,7 @@ class WorkerThread(QThread):
 
 
 class RaidionicsMainWindow(QMainWindow):
-
+    reload_interface = Signal()
     new_patient_clicked = Signal(str)  # Internal unique_id of the clicked patient
 
     def __init__(self, application, *args, **kwargs):
@@ -322,6 +325,7 @@ class RaidionicsMainWindow(QMainWindow):
     def __cross_widgets_connections(self):
         self.welcome_widget.left_panel_single_patient_pushbutton.clicked.connect(self.__on_single_patient_clicked)
         self.new_patient_clicked.connect(self.single_patient_widget.on_single_patient_clicked)
+        self.reload_interface.connect(self.single_patient_widget.on_reload_interface)
 
         self.welcome_widget.left_panel_multiple_patients_pushbutton.clicked.connect(self.__on_study_batch_clicked)
         self.welcome_widget.community_clicked.connect(self.__on_community_action_triggered)
@@ -427,8 +431,14 @@ class RaidionicsMainWindow(QMainWindow):
         self.adjustSize()
 
     def __on_settings_preferences_clicked(self):
+        patient_space = UserPreferencesStructure.getInstance().display_space
         diag = SoftwareSettingsDialog(self)
         diag.exec_()
+
+        # Reloading the interface is mainly meant to perform a visual refreshment based on the latest user display choices
+        # For now: changing the display space for viewing a patient images.
+        if UserPreferencesStructure.getInstance().display_space != patient_space:
+            self.reload_interface.emit()
 
     def __on_patient_selected(self, patient_uid: str) -> None:
         """

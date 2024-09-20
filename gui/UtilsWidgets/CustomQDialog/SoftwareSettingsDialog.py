@@ -369,22 +369,32 @@ class SoftwareSettingsDialog(QDialog):
     def __set_appearance_options_interface(self):
         self.appearance_options_widget = QWidget()
         self.appearance_options_base_layout = QVBoxLayout()
-        self.appearance_options_label = QLabel("Appearance")
+        self.appearance_options_label = QLabel("Display")
         self.appearance_options_base_layout.addWidget(self.appearance_options_label)
+        self.display_space_layout = QHBoxLayout()
+        self.display_space_header_label = QLabel("Data display space ")
+        self.display_space_header_label.setToolTip("Select the space in which the volumes and annotations should be displayed.")
+        self.display_space_combobox = QComboBox()
+        self.display_space_combobox.addItems(["Patient", "MNI"])
+        self.display_space_combobox.setCurrentText(UserPreferencesStructure.getInstance().display_space)
+        self.display_space_layout.addWidget(self.display_space_header_label)
+        self.display_space_layout.addWidget(self.display_space_combobox)
+        self.display_space_layout.addStretch(1)
         self.color_theme_layout = QHBoxLayout()
-        self.dark_mode_header_label = QLabel("Dark mode ")
+        self.dark_mode_header_label = QLabel("Dark mode appearance ")
         self.dark_mode_header_label.setToolTip("Click to use a dark-theme appearance mode ( a restart is necessary).")
         self.dark_mode_checkbox = QCheckBox()
         self.dark_mode_checkbox.setChecked(UserPreferencesStructure.getInstance().use_dark_mode)
-        self.color_theme_layout.addWidget(self.dark_mode_checkbox)
         self.color_theme_layout.addWidget(self.dark_mode_header_label)
+        self.color_theme_layout.addWidget(self.dark_mode_checkbox)
         self.color_theme_layout.addStretch(1)
+        self.appearance_options_base_layout.addLayout(self.display_space_layout)
         self.appearance_options_base_layout.addLayout(self.color_theme_layout)
 
         self.appearance_options_base_layout.addStretch(1)
         self.appearance_options_widget.setLayout(self.appearance_options_base_layout)
         self.options_stackedwidget.addWidget(self.appearance_options_widget)
-        self.appearance_options_pushbutton = QPushButton('Appearance')
+        self.appearance_options_pushbutton = QPushButton('Display')
         self.options_list_scrollarea_layout.insertWidget(self.options_list_scrollarea_layout.count() - 1,
                                                          self.appearance_options_pushbutton)
 
@@ -398,6 +408,7 @@ class SoftwareSettingsDialog(QDialog):
         self.processing_options_label.setFixedHeight(40)
         self.appearance_options_pushbutton.setFixedHeight(30)
         self.appearance_options_label.setFixedHeight(40)
+        self.display_space_combobox.setFixedSize(QSize(70,20))
         self.__set_layout_dimensions_processing_segmentation()
         self.__set_layout_dimensions_processing_reporting()
         self.setMinimumSize(800, 600)
@@ -440,6 +451,7 @@ class SoftwareSettingsDialog(QDialog):
         self.processing_options_compute_braingridstructures_checkbox.stateChanged.connect(self.__on_compute_braingridstructures_status_changed)
         self.braingridstructures_voxels_checkbox.stateChanged.connect(self.__on_braingridstructure_voxels_status_changed)
         self.dark_mode_checkbox.stateChanged.connect(self.__on_dark_mode_status_changed)
+        self.display_space_combobox.currentTextChanged.connect(self.__on_display_space_changed)
         self.exit_accept_pushbutton.clicked.connect(self.__on_exit_accept_clicked)
         self.exit_cancel_pushbutton.clicked.connect(self.__on_exit_cancel_clicked)
 
@@ -663,6 +675,72 @@ class SoftwareSettingsDialog(QDialog):
         background-color: rgb(15, 15, 15);
         }""")
 
+        self.display_space_header_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        text-align:left;
+        font:semibold;
+        font-size:14px;
+        }""")
+
+        if os.name == 'nt':
+            self.display_space_combobox.setStyleSheet("""
+            QComboBox{
+            color: """ + font_color + """;
+            background-color: """ + background_color + """;
+            font: bold;
+            font-size: 12px;
+            border-style:none;
+            }
+            QComboBox::hover{
+            border-style: solid;
+            border-width: 1px;
+            border-color: rgba(196, 196, 196, 1);
+            }
+            QComboBox::drop-down {
+            subcontrol-origin: padding;
+            subcontrol-position: top right;
+            width: 15px;
+            }
+            """)
+        else:
+            self.display_space_combobox.setStyleSheet("""
+            QComboBox{
+            color: """ + font_color + """;
+            background-color: """ + background_color + """;
+            font: bold;
+            font-size: 12px;
+            border-style:none;
+            }
+            QComboBox::hover{
+            border-style: solid;
+            border-width: 1px;
+            border-color: rgba(196, 196, 196, 1);
+            }
+            QComboBox::drop-down {
+            subcontrol-origin: padding;
+            subcontrol-position: top right;
+            width: 15px;
+            border-left-width: 1px;
+            border-left-color: darkgray;
+            border-left-style: none;
+            border-top-right-radius: 3px; /* same radius as the QComboBox */
+            border-bottom-right-radius: 3px;
+            }
+            QComboBox::down-arrow{
+            image: url(""" + os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                          '../../Images/combobox-arrow-icon-10x7.png') + """)
+            }
+            """)
+
+        self.dark_mode_header_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        text-align:left;
+        font:semibold;
+        font-size:14px;
+        }""")
+
     def __on_home_dir_changed(self, directory: str) -> None:
         """
         The user manually selected another location for storing patients/studies.
@@ -840,6 +918,19 @@ class SoftwareSettingsDialog(QDialog):
     def __on_dark_mode_status_changed(self, state):
         # @TODO. Would have to bounce back to the QApplication class, to trigger a global setStyleSheet on-the-fly?
         SoftwareConfigResources.getInstance().set_dark_mode_state(state)
+
+    def __on_display_space_changed(self, space: str) -> None:
+        """
+        Changes the default space to be used to visualize a patient's images (e.g. original space or atlas space).
+        If a patient is currently being displayed, a reload in memory must be performed in order to use the images
+        in the proper space.
+
+        Parameters
+        ----------
+        space: str
+            String describing which image space must be used for visualization, from [Patient, MNI] at the moment.
+        """
+        UserPreferencesStructure.getInstance().display_space = space
 
     def __on_exit_accept_clicked(self):
         """

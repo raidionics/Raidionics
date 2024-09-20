@@ -105,6 +105,9 @@ class CentralAreaWidget(QWidget):
     def get_widget_name(self):
         return self.widget_name
 
+    def on_reload_interface(self):
+        self.display_area_widget.on_patient_selected()
+
     def on_patient_selected(self, patient_uid):
         self.patient_view_toggled.emit(patient_uid)
 
