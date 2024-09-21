@@ -402,7 +402,7 @@ class PatientParameters:
                             traceback.format_exc())
 
         except Exception:
-            error_message = "Import patient failed, from {}.\n".format(os.path.basename(filename)) + str(traceback.format_exc())
+            error_message = "[Software error] Import patient failed, from {}.\n".format(os.path.basename(filename)) + str(traceback.format_exc())
             logging.error(error_message)
         return error_message
 
@@ -493,7 +493,7 @@ class PatientParameters:
                                                                           inv_ts_uid=investigation_ts,
                                                                           inv_ts_folder_name=investigation_ts_folder_name)
                 else:
-                    error_message = "No MRI volume has been imported yet. Mandatory for importing an annotation."
+                    error_message = "[Software error] No MRI volume has been imported yet. Mandatory for importing an annotation."
                     logging.error(error_message)
         except Exception as e:
             error_message = traceback.format_exc()
@@ -558,7 +558,7 @@ class PatientParameters:
         except Exception:
             if ori_filename and os.path.exists(ori_filename):
                 os.remove(ori_filename)
-            logging.error("Import DICOM data failed with\n {}".format(traceback.format_exc()))
+            logging.error("[Software error] Import DICOM data failed with\n {}".format(traceback.format_exc()))
             error_msg = error_msg + traceback.format_exc() if error_msg else traceback.format_exc()
         return uid, error_msg
 
@@ -691,7 +691,7 @@ class PatientParameters:
             for im in list(self.get_all_reporting_uids_for_timestamp(timestamp_uid=ts_uid)):
                 self._reportings[im].timestamp_folder_name = self._investigation_timestamps[ts_uid].folder_name
         except Exception as e:
-            logging.error("[PatientParametersStructure] Changing the timestamp display name to {} failed"
+            logging.error("[Software error] PatientParametersStructure - Changing the timestamp display name to {} failed"
                           " with:\n {}".format(display_name, traceback.format_exc()))
 
     @property
@@ -1093,7 +1093,7 @@ class PatientParameters:
             logging.info("New investigation timestamp inserted with uid: {}".format(investigation_uid))
             self._unsaved_changes = True
         except Exception as e:
-            logging.error("Inserting a new investigation timestamp failed with: {}".format(traceback.format_exc()))
+            logging.error("[Software error] Inserting a new investigation timestamp failed with: {}".format(traceback.format_exc()))
             error_code = 1
 
         return investigation_uid, error_code

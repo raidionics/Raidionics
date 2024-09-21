@@ -404,6 +404,8 @@ class SoftwareSettingsDialog(QDialog):
         self.default_options_label.setFixedHeight(40)
         self.model_purge_pushbutton.setFixedSize(QSize(20, 20))
         self.model_purge_pushbutton.setIconSize(QSize(20, 20))
+        self.processing_options_segmentation_models_selector_combobox.setFixedSize(QSize(120, 20))
+        self.processing_options_segmentation_refinement_selector_combobox.setFixedSize(QSize(90, 20))
         self.processing_options_pushbutton.setFixedHeight(30)
         self.processing_options_label.setFixedHeight(40)
         self.appearance_options_pushbutton.setFixedHeight(30)
@@ -455,7 +457,10 @@ class SoftwareSettingsDialog(QDialog):
         self.exit_accept_pushbutton.clicked.connect(self.__on_exit_accept_clicked)
         self.exit_cancel_pushbutton.clicked.connect(self.__on_exit_cancel_clicked)
 
-    def __set_stylesheets(self):
+    def __set_stylesheets(self) -> None:
+        """
+        Main method for setting up the stylesheets and calling the respective stylesheets for each interface part
+        """
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
         font_color = software_ss["Color7"]
         background_color = software_ss["Color5"]
@@ -469,103 +474,11 @@ class SoftwareSettingsDialog(QDialog):
         background-color: """ + background_color + """;
         }""")
 
-        self.default_options_label.setStyleSheet("""
-        QLabel{
-        background-color: """ + background_color + """;
-        color: """ + font_color + """;
-        text-align: center;
-        font: 18px;
-        font-style: bold;
-        border-style: none;
-        }""")
-
-        self.model_purge_pushbutton.setStyleSheet("""
-        QPushButton{
-        background-color: """ + pressed_background_color + """;
-        color: """ + font_color + """;
-        font: 12px;
-        border-style: none;
-        }
-        QPushButton::hover{
-        border-style: solid;
-        border-width: 1px;
-        border-color: rgba(196, 196, 196, 1);
-        }
-        QPushButton:pressed{
-        border-style:inset;
-        background-color: """ + pressed_background_color + """;
-        }""")
-
-        self.default_options_pushbutton.setStyleSheet("""
-        QPushButton{
-        background-color: """ + pressed_background_color + """;
-        color: """ + font_color + """;
-        font: 12px;
-        border-style: none;
-        }
-        QPushButton::hover{
-        border-style: solid;
-        border-width: 1px;
-        border-color: rgba(196, 196, 196, 1);
-        }
-        QPushButton:pressed{
-        border-style:inset;
-        background-color: """ + pressed_background_color + """;
-        }""")
-
-        self.processing_options_label.setStyleSheet("""
-        QLabel{
-        background-color: """ + background_color + """;
-        color: """ + font_color + """;
-        text-align: center;
-        font: 18px;
-        font-style: bold;
-        border-style: none;
-        }""")
-
-        self.processing_options_pushbutton.setStyleSheet("""
-        QPushButton{
-        background-color: """ + background_color + """;
-        color: """ + font_color + """;
-        font: 12px;
-        border-style: none;
-        }
-        QPushButton::hover{
-        border-style: solid;
-        border-width: 1px;
-        border-color: rgba(196, 196, 196, 1);
-        }
-        QPushButton:pressed{
-        border-style:inset;
-        background-color: """ + pressed_background_color + """;
-        }""")
-
-        self.processing_segmentation_options_label.setStyleSheet("""
-        QLabel{
-        background-color: """ + background_color + """;
-        color: """ + font_color + """;
-        text-align: center;
-        font: 18px;
-        font-style: bold;
-        border-style: none;
-        }""")
-
-        self.processing_segmentation_options_pushbutton.setStyleSheet("""
-        QPushButton{
-        background-color: """ + background_color + """;
-        color: """ + font_color + """;
-        font: 12px;
-        border-style: none;
-        }
-        QPushButton::hover{
-        border-style: solid;
-        border-width: 1px;
-        border-color: rgba(196, 196, 196, 1);
-        }
-        QPushButton:pressed{
-        border-style:inset;
-        background-color: """ + pressed_background_color + """;
-        }""")
+        self.__set_stylesheets_system_settings()
+        self.__set_stylesheets_inputs_outputs_settings()
+        self.__set_stylesheets_processing_segmentation_settings()
+        self.__set_stylesheets_processing_reporting_settings()
+        self.__set_stylesheets_display_settings()
 
         # if os.name == 'nt':
         #     self.processing_options_segmentation_refinement_selector_combobox.setStyleSheet("""
@@ -616,6 +529,364 @@ class SoftwareSettingsDialog(QDialog):
         #     }
         #     """)
 
+    def __set_stylesheets_system_settings(self) -> None:
+        """
+        Stylesheets specific for the Widgets inside the System section of Settings
+        """
+        software_ss = SoftwareConfigResources.getInstance().stylesheet_components
+        font_color = software_ss["Color7"]
+        background_color = software_ss["Color5"]
+        pressed_background_color = software_ss["Color6"]
+
+        self.default_options_label.setStyleSheet("""
+        QLabel{
+        background-color: """ + background_color + """;
+        color: """ + font_color + """;
+        text-align: center;
+        font: 18px;
+        font-style: bold;
+        border-style: none;
+        }""")
+
+        self.default_options_pushbutton.setStyleSheet("""
+        QPushButton{
+        background-color: """ + pressed_background_color + """;
+        color: """ + font_color + """;
+        font: 12px;
+        border-style: none;
+        }
+        QPushButton::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        }
+        QPushButton:pressed{
+        border-style:inset;
+        background-color: """ + pressed_background_color + """;
+        }""")
+
+        self.home_directory_header_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        text-align:left;
+        font:semibold;
+        font-size:14px;
+        }""")
+
+        self.home_directory_lineedit.setStyleSheet("""
+        QLineEdit{
+        color: """ + font_color + """;
+        font: 14px;
+        background-color: """ + background_color + """;
+        border-style: none;
+        }
+        QLineEdit::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        }""")
+
+        self.model_update_header_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        text-align:left;
+        font:semibold;
+        font-size:14px;
+        }""")
+
+        self.model_purge_header_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        text-align:left;
+        font:semibold;
+        font-size:14px;
+        }""")
+
+        self.model_purge_pushbutton.setStyleSheet("""
+        QPushButton{
+        background-color: """ + pressed_background_color + """;
+        color: """ + font_color + """;
+        font: 12px;
+        border-style: none;
+        }
+        QPushButton::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        }
+        QPushButton:pressed{
+        border-style:inset;
+        background-color: """ + pressed_background_color + """;
+        }""")
+
+    def __set_stylesheets_inputs_outputs_settings(self) -> None:
+        """
+        Stylesheets specific for the Widgets inside the Inputs/Outputs section of Settings
+        """
+        software_ss = SoftwareConfigResources.getInstance().stylesheet_components
+        font_color = software_ss["Color7"]
+        background_color = software_ss["Color5"]
+        pressed_background_color = software_ss["Color6"]
+
+        self.processing_options_label.setStyleSheet("""
+        QLabel{
+        background-color: """ + background_color + """;
+        color: """ + font_color + """;
+        text-align: center;
+        font: 18px;
+        font-style: bold;
+        border-style: none;
+        }""")
+
+        self.processing_options_pushbutton.setStyleSheet("""
+        QPushButton{
+        background-color: """ + background_color + """;
+        color: """ + font_color + """;
+        font: 12px;
+        border-style: none;
+        }
+        QPushButton::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        }
+        QPushButton:pressed{
+        border-style:inset;
+        background-color: """ + pressed_background_color + """;
+        }""")
+
+        self.processing_options_use_sequences_header_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        text-align:left;
+        font:semibold;
+        font-size:14px;
+        }""")
+
+        self.processing_options_use_annotations_header_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        text-align:left;
+        font:semibold;
+        font-size:14px;
+        }""")
+
+        self.processing_options_use_stripped_inputs_header_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        text-align:left;
+        font:semibold;
+        font-size:14px;
+        }""")
+
+        self.processing_options_use_registered_inputs_header_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        text-align:left;
+        font:semibold;
+        font-size:14px;
+        }""")
+
+        self.processing_options_export_results_rtstruct_header_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        text-align:left;
+        font:semibold;
+        font-size:14px;
+        }""")
+
+    def __set_stylesheets_processing_segmentation_settings(self) -> None:
+        """
+        Stylesheets specific for the Widgets inside the Processing-Segmentation section of Settings
+        """
+        software_ss = SoftwareConfigResources.getInstance().stylesheet_components
+        font_color = software_ss["Color7"]
+        background_color = software_ss["Color5"]
+        pressed_background_color = software_ss["Color6"]
+
+        self.processing_segmentation_options_pushbutton.setStyleSheet("""
+        QPushButton{
+        background-color: """ + background_color + """;
+        color: """ + font_color + """;
+        font: 12px;
+        border-style: none;
+        }
+        QPushButton::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        }
+        QPushButton:pressed{
+        border-style:inset;
+        background-color: """ + pressed_background_color + """;
+        }""")
+
+        self.processing_segmentation_options_label.setStyleSheet("""
+        QLabel{
+        background-color: """ + background_color + """;
+        color: """ + font_color + """;
+        text-align: center;
+        font: 18px;
+        font-style: bold;
+        border-style: none;
+        }""")
+
+        self.processing_segmentation_models_groupbox.setStyleSheet("""
+        QGroupBox{
+        color: """ + software_ss["Color7"] + """;
+        font:normal;
+        font-size:15px;
+        }
+        """)
+
+        self.processing_options_segmentation_models_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        text-align:left;
+        font:semibold;
+        font-size:14px;
+        }""")
+
+        if os.name == 'nt':
+            self.processing_options_segmentation_models_selector_combobox.setStyleSheet("""
+            QComboBox{
+            color: """ + font_color + """;
+            background-color: """ + background_color + """;
+            font: bold;
+            font-size: 12px;
+            border-style:none;
+            }
+            QComboBox::hover{
+            border-style: solid;
+            border-width: 1px;
+            border-color: rgba(196, 196, 196, 1);
+            }
+            QComboBox::drop-down {
+            subcontrol-origin: padding;
+            subcontrol-position: top right;
+            width: 15px;
+            }
+            """)
+        else:
+            self.processing_options_segmentation_models_selector_combobox.setStyleSheet("""
+            QComboBox{
+            color: """ + font_color + """;
+            background-color: """ + background_color + """;
+            font: bold;
+            font-size: 12px;
+            border-style:none;
+            }
+            QComboBox::hover{
+            border-style: solid;
+            border-width: 1px;
+            border-color: rgba(196, 196, 196, 1);
+            }
+            QComboBox::drop-down {
+            subcontrol-origin: padding;
+            subcontrol-position: top right;
+            width: 15px;
+            border-left-width: 1px;
+            border-left-color: darkgray;
+            border-left-style: none;
+            border-top-right-radius: 3px; /* same radius as the QComboBox */
+            border-bottom-right-radius: 3px;
+            }
+            QComboBox::down-arrow{
+            image: url(""" + os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                          '../../Images/combobox-arrow-icon-10x7.png') + """)
+            }
+            """)
+
+        self.processing_segmentation_refinement_groupbox.setStyleSheet("""
+        QGroupBox{
+        color: """ + software_ss["Color7"] + """;
+        font:normal;
+        font-size:15px;
+        }
+        """)
+
+        self.processing_options_segmentation_refinement_selector_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        text-align:left;
+        font:semibold;
+        font-size:14px;
+        }""")
+
+        self.processing_options_segmentation_refinement_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        text-align:left;
+        font:semibold;
+        font-size:14px;
+        }""")
+
+        if os.name == 'nt':
+            self.processing_options_segmentation_refinement_selector_combobox.setStyleSheet("""
+            QComboBox{
+            color: """ + font_color + """;
+            background-color: """ + background_color + """;
+            font: bold;
+            font-size: 12px;
+            border-style:none;
+            }
+            QComboBox::hover{
+            border-style: solid;
+            border-width: 1px;
+            border-color: rgba(196, 196, 196, 1);
+            }
+            QComboBox::drop-down {
+            subcontrol-origin: padding;
+            subcontrol-position: top right;
+            width: 15px;
+            }
+            """)
+        else:
+            self.processing_options_segmentation_refinement_selector_combobox.setStyleSheet("""
+            QComboBox{
+            color: """ + font_color + """;
+            background-color: """ + background_color + """;
+            font: bold;
+            font-size: 12px;
+            border-style:none;
+            }
+            QComboBox::hover{
+            border-style: solid;
+            border-width: 1px;
+            border-color: rgba(196, 196, 196, 1);
+            }
+            QComboBox::drop-down {
+            subcontrol-origin: padding;
+            subcontrol-position: top right;
+            width: 15px;
+            border-left-width: 1px;
+            border-left-color: darkgray;
+            border-left-style: none;
+            border-top-right-radius: 3px; /* same radius as the QComboBox */
+            border-bottom-right-radius: 3px;
+            }
+            QComboBox::down-arrow{
+            image: url(""" + os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                          '../../Images/combobox-arrow-icon-10x7.png') + """)
+            }
+            """)
+
+        self.processing_options_segmentation_refinement_dilation_threshold_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        text-align:left;
+        font:semibold;
+        font-size:14px;
+        }""")
+
+    def __set_stylesheets_processing_reporting_settings(self) -> None:
+        """
+        Stylesheets specific for the Widgets inside the Processing-Reporting section of Settings
+        """
+        software_ss = SoftwareConfigResources.getInstance().stylesheet_components
+        font_color = software_ss["Color7"]
+        background_color = software_ss["Color5"]
+        pressed_background_color = software_ss["Color6"]
         self.processing_reporting_options_label.setStyleSheet("""
         QLabel{
         background-color: """ + background_color + """;
@@ -642,6 +913,119 @@ class SoftwareSettingsDialog(QDialog):
         border-style:inset;
         background-color: """ + pressed_background_color + """;
         }""")
+
+        self.processing_reporting_cortical_groupbox.setStyleSheet("""
+        QGroupBox{
+        color: """ + software_ss["Color7"] + """;
+        font:normal;
+        font-size:15px;
+        }
+        """)
+
+        self.processing_options_compute_corticalstructures_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        text-align:left;
+        font:semibold;
+        font-size:14px;
+        }""")
+
+        self.corticalstructures_mni_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        text-align:left;
+        font:semibold;
+        font-size:14px;
+        }""")
+
+        self.corticalstructures_schaefer7_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        text-align:left;
+        font:semibold;
+        font-size:14px;
+        }""")
+
+        self.corticalstructures_schaefer17_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        text-align:left;
+        font:semibold;
+        font-size:14px;
+        }""")
+
+        self.corticalstructures_harvardoxford_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        text-align:left;
+        font:semibold;
+        font-size:14px;
+        }""")
+
+        self.processing_reporting_subcortical_groupbox.setStyleSheet("""
+        QGroupBox{
+        color: """ + software_ss["Color7"] + """;
+        font:normal;
+        font-size:15px;
+        }
+        """)
+
+        self.processing_options_compute_subcorticalstructures_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        text-align:left;
+        font:semibold;
+        font-size:14px;
+        }""")
+
+        self.subcorticalstructures_bcb_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        text-align:left;
+        font:semibold;
+        font-size:14px;
+        }""")
+
+        self.subcorticalstructures_braingrid_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        text-align:left;
+        font:semibold;
+        font-size:14px;
+        }""")
+
+        self.processing_reporting_braingrid_groupbox.setStyleSheet("""
+        QGroupBox{
+        color: """ + software_ss["Color7"] + """;
+        font:normal;
+        font-size:15px;
+        }
+        """)
+
+        self.processing_options_compute_braingridstructures_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        text-align:left;
+        font:semibold;
+        font-size:14px;
+        }""")
+
+        self.braingridstructures_voxels_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        text-align:left;
+        font:semibold;
+        font-size:14px;
+        }""")
+
+    def __set_stylesheets_display_settings(self) -> None:
+        """
+        Stylesheets specific for the Widgets inside the Display section of Settings
+        """
+        software_ss = SoftwareConfigResources.getInstance().stylesheet_components
+        font_color = software_ss["Color7"]
+        background_color = software_ss["Color5"]
+        pressed_background_color = software_ss["Color6"]
 
         self.appearance_options_label.setStyleSheet("""
         QLabel{

@@ -45,7 +45,7 @@ class PatientDICOM:
                         self.gender = dicom_series.get_patient_gender()
 
             except Exception as e:
-                error_msg = """Provided folder does not contain any DICOM folder tree, nor can it be parsed as a
+                error_msg = """[Software error] Provided folder does not contain any DICOM folder tree, nor can it be parsed as a
                 single MRI volume.\n Loading aborted with error:\n {}.""".format(traceback.format_exc())
                 logging.error(error_msg)
                 return error_msg
@@ -58,7 +58,7 @@ class PatientDICOM:
             break
 
         if len(main_dicom_dir) == 0:
-            error_msg = """Provided folder does not contain any proper DICOM folder hierarchy.\n 
+            error_msg = """ [Software error] Provided folder does not contain any proper DICOM folder hierarchy.\n 
             Loading aborted."""
             logging.error(error_msg)
             return error_msg
@@ -141,7 +141,7 @@ class PatientDICOM:
                             logging.warning("DICOM Series reading issue with:\n {}".format(traceback.format_exc()))
                             continue
         except Exception as e:
-            error_msg = """Provided DICOM could not be processed.\n 
+            error_msg = """[Software error] Provided DICOM could not be processed.\n 
             Encountered issue: {}.""".format(traceback.format_exc())
             logging.error(error_msg)
             return error_msg

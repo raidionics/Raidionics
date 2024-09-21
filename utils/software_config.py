@@ -139,7 +139,7 @@ class SoftwareConfigResources:
             if active:
                 self.set_active_patient(patient_uid)
         except Exception:
-            error_message = "Error while trying to create a new empty patient: \n"
+            error_message = "[Software error] Error while trying to create a new empty patient: \n"
             error_message = error_message + traceback.format_exc()
             logging.error(error_message)
         return patient_uid, error_message
@@ -180,7 +180,7 @@ class SoftwareConfigResources:
                 # Doing the following rather than set_active_patient(), to avoid the overhead of doing memory release/load.
                 self.active_patient_name = patient_id
         except Exception:
-            error_message = "Error while trying to load a patient: \n"
+            error_message = "[Software error] Error while trying to load a patient: \n"
             error_message = error_message + traceback.format_exc()
             logging.error(error_message)
         return patient_id, error_message
@@ -217,8 +217,8 @@ class SoftwareConfigResources:
             if patient_uid:
                 self.patients_parameters[self.active_patient_name].load_in_memory()
         except Exception:
-            logging.error("Setting {} as active patient failed, with {}.\n".format(os.path.basename(patient_uid),
-                                                                                     str(traceback.format_exc())))
+            logging.error("[Software error] Setting {} as active patient failed, with {}.\n".format(os.path.basename(patient_uid),
+                                                                                                    str(traceback.format_exc())))
         return error_message
 
     def is_patient_list_empty(self) -> bool:
@@ -302,7 +302,7 @@ class SoftwareConfigResources:
             if active:
                 self.set_active_study(study_uid)
         except Exception:
-            error_message = "Error while trying to create a new empty study: \n"
+            error_message = "[Software error] Error while trying to create a new empty study: \n"
             error_message = error_message + traceback.format_exc()
             logging.error(error_message)
         return study_uid, error_message
@@ -354,7 +354,7 @@ class SoftwareConfigResources:
                     if pat_err_mnsg:
                         error_message = error_message + "\n" + pat_err_mnsg
         except Exception:
-            error_message = "Error while trying to load a study: \n"
+            error_message = "[Software error] Error while trying to load a study: \n"
             error_message = error_message + traceback.format_exc()
             logging.error(error_message)
 
@@ -394,8 +394,8 @@ class SoftwareConfigResources:
             if self.active_study_name:
                 self.study_parameters[self.active_study_name].load_in_memory()
         except Exception:
-            error_message = "Setting {} as active study failed, with {}.\n".format(os.path.basename(study_uid),
-                                                                                   str(traceback.format_exc()))
+            error_message = "[Software error] Setting {} as active study failed, with {}.\n".format(os.path.basename(study_uid),
+                                                                                                    str(traceback.format_exc()))
             logging.error(error_message)
         return error_message
 

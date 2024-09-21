@@ -347,7 +347,7 @@ class AtlasVolume:
                 registration_space, filepath))
             self._unsaved_changes = True
         except Exception:
-            logging.error("Error while importing a registered radiological volume.\n {}".format(traceback.format_exc()))
+            logging.error(" [Software error] Error while importing a registered radiological volume.\n {}".format(traceback.format_exc()))
 
     def save(self) -> dict:
         """
@@ -405,7 +405,7 @@ class AtlasVolume:
             self._unsaved_changes = False
             return volume_params
         except Exception:
-            logging.error("AtlasStructure saving failed with:\n {}".format(traceback.format_exc()))
+            logging.error(" [Software error] AtlasStructure saving failed with:\n {}".format(traceback.format_exc()))
 
     def __generate_display_volume(self) -> None:
         """
@@ -426,7 +426,7 @@ class AtlasVolume:
 
         if UserPreferencesStructure.getInstance().display_space != 'Patient' and \
         UserPreferencesStructure.getInstance().display_space not in self.atlas_space_volumes.keys():
-            logging.warning(""" The selected structure atlas ({}) does not have any expression in {} space.\n The default structure atlas in patient space is therefore used.""".format(self.display_name,
+            logging.warning(""" [Software warning] The selected structure atlas ({}) does not have any expression in {} space.\n The default structure atlas in patient space is therefore used.""".format(self.display_name,
                        UserPreferencesStructure.getInstance().display_space))
 
         self._visible_class_labels = list(np.unique(self._display_volume))

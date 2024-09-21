@@ -370,7 +370,7 @@ class MRIVolume:
                 for k in list(self.registered_volume_filepaths.keys()):
                     os.remove(self.registered_volume_filepaths[k])
         except Exception:
-            logging.error("Error while deleting a radiological volume from disk.\n {}".format(traceback.format_exc()))
+            logging.error(" [Software error] Error while deleting a radiological volume from disk.\n {}".format(traceback.format_exc()))
 
     def save(self) -> dict:
         """
@@ -432,7 +432,7 @@ class MRIVolume:
             self._contrast_changed = False
             return volume_params
         except Exception:
-            logging.error("MRIVolumeStructure saving failed with:\n {}".format(traceback.format_exc()))
+            logging.error(" [Software error] MRIVolumeStructure saving failed with:\n {}".format(traceback.format_exc()))
 
     def import_registered_volume(self, filepath: str, registration_space: str) -> None:
         """
@@ -451,7 +451,7 @@ class MRIVolume:
                 registration_space, dest_path))
             self._unsaved_changes = True
         except Exception:
-            logging.error("Error while importing a registered radiological volume.\n {}".format(traceback.format_exc()))
+            logging.error("[Software error] Error while importing a registered radiological volume.\n {}".format(traceback.format_exc()))
 
     def __init_from_scratch(self) -> None:
         self._timestamp_folder_name = self._timestamp_uid
@@ -501,7 +501,7 @@ class MRIVolume:
             self.set_sequence_type(type=parameters['sequence_type'], manual=False)
             self.__generate_intensity_histogram()
         except Exception:
-            logging.error("""Reloading radiological structure from disk failed 
+            logging.error("""[Software error] Reloading radiological structure from disk failed 
             for: {}.\n {}""".format(self.display_name, traceback.format_exc()))
 
     def __parse_sequence_type(self):
@@ -555,7 +555,7 @@ class MRIVolume:
 
         if UserPreferencesStructure.getInstance().display_space != 'Patient' and \
         UserPreferencesStructure.getInstance().display_space not in self.registered_volumes.keys():
-            logging.warning(""" The selected image ({} {}) does not have any expression in {} space.\n The default image in patient space is therefore used.""".format(self.timestamp_folder_name, self.get_sequence_type_str(),
+            logging.warning(""" [Software warning] The selected image ({} {}) does not have any expression in {} space.\n The default image in patient space is therefore used.""".format(self.timestamp_folder_name, self.get_sequence_type_str(),
                        UserPreferencesStructure.getInstance().display_space))
 
     def __apply_contrast_scaling_to_display_volume(self, display_volume: np.ndarray) -> None:

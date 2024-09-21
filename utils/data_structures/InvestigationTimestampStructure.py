@@ -147,7 +147,7 @@ class InvestigationTimestamp:
             self._unsaved_changes = False
             return timestamp_params
         except Exception:
-            logging.error("InvestigationTimestampStructure saving failed with:\n {}".format(traceback.format_exc()))
+            logging.error("[Software error] InvestigationTimestampStructure saving failed with:\n {}".format(traceback.format_exc()))
 
     def delete(self) -> None:
         if os.path.exists(os.path.join(self._output_patient_folder, self._folder_name)):
@@ -168,4 +168,4 @@ class InvestigationTimestamp:
             if 'datetime' in list(parameters.keys()) and parameters['datetime']:
                 self._datetime = datetime.datetime.strptime(parameters['datetime'], "%d/%m/%Y, %H:%M:%S")
         except Exception:
-            logging.error("InvestigationTimestampStructure reloading from disk failed with:\n {}".format(traceback.format_exc()))
+            logging.error("[Software error] InvestigationTimestampStructure reloading from disk failed with:\n {}".format(traceback.format_exc()))

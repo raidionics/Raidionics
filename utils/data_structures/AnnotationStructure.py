@@ -437,7 +437,7 @@ class AnnotationVolume:
             self._unsaved_changes = False
             return volume_params
         except Exception:
-            logging.error("AnnotationStructure saving failed with:\n {}".format(traceback.format_exc()))
+            logging.error("[Software error] AnnotationStructure saving failed with:\n {}".format(traceback.format_exc()))
 
     def import_registered_volume(self, filepath: str, registration_space: str) -> None:
         """
@@ -455,7 +455,7 @@ class AnnotationVolume:
                 registration_space, dest_path))
             self._unsaved_changes = True
         except Exception:
-            logging.error("Error while importing a registered annotation volume.\n {}".format(traceback.format_exc()))
+            logging.error("[Software error] Error while importing a registered annotation volume.\n {}".format(traceback.format_exc()))
 
     def __init_from_scratch(self) -> None:
         os.makedirs(self.output_patient_folder, exist_ok=True)
@@ -521,7 +521,7 @@ class AnnotationVolume:
             self._display_color = parameters['display_color']
             self._display_opacity = parameters['display_opacity']
         except Exception:
-            logging.error("""Reloading annotation structure from disk failed 
+            logging.error(""" [Software error] Reloading annotation structure from disk failed 
             for: {}.\n {}""".format(self.display_name, traceback.format_exc()))
 
     def __generate_display_volume(self) -> None:
@@ -542,5 +542,5 @@ class AnnotationVolume:
 
         if UserPreferencesStructure.getInstance().display_space != 'Patient' and \
         UserPreferencesStructure.getInstance().display_space not in self.registered_volumes.keys():
-            logging.warning(""" The selected annotation ({}) does not have any expression in {} space.\n The default annotation in patient space is therefore used.""".format(self.get_annotation_class_str(),
+            logging.warning(""" [Software warning] The selected annotation ({}) does not have any expression in {} space.\n The default annotation in patient space is therefore used.""".format(self.get_annotation_class_str(),
                        UserPreferencesStructure.getInstance().display_space))

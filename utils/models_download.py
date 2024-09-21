@@ -99,12 +99,9 @@ def download_model_ori(model_name):
                 if d == d:
                     download_model(d)
         else:
-            print("No model exists with the provided name: {}.\n".format(model_name))
-            logging.error("No model exists with the provided name: {}.\n".format(model_name))
+            logging.error("[Software error] No model exists with the provided name: {}.\n".format(model_name))
     except Exception as e:
-        print('Issue trying to collect the latest {} model.\n'.format(model_name))
-        print('{}'.format(traceback.format_exc()))
-        logging.error('Issue trying to collect the latest {} model with: \n {}'.format(model_name,
+        logging.error('[Software error] Issue trying to collect the latest {} model with: \n {}'.format(model_name,
                                                                                        traceback.format_exc()))
 
 
@@ -170,10 +167,7 @@ def download_model(model_name: str):
                 if d == d:
                     download_model(d)
         else:
-            print("No model exists with the provided name: {}.\n".format(model_name))
-            logging.error("No model exists with the provided name: {}.\n".format(model_name))
+            logging.error("[Software error] No model exists with the provided name: {}.\n".format(model_name))
     except Exception as e:
-        print('Issue trying to collect the latest {} model.\n'.format(model_name))
-        print('{}'.format(traceback.format_exc()))
-        logging.error('Issue trying to collect the latest {} model with: \n {}'.format(model_name,
+        logging.error('[Software error] Issue trying to collect the latest {} model with: \n {}'.format(model_name,
                                                                                        traceback.format_exc()))
