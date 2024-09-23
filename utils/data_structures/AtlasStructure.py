@@ -90,7 +90,14 @@ class AtlasVolume:
         self._unsaved_changes = False
 
     def __init_from_scratch(self):
-        self.__generate_display_volume()
+        image_nib = nib.load(self._raw_input_filepath)
+        # Resampling to standard output for viewing purposes.
+        resampled_input_ni = resample_to_output(image_nib, order=0)
+        self._resampled_input_volume = resampled_input_ni.get_fdata()[:].astype('uint8')
+
+        if UserPreferencesStructure.getInstance().display_space == 'Patient':
+            self.__generate_display_volume()
+
         if not self._class_description_filename or not os.path.exists(self._class_description_filename):
             logging.info("Atlas provided without a description file with location {}.\n".format(self._raw_input_filepath))
             self._class_description_filename = None
@@ -121,6 +128,10 @@ class AtlasVolume:
         """
         self._raw_input_filepath = os.path.join(self._output_patient_folder, parameters['raw_input_filepath'])
         self._class_description = pd.read_csv(self._class_description_filename)
+        # Resampling to standard output for viewing purposes.
+        image_nib = nib.load(self._raw_input_filepath)
+        resampled_input_ni = resample_to_output(image_nib, order=0)
+        self._resampled_input_volume = resampled_input_ni.get_fdata()[:].astype('uint8')
         self.__generate_display_volume()
         self._display_name = parameters['display_name']
         self._parent_mri_uid = parameters['parent_mri_uid']
@@ -415,18 +426,12 @@ class AtlasVolume:
             UserPreferencesStructure.getInstance().display_space in self.atlas_space_volumes.keys():
             display_space_atlas = self.atlas_space_volumes[UserPreferencesStructure.getInstance().display_space]
             self._display_volume = deepcopy(display_space_atlas)
-        else:
-            image_nib = nib.load(self._raw_input_filepath)
-
-            # Resampling to standard output for viewing purposes.
-            resampled_input_ni = resample_to_output(image_nib, order=0)
-            self._resampled_input_volume = resampled_input_ni.get_fdata()[:].astype('uint8')
-
+        elif UserPreferencesStructure.getInstance().display_space == 'Patient' or len(self.atlas_space_volumes.keys()) == 0:
             self._display_volume = deepcopy(self._resampled_input_volume)
 
         if UserPreferencesStructure.getInstance().display_space != 'Patient' and \
-        UserPreferencesStructure.getInstance().display_space not in self.atlas_space_volumes.keys():
-            logging.warning(""" [Software warning] The selected structure atlas ({}) does not have any expression in {} space.\n The default structure atlas in patient space is therefore used.""".format(self.display_name,
+                UserPreferencesStructure.getInstance().display_space not in self.atlas_space_volumes.keys():
+            logging.warning(""" [Software warning] The selected structure atlas ({}) does not have any expression in {} space. The default structure atlas in patient space is therefore used.""".format(self.display_name,
                        UserPreferencesStructure.getInstance().display_space))
 
         self._visible_class_labels = list(np.unique(self._display_volume))

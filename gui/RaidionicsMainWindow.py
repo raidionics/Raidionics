@@ -507,7 +507,7 @@ class RaidionicsMainWindow(QMainWindow):
         aware of it (in case they don't have the reflex to check the log file).
         """
         cases = ["[Software warning]", "[Software error]", "[Backend warning]", "[Backend error]"]
-        if True in [x in log_msg for x in cases]:#"warning" in log_msg.lower() or "error" in log_msg.lower():
+        if True in [x in log_msg for x in cases]:
             diag = QErrorMessage(self)
             diag.setWindowTitle("Error or warning identified!")
             diag.showMessage(log_msg + "\nPlease visit the log file (Settings > Logs)")

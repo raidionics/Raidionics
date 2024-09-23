@@ -539,7 +539,9 @@ class MRIVolume:
             self._contrast_window[0] = int(np.min(display_space_volume))
             self._contrast_window[1] = int(np.max(display_space_volume))
             self.__apply_contrast_scaling_to_display_volume(display_space_volume)
-        else:
+        elif UserPreferencesStructure.getInstance().display_space == 'Patient' or len(self.registered_volumes.keys()) == 0:
+            # If the option is still set to display in one atlas space, but a new image is loaded (in patient space)
+            # then the new image must be displayed anyway
             image_nib = nib.load(self._usable_input_filepath)
 
             # Resampling to standard output for viewing purposes.
@@ -555,7 +557,7 @@ class MRIVolume:
 
         if UserPreferencesStructure.getInstance().display_space != 'Patient' and \
         UserPreferencesStructure.getInstance().display_space not in self.registered_volumes.keys():
-            logging.warning(""" [Software warning] The selected image ({} {}) does not have any expression in {} space.\n The default image in patient space is therefore used.""".format(self.timestamp_folder_name, self.get_sequence_type_str(),
+            logging.warning(""" [Software warning] The selected image ({} {}) does not have any expression in {} space. The default image in patient space is therefore used.""".format(self.timestamp_folder_name, self.get_sequence_type_str(),
                        UserPreferencesStructure.getInstance().display_space))
 
     def __apply_contrast_scaling_to_display_volume(self, display_volume: np.ndarray) -> None:

@@ -301,6 +301,7 @@ class SinglePatientWidget(QWidget):
         self.results_panel.on_process_finished()
         # Hides the process tracking to display back the layers interactor for viewing purposes.
         self.right_panel_stackedwidget.setCurrentIndex(0)
+        self.center_panel.on_reload_interface()
 
     def on_batch_process_started(self) -> None:
         """

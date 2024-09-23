@@ -1,6 +1,7 @@
 import logging
 import os
 import shutil
+import time
 import traceback
 
 import pandas as pd
@@ -299,4 +300,7 @@ def collect_results(patient_parameters, pipeline):
             logging.error("Could not collect results for step {}.\n Received: {}".format(pipeline[step]["description"],
                                                                                          traceback.format_exc()))
             continue
+    # When loading all results, potentially with expression in atlas space, a reloading of the patient will recompute
+    # all display volumes for a proper interface update when the processing done signal is emitted afterwards.
+    patient_parameters.load_in_memory()
     return results

@@ -467,7 +467,12 @@ class AnnotationVolume:
                                                                  output_folder=os.path.join(self._output_patient_folder,
                                                                                             self._timestamp_folder_name,
                                                                                             'raw'))
-        self.__generate_display_volume()
+        image_nib = nib.load(self._usable_input_filepath)
+        resampled_input_ni = resample_to_output(image_nib, order=0)
+        self._resampled_input_volume = resampled_input_ni.get_fdata()[:].astype('uint8')
+
+        if UserPreferencesStructure.getInstance().display_space == 'Patient':
+            self.__generate_display_volume()
 
     def __reload_from_disk(self, parameters: dict) -> None:
         """
@@ -496,12 +501,18 @@ class AnnotationVolume:
                 self._resampled_input_volume = nib.load(self._resampled_input_volume_filepath).get_fdata()[:]
             else:
                 # Patient wasn't saved after loading, hence the volume was not stored on disk and must be recomputed
+                image_nib = nib.load(self._usable_input_filepath)
+                resampled_input_ni = resample_to_output(image_nib, order=0)
+                self._resampled_input_volume = resampled_input_ni.get_fdata()[:].astype('uint8')
                 self.__generate_display_volume()
 
             self._display_volume_filepath = os.path.join(self._output_patient_folder, parameters['display_volume_filepath'])
             if os.path.exists(self._display_volume_filepath):
                 self._display_volume = nib.load(self._display_volume_filepath).get_fdata()[:]
             else:
+                image_nib = nib.load(self._usable_input_filepath)
+                resampled_input_ni = resample_to_output(image_nib, order=0)
+                self._resampled_input_volume = resampled_input_ni.get_fdata()[:].astype('uint8')
                 self.__generate_display_volume()
 
             if 'registered_volume_filepaths' in parameters.keys():
@@ -533,14 +544,10 @@ class AnnotationVolume:
             UserPreferencesStructure.getInstance().display_space in self.registered_volumes.keys():
             display_space_anno = self.registered_volumes[UserPreferencesStructure.getInstance().display_space]
             self._display_volume = deepcopy(display_space_anno)
-        else:
-            image_nib = nib.load(self._usable_input_filepath)
-            resampled_input_ni = resample_to_output(image_nib, order=0)
-            self._resampled_input_volume = resampled_input_ni.get_fdata()[:].astype('uint8')
-
+        elif UserPreferencesStructure.getInstance().display_space == 'Patient' or len(self.registered_volumes.keys()) == 0:
             self._display_volume = deepcopy(self._resampled_input_volume)
 
         if UserPreferencesStructure.getInstance().display_space != 'Patient' and \
-        UserPreferencesStructure.getInstance().display_space not in self.registered_volumes.keys():
-            logging.warning(""" [Software warning] The selected annotation ({}) does not have any expression in {} space.\n The default annotation in patient space is therefore used.""".format(self.get_annotation_class_str(),
+                UserPreferencesStructure.getInstance().display_space not in self.registered_volumes.keys():
+            logging.warning(""" [Software warning] The selected annotation ({}) does not have any expression in {} space. The default annotation in patient space is therefore used.""".format(self.get_annotation_class_str(),
                        UserPreferencesStructure.getInstance().display_space))
