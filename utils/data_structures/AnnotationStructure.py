@@ -73,7 +73,6 @@ class AnnotationVolume:
     _generation_type = AnnotationGenerationType.Manual  # Generation method for the annotation
     _display_name = ""
     _display_volume = None  # Displayable version of the annotation volume (e.g., resampled isotropically)
-    _display_volume_filepath = None
     _registered_volume_filepaths = {}  # List of filepaths on disk with the registered volumes
     _registered_volumes = {}  # List of numpy arrays with the registered volumes
     _display_opacity = 50  # Percentage indicating the opacity for blending the annotation with the rest
@@ -118,7 +117,6 @@ class AnnotationVolume:
         self._generation_type = AnnotationGenerationType.Manual
         self._display_name = ""
         self._display_volume = None
-        self._display_volume_filepath = None
         self._registered_volume_filepaths = {}
         self._registered_volumes = {}
         self._display_opacity = 50
@@ -131,36 +129,41 @@ class AnnotationVolume:
         return self._unique_id
 
     def load_in_memory(self) -> None:
-        if UserPreferencesStructure.getInstance().display_space == 'Patient':
-            if self._display_volume_filepath and os.path.exists(self._display_volume_filepath):
-                self._display_volume = nib.load(self._display_volume_filepath).get_fdata()[:]
-            if self._resampled_input_volume_filepath and os.path.exists(self._resampled_input_volume_filepath):
-                self._resampled_input_volume = nib.load(self._resampled_input_volume_filepath).get_fdata()[:]
-        else:
+        try:
+            if UserPreferencesStructure.getInstance().display_space != 'Patient':
+                if self._resampled_input_volume_filepath and os.path.exists(self._resampled_input_volume_filepath):
+                    self._resampled_input_volume = nib.load(self._resampled_input_volume_filepath).get_fdata()[:]
+                else:
+                    self.__generate_standardized_input_volume()
             self.__generate_display_volume()
+        except Exception as e:
+            raise ValueError("[AnnotationStructure] Loading in memory failed with: {}".format(e))
 
     def release_from_memory(self) -> None:
         self._display_volume = None
         self._resampled_input_volume = None
         self.registered_volumes = {}
 
-    def delete(self):
-        if self._display_volume_filepath and os.path.exists(self._display_volume_filepath):
-            os.remove(self._display_volume_filepath)
-        if self._resampled_input_volume_filepath and os.path.exists(self._resampled_input_volume_filepath):
-            os.remove(self._resampled_input_volume_filepath)
+    def delete(self) -> None:
+        try:
+            if self._resampled_input_volume_filepath and os.path.exists(self._resampled_input_volume_filepath):
+                os.remove(self._resampled_input_volume_filepath)
 
-        # In case the annotation was automatically generated, its raw version lies inside the patient folder, and can be safely erased
-        if self._raw_input_filepath and self._output_patient_folder in self._raw_input_filepath\
-                and os.path.exists(self._raw_input_filepath):
-            os.remove(self._raw_input_filepath)
-        if self._usable_input_filepath and self._output_patient_folder in self._usable_input_filepath\
-                and os.path.exists(self._usable_input_filepath):
-            os.remove(self._usable_input_filepath)
+            # In case the annotation was automatically generated, its raw version lies inside the patient folder,
+            # and can be safely erased
+            if self._raw_input_filepath and self._output_patient_folder in self._raw_input_filepath\
+                    and os.path.exists(self._raw_input_filepath):
+                os.remove(self._raw_input_filepath)
+            if self._usable_input_filepath and self._output_patient_folder in self._usable_input_filepath\
+                    and os.path.exists(self._usable_input_filepath):
+                os.remove(self._usable_input_filepath)
 
-        if self.registered_volume_filepaths and len(self.registered_volume_filepaths.keys()) > 0:
-            for k in list(self.registered_volume_filepaths.keys()):
-                os.remove(self.registered_volume_filepaths[k])
+            if self.registered_volume_filepaths and len(self.registered_volume_filepaths.keys()) > 0:
+                for k in list(self.registered_volume_filepaths.keys()):
+                    os.remove(self.registered_volume_filepaths[k])
+        except Exception as e:
+            logging.error("[Software error] Annotation structure deletion failed with: {}.\n {}".format(
+                e, traceback.format_exc()))
 
     def set_unsaved_changes_state(self, state: bool) -> None:
         self._unsaved_changes = state
@@ -240,9 +243,7 @@ class AnnotationVolume:
         if self._resampled_input_volume_filepath:
             self._resampled_input_volume_filepath = self._resampled_input_volume_filepath.replace(
                 self._output_patient_folder, output_folder)
-        if self._display_volume_filepath:
-            self._display_volume_filepath = self._display_volume_filepath.replace(self._output_patient_folder,
-                                                                                  output_folder)
+
         self._output_patient_folder = output_folder
 
     @property
@@ -307,23 +308,6 @@ class AnnotationVolume:
                 self._resampled_input_volume_filepath = os.path.join(self._output_patient_folder,
                                                                      self._timestamp_folder_name, rel_path)
 
-        if self._display_volume_filepath and \
-                self._output_patient_folder in self._display_volume_filepath:
-            if os.name == 'nt':
-                path_parts = list(PurePath(os.path.relpath(self._display_volume_filepath,
-                                                           self._output_patient_folder)).parts[1:])
-                rel_path = PurePath()
-                rel_path = rel_path.joinpath(self._output_patient_folder)
-                rel_path = rel_path.joinpath(self._timestamp_folder_name)
-                for x in path_parts:
-                    rel_path = rel_path.joinpath(x)
-                self._display_volume_filepath = os.fspath(rel_path)
-            else:
-                rel_path = '/'.join(os.path.relpath(self._display_volume_filepath,
-                                                    self._output_patient_folder).split('/')[1:])
-                self._display_volume_filepath = os.path.join(self._output_patient_folder,
-                                                             self._timestamp_folder_name, rel_path)
-
     def get_display_opacity(self) -> int:
         return self._display_opacity
 
@@ -377,7 +361,8 @@ class AnnotationVolume:
             self._generation_type = generation_type
 
         if manual:
-            logging.debug("Unsaved changes - Annotation volume generation type changed to {}.".format(str(self._generation_type)))
+            logging.debug("Unsaved changes - Annotation volume generation type changed to {}.".format(
+                str(self._generation_type)))
             self._unsaved_changes = True
 
     def save(self) -> dict:
@@ -386,13 +371,6 @@ class AnnotationVolume:
         """
         try:
             # Disk operations
-            if not self._display_volume is None:
-                self._display_volume_filepath = os.path.join(self._output_patient_folder, self._timestamp_folder_name,
-                                                             'display', self._unique_id + '_display.nii.gz')
-                if not os.path.exists(self._display_volume_filepath):
-                    nib.save(nib.Nifti1Image(self._display_volume, affine=self._default_affine),
-                             self._display_volume_filepath)
-
             if not self._resampled_input_volume is None:
                 self._resampled_input_volume_filepath = os.path.join(self._output_patient_folder,
                                                                      self._timestamp_folder_name, 'display',
@@ -418,8 +396,6 @@ class AnnotationVolume:
 
             volume_params['resample_input_filepath'] = os.path.relpath(self._resampled_input_volume_filepath,
                                                                        base_patient_folder)
-            volume_params['display_volume_filepath'] = os.path.relpath(self._display_volume_filepath,
-                                                                       base_patient_folder)
 
             if self.registered_volume_filepaths and len(self.registered_volume_filepaths.keys()) != 0:
                 reg_volumes = {}
@@ -436,8 +412,9 @@ class AnnotationVolume:
             volume_params['display_opacity'] = self._display_opacity
             self._unsaved_changes = False
             return volume_params
-        except Exception:
-            logging.error("[Software error] AnnotationStructure saving failed with:\n {}".format(traceback.format_exc()))
+        except Exception as e:
+            logging.error("[Software error] AnnotationStructure saving failed with: {}.\n {}".format(
+                e, traceback.format_exc()))
 
     def import_registered_volume(self, filepath: str, registration_space: str) -> None:
         """
@@ -458,27 +435,32 @@ class AnnotationVolume:
             logging.error("[Software error] Error while importing a registered annotation volume.\n {}".format(traceback.format_exc()))
 
     def __init_from_scratch(self) -> None:
-        os.makedirs(self.output_patient_folder, exist_ok=True)
-        os.makedirs(os.path.join(self.output_patient_folder, self._timestamp_folder_name), exist_ok=True)
-        os.makedirs(os.path.join(self.output_patient_folder, self._timestamp_folder_name, 'raw'), exist_ok=True)
-        os.makedirs(os.path.join(self.output_patient_folder, self._timestamp_folder_name, 'display'), exist_ok=True)
+        try:
+            os.makedirs(self.output_patient_folder, exist_ok=True)
+            os.makedirs(os.path.join(self.output_patient_folder, self._timestamp_folder_name), exist_ok=True)
+            os.makedirs(os.path.join(self.output_patient_folder, self._timestamp_folder_name, 'raw'), exist_ok=True)
+            os.makedirs(os.path.join(self.output_patient_folder, self._timestamp_folder_name, 'display'), exist_ok=True)
 
-        self._usable_input_filepath = input_file_type_conversion(input_filename=self._raw_input_filepath,
-                                                                 output_folder=os.path.join(self._output_patient_folder,
-                                                                                            self._timestamp_folder_name,
-                                                                                            'raw'))
-        image_nib = nib.load(self._usable_input_filepath)
-        resampled_input_ni = resample_to_output(image_nib, order=0)
-        self._resampled_input_volume = resampled_input_ni.get_fdata()[:].astype('uint8')
-
-        if UserPreferencesStructure.getInstance().display_space == 'Patient':
-            self.__generate_display_volume()
+            self._usable_input_filepath = input_file_type_conversion(input_filename=self._raw_input_filepath,
+                                                                     output_folder=os.path.join(self._output_patient_folder,
+                                                                                                self._timestamp_folder_name,
+                                                                                                'raw'))
+            self.__generate_standardized_input_volume()
+            if self._output_patient_folder not in self.raw_input_filepath:
+                self.__generate_display_volume()
+        except Exception as e:
+            logging.error("""[Software error] Initializing annotation structure from scratch failed 
+            for: {} with: {}.\n {}""".format(self._raw_input_filepath, e, traceback.format_exc()))
 
     def __reload_from_disk(self, parameters: dict) -> None:
         """
         Fill all variables in their states when the patient was last saved. In addition, tries to accommodate for
         potentially missing variables without crashing.
-        @TODO. Might need a prompt if the loading of some elements failed to warn the user.
+
+        Parameters
+        ---------
+        parameters: dict
+            Dictionary containing all information to reload as saved on disk inside the .raidionics file.
         """
         try:
             if os.path.exists(parameters['raw_input_filepath']):
@@ -501,19 +483,7 @@ class AnnotationVolume:
                 self._resampled_input_volume = nib.load(self._resampled_input_volume_filepath).get_fdata()[:]
             else:
                 # Patient wasn't saved after loading, hence the volume was not stored on disk and must be recomputed
-                image_nib = nib.load(self._usable_input_filepath)
-                resampled_input_ni = resample_to_output(image_nib, order=0)
-                self._resampled_input_volume = resampled_input_ni.get_fdata()[:].astype('uint8')
-                self.__generate_display_volume()
-
-            self._display_volume_filepath = os.path.join(self._output_patient_folder, parameters['display_volume_filepath'])
-            if os.path.exists(self._display_volume_filepath):
-                self._display_volume = nib.load(self._display_volume_filepath).get_fdata()[:]
-            else:
-                image_nib = nib.load(self._usable_input_filepath)
-                resampled_input_ni = resample_to_output(image_nib, order=0)
-                self._resampled_input_volume = resampled_input_ni.get_fdata()[:].astype('uint8')
-                self.__generate_display_volume()
+                self.__generate_standardized_input_volume()
 
             if 'registered_volume_filepaths' in parameters.keys():
                 for k in list(parameters['registered_volume_filepaths'].keys()):
@@ -525,27 +495,48 @@ class AnnotationVolume:
             self.set_generation_type(generation_type=parameters['generation_type'], manual=False)
             self._parent_mri_uid = parameters['parent_mri_uid']
             self._timestamp_uid = parameters['investigation_timestamp_uid']
-            self._timestamp_folder_name = parameters['display_volume_filepath'].split('/')[0]
+            self._timestamp_folder_name = parameters['resample_input_filepath'].split('/')[0]
             if os.name == 'nt':
-                self._timestamp_folder_name = list(PurePath(parameters['display_volume_filepath']).parts)[0]
+                self._timestamp_folder_name = list(PurePath(parameters['resample_input_filepath']).parts)[0]
             self._display_name = parameters['display_name']
             self._display_color = parameters['display_color']
             self._display_opacity = parameters['display_opacity']
-        except Exception:
+        except Exception as e:
             logging.error(""" [Software error] Reloading annotation structure from disk failed 
-            for: {}.\n {}""".format(self.display_name, traceback.format_exc()))
+            for: {} with: {}.\n {}""".format(self.display_name, e, traceback.format_exc()))
+
+    def __generate_standardized_input_volume(self) -> None:
+        """
+        In order to make sure the annotation volume will be displayed correctly across the three views, a
+        standardization is necessary to set the volume orientation to a common standard.
+        """
+        try:
+            if not self._usable_input_filepath or not os.path.exists(self._usable_input_filepath):
+                raise NameError("Usable input filepath does not exist on disk with value: {}".format(
+                    self._usable_input_filepath))
+
+            image_nib = nib.load(self._usable_input_filepath)
+            resampled_input_ni = resample_to_output(image_nib, order=0)
+            self._resampled_input_volume = resampled_input_ni.get_fdata()[:].astype('uint8')
+        except Exception as e:
+            raise RuntimeError("Input volume standardization failed with: {}".format(e))
 
     def __generate_display_volume(self) -> None:
         """
-        @TODO. What if there is no annotation in the registration space?
+        Generate a display-compatible copy of the annotation volume, either in raw patient space or any atlas space.
+        If the viewing should be performed in a desired reference space, but no annotation has been generated for it,
+        the default annotation in patient space will be shown.
+
+        A display copy of the annotation volume is set up, allowing for on-the-fly modifications.
+
         @TODO. Check if more than one label in the file?
         """
+        base_volume = self._resampled_input_volume
+
         if UserPreferencesStructure.getInstance().display_space != 'Patient' and\
             UserPreferencesStructure.getInstance().display_space in self.registered_volumes.keys():
-            display_space_anno = self.registered_volumes[UserPreferencesStructure.getInstance().display_space]
-            self._display_volume = deepcopy(display_space_anno)
-        elif UserPreferencesStructure.getInstance().display_space == 'Patient' or len(self.registered_volumes.keys()) == 0:
-            self._display_volume = deepcopy(self._resampled_input_volume)
+            base_volume = self.registered_volumes[UserPreferencesStructure.getInstance().display_space]
+        self._display_volume = deepcopy(base_volume)
 
         if UserPreferencesStructure.getInstance().display_space != 'Patient' and \
                 UserPreferencesStructure.getInstance().display_space not in self.registered_volumes.keys():

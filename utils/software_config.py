@@ -4,7 +4,7 @@ import platform
 import traceback
 from os.path import expanduser
 import numpy as np
-from typing import Union, Any, List
+from typing import Union, Any, List, Optional
 import names
 from PySide6.QtCore import QSize
 import logging
@@ -179,8 +179,8 @@ class SoftwareConfigResources:
             if active:
                 # Doing the following rather than set_active_patient(), to avoid the overhead of doing memory release/load.
                 self.active_patient_name = patient_id
-        except Exception:
-            error_message = "[Software error] Error while trying to load a patient: \n"
+        except Exception as e:
+            error_message = "[Software error] Error while trying to load a patient with: {}. \n".format(e)
             error_message = error_message + traceback.format_exc()
             logging.error(error_message)
         return patient_id, error_message
@@ -230,19 +230,24 @@ class SoftwareConfigResources:
         bool
             True if the list is empty, False otherwise.
         """
-        if len(self.patients_parameters.keys()) == 0:
-            return True
-        else:
-            return False
+        return len(self.patients_parameters.keys()) == 0
 
-    def get_active_patient_uid(self) -> str:
+    def get_active_patient_uid(self) -> Optional[str]:
         return self.active_patient_name
 
-    def get_active_patient(self) -> str:
-        return self.patients_parameters[self.active_patient_name]
+    def get_active_patient(self) -> Optional[PatientParameters]:
+        if self.active_patient_name in self.patients_parameters.keys():
+            return self.patients_parameters[self.active_patient_name]
+        else:
+            return None
 
-    def get_patient(self, uid: str):
-        return self.patients_parameters[uid]
+    def get_patient(self, uid: str) -> PatientParameters:
+        try:
+            assert not self.is_patient_list_empty() and uid in self.patients_parameters.keys()
+            return self.patients_parameters[uid]
+        except AssertionError:
+            logging.error("[Software error] Assertion error trying to query a missing patient with UID {}.\n {}".format(
+                uid, traceback.format_exc()))
 
     def get_patient_by_display_name(self, display_name: str) -> Union[PatientParameters, None]:
         for uid in list(self.patients_parameters.keys()):
