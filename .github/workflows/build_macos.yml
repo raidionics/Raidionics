@@ -15,7 +15,7 @@ env:
 jobs:
   build:
     name: Build packages
-    runs-on: macos-11
+    runs-on: macos-12
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.8
@@ -72,8 +72,8 @@ jobs:
     - name: Make installer
       run: |
         git clone https://github.com/dbouget/quickpkg.git
-        quickpkg/quickpkg dist/Raidionics.app --output Raidionics-1.2.3-macOS.pkg
-        cp -r Raidionics-1.2.3-macOS.pkg dist/Raidionics-1.2.3-macOS-x86_64.pkg
+        quickpkg/quickpkg dist/Raidionics.app --output Raidionics-1.2.4-macOS.pkg
+        cp -r Raidionics-1.2.4-macOS.pkg dist/Raidionics-1.2.4-macOS-x86_64.pkg
 
     - name: Upload package
       uses: actions/upload-artifact@v4
