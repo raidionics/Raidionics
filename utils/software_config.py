@@ -48,7 +48,6 @@ class SoftwareConfigResources:
         self._software_home_location = os.path.join(expanduser('~'), '.raidionics')
         if not os.path.exists(self._software_home_location):
             os.makedirs(self._software_home_location)
-            os.makedirs(self._software_home_location)
         self._user_preferences_filename = os.path.join(expanduser('~'), '.raidionics', 'raidionics_preferences.json')
         self._session_log_filename = os.path.join(expanduser('~'), '.raidionics', 'session_log.log')
         self.models_path = os.path.join(expanduser('~'), '.raidionics', 'resources', 'models')
