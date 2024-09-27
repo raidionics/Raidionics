@@ -18,7 +18,7 @@ jobs:
         cd tmp
         python3 -m virtualenv -p python3 venv --clear
         source venv/bin/activate
-        python3 -m pip install wheel setuptools
+        python3 -m pip install wheel setuptools==69.5.1
         deactivate
 
     - name: Install dependencies
