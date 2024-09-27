@@ -100,6 +100,9 @@ def run_pipeline(task: str, model_name: str, patient_parameters: PatientParamete
         rads_config.set('System', 'output_folder', reporting_folder)
         rads_config.set('System', 'model_folder', SoftwareConfigResources.getInstance().models_path)
         pipeline = create_pipeline(model_name, patient_parameters, task)
+        if pipeline == {}:
+            queue.put((1, results))
+
         pipeline_filename = os.path.join(patient_parameters.output_folder, 'rads_pipeline.json')
         with open(pipeline_filename, 'w', newline='\n') as outfile:
             json.dump(pipeline, outfile, indent=4)

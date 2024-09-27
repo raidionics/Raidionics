@@ -1,6 +1,6 @@
 import sys, os
 from PySide6.QtWidgets import QApplication, QLabel, QMainWindow, QMenuBar, QMessageBox,\
-    QHBoxLayout, QVBoxLayout, QStackedWidget, QSizePolicy
+    QHBoxLayout, QVBoxLayout, QStackedWidget, QSizePolicy, QDialog, QErrorMessage
 from PySide6.QtCore import QUrl, QSize, QThread, Signal, Qt
 from PySide6.QtGui import QIcon, QDesktopServices, QCloseEvent, QAction
 import traceback
@@ -9,9 +9,13 @@ import threading
 import numpy as np
 import logging
 import warnings
+
+from utils.data_structures.UserPreferencesStructure import UserPreferencesStructure
+
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 from utils.software_config import SoftwareConfigResources
+from gui.LogReaderThread import LogReaderThread
 from gui.WelcomeWidget import WelcomeWidget
 from gui.SinglePatientComponent.SinglePatientWidget import SinglePatientWidget
 from gui.StudyBatchComponent.StudyBatchWidget import StudyBatchWidget
@@ -39,7 +43,7 @@ class WorkerThread(QThread):
 
 
 class RaidionicsMainWindow(QMainWindow):
-
+    reload_interface = Signal()
     new_patient_clicked = Signal(str)  # Internal unique_id of the clicked patient
 
     def __init__(self, application, *args, **kwargs):
@@ -49,6 +53,8 @@ class RaidionicsMainWindow(QMainWindow):
         self.app.setWindowIcon(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                   'Images/raidionics-icon.png')))
         self.app.setStyle("Fusion")  # @TODO: Should we remove Fusion style? Looks strange on macOS
+        self.logs_thread = LogReaderThread()
+        self.logs_thread.start()
         self.__set_interface()
         self.__set_layouts()
         self.__set_stylesheet()
@@ -80,6 +86,7 @@ class RaidionicsMainWindow(QMainWindow):
         """
         Mirroring of the closeEvent, for when the user press the Quit action in the main menu.
         """
+        self.logs_thread.stop()
         if not SoftwareConfigResources.getInstance().is_patient_list_empty()\
                 and SoftwareConfigResources.getInstance().get_active_patient().has_unsaved_changes():
             dialog = SavePatientChangesDialog()
@@ -322,6 +329,7 @@ class RaidionicsMainWindow(QMainWindow):
     def __cross_widgets_connections(self):
         self.welcome_widget.left_panel_single_patient_pushbutton.clicked.connect(self.__on_single_patient_clicked)
         self.new_patient_clicked.connect(self.single_patient_widget.on_single_patient_clicked)
+        self.reload_interface.connect(self.single_patient_widget.on_reload_interface)
 
         self.welcome_widget.left_panel_multiple_patients_pushbutton.clicked.connect(self.__on_study_batch_clicked)
         self.welcome_widget.community_clicked.connect(self.__on_community_action_triggered)
@@ -343,6 +351,8 @@ class RaidionicsMainWindow(QMainWindow):
         self.batch_study_widget.processing_finished.connect(self.single_patient_widget.on_batch_process_finished)
         self.batch_study_widget.patient_report_imported.connect(self.single_patient_widget.patient_report_imported)
         self.batch_study_widget.patient_radiological_sequences_imported.connect(self.single_patient_widget.patient_radiological_sequences_imported)
+
+        self.logs_thread.message.connect(self.on_process_log_message)
 
     def __set_menubar_connections(self):
         self.home_action.triggered.connect(self.__on_home_clicked)
@@ -427,8 +437,14 @@ class RaidionicsMainWindow(QMainWindow):
         self.adjustSize()
 
     def __on_settings_preferences_clicked(self):
+        patient_space = UserPreferencesStructure.getInstance().display_space
         diag = SoftwareSettingsDialog(self)
         diag.exec_()
+
+        # Reloading the interface is mainly meant to perform a visual refreshment based on the latest user display choices
+        # For now: changing the display space for viewing a patient images.
+        if UserPreferencesStructure.getInstance().display_space != patient_space:
+            self.reload_interface.emit()
 
     def __on_patient_selected(self, patient_uid: str) -> None:
         """
@@ -463,9 +479,9 @@ class RaidionicsMainWindow(QMainWindow):
     def __on_issues_action_triggered(self) -> None:
         QDesktopServices.openUrl(QUrl("https://github.com/dbouget/Raidionics/issues"))
 
-    def __on_view_logs_triggered(self):
+    def __on_view_logs_triggered(self) -> None:
         """
-        @TODO. Should make a custom widget as text edit to see the content of the raidionics log file.
+        Opens up a pop-up dialog allowing to read through the log file.
         """
         diag = LogsViewerDialog(self)
         diag.exec_()
@@ -484,6 +500,19 @@ class RaidionicsMainWindow(QMainWindow):
 
     def __on_download_example_data(self):
         QDesktopServices.openUrl(QUrl("https://drive.google.com/file/d/1W3klW_F7Rfge9-utczz9qp7uWh-pVPS1/view?usp=sharing"))
+
+    def on_process_log_message(self, log_msg: str) -> None:
+        """
+        Reading the log file on-the-fly to notify the user in case of software or processing issue to make them
+        aware of it (in case they don't have the reflex to check the log file).
+        """
+        cases = ["[Software warning]", "[Software error]", "[Backend warning]", "[Backend error]"]
+        if True in [x in log_msg for x in cases]:
+            diag = QErrorMessage(self)
+            diag.setWindowTitle("Error or warning identified!")
+            diag.showMessage(log_msg + "\nPlease visit the log file (Settings > Logs)")
+            diag.setMinimumSize(QSize(400, 150))
+            diag.exec()
 
     def standardOutputWritten(self, text):
         """

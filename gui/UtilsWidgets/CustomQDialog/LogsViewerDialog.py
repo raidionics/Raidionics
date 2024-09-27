@@ -9,6 +9,7 @@ from utils.software_config import SoftwareConfigResources
 
 class LogsViewerDialog(QDialog):
 
+    error_detected = Signal(str)
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Runtime logs")

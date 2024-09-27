@@ -223,4 +223,4 @@ class ReportingStructure:
             self._unsaved_changes = False
             return report_params
         except Exception:
-            logging.error("ReportingStructure saving failed with:\n {}".format(traceback.format_exc()))
+            logging.error("[Software error] ReportingStructure saving failed with:\n {}".format(traceback.format_exc()))

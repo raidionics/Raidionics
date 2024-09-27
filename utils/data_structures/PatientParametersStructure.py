@@ -156,12 +156,16 @@ class PatientParameters:
         Otherwise, for computer with limited RAM and many opened patients, freezes/crashes might occur.
         """
         logging.debug("Unloading patient {} from memory.".format(self._unique_id))
-        for im in self._mri_volumes:
-            self._mri_volumes[im].release_from_memory()
-        for an in self._annotation_volumes:
-            self._annotation_volumes[an].release_from_memory()
-        for at in self._atlas_volumes:
-            self._atlas_volumes[at].release_from_memory()
+        try:
+            for im in self._mri_volumes:
+                self._mri_volumes[im].release_from_memory()
+            for an in self._annotation_volumes:
+                self._annotation_volumes[an].release_from_memory()
+            for at in self._atlas_volumes:
+                self._atlas_volumes[at].release_from_memory()
+        except Exception as e:
+            logging.error("""[Software error] Releasing patient from memory failed with: {}.\n {}""".format(
+                e, traceback.format_exc()))
 
     def load_in_memory(self) -> None:
         """
@@ -172,12 +176,16 @@ class PatientParameters:
         to load in memory only if the objects is actually being toggled for viewing.
         """
         logging.debug("Loading patient {} from memory.".format(self._unique_id))
-        for im in self._mri_volumes:
-            self._mri_volumes[im].load_in_memory()
-        for an in self._annotation_volumes:
-            self._annotation_volumes[an].load_in_memory()
-        for at in self._atlas_volumes:
-            self._atlas_volumes[at].load_in_memory()
+        try:
+            for im in self._mri_volumes:
+                self._mri_volumes[im].load_in_memory()
+            for an in self._annotation_volumes:
+                self._annotation_volumes[an].load_in_memory()
+            for at in self._atlas_volumes:
+                self._atlas_volumes[at].load_in_memory()
+        except Exception as e:
+            logging.error("""[Software error] Loading patient in memory failed with: {}.\n {}""".format(
+                e, traceback.format_exc()))
 
     def set_unsaved_changes_state(self, state: bool) -> None:
         """
@@ -402,7 +410,7 @@ class PatientParameters:
                             traceback.format_exc())
 
         except Exception:
-            error_message = "Import patient failed, from {}.\n".format(os.path.basename(filename)) + str(traceback.format_exc())
+            error_message = "[Software error] Import patient failed, from {}.\n".format(os.path.basename(filename)) + str(traceback.format_exc())
             logging.error(error_message)
         return error_message
 
@@ -493,7 +501,7 @@ class PatientParameters:
                                                                           inv_ts_uid=investigation_ts,
                                                                           inv_ts_folder_name=investigation_ts_folder_name)
                 else:
-                    error_message = "No MRI volume has been imported yet. Mandatory for importing an annotation."
+                    error_message = "[Software error] No MRI volume has been imported yet. Mandatory for importing an annotation."
                     logging.error(error_message)
         except Exception as e:
             error_message = traceback.format_exc()
@@ -558,7 +566,7 @@ class PatientParameters:
         except Exception:
             if ori_filename and os.path.exists(ori_filename):
                 os.remove(ori_filename)
-            logging.error("Import DICOM data failed with\n {}".format(traceback.format_exc()))
+            logging.error("[Software error] Import DICOM data failed with\n {}".format(traceback.format_exc()))
             error_msg = error_msg + traceback.format_exc() if error_msg else traceback.format_exc()
         return uid, error_msg
 
@@ -600,42 +608,46 @@ class PatientParameters:
         patient, whereby it is already in memory and should not be released.
         """
         logging.info("Saving patient results in: {}".format(self._output_folder))
-        self._last_editing_timestamp = datetime.datetime.now(tz=dateutil.tz.gettz(name='Europe/Oslo'))
-        self._patient_parameters_dict_filename = os.path.join(self._output_folder, self._display_name.strip().lower().replace(" ", "_") + '_scene.raidionics')
-        self._patient_parameters_dict['Parameters']['Default']['unique_id'] = self._unique_id
-        self._patient_parameters_dict['Parameters']['Default']['display_name'] = self._display_name
-        self._patient_parameters_dict['Parameters']['Default']['creation_timestamp'] = self._creation_timestamp.strftime("%d/%m/%Y, %H:%M:%S")
-        self._patient_parameters_dict['Parameters']['Default']['last_editing_timestamp'] = self._last_editing_timestamp.strftime("%d/%m/%Y, %H:%M:%S")
+        try:
+            self._last_editing_timestamp = datetime.datetime.now(tz=dateutil.tz.gettz(name='Europe/Oslo'))
+            self._patient_parameters_dict_filename = os.path.join(self._output_folder, self._display_name.strip().lower().replace(" ", "_") + '_scene.raidionics')
+            self._patient_parameters_dict['Parameters']['Default']['unique_id'] = self._unique_id
+            self._patient_parameters_dict['Parameters']['Default']['display_name'] = self._display_name
+            self._patient_parameters_dict['Parameters']['Default']['creation_timestamp'] = self._creation_timestamp.strftime("%d/%m/%Y, %H:%M:%S")
+            self._patient_parameters_dict['Parameters']['Default']['last_editing_timestamp'] = self._last_editing_timestamp.strftime("%d/%m/%Y, %H:%M:%S")
 
-        self._patient_parameters_dict['Timestamps'] = {}
-        self._patient_parameters_dict['Volumes'] = {}
-        self._patient_parameters_dict['Annotations'] = {}
-        self._patient_parameters_dict['Atlases'] = {}
-        self._patient_parameters_dict['Reports'] = {}
+            self._patient_parameters_dict['Timestamps'] = {}
+            self._patient_parameters_dict['Volumes'] = {}
+            self._patient_parameters_dict['Annotations'] = {}
+            self._patient_parameters_dict['Atlases'] = {}
+            self._patient_parameters_dict['Reports'] = {}
 
-        # @TODO. Should the timestamp folder_name be going down here before saving each element?
-        for i, disp in enumerate(list(self._investigation_timestamps.keys())):
-            self._patient_parameters_dict['Timestamps'][disp] = self._investigation_timestamps[disp].save()
+            # @TODO. Should the timestamp folder_name be going down here before saving each element?
+            for i, disp in enumerate(list(self._investigation_timestamps.keys())):
+                self._patient_parameters_dict['Timestamps'][disp] = self._investigation_timestamps[disp].save()
 
-        for i, disp in enumerate(list(self._mri_volumes.keys())):
-            self._patient_parameters_dict['Volumes'][disp] = self._mri_volumes[disp].save()
+            for i, disp in enumerate(list(self._mri_volumes.keys())):
+                self._patient_parameters_dict['Volumes'][disp] = self._mri_volumes[disp].save()
 
-        for i, disp in enumerate(list(self._annotation_volumes.keys())):
-            self._patient_parameters_dict['Annotations'][disp] = self._annotation_volumes[disp].save()
+            for i, disp in enumerate(list(self._annotation_volumes.keys())):
+                self._patient_parameters_dict['Annotations'][disp] = self._annotation_volumes[disp].save()
 
-        for i, disp in enumerate(list(self._atlas_volumes.keys())):
-            self._patient_parameters_dict['Atlases'][disp] = self._atlas_volumes[disp].save()
+            for i, disp in enumerate(list(self._atlas_volumes.keys())):
+                self._patient_parameters_dict['Atlases'][disp] = self._atlas_volumes[disp].save()
 
-        for i, disp in enumerate(list(self._reportings.keys())):
-            self._patient_parameters_dict['Reports'][disp] = self._reportings[disp].save()
+            for i, disp in enumerate(list(self._reportings.keys())):
+                self._patient_parameters_dict['Reports'][disp] = self._reportings[disp].save()
 
-        if UserPreferencesStructure.getInstance().export_results_as_rtstruct:
-            self.__convert_results_as_dicom_rtstruct()
+            if UserPreferencesStructure.getInstance().export_results_as_rtstruct:
+                self.__convert_results_as_dicom_rtstruct()
 
-        # Saving the json file last, as it must be populated from the previous dumps beforehand
-        with open(self._patient_parameters_dict_filename, 'w') as outfile:
-            json.dump(self._patient_parameters_dict, outfile, indent=4, sort_keys=True)
-        self._unsaved_changes = False
+            # Saving the json file last, as it must be populated from the previous dumps beforehand
+            with open(self._patient_parameters_dict_filename, 'w') as outfile:
+                json.dump(self._patient_parameters_dict, outfile, indent=4, sort_keys=True)
+            self._unsaved_changes = False
+        except Exception as e:
+            logging.error("""[Software error] Saving patient on disk failed with: {}.\n {}""".format(
+                e, traceback.format_exc()))
 
     @property
     def reportings(self) -> dict:
@@ -691,7 +703,7 @@ class PatientParameters:
             for im in list(self.get_all_reporting_uids_for_timestamp(timestamp_uid=ts_uid)):
                 self._reportings[im].timestamp_folder_name = self._investigation_timestamps[ts_uid].folder_name
         except Exception as e:
-            logging.error("[PatientParametersStructure] Changing the timestamp display name to {} failed"
+            logging.error("[Software error] PatientParametersStructure - Changing the timestamp display name to {} failed"
                           " with:\n {}".format(display_name, traceback.format_exc()))
 
     @property
@@ -847,19 +859,34 @@ class PatientParameters:
         ----------
         mri_volume_uid : str
             Unique id for the queried MRI volume object.
-
+        annotation_class: AnnotationClassType
+            Type of the annotation class to retrieve.
+        generation_type: AnnotationGenerationType
+            Method the annotations to retrieve were generated
         Returns
         -------
-        bool
-            True if an automatic segmentation exists for the given class, False otherwise.
+        List[str]
+            List of annotation object UIDs matching the query.
         """
         res = []
 
         for an in self._annotation_volumes:
-            if self._annotation_volumes[an].get_parent_mri_uid() == mri_volume_uid \
-                    and self._annotation_volumes[an].get_annotation_class_enum() == annotation_class \
-                    and self._annotation_volumes[an].get_generation_type_enum() == generation_type:
-                res.append(self._annotation_volumes[an].unique_id)
+            if annotation_class and generation_type:
+                if self._annotation_volumes[an].get_parent_mri_uid() == mri_volume_uid \
+                        and self._annotation_volumes[an].get_annotation_class_enum() == annotation_class \
+                        and self._annotation_volumes[an].get_generation_type_enum() == generation_type:
+                    res.append(self._annotation_volumes[an].unique_id)
+            elif annotation_class:
+                if self._annotation_volumes[an].get_parent_mri_uid() == mri_volume_uid \
+                        and self._annotation_volumes[an].get_annotation_class_enum() == annotation_class:
+                    res.append(self._annotation_volumes[an].unique_id)
+            elif generation_type:
+                if self._annotation_volumes[an].get_parent_mri_uid() == mri_volume_uid \
+                        and self._annotation_volumes[an].get_generation_type_enum() == generation_type:
+                    res.append(self._annotation_volumes[an].unique_id)
+            else:
+                if self._annotation_volumes[an].get_parent_mri_uid() == mri_volume_uid:
+                    res.append(self._annotation_volumes[an].unique_id)
         return res
 
     def is_annotation_raw_filepath_already_loaded(self, volume_filepath: str) -> bool:
@@ -1078,7 +1105,7 @@ class PatientParameters:
             logging.info("New investigation timestamp inserted with uid: {}".format(investigation_uid))
             self._unsaved_changes = True
         except Exception as e:
-            logging.error("Inserting a new investigation timestamp failed with: {}".format(traceback.format_exc()))
+            logging.error("[Software error] Inserting a new investigation timestamp failed with: {}".format(traceback.format_exc()))
             error_code = 1
 
         return investigation_uid, error_code

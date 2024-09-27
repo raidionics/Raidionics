@@ -1,4 +1,5 @@
 import datetime
+import shutil
 import traceback
 import dateutil.tz
 from aenum import Enum, unique
@@ -12,6 +13,7 @@ import numpy as np
 import json
 from pathlib import PurePath
 
+from utils.data_structures.UserPreferencesStructure import UserPreferencesStructure
 from utils.utilities import get_type_from_string, input_file_type_conversion
 
 
@@ -50,7 +52,8 @@ class MRIVolume:
     _intensity_histogram = None  #
     _display_name = ""  # Name shown to the user to identify the current volume, and which can be modified.
     _display_volume = None
-    _display_volume_filepath = ""  # Display MRI volume filepath, in its latest state after potential user modifiers
+    _registered_volume_filepaths = {}  # List of filepaths on disk with the registered volumes
+    _registered_volumes = {}  # List of numpy arrays with the registered volumes
     _default_affine = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0],
                        [0, 0, 0, 0]]  # Affine matrix for dumping resampled files
     _unsaved_changes = False  # Documenting any change, for suggesting saving when swapping between patients
@@ -90,27 +93,33 @@ class MRIVolume:
         self._intensity_histogram = None
         self._display_name = ""
         self._display_volume = None
-        self._display_volume_filepath = ""
+        self._registered_volume_filepaths = {}
+        self._registered_volumes = {}
         self._default_affine = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]
         self._unsaved_changes = False
         self._contrast_changed = False
 
     def load_in_memory(self) -> None:
-        if self._resampled_input_volume_filepath and os.path.exists(self._resampled_input_volume_filepath):
-            self._resampled_input_volume = nib.load(self._resampled_input_volume_filepath).get_fdata()[:]
-        else:
-            # Should not occur unless the patient was not saved after being loaded.
-            # @behaviour. it is wanted?
+        """
+        When a new patient is selected for display, its corresponding radiological volumes are loaded into memory
+        for a smoother visual interaction.
+        The display volume must be recomputed everytime as the display space might have changed since the last
+        loading of the patient in memory!
+        """
+        try:
+            if UserPreferencesStructure.getInstance().display_space != 'Patient':
+                if self._resampled_input_volume_filepath and os.path.exists(self._resampled_input_volume_filepath):
+                    self._resampled_input_volume = nib.load(self._resampled_input_volume_filepath).get_fdata()[:]
+                else:
+                    self.__generate_standardized_input_volume()
             self.__generate_display_volume()
-
-        if self._display_volume_filepath and os.path.exists(self._display_volume_filepath):
-            self._display_volume = nib.load(self._display_volume_filepath).get_fdata()[:]
-        else:
-            self.__generate_display_volume()
+        except Exception as e:
+            raise ValueError("[MRIVolumeStructure] Loading in memory failed with: {}".format(e))
 
     def release_from_memory(self) -> None:
         self._resampled_input_volume = None
         self._display_volume = None
+        self.registered_volumes = {}
 
     @property
     def unique_id(self) -> str:
@@ -176,21 +185,6 @@ class MRIVolume:
                                                     self._output_patient_folder).split('/')[1:])
                 self._resampled_input_volume_filepath = os.path.join(self._output_patient_folder,
                                                                      self._timestamp_folder_name, rel_path)
-        if self._display_volume_filepath:
-            if os.name == 'nt':
-                path_parts = list(PurePath(os.path.relpath(self._display_volume_filepath,
-                                                           self._output_patient_folder)).parts[1:])
-                rel_path = PurePath()
-                rel_path = rel_path.joinpath(self._output_patient_folder)
-                rel_path = rel_path.joinpath(self._timestamp_folder_name)
-                for x in path_parts:
-                    rel_path = rel_path.joinpath(x)
-                self._display_volume_filepath = os.fspath(rel_path)
-            else:
-                rel_path = '/'.join(os.path.relpath(self._display_volume_filepath,
-                                                    self._output_patient_folder).split('/')[1:])
-                self._display_volume_filepath = os.path.join(self._output_patient_folder,
-                                                             self._timestamp_folder_name, rel_path)
 
     def set_unsaved_changes_state(self, state: bool) -> None:
         self._unsaved_changes = state
@@ -235,9 +229,6 @@ class MRIVolume:
         if self._usable_input_filepath:
             self._usable_input_filepath = self._usable_input_filepath.replace(self._output_patient_folder,
                                                                               output_folder)
-        if self._display_volume_filepath:
-            self._display_volume_filepath = self._display_volume_filepath.replace(self._output_patient_folder,
-                                                                                  output_folder)
         if self._dicom_metadata_filepath:
             self._dicom_metadata_filepath = self._dicom_metadata_filepath.replace(self._output_patient_folder,
                                                                                   output_folder)
@@ -314,8 +305,10 @@ class MRIVolume:
         Since contrast adjustment modifications can be cancelled for various reasons (e.g. not satisfied with the
         selection), the changes should not be saved until the QDialog has been successfully exited.
         """
-        self._unsaved_changes = True
-        logging.debug("Unsaved changes - MRI volume contrast range edited.")
+        pass
+        # No longer saving this info as the contrast will change if viewing the volume in patient or atlas space.
+        # self._unsaved_changes = True
+        # logging.debug("Unsaved changes - MRI volume contrast range edited.")
 
     def get_intensity_histogram(self):
         return self._intensity_histogram
@@ -326,18 +319,39 @@ class MRIVolume:
     def get_dicom_metadata(self) -> dict:
         return self._dicom_metadata
 
+    @property
+    def registered_volume_filepaths(self) -> dict:
+        return self._registered_volume_filepaths
+
+    @registered_volume_filepaths.setter
+    def registered_volume_filepaths(self, new_filepaths: dict) -> None:
+        self._registered_volume_filepaths = new_filepaths
+
+    @property
+    def registered_volumes(self) -> dict:
+        return self._registered_volumes
+
+    @registered_volumes.setter
+    def registered_volumes(self, new_volumes: dict) -> None:
+        self._registered_volumes = new_volumes
+
     def delete(self):
-        if self._display_volume_filepath and os.path.exists(self._display_volume_filepath):
-            os.remove(self._display_volume_filepath)
-        if self._resampled_input_volume_filepath and os.path.exists(self._resampled_input_volume_filepath):
-            os.remove(self._resampled_input_volume_filepath)
+        try:
+            if self._resampled_input_volume_filepath and os.path.exists(self._resampled_input_volume_filepath):
+                os.remove(self._resampled_input_volume_filepath)
 
-        if self._usable_input_filepath and self._output_patient_folder in self._usable_input_filepath \
-                and os.path.exists(self._usable_input_filepath):
-            os.remove(self._usable_input_filepath)
+            if self._usable_input_filepath and self._output_patient_folder in self._usable_input_filepath \
+                    and os.path.exists(self._usable_input_filepath):
+                os.remove(self._usable_input_filepath)
 
-        if self._dicom_metadata_filepath and os.path.exists(self._dicom_metadata_filepath):
-            os.remove(self._dicom_metadata_filepath)
+            if self._dicom_metadata_filepath and os.path.exists(self._dicom_metadata_filepath):
+                os.remove(self._dicom_metadata_filepath)
+
+            if self.registered_volume_filepaths and len(self.registered_volume_filepaths.keys()) > 0:
+                for k in list(self.registered_volume_filepaths.keys()):
+                    os.remove(self.registered_volume_filepaths[k])
+        except Exception:
+            logging.error(" [Software error] Error while deleting a radiological volume from disk.\n {}".format(traceback.format_exc()))
 
     def save(self) -> dict:
         """
@@ -346,13 +360,6 @@ class MRIVolume:
         """
         try:
             # Disk operations
-            if not self._display_volume is None:
-                self._display_volume_filepath = os.path.join(self._output_patient_folder, self._timestamp_folder_name,
-                                                             'display', self._unique_id + '_display.nii.gz')
-                if not os.path.exists(self._display_volume_filepath) or self._contrast_changed:
-                    nib.save(nib.Nifti1Image(self._display_volume, affine=self._default_affine),
-                             self._display_volume_filepath)
-
             if not self._resampled_input_volume is None:
                 self._resampled_input_volume_filepath = os.path.join(self._output_patient_folder,
                                                                      self._timestamp_folder_name, 'display',
@@ -381,59 +388,102 @@ class MRIVolume:
                 volume_params['usable_input_filepath'] = self._usable_input_filepath
             volume_params['resample_input_filepath'] = os.path.relpath(self._resampled_input_volume_filepath,
                                                                        self._output_patient_folder)
-            volume_params['display_volume_filepath'] = os.path.relpath(self._display_volume_filepath,
-                                                                       self._output_patient_folder)
             volume_params['sequence_type'] = str(self._sequence_type)
-            volume_params['contrast_window'] = str(self._contrast_window[0]) + ',' + str(self._contrast_window[1])
             if self._dicom_metadata_filepath:
                 volume_params['dicom_metadata_filepath'] = os.path.relpath(self._dicom_metadata_filepath,
                                                                            self._output_patient_folder)
+
+            if self.registered_volume_filepaths and len(self.registered_volume_filepaths.keys()) != 0:
+                reg_volumes = {}
+                for k in list(self.registered_volume_filepaths.keys()):
+                    reg_volumes[k] = os.path.relpath(self.registered_volume_filepaths[k], self._output_patient_folder)
+                volume_params['registered_volume_filepaths'] = reg_volumes
+
             self._unsaved_changes = False
             self._contrast_changed = False
             return volume_params
+        except Exception as e:
+            logging.error("[Software error] MRIVolumeStructure saving failed with: {}.\n {}".format(
+                e, traceback.format_exc()))
+
+    def import_registered_volume(self, filepath: str, registration_space: str) -> None:
+        """
+
+        """
+        try:
+            registered_space_folder = os.path.join(self._output_patient_folder,
+                                                   self._timestamp_folder_name, 'raw', registration_space)
+            os.makedirs(registered_space_folder, exist_ok=True)
+            dest_path = os.path.join(registered_space_folder, os.path.basename(filepath))
+            shutil.copyfile(filepath, dest_path)
+            self.registered_volume_filepaths[registration_space] = dest_path
+            image_nib = nib.load(dest_path)
+            self.registered_volumes[registration_space] = image_nib.get_fdata()[:]
+            logging.debug("""Unsaved changes - Registered radiological volume to space {} added in {}.""".format(
+                registration_space, dest_path))
+            self._unsaved_changes = True
         except Exception:
-            logging.error("MRIVolumeStructure saving failed with:\n {}".format(traceback.format_exc()))
+            logging.error("[Software error] Error while importing a registered radiological volume.\n {}".format(traceback.format_exc()))
 
     def __init_from_scratch(self) -> None:
-        self._timestamp_folder_name = self._timestamp_uid
-        os.makedirs(os.path.join(self._output_patient_folder, self._timestamp_folder_name), exist_ok=True)
-        os.makedirs(os.path.join(self._output_patient_folder, self._timestamp_folder_name, 'raw'), exist_ok=True)
-        os.makedirs(os.path.join(self._output_patient_folder, self._timestamp_folder_name, 'display'), exist_ok=True)
+        try:
+            self._timestamp_folder_name = self._timestamp_uid
+            os.makedirs(os.path.join(self._output_patient_folder, self._timestamp_folder_name), exist_ok=True)
+            os.makedirs(os.path.join(self._output_patient_folder, self._timestamp_folder_name, 'raw'), exist_ok=True)
+            os.makedirs(os.path.join(self._output_patient_folder, self._timestamp_folder_name, 'display'), exist_ok=True)
 
-        self._usable_input_filepath = input_file_type_conversion(input_filename=self._raw_input_filepath,
-                                                                 output_folder=os.path.join(self._output_patient_folder,
-                                                                                            self._timestamp_folder_name,
-                                                                                            'raw'))
-        self.__parse_sequence_type()
-        self.__generate_display_volume()
+            self._usable_input_filepath = input_file_type_conversion(input_filename=self._raw_input_filepath,
+                                                                     output_folder=os.path.join(self._output_patient_folder,
+                                                                                                self._timestamp_folder_name,
+                                                                                                'raw'))
+            self.__generate_standardized_input_volume()
+            self.__parse_sequence_type()
+            self.__generate_display_volume()
+        except Exception as e:
+            logging.error("""[Software error] Initializing radiological structure from scratch failed 
+            for: {} with: {}.\n {}""".format(self._raw_input_filepath, e, traceback.format_exc()))
 
     def __reload_from_disk(self, parameters: dict) -> None:
-        if os.path.exists(parameters['usable_input_filepath']):
-            self._usable_input_filepath = parameters['usable_input_filepath']
-        else:
-            self._usable_input_filepath = os.path.join(self._output_patient_folder, parameters['usable_input_filepath'])
+        """
+        Reload all radiological volume information and data from disk.
+        @TODO. Must include a reloading of the DICOM metadata, if they exist.
 
-        self._contrast_window = [int(x) for x in parameters['contrast_window'].split(',')]
+        Parameters
+        ----------
+        parameters: dict
+            Dictionary containing all information to reload as saved on disk inside the .raidionics file.
+        """
+        try:
+            self.set_sequence_type(type=parameters['sequence_type'], manual=False)
+            self._display_name = parameters['display_name']
 
-        # The resampled volume can only be inside the output patient folder as it is internally computed and cannot be
-        # manually imported into the software.
-        self._resampled_input_volume_filepath = os.path.join(self._output_patient_folder,
-                                                             parameters['resample_input_filepath'])
-        if os.path.exists(self._resampled_input_volume_filepath):
-            self._resampled_input_volume = nib.load(self._resampled_input_volume_filepath).get_fdata()[:]
-        else:
-            # Patient wasn't saved after loading, hence the volume was not stored on disk and must be recomputed
-            self.__generate_display_volume()
+            self._timestamp_folder_name = parameters['resample_input_filepath'].split('/')[0]
+            if os.name == 'nt':
+                self._timestamp_folder_name = list(PurePath(parameters['resample_input_filepath']).parts)[0]
 
-        # @TODO. Must include a reloading of the DICOM metadata, if they exist.
-        self._display_volume_filepath = os.path.join(self._output_patient_folder, parameters['display_volume_filepath'])
-        self._display_volume = nib.load(self._display_volume_filepath).get_fdata()[:]
-        self._display_name = parameters['display_name']
-        self._timestamp_folder_name = parameters['display_volume_filepath'].split('/')[0]
-        if os.name == 'nt':
-            self._timestamp_folder_name = list(PurePath(parameters['display_volume_filepath']).parts)[0]
-        self.set_sequence_type(type=parameters['sequence_type'], manual=False)
-        self.__generate_intensity_histogram()
+            if os.path.exists(parameters['usable_input_filepath']):
+                self._usable_input_filepath = parameters['usable_input_filepath']
+            else:
+                self._usable_input_filepath = os.path.join(self._output_patient_folder, parameters['usable_input_filepath'])
+
+            # The resampled volume can only be inside the output patient folder as it is internally computed and cannot
+            # be manually imported into the software.
+            self._resampled_input_volume_filepath = os.path.join(self._output_patient_folder,
+                                                                 parameters['resample_input_filepath'])
+            if os.path.exists(self._resampled_input_volume_filepath):
+                self._resampled_input_volume = nib.load(self._resampled_input_volume_filepath).get_fdata()[:]
+            else:
+                # Patient wasn't saved after loading, hence the volume was not stored on disk and must be recomputed
+                self.__generate_standardized_input_volume()
+
+            if 'registered_volume_filepaths' in parameters.keys():
+                for k in list(parameters['registered_volume_filepaths'].keys()):
+                    self.registered_volume_filepaths[k] = os.path.join(self._output_patient_folder,
+                                                                       parameters['registered_volume_filepaths'][k])
+                    self.registered_volumes[k] = nib.load(self.registered_volume_filepaths[k]).get_fdata()[:]
+        except Exception as e:
+            logging.error("""[Software error] Reloading radiological structure from disk failed 
+            for: {} with {}.\n {}""".format(self.display_name, e, traceback.format_exc()))
 
     def __parse_sequence_type(self):
         base_name = self._unique_id.lower()
@@ -448,35 +498,71 @@ class MRIVolume:
         else:
             self._sequence_type = MRISequenceType.T1w
 
-    def __generate_intensity_histogram(self):
-        # Generate the raw intensity histogram for contrast adjustment
-        self._intensity_histogram = np.histogram(self._resampled_input_volume[self._resampled_input_volume != 0],
-                                                 bins=30)
+    def __generate_intensity_histogram(self, input_array: np.ndarray):
+        """
+        Generate the raw intensity histogram for manual contrast adjustment.
+        """
+        self._intensity_histogram = np.histogram(input_array[input_array != 0], bins=30)
+
+    def __generate_standardized_input_volume(self) -> None:
+        """
+        In order to make sure the radiological volume will be displayed correctly across the three views, a
+        standardization is necessary to set the volume orientation to a common standard.
+        """
+        try:
+            if not self._usable_input_filepath or not os.path.exists(self._usable_input_filepath):
+                raise NameError("Usable input filepath does not exist on disk with value: {}".format(
+                    self._usable_input_filepath))
+
+            image_nib = nib.load(self._usable_input_filepath)
+            resampled_input_ni = resample_to_output(image_nib, order=1)
+            self._resampled_input_volume = resampled_input_ni.get_fdata()[:]
+        except Exception as e:
+            raise RuntimeError("Input volume standardization failed with: {}".format(e))
 
     def __generate_display_volume(self) -> None:
         """
-        Generate a display-compatible volume from the raw MRI volume the first time it is loaded in the software.
+        Generate a display-compatible copy of the radiological volume, either in raw patient space or any atlas space.
+        If the viewing should be performed in a desired reference space, but no image has been generated for it,
+        the default image in patient space will be shown.
+
+        A display copy of the radiological volume is set up, allowing for on-the-fly contrast modifications.
         """
-        image_nib = nib.load(self._usable_input_filepath)
+        try:
+            base_volume = self._resampled_input_volume
+            if UserPreferencesStructure.getInstance().display_space != 'Patient' and\
+                UserPreferencesStructure.getInstance().display_space in self.registered_volumes.keys():
+                base_volume = self.registered_volumes[UserPreferencesStructure.getInstance().display_space]
 
-        # Resampling to standard output for viewing purposes.
-        resampled_input_ni = resample_to_output(image_nib, order=1)
-        self._resampled_input_volume = resampled_input_ni.get_fdata()[:]
+            self.__generate_intensity_histogram(input_array=base_volume)
+            self._contrast_window[0] = int(np.min(base_volume))
+            self._contrast_window[1] = int(np.max(base_volume))
+            self.__apply_contrast_scaling_to_display_volume(base_volume)
+        except Exception as e:
+            raise RuntimeError("Display volume generation failed with: {}".format(e))
 
-        self.__generate_intensity_histogram()
+        if UserPreferencesStructure.getInstance().display_space != 'Patient' and \
+        UserPreferencesStructure.getInstance().display_space not in self.registered_volumes.keys():
+            logging.warning(""" [Software warning] The selected image ({} {}) does not have any expression in {} space. The default image in patient space is therefore used.""".format(self.timestamp_folder_name, self.get_sequence_type_str(),
+                       UserPreferencesStructure.getInstance().display_space))
 
-        # The first time, the intensity boundaries must be retrieved
-        self._contrast_window[0] = int(np.min(self._resampled_input_volume))
-        self._contrast_window[1] = int(np.max(self._resampled_input_volume))
-
-        self.__apply_contrast_scaling_to_display_volume()
-
-    def __apply_contrast_scaling_to_display_volume(self) -> None:
+    def __apply_contrast_scaling_to_display_volume(self, display_volume: np.ndarray = None) -> None:
         """
         Generate a display volume according to the contrast parameters set by the user.
+
+        Parameters
+        ----------
+        display_volume: np.ndarray
+            Base display volume to use to generate a contrast-scaled version of.
         """
+        if display_volume is None:
+            display_volume = self._resampled_input_volume
+            if UserPreferencesStructure.getInstance().display_space != 'Patient' and\
+                UserPreferencesStructure.getInstance().display_space in self.registered_volumes.keys():
+                display_volume = self.registered_volumes[UserPreferencesStructure.getInstance().display_space]
+
         # Scaling data to uint8
-        image_res = deepcopy(self._resampled_input_volume)
+        image_res = deepcopy(display_volume)
         image_res[image_res < self._contrast_window[0]] = self._contrast_window[0]
         image_res[image_res > self._contrast_window[1]] = self._contrast_window[1]
         if (self._contrast_window[1] - self._contrast_window[0]) != 0:

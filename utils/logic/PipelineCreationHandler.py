@@ -57,6 +57,10 @@ def create_pipeline(model_name: str, patient_parameters, task: str) -> dict:
     """
     # The model(s) must be downloaded first, since the pipeline.json file(s) must be used later for assembling
     # the backend pipeline... Have to organize it better, and prepare reporting pipelines for download?
+    if 'postop_reporting' in task and "GBM" not in model_name:
+        logging.warning(
+            "[Software warning] There is currently no postoperative reporting for the requested type, only GBM is supported.")
+        return {}
     download_model(model_name)
 
     if task == 'folders_classification':

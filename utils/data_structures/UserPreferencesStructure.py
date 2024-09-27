@@ -23,6 +23,7 @@ class UserPreferencesStructure:
     _export_results_as_rtstruct = False  # True to export all masks as DICOM RTStruct in addition
     _use_stripped_inputs = False  # True to use inputs already stripped (e.g., skull-stripped or lungs-stripped)
     _use_registered_inputs = False  # True to use inputs already registered (e.g., altas-registered, multi-sequences co-registered)
+    _display_space = 'Patient'  # Space to use for displaying the results
     _segmentation_tumor_model_type = "Tumor"  # Type of output to expect from the tumor segmentation model (i.e., indicating if a BraTS model should be used)
     _perform_segmentation_refinement = False  # True to enable any kind of segmentation refinement
     _segmentation_refinement_type = "dilation"  # String indicating the type of refinement to perform, to select from ["dilation"]
@@ -154,6 +155,16 @@ class UserPreferencesStructure:
         self.save_preferences()
 
     @property
+    def display_space(self) -> str:
+        return self._display_space
+
+    @display_space.setter
+    def display_space(self, space: str) -> None:
+        logging.info("Display space set to {}.\n".format(space))
+        self._display_space = space
+        self.save_preferences()
+
+    @property
     def segmentation_tumor_model_type(self) -> str:
         return self._segmentation_tumor_model_type
 
@@ -246,6 +257,9 @@ class UserPreferencesStructure:
         if 'Models' in preferences.keys():
             if 'active_update' in preferences['Models'].keys():
                 self.active_model_update = preferences['Models']['active_update']
+        if 'Display' in preferences.keys():
+            if 'display_space' in preferences['Display'].keys():
+                self.display_space = preferences['Display']['display_space']
         if 'Processing' in preferences.keys():
             if 'use_manual_sequences' in preferences['Processing'].keys():
                 self.use_manual_sequences = preferences['Processing']['use_manual_sequences']
@@ -293,6 +307,8 @@ class UserPreferencesStructure:
         preferences['System']['user_home_location'] = self._user_home_location
         preferences['Models'] = {}
         preferences['Models']['active_update'] = self._active_model_update
+        preferences['Display'] = {}
+        preferences['Display']['display_space'] = self.display_space
         preferences['Processing'] = {}
         preferences['Processing']['use_manual_sequences'] = self._use_manual_sequences
         preferences['Processing']['use_manual_annotations'] = self._use_manual_annotations

@@ -1,12 +1,14 @@
 import logging
 import os
 import shutil
+import time
 import traceback
 
 import pandas as pd
 
 from utils.data_structures.UserPreferencesStructure import UserPreferencesStructure
 from utils.data_structures.MRIVolumeStructure import MRISequenceType
+from utils.data_structures.AnnotationStructure import AnnotationClassType, AnnotationGenerationType
 from utils.utilities import get_type_from_string
 
 
@@ -79,6 +81,51 @@ def collect_results(patient_parameters, pipeline):
                         continue
                     parent_mri_uid = parent_mri_uid[0]
 
+                    # Collecting the patient volumes (radiological and annotation) in registered space
+                    # @TODO. Only MNI for now, but should be made generic in the future if more atlas spaces used
+                    atlas_registered_folder = os.path.join(patient_parameters.output_folder, 'reporting',
+                                                       'T' + str(pip_step["moving"]["timestamp"]), 'MNI_space')
+                    registered_inputs = []
+                    registered_labels = []
+                    for _, _, rfiles in os.walk(atlas_registered_folder):
+                        for rfile in rfiles:
+                            if 'label' not in rfile:
+                                registered_inputs.append(os.path.join(atlas_registered_folder, rfile))
+                            else:
+                                registered_labels.append(os.path.join(atlas_registered_folder, rfile))
+                        break
+
+                    # @TODO. Have to match each registered file with the corresponding radiological volume.
+                    # Technically, only the volumes used as inference inputs are registered, should all be registered?
+                    for ri in registered_inputs:
+                        patient_parameters.get_mri_by_uid(parent_mri_uid).import_registered_volume(filepath=ri,
+                                                                                                   registration_space=pip_step["fixed"]["sequence"])
+
+                    for rl in registered_labels:
+                        generation_type = AnnotationGenerationType.Automatic
+                        if UserPreferencesStructure.getInstance().use_manual_annotations:
+                            generation_type = AnnotationGenerationType.Manual
+                        label_type = rl.split('_label_')[-1].split('_')[0]
+                        anno_volume_uid = patient_parameters.get_specific_annotations_for_mri(mri_volume_uid=parent_mri_uid,
+                                                                                          annotation_class=get_type_from_string(AnnotationClassType, label_type))
+                        if len(anno_volume_uid) > 1:
+                            anno_volume_uid = patient_parameters.get_specific_annotations_for_mri(
+                                mri_volume_uid=parent_mri_uid,
+                                annotation_class=get_type_from_string(AnnotationClassType, label_type),
+                                generation_type=generation_type)
+                            if len(anno_volume_uid) == 1:
+                                anno_volume_uid = anno_volume_uid[0]
+                            else:
+                                logging.error("""The registered labels files could not be linked to any existing
+                                    annotation file, with value: {}""".format(rl))
+                        elif len(anno_volume_uid) == 1:
+                            anno_volume_uid = anno_volume_uid[0]
+                        else:
+                            logging.error("""The registered labels files could not be linked to any existing
+                            annotation file, with value: {}""".format(rl))
+                        patient_parameters.get_annotation_by_uid(anno_volume_uid).import_registered_volume(filepath=rl,
+                                                                                                           registration_space=pip_step["fixed"]["sequence"])
+
                     # Collecting the atlas cortical structures
                     if UserPreferencesStructure.getInstance().compute_cortical_structures:
                         cortical_folder = os.path.join(patient_parameters.output_folder, 'reporting',
@@ -108,6 +155,16 @@ def collect_results(patient_parameters, pipeline):
                                                                                              reference='Patient')
 
                             results['Atlas'].append(data_uid)
+                            # @TODO. Hard-coded MNI space for now as it is the only atlas space in use
+                            ori_structure_filename = os.path.join(patient_parameters.output_folder, 'reporting',
+                                                                  'atlas_descriptions',
+                                                                  'MNI_' + m.split('_')[1] + '_structures.nii.gz')
+                            dest_structure_filename = os.path.join(patient_parameters.output_folder,
+                                                                   'atlas_descriptions',
+                                                                   'MNI_' + m.split('_')[1] + '_structures.nii.gz')
+                            shutil.copyfile(src=ori_structure_filename, dst=dest_structure_filename)
+                            patient_parameters.get_atlas_by_uid(data_uid).import_atlas_in_registration_space(
+                                filepath=dest_structure_filename, registration_space="MNI")
 
                     # Collecting the atlas subcortical structures
                     if UserPreferencesStructure.getInstance().compute_subcortical_structures:
@@ -142,6 +199,16 @@ def collect_results(patient_parameters, pipeline):
                                                                                              reference='Patient')
 
                             results['Atlas'].append(data_uid)
+                            # @TODO. Hard-coded MNI space for now as it is the only atlas space in use
+                            ori_structure_filename = os.path.join(patient_parameters.output_folder, 'reporting',
+                                                                  'atlas_descriptions',
+                                                                  'MNI_' + m.split('_')[1] + '_structures.nii.gz')
+                            dest_structure_filename = os.path.join(patient_parameters.output_folder,
+                                                                   'atlas_descriptions',
+                                                                   'MNI_' + m.split('_')[1] + '_structures.nii.gz')
+                            shutil.copyfile(src=ori_structure_filename, dst=dest_structure_filename)
+                            patient_parameters.get_atlas_by_uid(data_uid).import_atlas_in_registration_space(
+                                filepath=dest_structure_filename, registration_space="MNI")
 
                     # Collecting the atlas BrainGrid structures
                     if UserPreferencesStructure.getInstance().compute_braingrid_structures:
@@ -172,6 +239,16 @@ def collect_results(patient_parameters, pipeline):
                                                                                              reference='Patient')
 
                             results['Atlas'].append(data_uid)
+                            # @TODO. Hard-coded MNI space for now as it is the only atlas space in use
+                            ori_structure_filename = os.path.join(patient_parameters.output_folder, 'reporting',
+                                                                  'atlas_descriptions',
+                                                                  'MNI_' + m.split('_')[1] + '_structures.nii.gz')
+                            dest_structure_filename = os.path.join(patient_parameters.output_folder,
+                                                                   'atlas_descriptions',
+                                                                   'MNI_' + m.split('_')[1] + '_structures.nii.gz')
+                            shutil.copyfile(src=ori_structure_filename, dst=dest_structure_filename)
+                            patient_parameters.get_atlas_by_uid(data_uid).import_atlas_in_registration_space(
+                                filepath=dest_structure_filename, registration_space="MNI")
 
             elif pip_step["task"] == "Features computation":
                 report_filename = os.path.join(patient_parameters.output_folder, 'reporting',
@@ -223,4 +300,7 @@ def collect_results(patient_parameters, pipeline):
             logging.error("Could not collect results for step {}.\n Received: {}".format(pipeline[step]["description"],
                                                                                          traceback.format_exc()))
             continue
+    # When loading all results, potentially with expression in atlas space, a reloading of the patient will recompute
+    # all display volumes for a proper interface update when the processing done signal is emitted afterwards.
+    patient_parameters.load_in_memory()
     return results

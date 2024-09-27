@@ -4,7 +4,7 @@ import platform
 import traceback
 from os.path import expanduser
 import numpy as np
-from typing import Union, Any, List
+from typing import Union, Any, List, Optional
 import names
 from PySide6.QtCore import QSize
 import logging
@@ -24,8 +24,8 @@ class SoftwareConfigResources:
     __instance = None
     _software_home_location = None  # Main dump location for the software elements (e.g., models, runtime log)
     _user_preferences_filename = None  # json file containing the user preferences (for when reopening the software).
-    _session_log_filename = None  # log filename containing the runtime logging for each software execution.
-    _software_version = "1.2.3"  # Current software version (minor) for selecting which models to use in the backend.
+    _session_log_filename = None  # log filename containing the runtime logging for each software execution and backend.
+    _software_version = "1.2.4"  # Current software version (minor) for selecting which models to use in the backend.
     _software_medical_specialty = "neurology"  # Overall medical target [neurology, thoracic]
 
     @staticmethod
@@ -58,6 +58,13 @@ class SoftwareConfigResources:
         self.accepted_image_format = ['nii', 'nii.gz', 'mhd', 'mha', 'nrrd']
         self.accepted_scene_file_format = ['raidionics']
         self.accepted_study_file_format = ['sraidionics']
+
+        logger = logging.getLogger()
+        handler = logging.FileHandler(filename=self._session_log_filename, mode='a', encoding='utf-8')
+        handler.setFormatter(logging.Formatter(fmt="%(asctime)s ; %(name)s ; %(levelname)s ; %(message)s",
+                                               datefmt='%d/%m/%Y %H.%M'))
+        logger.setLevel(logging.DEBUG)
+        logger.addHandler(handler)
 
         self.__set_default_values()
         # self._user_preferences = UserPreferencesStructure(self._user_preferences_filename)
@@ -131,7 +138,7 @@ class SoftwareConfigResources:
             if active:
                 self.set_active_patient(patient_uid)
         except Exception:
-            error_message = "Error while trying to create a new empty patient: \n"
+            error_message = "[Software error] Error while trying to create a new empty patient: \n"
             error_message = error_message + traceback.format_exc()
             logging.error(error_message)
         return patient_uid, error_message
@@ -171,8 +178,8 @@ class SoftwareConfigResources:
             if active:
                 # Doing the following rather than set_active_patient(), to avoid the overhead of doing memory release/load.
                 self.active_patient_name = patient_id
-        except Exception:
-            error_message = "Error while trying to load a patient: \n"
+        except Exception as e:
+            error_message = "[Software error] Error while trying to load a patient with: {}. \n".format(e)
             error_message = error_message + traceback.format_exc()
             logging.error(error_message)
         return patient_id, error_message
@@ -209,8 +216,8 @@ class SoftwareConfigResources:
             if patient_uid:
                 self.patients_parameters[self.active_patient_name].load_in_memory()
         except Exception:
-            logging.error("Setting {} as active patient failed, with {}.\n".format(os.path.basename(patient_uid),
-                                                                                     str(traceback.format_exc())))
+            logging.error("[Software error] Setting {} as active patient failed, with {}.\n".format(os.path.basename(patient_uid),
+                                                                                                    str(traceback.format_exc())))
         return error_message
 
     def is_patient_list_empty(self) -> bool:
@@ -222,19 +229,24 @@ class SoftwareConfigResources:
         bool
             True if the list is empty, False otherwise.
         """
-        if len(self.patients_parameters.keys()) == 0:
-            return True
-        else:
-            return False
+        return len(self.patients_parameters.keys()) == 0
 
-    def get_active_patient_uid(self) -> str:
+    def get_active_patient_uid(self) -> Optional[str]:
         return self.active_patient_name
 
-    def get_active_patient(self) -> str:
-        return self.patients_parameters[self.active_patient_name]
+    def get_active_patient(self) -> Optional[PatientParameters]:
+        if self.active_patient_name in self.patients_parameters.keys():
+            return self.patients_parameters[self.active_patient_name]
+        else:
+            return None
 
-    def get_patient(self, uid: str):
-        return self.patients_parameters[uid]
+    def get_patient(self, uid: str) -> PatientParameters:
+        try:
+            assert not self.is_patient_list_empty() and uid in self.patients_parameters.keys()
+            return self.patients_parameters[uid]
+        except AssertionError:
+            logging.error("[Software error] Assertion error trying to query a missing patient with UID {}.\n {}".format(
+                uid, traceback.format_exc()))
 
     def get_patient_by_display_name(self, display_name: str) -> Union[PatientParameters, None]:
         for uid in list(self.patients_parameters.keys()):
@@ -294,7 +306,7 @@ class SoftwareConfigResources:
             if active:
                 self.set_active_study(study_uid)
         except Exception:
-            error_message = "Error while trying to create a new empty study: \n"
+            error_message = "[Software error] Error while trying to create a new empty study: \n"
             error_message = error_message + traceback.format_exc()
             logging.error(error_message)
         return study_uid, error_message
@@ -346,7 +358,7 @@ class SoftwareConfigResources:
                     if pat_err_mnsg:
                         error_message = error_message + "\n" + pat_err_mnsg
         except Exception:
-            error_message = "Error while trying to load a study: \n"
+            error_message = "[Software error] Error while trying to load a study: \n"
             error_message = error_message + traceback.format_exc()
             logging.error(error_message)
 
@@ -386,8 +398,8 @@ class SoftwareConfigResources:
             if self.active_study_name:
                 self.study_parameters[self.active_study_name].load_in_memory()
         except Exception:
-            error_message = "Setting {} as active study failed, with {}.\n".format(os.path.basename(study_uid),
-                                                                                   str(traceback.format_exc()))
+            error_message = "[Software error] Setting {} as active study failed, with {}.\n".format(os.path.basename(study_uid),
+                                                                                                    str(traceback.format_exc()))
             logging.error(error_message)
         return error_message
 

@@ -275,6 +275,14 @@ class SinglePatientWidget(QWidget):
         self.top_logo_panel_label_import_dicom_pushbutton.setEnabled(True)
         self.top_logo_panel_statistics_pushbutton.setEnabled(True)
 
+    def on_reload_interface(self) -> None:
+        """
+        In order to generate a new central panel, for example because the display space has changed.
+        """
+        if not SoftwareConfigResources.getInstance().is_patient_list_empty():
+            SoftwareConfigResources.getInstance().get_active_patient().load_in_memory()
+            self.center_panel.on_reload_interface()
+
     def on_patient_selected(self, patient_name):
         self.results_panel.on_external_patient_selection(patient_name)
 
@@ -293,6 +301,7 @@ class SinglePatientWidget(QWidget):
         self.results_panel.on_process_finished()
         # Hides the process tracking to display back the layers interactor for viewing purposes.
         self.right_panel_stackedwidget.setCurrentIndex(0)
+        self.center_panel.on_reload_interface()
 
     def on_batch_process_started(self) -> None:
         """

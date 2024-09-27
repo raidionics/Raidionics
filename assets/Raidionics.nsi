@@ -2,7 +2,7 @@
 !define COMP_NAME "SINTEF"
 !define VERSION "1.2.2"
 !define DESCRIPTION "Application"
-!define INSTALLER_NAME "Raidionics-1.2.3-win.exe"
+!define INSTALLER_NAME "Raidionics-1.2.4-win.exe"
 !define MAIN_APP_EXE "Raidionics.exe"
 !define INSTALL_TYPE "SetShellVarContext current"
 !define REG_ROOT "HKLM"

@@ -1,5 +1,6 @@
 import os
 import logging
+import shutil
 from typing import Union, List, Tuple
 import pandas as pd
 import numpy as np
@@ -9,6 +10,7 @@ import traceback
 from copy import deepcopy
 from pathlib import PurePath
 
+from utils.data_structures.UserPreferencesStructure import UserPreferencesStructure
 
 class AtlasVolume:
     """
@@ -25,7 +27,8 @@ class AtlasVolume:
     _resampled_input_volume_filepath = None  # Filepath for storing the aforementioned volume
     _display_name = ""  # Visible and editable name for identifying the current Atlas
     _display_volume = None
-    _display_volume_filepath = ""  # Display MRI volume filepath, in its latest state after potential user modifiers
+    _atlas_space_filepaths = {}  # List of atlas structures filepaths on disk expressed in an atlas space
+    _atlas_space_volumes = {}  # List of numpy arrays with the atlases structures expressed in an atlas space
     _parent_mri_uid = ""  # Internal unique identifier for the MRI volume to which this annotation is linked
     _one_hot_display_volume = None
     _visible_class_labels = []
@@ -71,7 +74,8 @@ class AtlasVolume:
         self._resampled_input_volume_filepath = None
         self._display_name = ""
         self._display_volume = None
-        self._display_volume_filepath = ""
+        self._atlas_space_filepaths = {}
+        self._atlas_space_volumes = {}
         self._parent_mri_uid = ""
         self._one_hot_display_volume = None
         self._visible_class_labels = []
@@ -83,29 +87,38 @@ class AtlasVolume:
         self._default_affine = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]
         self._unsaved_changes = False
 
-    def __init_from_scratch(self):
-        self.__generate_display_volume()
-        if not self._class_description_filename or not os.path.exists(self._class_description_filename):
-            logging.info("Atlas provided without a description file with location {}.\n".format(self._raw_input_filepath))
-            self._class_description_filename = None
-            return
+    def __init_from_scratch(self) -> None:
+        """
 
-        self._class_description = pd.read_csv(self._class_description_filename)
-        self._display_name = self._unique_id
-        if "Schaefer7" in self._unique_id:
-            self._display_name = "Schaefer 7"
-        elif "Schaefer17" in self._unique_id:
-            self._display_name = "Schaefer 17"
-        elif "Harvard" in self._unique_id:
-            self._display_name = "Harvard-Oxford"
-        elif "BCB" in self._unique_id:
-            self._display_name = "BCB WM"
-        elif "Voxels" in self._unique_id:
-            self._display_name = "BrainGrid Voxels"
-        elif "BrainGrid" in self._unique_id:
-            self._display_name = "BrainGrid WM"
-        elif "MNI" in self._unique_id:
-            self._display_name = "MNI group"
+        """
+        try:
+            self.__generate_standardized_input_volume()
+            # self.__generate_display_volume()
+
+            if not self._class_description_filename or not os.path.exists(self._class_description_filename):
+                logging.info("Atlas provided without a description file with location {}.\n".format(self._raw_input_filepath))
+                self._class_description_filename = None
+                return
+
+            self._class_description = pd.read_csv(self._class_description_filename)
+            self._display_name = self._unique_id
+            if "Schaefer7" in self._unique_id:
+                self._display_name = "Schaefer 7"
+            elif "Schaefer17" in self._unique_id:
+                self._display_name = "Schaefer 17"
+            elif "Harvard" in self._unique_id:
+                self._display_name = "Harvard-Oxford"
+            elif "BCB" in self._unique_id:
+                self._display_name = "BCB WM"
+            elif "Voxels" in self._unique_id:
+                self._display_name = "BrainGrid Voxels"
+            elif "BrainGrid" in self._unique_id:
+                self._display_name = "BrainGrid WM"
+            elif "MNI" in self._unique_id:
+                self._display_name = "MNI group"
+        except Exception as e:
+            logging.error("""[Software error] Initializing atlas structure from scratch failed 
+            for: {} with: {}.\n {}""".format(self._raw_input_filepath, e, traceback.format_exc()))
 
     def __reload_from_disk(self, parameters: dict) -> None:
         """
@@ -113,29 +126,48 @@ class AtlasVolume:
         potentially missing variables without crashing.
         @TODO. Might need a prompt if the loading of some elements failed to warn the user.
         """
-        self._raw_input_filepath = os.path.join(self._output_patient_folder, parameters['raw_input_filepath'])
-        self._class_description = pd.read_csv(self._class_description_filename)
-        self.__generate_display_volume()
-        self._display_name = parameters['display_name']
-        self._parent_mri_uid = parameters['parent_mri_uid']
-        self._timestamp_uid = parameters['investigation_timestamp_uid']
-        self._timestamp_folder_name = parameters['display_volume_filepath'].split('/')[0]
-        if os.name == 'nt':
-            self._timestamp_folder_name = list(PurePath(parameters['display_volume_filepath']).parts)[0]
+        try:
+            self._display_name = parameters['display_name']
+            self._parent_mri_uid = parameters['parent_mri_uid']
+            self._timestamp_uid = parameters['investigation_timestamp_uid']
+            self._timestamp_folder_name = parameters['raw_input_filepath'].split('/')[0]
+            if os.name == 'nt':
+                self._timestamp_folder_name = list(PurePath(parameters['raw_input_filepath|']).parts)[0]
 
-        if 'display_colors' in parameters.keys():
-            self._class_display_color = {int(k): v for k, v in parameters['display_colors'].items()}
-        if 'display_opacities' in parameters.keys():
-            self._class_display_opacity = {int(k): v for k, v in parameters['display_opacities'].items()}
+            self._raw_input_filepath = os.path.join(self._output_patient_folder, parameters['raw_input_filepath'])
+            self._class_description = pd.read_csv(self._class_description_filename)
+
+            self._resampled_input_volume_filepath = os.path.join(self._output_patient_folder,
+                                                                 parameters['resample_input_filepath'])
+            if os.path.exists(self._resampled_input_volume_filepath):
+                self._resampled_input_volume = nib.load(self._resampled_input_volume_filepath).get_fdata()[:]
+            else:
+                # Patient wasn't saved after loading, hence the volume was not stored on disk and must be recomputed
+                self.__generate_standardized_input_volume()
+
+            if 'atlas_space_filepaths' in parameters.keys():
+                for k in list(parameters['atlas_space_filepaths'].keys()):
+                    self.atlas_space_filepaths[k] = os.path.join(self._output_patient_folder,
+                                                                       parameters['atlas_space_filepaths'][k])
+                    self.atlas_space_volumes[k] = nib.load(self.atlas_space_filepaths[k]).get_fdata()[:]
+
+            if 'display_colors' in parameters.keys():
+                self._class_display_color = {int(k): v for k, v in parameters['display_colors'].items()}
+            if 'display_opacities' in parameters.keys():
+                self._class_display_opacity = {int(k): v for k, v in parameters['display_opacities'].items()}
+        except Exception as e:
+            logging.error(""" [Software error] Reloading atlas structure from disk failed 
+            for: {} with: {}.\n {}""".format(self.display_name, e, traceback.format_exc()))
 
     def load_in_memory(self) -> None:
-        if self._display_volume_filepath and os.path.exists(self._display_volume_filepath):
-            self._display_volume = nib.load(self._display_volume_filepath).get_fdata()[:]
-        else:
-            pass
+        try:
+            self.__generate_display_volume()
+        except Exception as e:
+            raise ValueError("[AtlasStructure] Loading in memory failed with: {}".format(e))
 
     def release_from_memory(self) -> None:
         self._display_volume = None
+        self.atlas_space_volumes = {}
 
     @property
     def unique_id(self) -> str:
@@ -156,6 +188,22 @@ class AtlasVolume:
         self._display_name = name
         self._unsaved_changes = True
         logging.debug("Unsaved changes - Atlas volume display name changed to {}.".format(name))
+
+    @property
+    def atlas_space_filepaths(self) -> dict:
+        return self._atlas_space_filepaths
+
+    @atlas_space_filepaths.setter
+    def atlas_space_filepaths(self, new_filepaths: dict) -> None:
+        self._atlas_space_filepaths = new_filepaths
+
+    @property
+    def atlas_space_volumes(self) -> dict:
+        return self._atlas_space_volumes
+
+    @atlas_space_volumes.setter
+    def atlas_space_volumes(self, new_volumes: dict) -> None:
+        self._atlas_space_volumes = new_volumes
 
     def get_parent_mri_uid(self) -> str:
         return self._parent_mri_uid
@@ -218,9 +266,6 @@ class AtlasVolume:
         if self._resampled_input_volume_filepath:
             self._resampled_input_volume_filepath = self._resampled_input_volume_filepath.replace(self._output_patient_folder,
                                                                                                   output_folder)
-        if self._display_volume_filepath:
-            self._display_volume_filepath = self._display_volume_filepath.replace(self._output_patient_folder,
-                                                                                  output_folder)
         self._output_patient_folder = output_folder
 
     @property
@@ -269,22 +314,6 @@ class AtlasVolume:
                 self._resampled_input_volume_filepath = os.path.join(self._output_patient_folder,
                                                                      self._timestamp_folder_name,
                                                                      rel_path)
-        if self._display_volume_filepath:
-            if os.name == 'nt':
-                path_parts = list(PurePath(os.path.relpath(self._display_volume_filepath,
-                                                           self._output_patient_folder)).parts[1:])
-                rel_path = PurePath()
-                rel_path = rel_path.joinpath(self._output_patient_folder)
-                rel_path = rel_path.joinpath(self._timestamp_folder_name)
-                for x in path_parts:
-                    rel_path = rel_path.joinpath(x)
-                self._display_volume_filepath = os.fspath(rel_path)
-            else:
-                rel_path = '/'.join(os.path.relpath(self._display_volume_filepath,
-                                                    self._output_patient_folder).split('/')[1:])
-                self._display_volume_filepath = os.path.join(self._output_patient_folder,
-                                                             self._timestamp_folder_name,
-                                                             rel_path)
 
     def get_class_description(self) -> Union[pd.DataFrame, dict]:
         return self._class_description
@@ -296,12 +325,27 @@ class AtlasVolume:
     def delete(self):
         if self._raw_input_filepath and os.path.exists(self._raw_input_filepath):
             os.remove(self._raw_input_filepath)
-        if self._display_volume_filepath and os.path.exists(self._display_volume_filepath):
-            os.remove(self._display_volume_filepath)
         if self._resampled_input_volume_filepath and os.path.exists(self._resampled_input_volume_filepath):
             os.remove(self._resampled_input_volume_filepath)
         if self._class_description_filename and os.path.exists(self._class_description_filename):
             os.remove(self._class_description_filename)
+        if len(self.atlas_space_volumes.keys()) != 0:
+            for k in self.atlas_space_volumes.keys():
+                os.remove(self.atlas_space_volumes[k])
+
+    def import_atlas_in_registration_space(self, filepath: str, registration_space: str) -> None:
+        """
+
+        """
+        try:
+            self.atlas_space_filepaths[registration_space] = filepath
+            image_nib = nib.load(filepath)
+            self.atlas_space_volumes[registration_space] = image_nib.get_fdata()[:]
+            logging.debug("""Unsaved changes - Structures atlas in space {} added in {}.""".format(
+                registration_space, filepath))
+            self._unsaved_changes = True
+        except Exception:
+            logging.error(" [Software error] Error while importing a registered radiological volume.\n {}".format(traceback.format_exc()))
 
     def save(self) -> dict:
         """
@@ -309,10 +353,6 @@ class AtlasVolume:
         """
         try:
             # Disk operations
-            self._display_volume_filepath = os.path.join(self._output_patient_folder, self._timestamp_folder_name,
-                                                         'display', self._unique_id + '_display.nii.gz')
-            nib.save(nib.Nifti1Image(self._display_volume, affine=self._default_affine), self._display_volume_filepath)
-
             self._resampled_input_volume_filepath = os.path.join(self._output_patient_folder,
                                                                  self._timestamp_folder_name, 'display',
                                                                  self._unique_id + '_resampled.nii.gz')
@@ -323,28 +363,19 @@ class AtlasVolume:
             volume_params = {}
             volume_params['display_name'] = self._display_name
             base_patient_folder = self._output_patient_folder
-            # base_patient_folder = '/'.join(self._output_patient_folder.split('/')[:-1])  # To keep the timestamp folder
-            # if os.name == 'nt':
-            #     base_patient_folder_parts = list(PurePath(os.path.realpath(self._output_patient_folder)).parts[:-1])
-            #     base_patient_folder = PurePath()
-            #     for x in base_patient_folder_parts:
-            #         base_patient_folder = base_patient_folder.joinpath(x)
-
             volume_params['raw_input_filepath'] = os.path.relpath(self._raw_input_filepath, base_patient_folder)
             volume_params['resample_input_filepath'] = os.path.relpath(self._resampled_input_volume_filepath,
                                                                        base_patient_folder)
-            volume_params['display_volume_filepath'] = os.path.relpath(self._display_volume_filepath,
-                                                                       base_patient_folder)
             if self._class_description_filename:
-                # base_patient_folder = '/'.join(
-                #     self._output_patient_folder.split('/')[:-1])  # To reach the root patient folder
-                # if os.name == 'nt':
-                #     base_patient_folder_parts = list(PurePath(os.path.realpath(self._output_patient_folder)).parts[:-1])
-                #     base_patient_folder = PurePath()
-                #     for x in base_patient_folder_parts:
-                #         base_patient_folder = base_patient_folder.joinpath(x)
                 volume_params['description_filepath'] = os.path.relpath(self._class_description_filename,
                                                                         self._output_patient_folder)
+
+            if self.atlas_space_filepaths and len(self.atlas_space_filepaths.keys()) != 0:
+                atlas_volumes = {}
+                for k in list(self.atlas_space_filepaths.keys()):
+                    atlas_volumes[k] = os.path.relpath(self.atlas_space_filepaths[k], base_patient_folder)
+                volume_params['atlas_space_filepaths'] = atlas_volumes
+
             volume_params['parent_mri_uid'] = self._parent_mri_uid
             volume_params['investigation_timestamp_uid'] = self._timestamp_uid
             volume_params['display_colors'] = self._class_display_color
@@ -352,27 +383,50 @@ class AtlasVolume:
             self._unsaved_changes = False
             return volume_params
         except Exception:
-            logging.error("AtlasStructure saving failed with:\n {}".format(traceback.format_exc()))
+            logging.error(" [Software error] AtlasStructure saving failed with:\n {}".format(traceback.format_exc()))
+
+    def __generate_standardized_input_volume(self) -> None:
+        """
+        In order to make sure the atlas volume will be displayed correctly across the three views, a
+        standardization is necessary to set the volume orientation to a common standard.
+        """
+        try:
+            if not self._raw_input_filepath or not os.path.exists(self._raw_input_filepath):
+                raise NameError("Raw input filepath does not exist on disk with value: {}".format(
+                    self._raw_input_filepath))
+
+            image_nib = nib.load(self._raw_input_filepath)
+            resampled_input_ni = resample_to_output(image_nib, order=0)
+            self._resampled_input_volume = resampled_input_ni.get_fdata()[:].astype('uint8')
+        except Exception as e:
+            raise RuntimeError("Input volume standardization failed with: {}".format(e))
 
     def __generate_display_volume(self) -> None:
         """
-        Generate a display-compatible volume from the raw MRI volume the first time it is loaded in the software.
+        Generate a display-compatible volume from the raw atlas volume the first time it is loaded in the software.
         """
-        image_nib = nib.load(self._raw_input_filepath)
+        base_volume = self._resampled_input_volume
+        if UserPreferencesStructure.getInstance().display_space != 'Patient' and\
+            UserPreferencesStructure.getInstance().display_space in self.atlas_space_volumes.keys():
+            base_volume = self.atlas_space_volumes[UserPreferencesStructure.getInstance().display_space]
 
-        # Resampling to standard output for viewing purposes.
-        resampled_input_ni = resample_to_output(image_nib, order=0)
-        self._resampled_input_volume = resampled_input_ni.get_fdata()[:].astype('uint8')
+        self._display_volume = deepcopy(base_volume)
 
-        self._display_volume = deepcopy(self._resampled_input_volume)
-        self._visible_class_labels = list(np.unique(self._display_volume))
-        self._class_number = len(self._visible_class_labels) - 1
-        self._one_hot_display_volume = np.zeros(shape=(self._display_volume.shape + (self._class_number + 1,)),
-                                                dtype='uint8')
+        if UserPreferencesStructure.getInstance().display_space != 'Patient' and \
+                UserPreferencesStructure.getInstance().display_space not in self.atlas_space_volumes.keys():
+            logging.warning(""" [Software warning] The selected structure atlas ({}) does not have any expression in {} space. The default structure atlas in patient space is therefore used.""".format(self.display_name,
+                       UserPreferencesStructure.getInstance().display_space))
 
-        self._class_display_color = {}
-        self._class_display_opacity = {}
-        for c in range(1, self._class_number + 1):
-            self._class_display_color[c] = [255, 255, 255, 255]
-            self._class_display_opacity[c] = 50
-            self._one_hot_display_volume[..., c][self._display_volume == self._visible_class_labels[c]] = 1
+        try:
+            self._visible_class_labels = list(np.unique(self._display_volume))
+            self._class_number = len(self._visible_class_labels) - 1
+            self._one_hot_display_volume = np.zeros(shape=(self._display_volume.shape + (self._class_number + 1,)),
+                                                    dtype='uint8')
+            self._class_display_color = {}
+            self._class_display_opacity = {}
+            for c in range(1, self._class_number + 1):
+                self._class_display_color[c] = [255, 255, 255, 255]
+                self._class_display_opacity[c] = 50
+                self._one_hot_display_volume[..., c][self._display_volume == self._visible_class_labels[c]] = 1
+        except Exception as e:
+            raise IndexError("Generating a one-hot version of the display volume failed with: {}".format(e))

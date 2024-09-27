@@ -89,9 +89,14 @@ class CustomQGraphicsView(QGraphicsView):
         self.setStyleSheet("QGraphicsView{background-color:rgb(0,0,0);}")
 
     def keyPressEvent(self, event) -> None:
+        """
+        Shortcuts for displaying or hiding elements, only if there is an active patient.
+        S key: display or hide the tumor annotation.
+        """
         if event.key() == Qt.Key_S:
-            logging.info("Changing annotations display state.")
-            self.annotation_display_state_changed.emit()
+            if not SoftwareConfigResources.getInstance().is_patient_list_empty():
+                logging.info("Changing annotations display state.")
+                self.annotation_display_state_changed.emit()
 
     def mousePressEvent(self, event):
         """
