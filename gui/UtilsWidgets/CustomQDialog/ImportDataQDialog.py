@@ -188,63 +188,44 @@ class ImportDataQDialog(QDialog):
                 else:
                     raidionics_selected.append(f)
             except Exception:
-                diag = QMessageBox()
-                error_msg = 'Unable to determine volume category for: {}.\n'.format(f) + \
-                            'Try converting the file to nifti before attempting loading it again.\n\n' + \
-                            'Error message: {}\n'.format(traceback.format_exc())
+                error_msg = '[Software error] Unable to determine volume category for: {}<br><br>'.format(f) + \
+                    'Try converting the file to nifti before attempting loading it again.'
                 logging.error(error_msg)
-                diag.setText(error_msg)
-                diag.exec_()
 
         for i, pf in enumerate(raidionics_selected):
-            ext = pf.split('.')[-1]
-            if ext == SoftwareConfigResources.getInstance().accepted_scene_file_format[0]:
-                uid, error_msg = SoftwareConfigResources.getInstance().load_patient(pf, active=False)
-                if error_msg:
-                    diag = QMessageBox()
-                    diag.setText("Unable to load: {}.\nError message: {}.\n".format(os.path.basename(pf),
-                                                                                    error_msg))
-                    diag.exec_()
-
-                if (error_msg and 'Import patient failed' not in error_msg) or not error_msg:
+            try:
+                ext = pf.split('.')[-1]
+                if ext == SoftwareConfigResources.getInstance().accepted_scene_file_format[0]:
+                    uid = SoftwareConfigResources.getInstance().load_patient(pf, active=False)
                     self.patient_imported.emit(uid)
-            else:
-                uid, error_msg = SoftwareConfigResources.getInstance().load_study(pf)
-                if error_msg:
-                    diag = QMessageBox()
-                    diag.setText("Unable to load: {}.\nError message: {}.\n".format(os.path.basename(pf),
-                                                                                    error_msg))
-                    diag.exec_()
-
-                if (error_msg and 'Import study failed' not in error_msg) or not error_msg:
+                else:
+                    uid = SoftwareConfigResources.getInstance().load_study(pf)
                     self.study_imported.emit(uid)
-
+            except Exception as e:
+                error_msg = '[Software error] Failed to load the following Raidionics file: {}'.format(pf) + \
+                              '<br><br>Reason: {}.'.format(e)
+                logging.error(error_msg)
             self.load_progressbar.setValue(i + 1)
 
         # @TODO. Might try something more advanced for pairing annotations with MRIs
         for i, pf in enumerate(mris_selected):
-            uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_data(pf, type="MRI")
-            if error_msg:
-                if "[Doppelganger]" not in error_msg:
-                    diag = QMessageBox()
-                    diag.setText("Unable to load: {}.\nError message: {}.\n".format(os.path.basename(pf),
-                                                                                    error_msg))
-                    diag.exec_()
-            else:
+            try:
+                uid = SoftwareConfigResources.getInstance().get_active_patient().import_data(pf, type="MRI")
                 self.mri_volume_imported.emit(uid)
+            except Exception as e:
+                error_msg = '[Software error] Failed to load the following file: {}'.format(pf) + \
+                              '<br><br>Reason: {}.'.format(e)
+                logging.error(error_msg)
             self.load_progressbar.setValue(i + 1)
 
         for i, pf in enumerate(annotations_selected):
-            uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_data(pf,
-                                                                                                    type="Annotation")
-            if error_msg:
-                if "[Doppelganger]" not in error_msg:
-                    diag = QMessageBox()
-                    diag.setText("Unable to load: {}.\nError message: {}.\n".format(os.path.basename(pf),
-                                                                                    error_msg))
-                    diag.exec_()
-            else:
+            try:
+                uid = SoftwareConfigResources.getInstance().get_active_patient().import_data(pf, type="Annotation")
                 self.annotation_volume_imported.emit(uid)
+            except Exception as e:
+                error_msg = '[Software error] Failed to load the following file: {}'.format(pf) + \
+                              '<br><br>Reason: {}.'.format(e)
+                logging.error(error_msg)
             self.load_progressbar.setValue(len(mris_selected) + i + 1)
 
         self.load_progressbar.setVisible(False)

@@ -246,52 +246,45 @@ class ImportDICOMDataQDialog(QDialog):
             return
 
         self.current_folder = os.path.dirname(input_directory)
-        dicom_holder = PatientDICOM(input_directory)
-        error_msg = dicom_holder.parse_dicom_folder()
-        if error_msg is not None:
-            diag = QMessageBox.warning(self, "DICOM parsing warnings", error_msg)
-        if dicom_holder.patient_id not in list(self.dicom_holders.keys()):
-            self.dicom_holders[dicom_holder.patient_id] = dicom_holder
+        try:
+            dicom_holder = PatientDICOM(input_directory)
+            dicom_holder.parse_dicom_folder()
+            if dicom_holder.patient_id not in list(self.dicom_holders.keys()):
+                self.dicom_holders[dicom_holder.patient_id] = dicom_holder
 
-        self.dicom_holder = dicom_holder
-        self.__populate_dicom_browser()
+            self.dicom_holder = dicom_holder
+            self.__populate_dicom_browser()
+        except Exception as e:
+            logging.error("[Software error] Importing DICOM folder failed. <br><br> Reason: {}".format(e))
 
-    def __on_exit_accept_clicked(self):
+    def __on_exit_accept_clicked(self) -> None:
         """
         @TODO. Rename the patient with the content of the metadata tag.
         """
-        if len(SoftwareConfigResources.getInstance().patients_parameters) == 0:
-            uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_patient()
-            if error_msg:
-                diag = QMessageBox()
-                diag.setText("Unable to create empty patient.\nError message: {}.\n".format(error_msg))
-                diag.exec_()
-
-            if (error_msg and 'Import patient failed' not in error_msg) or not error_msg:
+        try:
+            if len(SoftwareConfigResources.getInstance().patients_parameters) == 0:
+                uid = SoftwareConfigResources.getInstance().add_new_empty_patient()
                 self.patient_imported.emit(uid)
 
-        self.load_progressbar.reset()
-        self.load_progressbar.setMinimum(0)
-        self.load_progressbar.setMaximum(self.selected_series_tablewidget.rowCount())
-        self.load_progressbar.setVisible(True)
-        self.load_progressbar.setValue(0)
+            self.load_progressbar.reset()
+            self.load_progressbar.setMinimum(0)
+            self.load_progressbar.setMaximum(self.selected_series_tablewidget.rowCount())
+            self.load_progressbar.setVisible(True)
+            self.load_progressbar.setValue(0)
 
-        # Ordering selecting series by date for timestamp-ordered import.
-        ordered_series_ids = self.__sort_selected_series_by_date(study_uids=[self.selected_series_tablewidget.item(elem, 0).text() for
-                                                         elem in range(self.selected_series_tablewidget.rowCount())],
-                                                        series_uids=[self.selected_series_tablewidget.item(elem, 2).text() for
-                                                         elem in range(self.selected_series_tablewidget.rowCount())])
+            # Ordering selecting series by date for timestamp-ordered import.
+            ordered_series_ids = self.__sort_selected_series_by_date(study_uids=[self.selected_series_tablewidget.item(elem, 0).text() for
+                                                             elem in range(self.selected_series_tablewidget.rowCount())],
+                                                            series_uids=[self.selected_series_tablewidget.item(elem, 2).text() for
+                                                             elem in range(self.selected_series_tablewidget.rowCount())])
 
-        for i, elem in enumerate(ordered_series_ids.keys()):
-            series_reader = self.dicom_holder.studies[ordered_series_ids[elem]].dicom_series[elem]
-            uid, error_msg = SoftwareConfigResources.getInstance().get_active_patient().import_dicom_data(series_reader)
-            if error_msg:
-                diag = QMessageBox()
-                diag.setText("Unable to load series: {}.\nError message: {}.\n".format(elem, error_msg))
-                diag.exec_()
-            else:
+            for i, elem in enumerate(ordered_series_ids.keys()):
+                series_reader = self.dicom_holder.studies[ordered_series_ids[elem]].dicom_series[elem]
+                uid = SoftwareConfigResources.getInstance().get_active_patient().import_dicom_data(series_reader)
                 self.mri_volume_imported.emit(uid)
-            self.load_progressbar.setValue(i + 1)
+                self.load_progressbar.setValue(i + 1)
+        except Exception as e:
+            logging.error("[Software error] Importing new DICOM data failed. <br><br> Reason: {}".format(e))
 
         # @TODO. The following is not enough, it updates internally and on disk the patient name, but the GUI part
         # is not updated. Have to emit a specific signal with the new display name here.

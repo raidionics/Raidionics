@@ -331,13 +331,13 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
             dialog = SavePatientChangesDialog()
             code = dialog.exec_()
             if code == 1:  # Changes have been either saved or discarded
-                uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_patient(active=False)
+                uid = SoftwareConfigResources.getInstance().add_new_empty_patient(active=False)
                 self.add_new_patient(uid)
                 # Both lines are needed to uncollapse the widget for the new patient and collapse the previous
                 self.patient_results_widgets[uid].manual_header_pushbutton_clicked(True)
                 self.__on_patient_selection(True, uid)
         else:
-            uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_patient(active=False)
+            uid = SoftwareConfigResources.getInstance().add_new_empty_patient(active=False)
             self.add_new_patient(uid)
             self.patient_results_widgets[uid].manual_header_pushbutton_clicked(True)
             self.__on_patient_selection(True, uid)

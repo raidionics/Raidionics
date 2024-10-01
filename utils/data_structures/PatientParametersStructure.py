@@ -219,7 +219,7 @@ class PatientParameters:
     def display_name(self) -> str:
         return self._display_name
 
-    def set_display_name(self, new_name: str, manual_change: bool = True) -> Tuple[int, str]:
+    def set_display_name(self, new_name: str, manual_change: bool = True) -> None:
         """
         Edit to the display name for the current patient, which does not alter its unique_uid.
         The use of an additional boolean parameter is needed to prevent updating the unsaved_changes state when
@@ -232,58 +232,54 @@ class PatientParameters:
             Name to be given to the current patient.
         manual_change : bool
             Indication whether the modification has been triggered by the user (True) or the system (False)
-
-        Returns
-        -------
-        Tuple[int, str]
-            The first element is the code indicating success (0) or failure (1) of the operation. The second element
-            is a human-readable string describing the problem encountered, if any, otherwise is empty.
         """
         # If a patient folder has been manually copied somewhere else, outside a proper raidionics home directory
         # environment, which should include patients and studies sub-folders.
         if not os.path.exists(os.path.join(self._output_directory, "patients")) or not os.path.join(self._output_directory, "patients") in self._output_folder:
-            msg = """The patient folder is used outside of a proper Raidionics home directory.\n
-            A proper home directory consists of a 'patients' and a 'studies' sub-folder."""
-            return 1, msg
+            msg = 'The patient folder is used outside of a proper Raidionics home directory.<br>' + \
+            'A proper home directory consists of a patients and a studies sub-folder.'
+            raise ValueError(msg)
 
         # Removing spaces to prevent potential issues in folder name/access when performing disk IO operations
         new_output_folder = os.path.join(self._output_directory, "patients", new_name.strip().lower().replace(" ", '_'))
         if os.path.exists(new_output_folder):
-            msg = """A patient with requested name already exists in the destination folder.\n
-            Requested name: [{}].\n
-            Destination folder: [{}].""".format(new_name, os.path.dirname(self._output_folder))
-            return 1, msg
+            msg = 'A patient with requested name already exists in the destination folder.<br>' + \
+            'Requested name: {}.<br>'.format(new_name) + \
+            'Destination folder: {}.'.format(os.path.dirname(self._output_folder))
+            raise ValueError(msg)
         else:
-            self._display_name = new_name.strip()
-            new_patient_parameters_dict_filename = os.path.join(self._output_folder,
-                                                                self._display_name.strip().lower().replace(" ", "_")
-                                                                + '_scene.raidionics')
-            if os.path.exists(self._patient_parameters_dict_filename):
-                os.rename(src=self._patient_parameters_dict_filename, dst=new_patient_parameters_dict_filename)
-            self._patient_parameters_dict_filename = new_patient_parameters_dict_filename
+            try:
+                self._display_name = new_name.strip()
+                new_patient_parameters_dict_filename = os.path.join(self._output_folder,
+                                                                    self._display_name.strip().lower().replace(" ", "_")
+                                                                    + '_scene.raidionics')
+                if os.path.exists(self._patient_parameters_dict_filename):
+                    os.rename(src=self._patient_parameters_dict_filename, dst=new_patient_parameters_dict_filename)
+                self._patient_parameters_dict_filename = new_patient_parameters_dict_filename
 
-            for i, disp in enumerate(list(self._investigation_timestamps.keys())):
-                self._investigation_timestamps[disp].output_patient_folder = new_output_folder
+                for i, disp in enumerate(list(self._investigation_timestamps.keys())):
+                    self._investigation_timestamps[disp].output_patient_folder = new_output_folder
 
-            for i, disp in enumerate(list(self._mri_volumes.keys())):
-                self._mri_volumes[disp].set_output_patient_folder(new_output_folder)
+                for i, disp in enumerate(list(self._mri_volumes.keys())):
+                    self._mri_volumes[disp].set_output_patient_folder(new_output_folder)
 
-            for i, disp in enumerate(list(self._annotation_volumes.keys())):
-                self._annotation_volumes[disp].set_output_patient_folder(new_output_folder)
+                for i, disp in enumerate(list(self._annotation_volumes.keys())):
+                    self._annotation_volumes[disp].set_output_patient_folder(new_output_folder)
 
-            for i, disp in enumerate(list(self._atlas_volumes.keys())):
-                self._atlas_volumes[disp].set_output_patient_folder(new_output_folder)
+                for i, disp in enumerate(list(self._atlas_volumes.keys())):
+                    self._atlas_volumes[disp].set_output_patient_folder(new_output_folder)
 
-            for i, disp in enumerate(list(self._reportings.keys())):
-                self._reportings[disp].output_patient_folder = new_output_folder
+                for i, disp in enumerate(list(self._reportings.keys())):
+                    self._reportings[disp].output_patient_folder = new_output_folder
 
-            shutil.move(src=self._output_folder, dst=new_output_folder, copy_function=shutil.copytree)
-            self._output_folder = new_output_folder
-            logging.info("Renamed current output folder to: {}".format(self._output_folder))
-            if manual_change:
-                self._unsaved_changes = True
-                logging.debug("Unsaved changes - Patient object display name edited to {}.".format(new_name))
-            return 0, ""
+                shutil.move(src=self._output_folder, dst=new_output_folder, copy_function=shutil.copytree)
+                self._output_folder = new_output_folder
+                logging.info("Renamed current output folder to: {}".format(self._output_folder))
+                if manual_change:
+                    self._unsaved_changes = True
+                    logging.debug("Unsaved changes - Patient object display name edited to {}.".format(new_name))
+            except Exception as e:
+                raise RuntimeError("Attempting to change the patient display name failed with: {}".format(e))
 
     def import_report(self, filename: str, inv_ts_uid: str) -> Tuple[str, Union[None, str]]:
         """
@@ -328,94 +324,53 @@ class PatientParameters:
                 self._last_editing_timestamp = datetime.datetime.strptime(self._patient_parameters_dict["Parameters"]["Default"]['last_editing_timestamp'],
                                                                           "%d/%m/%Y, %H:%M:%S")
             for ts_id in list(self._patient_parameters_dict['Timestamps'].keys()):
-                try:
-                    timestamp = InvestigationTimestamp(uid=ts_id,
-                                                       order=self._patient_parameters_dict['Timestamps'][ts_id]['order'],
-                                                       output_patient_folder=self._output_folder,
-                                                       inv_time=self._patient_parameters_dict['Timestamps'][ts_id]['datetime'],
-                                                       reload_params=self._patient_parameters_dict['Timestamps'][ts_id])
-                    self._investigation_timestamps[ts_id] = timestamp
-                except Exception:
-                    logging.error(str(traceback.format_exc()))
-                    if error_message:
-                        error_message = error_message + "\nImport timestamp failed, for volume {}.\n".format(ts_id)\
-                                        + str(traceback.format_exc())
-                    else:
-                        error_message = "Import timestamp failed, for volume {}.\n".format(ts_id)\
-                                        + str(traceback.format_exc())
+                timestamp = InvestigationTimestamp(uid=ts_id,
+                                                   order=self._patient_parameters_dict['Timestamps'][ts_id]['order'],
+                                                   output_patient_folder=self._output_folder,
+                                                   inv_time=self._patient_parameters_dict['Timestamps'][ts_id]['datetime'],
+                                                   reload_params=self._patient_parameters_dict['Timestamps'][ts_id])
+                self._investigation_timestamps[ts_id] = timestamp
 
             for volume_id in list(self._patient_parameters_dict['Volumes'].keys()):
-                try:
-                    mri_volume = MRIVolume(uid=volume_id,
-                                           inv_ts_uid=self._patient_parameters_dict['Volumes'][volume_id]['investigation_timestamp_uid'],
-                                           input_filename=self._patient_parameters_dict['Volumes'][volume_id]['raw_input_filepath'],
-                                           output_patient_folder=self._output_folder,
-                                           reload_params=self._patient_parameters_dict['Volumes'][volume_id])
-                    self._mri_volumes[volume_id] = mri_volume
-                except Exception:
-                    logging.error(str(traceback.format_exc()))
-                    if error_message:
-                        error_message = error_message + "\nImport MRI failed, for volume {}.\n".format(volume_id) + str(traceback.format_exc())
-                    else:
-                        error_message = "Import MRI failed, for volume {}.\n".format(volume_id) + str(traceback.format_exc())
+                mri_volume = MRIVolume(uid=volume_id,
+                                       inv_ts_uid=self._patient_parameters_dict['Volumes'][volume_id]['investigation_timestamp_uid'],
+                                       input_filename=self._patient_parameters_dict['Volumes'][volume_id]['raw_input_filepath'],
+                                       output_patient_folder=self._output_folder,
+                                       reload_params=self._patient_parameters_dict['Volumes'][volume_id])
+                self._mri_volumes[volume_id] = mri_volume
 
             for volume_id in list(self._patient_parameters_dict['Annotations'].keys()):
-                try:
-                    annotation_volume = AnnotationVolume(uid=volume_id,
-                                                         input_filename=self._patient_parameters_dict['Annotations'][volume_id]['raw_input_filepath'],
-                                                         output_patient_folder=self._output_folder,
-                                                         parent_mri_uid=self._patient_parameters_dict['Annotations'][volume_id]['parent_mri_uid'],
-                                                         inv_ts_uid=self._patient_parameters_dict['Annotations'][volume_id]['investigation_timestamp_uid'],
-                                                         reload_params=self._patient_parameters_dict['Annotations'][volume_id])
-                    self._annotation_volumes[volume_id] = annotation_volume
-                except Exception:
-                    logging.error(str(traceback.format_exc()))
-                    if error_message:
-                        error_message = error_message + "\nImport annotation failed, for volume {}.\n".format(volume_id) + str(traceback.format_exc())
-                    else:
-                        error_message = "Import annotation failed, for volume {}.\n".format(volume_id) + str(traceback.format_exc())
+                annotation_volume = AnnotationVolume(uid=volume_id,
+                                                     input_filename=self._patient_parameters_dict['Annotations'][volume_id]['raw_input_filepath'],
+                                                     output_patient_folder=self._output_folder,
+                                                     parent_mri_uid=self._patient_parameters_dict['Annotations'][volume_id]['parent_mri_uid'],
+                                                     inv_ts_uid=self._patient_parameters_dict['Annotations'][volume_id]['investigation_timestamp_uid'],
+                                                     reload_params=self._patient_parameters_dict['Annotations'][volume_id])
+                self._annotation_volumes[volume_id] = annotation_volume
 
             for volume_id in list(self._patient_parameters_dict['Atlases'].keys()):
-                try:
-                    atlas_volume = AtlasVolume(uid=volume_id,
-                                               input_filename=self._patient_parameters_dict['Atlases'][volume_id]['raw_input_filepath'],
-                                               output_patient_folder=self._output_folder,
-                                               inv_ts_uid=self._patient_parameters_dict['Atlases'][volume_id]['investigation_timestamp_uid'],
-                                               parent_mri_uid=self._patient_parameters_dict['Atlases'][volume_id]['parent_mri_uid'],
-                                               description_filename=os.path.join(self._output_folder, self._patient_parameters_dict['Atlases'][volume_id]['description_filepath']),
-                                               reload_params=self._patient_parameters_dict['Atlases'][volume_id])
-                    self._atlas_volumes[volume_id] = atlas_volume
-                except Exception:
-                    logging.error(str(traceback.format_exc()))
-                    if error_message:
-                        error_message = error_message + "\nImport atlas failed, for volume {}.\n".format(volume_id) + str(traceback.format_exc())
-                    else:
-                        error_message = "Import atlas failed, for volume {}.\n".format(volume_id) + str(traceback.format_exc())
+                atlas_volume = AtlasVolume(uid=volume_id,
+                                           input_filename=self._patient_parameters_dict['Atlases'][volume_id]['raw_input_filepath'],
+                                           output_patient_folder=self._output_folder,
+                                           inv_ts_uid=self._patient_parameters_dict['Atlases'][volume_id]['investigation_timestamp_uid'],
+                                           parent_mri_uid=self._patient_parameters_dict['Atlases'][volume_id]['parent_mri_uid'],
+                                           description_filename=os.path.join(self._output_folder, self._patient_parameters_dict['Atlases'][volume_id]['description_filepath']),
+                                           reload_params=self._patient_parameters_dict['Atlases'][volume_id])
+                self._atlas_volumes[volume_id] = atlas_volume
 
             for report_id in list(self._patient_parameters_dict['Reports'].keys()):
-                try:
-                    report = ReportingStructure(uid=report_id,
-                                                report_filename=os.path.join(self._output_folder, self._patient_parameters_dict['Reports'][report_id]['report_filename']),
-                                                output_patient_folder=self._output_folder,
-                                                inv_ts_uid=self._patient_parameters_dict['Reports'][report_id]['investigation_timestamp_uid'],
-                                                reload_params=self._patient_parameters_dict['Reports'][report_id])
-                    self._reportings[report_id] = report
-                except Exception:
-                    logging.error(str(traceback.format_exc()))
-                    if error_message:
-                        error_message = error_message + "\nImport atlas failed, for volume {}.\n".format(
-                            volume_id) + str(traceback.format_exc())
-                    else:
-                        error_message = "Import atlas failed, for volume {}.\n".format(volume_id) + str(
-                            traceback.format_exc())
-
-        except Exception:
-            error_message = "[Software error] Import patient failed, from {}.\n".format(os.path.basename(filename)) + str(traceback.format_exc())
-            logging.error(error_message)
+                report = ReportingStructure(uid=report_id,
+                                            report_filename=os.path.join(self._output_folder, self._patient_parameters_dict['Reports'][report_id]['report_filename']),
+                                            output_patient_folder=self._output_folder,
+                                            inv_ts_uid=self._patient_parameters_dict['Reports'][report_id]['investigation_timestamp_uid'],
+                                            reload_params=self._patient_parameters_dict['Reports'][report_id])
+                self._reportings[report_id] = report
+        except Exception as e:
+            raise RuntimeError("Import patient failed for {} with: {}.".format(os.path.basename(filename), e))
         return error_message
 
     def import_data(self, filename: str, investigation_ts: str = None, investigation_ts_folder_name: str = None,
-                    type: str = None) -> Tuple[str, Any]:
+                    type: str = None) -> str:
         """
         Defining how stand-alone MRI volumes or annotation volumes are loaded into the system for the current patient.
 
@@ -444,7 +399,6 @@ class PatientParameters:
             a potential error message.
         """
         data_uid = None
-        error_message = None
 
         try:
             if not type:
@@ -452,11 +406,9 @@ class PatientParameters:
 
             # @TODO. Maybe not the best solution to fix the QDialog push button multiple clicks issue.
             if type == "MRI" and self.is_mri_raw_filepath_already_loaded(filename):
-                error_message = "[Doppelganger] An MRI with the provided filename has already been loaded for the patient"
-                return data_uid, error_message
+                raise ValueError("[Doppelganger] An MRI with the provided filename ({}) has already been loaded for the patient".format(filename))
             if type == "Annotation" and self.is_annotation_raw_filepath_already_loaded(filename):
-                error_message = "[Doppelganger] An annotation with the provided filename has already been loaded for the patient"
-                return data_uid, error_message
+                raise ValueError("[Doppelganger] An annotation with the provided filename ({}) has already been loaded for the patient".format(filename))
 
             # When including data for a patient, creating a Timestamp if none exists, otherwise assign to the first one
             if not investigation_ts:
@@ -501,18 +453,16 @@ class PatientParameters:
                                                                           inv_ts_uid=investigation_ts,
                                                                           inv_ts_folder_name=investigation_ts_folder_name)
                 else:
-                    error_message = "[Software error] No MRI volume has been imported yet. Mandatory for importing an annotation."
-                    logging.error(error_message)
+                    raise ValueError("Annotation import failed, no MRI volume has been imported yet (mandatory for importing an annotation).")
         except Exception as e:
-            error_message = traceback.format_exc()
-            logging.error(str(traceback.format_exc()))
+            raise RuntimeError("Importing data (i.e., radiological volume or annotation) failed with: {}".format(e))
 
         logging.info("New data file imported: {}".format(data_uid))
         self._unsaved_changes = True
         logging.debug("Unsaved changes - Patient object expanded with new volumes.")
-        return data_uid, error_message
+        return data_uid
 
-    def import_dicom_data(self, dicom_series: DICOMSeries, inv_ts: str = None) -> Union[str, Any]:
+    def import_dicom_data(self, dicom_series: DICOMSeries, inv_ts: str = None) -> str:
         """
         Half the content should be deported within the MRI structure, so that the DICOM metadata can be properly
         saved.
@@ -526,11 +476,10 @@ class PatientParameters:
 
         Returns
         -------
-        data_uid, error_message: Union[str, Any]
-            data_uid, error_message: The internal unique id of the newly created object, and the potential error message
+        data_uid: str
+            The internal unique id of the newly created object
         """
         uid = None
-        error_msg = None
         ori_filename = None
         try:
             ori_filename = os.path.join(self._output_folder, dicom_series.get_unique_readable_name() + '.nii.gz')
@@ -563,18 +512,15 @@ class PatientParameters:
             if ori_filename and os.path.exists(ori_filename):
                 os.remove(ori_filename)
             self._unsaved_changes = True
-        except Exception:
+            return uid
+        except Exception as e:
             if ori_filename and os.path.exists(ori_filename):
                 os.remove(ori_filename)
-            logging.error("[Software error] Import DICOM data failed with\n {}".format(traceback.format_exc()))
-            error_msg = error_msg + traceback.format_exc() if error_msg else traceback.format_exc()
-        return uid, error_msg
+            raise RuntimeError("DICOM data import failed with: {}".format(e))
 
     def import_atlas_structures(self, filename: str, parent_mri_uid: str, investigation_ts_folder_name: str = None,
-                                description: str = None, reference: str = 'Patient') -> Union[str, Any]:
+                                description: str = None, reference: str = 'Patient') -> str:
         data_uid = None
-        error_message = None
-
         try:
             if reference == 'Patient':
                 # Generating a unique id for the atlas volume
@@ -592,13 +538,13 @@ class PatientParameters:
                                                             inv_ts_folder_name=investigation_ts_folder_name,
                                                             description_filename=description)
             else:  # Reference is MNI space then
-                pass
+                raise NotImplementedError("Importing atlas structure not inside the patient space failed. NIY...")
         except Exception as e:
-            error_message = e  # traceback.format_exc()
+            raise RuntimeError("Importing atlas structure failed with: {}".format(e))
 
         logging.info("New atlas file imported: {}".format(data_uid))
         self._unsaved_changes = True
-        return data_uid, error_message
+        return data_uid
 
     def save_patient(self) -> None:
         """
@@ -692,6 +638,7 @@ class PatientParameters:
         display_name: str
             New display name to use to represent the investigation timestamp.
         """
+        #@TODO. Should hold the previous name in case something goes wrong in order to "revert" the naming?
         try:
             self._investigation_timestamps[ts_uid].display_name = display_name
             for im in list(self.get_all_mri_volumes_for_timestamp(timestamp_uid=ts_uid)):
@@ -741,6 +688,7 @@ class PatientParameters:
         return res
 
     def get_mri_by_uid(self, mri_uid: str) -> MRIVolume:
+        assert mri_uid in list(self._mri_volumes.keys())
         return self._mri_volumes[mri_uid]
 
     def get_mri_by_display_name(self, display_name: str) -> str:

@@ -46,13 +46,15 @@ class RaidionicsMainWindow(QMainWindow):
     reload_interface = Signal()
     new_patient_clicked = Signal(str)  # Internal unique_id of the clicked patient
 
-    def __init__(self, application, *args, **kwargs):
+    def __init__(self, application=None, *args, **kwargs):
         super(RaidionicsMainWindow, self).__init__(*args, **kwargs)
 
-        self.app = application
-        self.app.setWindowIcon(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                                  'Images/raidionics-icon.png')))
-        self.app.setStyle("Fusion")  # @TODO: Should we remove Fusion style? Looks strange on macOS
+        self.app = None
+        if application is not None:
+            self.app = application
+            self.app.setWindowIcon(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                      'Images/raidionics-icon.png')))
+            self.app.setStyle("Fusion")  # @TODO: Should we remove Fusion style? Looks strange on macOS
         self.logs_thread = LogReaderThread()
         self.logs_thread.start()
         self.__set_interface()
@@ -88,6 +90,7 @@ class RaidionicsMainWindow(QMainWindow):
         """
         self.logs_thread.stop()
         if not SoftwareConfigResources.getInstance().is_patient_list_empty()\
+                and SoftwareConfigResources.getInstance().get_active_patient() is not None\
                 and SoftwareConfigResources.getInstance().get_active_patient().has_unsaved_changes():
             dialog = SavePatientChangesDialog()
             code = dialog.exec_()
@@ -364,8 +367,11 @@ class RaidionicsMainWindow(QMainWindow):
         self.download_example_data_action.triggered.connect(self.__on_download_example_data)
 
     def __get_screen_dimensions(self):
-        screen = self.app.primaryScreen()
-        self.primary_screen_dimensions = screen.size()
+        if self.app is None:
+            self.primary_screen_dimensions = QSize(1200, 700)
+        else:
+            screen = self.app.primaryScreen()
+            self.primary_screen_dimensions = screen.size()
         logging.debug("Detected primary screen size [w: {}, h: {}]".format(self.primary_screen_dimensions.width(),
                                                                            self.primary_screen_dimensions.height()))
 
@@ -510,7 +516,7 @@ class RaidionicsMainWindow(QMainWindow):
         if True in [x in log_msg for x in cases]:
             diag = QErrorMessage(self)
             diag.setWindowTitle("Error or warning identified!")
-            diag.showMessage(log_msg + "\nPlease visit the log file (Settings > Logs)")
+            diag.showMessage(log_msg + "<br><br>Please visit the log file (Settings > Logs)")
             diag.setMinimumSize(QSize(400, 150))
             diag.exec()
 

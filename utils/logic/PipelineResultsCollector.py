@@ -58,10 +58,9 @@ def collect_results(patient_parameters, pipeline):
                         dest_file = os.path.join(patient_parameters.output_folder, dest_ts.folder_name, 'raw',
                                                  os.path.basename(seg_file))
                         shutil.move(seg_file, dest_file)
-                        data_uid, error_msg = patient_parameters.import_data(dest_file,
-                                                                             investigation_ts=dest_ts.unique_id,
-                                                                             investigation_ts_folder_name=dest_ts.folder_name,
-                                                                             type='Annotation')
+                        data_uid = patient_parameters.import_data(dest_file, investigation_ts=dest_ts.unique_id,
+                                                                  investigation_ts_folder_name=dest_ts.folder_name,
+                                                                  type='Annotation')
                         patient_parameters.get_annotation_by_uid(data_uid).set_annotation_class_type(anno_str)
                         patient_parameters.get_annotation_by_uid(data_uid).set_generation_type("Automatic")
                         patient_parameters.get_annotation_by_uid(data_uid).set_parent_mri_uid(parent_mri_uid)
@@ -148,11 +147,11 @@ def collect_results(patient_parameters, pipeline):
                             os.makedirs(os.path.dirname(dest_desc_filename), exist_ok=True)
                             if not os.path.exists(dest_desc_filename):
                                 shutil.move(description_filename, dest_desc_filename)
-                            data_uid, error_msg = patient_parameters.import_atlas_structures(dest_atlas_filename,
-                                                                                             parent_mri_uid=parent_mri_uid,
-                                                                                             investigation_ts_folder_name=dest_ts_object.folder_name,
-                                                                                             description=dest_desc_filename,
-                                                                                             reference='Patient')
+                            data_uid = patient_parameters.import_atlas_structures(dest_atlas_filename,
+                                                                                  parent_mri_uid=parent_mri_uid,
+                                                                                  investigation_ts_folder_name=dest_ts_object.folder_name,
+                                                                                  description=dest_desc_filename,
+                                                                                  reference='Patient')
 
                             results['Atlas'].append(data_uid)
                             # @TODO. Hard-coded MNI space for now as it is the only atlas space in use
@@ -192,11 +191,11 @@ def collect_results(patient_parameters, pipeline):
                             os.makedirs(os.path.dirname(dest_desc_filename), exist_ok=True)
                             if not os.path.exists(dest_desc_filename):
                                 shutil.move(description_filename, dest_desc_filename)
-                            data_uid, error_msg = patient_parameters.import_atlas_structures(dest_atlas_filename,
-                                                                                             parent_mri_uid=parent_mri_uid,
-                                                                                             investigation_ts_folder_name=dest_ts_object.folder_name,
-                                                                                             description=dest_desc_filename,
-                                                                                             reference='Patient')
+                            data_uid = patient_parameters.import_atlas_structures(dest_atlas_filename,
+                                                                                  parent_mri_uid=parent_mri_uid,
+                                                                                  investigation_ts_folder_name=dest_ts_object.folder_name,
+                                                                                  description=dest_desc_filename,
+                                                                                  reference='Patient')
 
                             results['Atlas'].append(data_uid)
                             # @TODO. Hard-coded MNI space for now as it is the only atlas space in use
@@ -232,11 +231,11 @@ def collect_results(patient_parameters, pipeline):
                             os.makedirs(os.path.dirname(dest_desc_filename), exist_ok=True)
                             if not os.path.exists(dest_desc_filename):
                                 shutil.move(description_filename, dest_desc_filename)
-                            data_uid, error_msg = patient_parameters.import_atlas_structures(dest_atlas_filename,
-                                                                                             parent_mri_uid=parent_mri_uid,
-                                                                                             investigation_ts_folder_name=dest_ts_object.folder_name,
-                                                                                             description=dest_desc_filename,
-                                                                                             reference='Patient')
+                            data_uid = patient_parameters.import_atlas_structures(dest_atlas_filename,
+                                                                                  parent_mri_uid=parent_mri_uid,
+                                                                                  investigation_ts_folder_name=dest_ts_object.folder_name,
+                                                                                  description=dest_desc_filename,
+                                                                                  reference='Patient')
 
                             results['Atlas'].append(data_uid)
                             # @TODO. Hard-coded MNI space for now as it is the only atlas space in use

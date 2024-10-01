@@ -14,14 +14,13 @@ class PatientDICOM:
         self.birth_date = ""
         self.studies = {}
 
-    def parse_dicom_folder(self):
+    def parse_dicom_folder(self) -> None:
         """
         Initial parsing of a DICOM folder to retrieve the metadata and readers, to let the user choose which to import.
         """
-        error_msg = None
         patient_base_dicom = os.path.join(self.dicom_folder, 'DICOM')
 
-        if not os.path.exists(patient_base_dicom):
+        if not os.path.exists(patient_base_dicom) or not os.path.isdir(patient_base_dicom):
             logging.warning('No existing DICOM folder in {}.\n Treating folder as a single volume.'.format(self.dicom_folder))
             try:
                 reader = sitk.ImageSeriesReader()
@@ -43,13 +42,10 @@ class PatientDICOM:
                         self.patient_id = dicom_series.get_patient_id()
                     if self.gender == "" and dicom_series.get_patient_gender() is not None:
                         self.gender = dicom_series.get_patient_gender()
-
             except Exception as e:
-                error_msg = """[Software error] Provided folder does not contain any DICOM folder tree, nor can it be parsed as a
-                single MRI volume.\n Loading aborted with error:\n {}.""".format(traceback.format_exc())
-                logging.error(error_msg)
-                return error_msg
-            return error_msg
+                error_msg = 'Provided folder does not contain any DICOM folder tree, nor can it be parsed as a' + \
+                'single MRI volume.<br> Loading aborted with: {}.'.format(e)
+                raise RuntimeError(error_msg)
 
         main_dicom_dir = []
         for _, dirs, _ in os.walk(patient_base_dicom):
@@ -58,10 +54,7 @@ class PatientDICOM:
             break
 
         if len(main_dicom_dir) == 0:
-            error_msg = """ [Software error] Provided folder does not contain any proper DICOM folder hierarchy.\n 
-            Loading aborted."""
-            logging.error(error_msg)
-            return error_msg
+            raise RuntimeError('Provided folder does not contain any proper DICOM folder hierarchy. Aborting loading.')
 
         try:
             main_dicom_investigations = []
@@ -141,12 +134,7 @@ class PatientDICOM:
                             logging.warning("DICOM Series reading issue with:\n {}".format(traceback.format_exc()))
                             continue
         except Exception as e:
-            error_msg = """[Software error] Provided DICOM could not be processed.\n 
-            Encountered issue: {}.""".format(traceback.format_exc())
-            logging.error(error_msg)
-            return error_msg
-
-        return error_msg
+            raise RuntimeError("Provided DICOM could not be processed, with: {}".format(e))
 
 
 class DICOMStudy():

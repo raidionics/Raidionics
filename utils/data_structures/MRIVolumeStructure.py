@@ -61,18 +61,20 @@ class MRIVolume:
 
     def __init__(self, uid: str, inv_ts_uid: str, input_filename: str, output_patient_folder: str,
                  reload_params: dict = None) -> None:
-        # @TODO. Should also add the registered versions in here.
-        self.__reset()
-        self._unique_id = uid
-        self._timestamp_uid = inv_ts_uid
-        self._raw_input_filepath = input_filename
-        self._output_patient_folder = output_patient_folder
-        self._display_name = uid
+        try:
+            self.__reset()
+            self._unique_id = uid
+            self._timestamp_uid = inv_ts_uid
+            self._raw_input_filepath = input_filename
+            self._output_patient_folder = output_patient_folder
+            self._display_name = uid
 
-        if reload_params:
-            self.__reload_from_disk(reload_params)
-        else:
-            self.__init_from_scratch()
+            if reload_params:
+                self.__reload_from_disk(reload_params)
+            else:
+                self.__init_from_scratch()
+        except Exception as e:
+            raise RuntimeError(e)
 
     def __reset(self):
         """
@@ -107,11 +109,10 @@ class MRIVolume:
         loading of the patient in memory!
         """
         try:
-            if UserPreferencesStructure.getInstance().display_space != 'Patient':
-                if self._resampled_input_volume_filepath and os.path.exists(self._resampled_input_volume_filepath):
-                    self._resampled_input_volume = nib.load(self._resampled_input_volume_filepath).get_fdata()[:]
-                else:
-                    self.__generate_standardized_input_volume()
+            if self._resampled_input_volume_filepath and os.path.exists(self._resampled_input_volume_filepath):
+                self._resampled_input_volume = nib.load(self._resampled_input_volume_filepath).get_fdata()[:]
+            else:
+                self.__generate_standardized_input_volume()
             self.__generate_display_volume()
         except Exception as e:
             raise ValueError("[MRIVolumeStructure] Loading in memory failed with: {}".format(e))
@@ -136,55 +137,77 @@ class MRIVolume:
     @timestamp_folder_name.setter
     def timestamp_folder_name(self, folder_name: str) -> None:
         """
-        @Behaviour. Should we also adjust the raw_input_filepath, in case it is inside the patient folder
-        (i.e., DICOM import)?
+        When the name given to a timestamp is changed to be more comprehensive (e.g. from T0 to PreOp), all relative
+        paths on disk must be adjusted since the folder name for the given timestamp will be changed.
+
+        Parameters
+        ----------
+        folder_name : str
+            New name for the timestamp folder on disk.
         """
-        self._timestamp_folder_name = folder_name
-        if self._output_patient_folder in self._usable_input_filepath:
-            if os.name == 'nt':
-                path_parts = list(
-                    PurePath(os.path.relpath(self._usable_input_filepath, self._output_patient_folder)).parts[1:])
-                rel_path = PurePath()
-                rel_path = rel_path.joinpath(self._output_patient_folder)
-                rel_path = rel_path.joinpath(self._timestamp_folder_name)
-                for x in path_parts:
-                    rel_path = rel_path.joinpath(x)
-                self._usable_input_filepath = os.fspath(rel_path)
-            else:
-                rel_path = '/'.join(os.path.relpath(self._usable_input_filepath,
-                                                    self._output_patient_folder).split('/')[1:])
-                self._usable_input_filepath = os.path.join(self._output_patient_folder, self._timestamp_folder_name,
-                                                           rel_path)
-        if self._dicom_metadata_filepath:
-            if os.name == 'nt':
-                path_parts = list(PurePath(os.path.relpath(self._dicom_metadata_filepath,
-                                                           self._output_patient_folder)).parts[1:])
-                rel_path = PurePath()
-                rel_path = rel_path.joinpath(self._output_patient_folder)
-                rel_path = rel_path.joinpath(self._timestamp_folder_name)
-                for x in path_parts:
-                    rel_path = rel_path.joinpath(x)
-                self._dicom_metadata_filepath = os.fspath(rel_path)
-            else:
-                rel_path = '/'.join(os.path.relpath(self._dicom_metadata_filepath,
-                                                    self._output_patient_folder).split('/')[1:])
-                self._dicom_metadata_filepath = os.path.join(self._output_patient_folder, self._timestamp_folder_name,
-                                                             rel_path)
-        if self._resampled_input_volume_filepath:
-            if os.name == 'nt':
-                path_parts = list(PurePath(os.path.relpath(self._resampled_input_volume_filepath,
-                                                           self._output_patient_folder)).parts[1:])
-                rel_path = PurePath()
-                rel_path = rel_path.joinpath(self._output_patient_folder)
-                rel_path = rel_path.joinpath(self._timestamp_folder_name)
-                for x in path_parts:
-                    rel_path = rel_path.joinpath(x)
-                self._resampled_input_volume_filepath = os.fspath(rel_path)
-            else:
-                rel_path = '/'.join(os.path.relpath(self._resampled_input_volume_filepath,
-                                                    self._output_patient_folder).split('/')[1:])
-                self._resampled_input_volume_filepath = os.path.join(self._output_patient_folder,
-                                                                     self._timestamp_folder_name, rel_path)
+        try:
+            for i, fn in enumerate(self.registered_volume_filepaths.keys()):
+                self.registered_volume_filepaths[fn] = self.registered_volume_filepaths[fn].replace(self._timestamp_folder_name, folder_name)
+
+            if self._resampled_input_volume_filepath:
+                self._resampled_input_volume_filepath = self._resampled_input_volume_filepath.replace(
+                    self._timestamp_folder_name, folder_name)
+            if self._usable_input_filepath:
+                self._usable_input_filepath = self._usable_input_filepath.replace(self._timestamp_folder_name,
+                                                                                  folder_name)
+            if self._dicom_metadata_filepath:
+                self._dicom_metadata_filepath = self._dicom_metadata_filepath.replace(self._timestamp_folder_name,
+                                                                                      folder_name)
+            self._timestamp_folder_name = folder_name
+        except Exception as e:
+            raise ValueError("Changing the timestamp folder name for the MRIVolumeStructure failed with: {}".format(e))
+
+        # if self._output_patient_folder in self._usable_input_filepath:
+        #     if os.name == 'nt':
+        #         path_parts = list(
+        #             PurePath(os.path.relpath(self._usable_input_filepath, self._output_patient_folder)).parts[1:])
+        #         rel_path = PurePath()
+        #         rel_path = rel_path.joinpath(self._output_patient_folder)
+        #         rel_path = rel_path.joinpath(self._timestamp_folder_name)
+        #         for x in path_parts:
+        #             rel_path = rel_path.joinpath(x)
+        #         self._usable_input_filepath = os.fspath(rel_path)
+        #     else:
+        #         rel_path = '/'.join(os.path.relpath(self._usable_input_filepath,
+        #                                             self._output_patient_folder).split('/')[1:])
+        #         self._usable_input_filepath = os.path.join(self._output_patient_folder, self._timestamp_folder_name,
+        #                                                    rel_path)
+        # if self._dicom_metadata_filepath:
+        #     if os.name == 'nt':
+        #         path_parts = list(PurePath(os.path.relpath(self._dicom_metadata_filepath,
+        #                                                    self._output_patient_folder)).parts[1:])
+        #         rel_path = PurePath()
+        #         rel_path = rel_path.joinpath(self._output_patient_folder)
+        #         rel_path = rel_path.joinpath(self._timestamp_folder_name)
+        #         for x in path_parts:
+        #             rel_path = rel_path.joinpath(x)
+        #         self._dicom_metadata_filepath = os.fspath(rel_path)
+        #     else:
+        #         rel_path = '/'.join(os.path.relpath(self._dicom_metadata_filepath,
+        #                                             self._output_patient_folder).split('/')[1:])
+        #         self._dicom_metadata_filepath = os.path.join(self._output_patient_folder, self._timestamp_folder_name,
+        #                                                      rel_path)
+        # if self._resampled_input_volume_filepath:
+        #     if os.name == 'nt':
+        #         path_parts = list(PurePath(os.path.relpath(self._resampled_input_volume_filepath,
+        #                                                    self._output_patient_folder)).parts[1:])
+        #         rel_path = PurePath()
+        #         rel_path = rel_path.joinpath(self._output_patient_folder)
+        #         rel_path = rel_path.joinpath(self._timestamp_folder_name)
+        #         for x in path_parts:
+        #             rel_path = rel_path.joinpath(x)
+        #         self._resampled_input_volume_filepath = os.fspath(rel_path)
+        #     else:
+        #         rel_path = '/'.join(os.path.relpath(self._resampled_input_volume_filepath,
+        #                                             self._output_patient_folder).split('/')[1:])
+        #         self._resampled_input_volume_filepath = os.path.join(self._output_patient_folder,
+        #                                                              self._timestamp_folder_name, rel_path)
+
 
     def set_unsaved_changes_state(self, state: bool) -> None:
         self._unsaved_changes = state
@@ -223,16 +246,22 @@ class MRIVolume:
         output_folder: str
             New folder name where the patient data will be saved on disk.
         """
-        if self._resampled_input_volume_filepath:
-            self._resampled_input_volume_filepath = self._resampled_input_volume_filepath.replace(
-                self._output_patient_folder, output_folder)
-        if self._usable_input_filepath:
-            self._usable_input_filepath = self._usable_input_filepath.replace(self._output_patient_folder,
-                                                                              output_folder)
-        if self._dicom_metadata_filepath:
-            self._dicom_metadata_filepath = self._dicom_metadata_filepath.replace(self._output_patient_folder,
+        try:
+            if self._resampled_input_volume_filepath:
+                self._resampled_input_volume_filepath = self._resampled_input_volume_filepath.replace(
+                    self._output_patient_folder, output_folder)
+            if self._usable_input_filepath:
+                self._usable_input_filepath = self._usable_input_filepath.replace(self._output_patient_folder,
                                                                                   output_folder)
-        self._output_patient_folder = output_folder
+            if self._dicom_metadata_filepath:
+                self._dicom_metadata_filepath = self._dicom_metadata_filepath.replace(self._output_patient_folder,
+                                                                                      output_folder)
+            for i, fn in enumerate(self.registered_volume_filepaths.keys()):
+                self.registered_volume_filepaths[fn] = self.registered_volume_filepaths[fn].replace(self._output_patient_folder, output_folder)
+
+            self._output_patient_folder = output_folder
+        except Exception as e:
+            raise ValueError("Changing the output patient folder name for the MRIVolumeStructure failed with: {}".format(e))
 
     @property
     def output_patient_folder(self) -> str:
@@ -350,8 +379,8 @@ class MRIVolume:
             if self.registered_volume_filepaths and len(self.registered_volume_filepaths.keys()) > 0:
                 for k in list(self.registered_volume_filepaths.keys()):
                     os.remove(self.registered_volume_filepaths[k])
-        except Exception:
-            logging.error(" [Software error] Error while deleting a radiological volume from disk.\n {}".format(traceback.format_exc()))
+        except Exception as e:
+            raise RuntimeError("Error while deleting a radiological volume from disk with: {}".format(e))
 
     def save(self) -> dict:
         """
@@ -403,8 +432,7 @@ class MRIVolume:
             self._contrast_changed = False
             return volume_params
         except Exception as e:
-            logging.error("[Software error] MRIVolumeStructure saving failed with: {}.\n {}".format(
-                e, traceback.format_exc()))
+            raise RuntimeError("MRIVolumeStructure saving failed with: {}".format(e))
 
     def import_registered_volume(self, filepath: str, registration_space: str) -> None:
         """
@@ -423,7 +451,7 @@ class MRIVolume:
                 registration_space, dest_path))
             self._unsaved_changes = True
         except Exception:
-            logging.error("[Software error] Error while importing a registered radiological volume.\n {}".format(traceback.format_exc()))
+            raise RuntimeError("Error while importing a registered radiological volume.\n {}".format(traceback.format_exc()))
 
     def __init_from_scratch(self) -> None:
         try:
@@ -440,8 +468,7 @@ class MRIVolume:
             self.__parse_sequence_type()
             self.__generate_display_volume()
         except Exception as e:
-            logging.error("""[Software error] Initializing radiological structure from scratch failed 
-            for: {} with: {}.\n {}""".format(self._raw_input_filepath, e, traceback.format_exc()))
+            raise RuntimeError("""Initializing radiological structure from scratch failed for: {} with: {}.""".format(self._raw_input_filepath, e))
 
     def __reload_from_disk(self, parameters: dict) -> None:
         """
@@ -482,8 +509,7 @@ class MRIVolume:
                                                                        parameters['registered_volume_filepaths'][k])
                     self.registered_volumes[k] = nib.load(self.registered_volume_filepaths[k]).get_fdata()[:]
         except Exception as e:
-            logging.error("""[Software error] Reloading radiological structure from disk failed 
-            for: {} with {}.\n {}""".format(self.display_name, e, traceback.format_exc()))
+            raise RuntimeError("""Reloading radiological structure from disk failed for {} with {}.""".format(self.display_name, e))
 
     def __parse_sequence_type(self):
         base_name = self._unique_id.lower()

@@ -140,9 +140,14 @@ class ReportingStructure:
 
     @output_patient_folder.setter
     def output_patient_folder(self, output_folder: str) -> None:
-        if self._report_filename:
-            self._report_filename = self._report_filename.replace(self._output_patient_folder, output_folder)
-        self._output_patient_folder = output_folder
+        try:
+            if self._report_filename is not None and os.path.exists(self._report_filename):
+                self._report_filename = self._report_filename.replace(self._output_patient_folder, output_folder)
+            if self._report_filename_csv is not None and os.path.exists(self._report_filename_csv):
+                self._report_filename_csv = self._report_filename_csv.replace(self._output_patient_folder, output_folder)
+            self._output_patient_folder = output_folder
+        except Exception as e:
+            raise ValueError("Changing the patient folder for the reporting structure failed with: {}".format(e))
 
     @property
     def parent_mri_uid(self) -> str:

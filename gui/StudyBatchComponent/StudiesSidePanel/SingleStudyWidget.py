@@ -505,17 +505,19 @@ class SingleStudyWidget(QCollapsibleWidget):
         Internal update of the visible study name after user manual editing, the folder name on disk for the study
         is also updated with the new requested name (if available).
         """
-        code, err_msg = SoftwareConfigResources.getInstance().get_active_study().set_display_name(self.study_name_lineedit.text())
-        if code == 1:  # Operation failed
+        try:
+            SoftwareConfigResources.getInstance().get_active_study().set_display_name(self.study_name_lineedit.text())
+        except Exception as e:
             self.study_name_lineedit.blockSignals(True)
             self.study_name_lineedit.setText(SoftwareConfigResources.getInstance().get_active_study().display_name)
             self.study_name_lineedit.blockSignals(False)
-        else:
-            self.header.title_label.setText(self.study_name_lineedit.text())
-            self.header.title = self.study_name_lineedit.text()
-            self.output_dir_lineedit.setText(SoftwareConfigResources.getInstance().get_active_study().output_study_folder)
-            self.output_dir_lineedit.setCursorPosition(0)
-            self.output_dir_lineedit.home(True)
+            logging.error("[Software error] Editing the patient name failed with: {}.".format(e))
+            return
+        self.header.title_label.setText(self.study_name_lineedit.text())
+        self.header.title = self.study_name_lineedit.text()
+        self.output_dir_lineedit.setText(SoftwareConfigResources.getInstance().get_active_study().output_study_folder)
+        self.output_dir_lineedit.setCursorPosition(0)
+        self.output_dir_lineedit.home(True)
 
     def manual_header_pushbutton_clicked(self, state):
         if state:

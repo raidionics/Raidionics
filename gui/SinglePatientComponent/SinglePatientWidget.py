@@ -278,6 +278,7 @@ class SinglePatientWidget(QWidget):
     def on_reload_interface(self) -> None:
         """
         In order to generate a new central panel, for example because the display space has changed.
+        @TODO. Should also reload the interface for the right-hand panel and set to default
         """
         if not SoftwareConfigResources.getInstance().is_patient_list_empty():
             SoftwareConfigResources.getInstance().get_active_patient().load_in_memory()

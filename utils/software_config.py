@@ -116,14 +116,13 @@ class SoftwareConfigResources:
         UserPreferencesStructure.getInstance().use_dark_mode = state
         self.__set_default_stylesheet_components()
 
-    def add_new_empty_patient(self, active: bool = True) -> Union[str, Any]:
+    def add_new_empty_patient(self, active: bool = True) -> str:
         """
         At startup a new empty patient is created by default. Otherwise, a new empty patient is created everytime
         the user presses the corresponding button in the left-hand side panel.
         """
         non_available_uid = True
         patient_uid = None
-        error_message = None
         logging.debug("New patient creation requested.")
         try:
             while non_available_uid:
@@ -134,16 +133,14 @@ class SoftwareConfigResources:
             self.patients_parameters[patient_uid] = PatientParameters(id=patient_uid,
                                                                       dest_location=UserPreferencesStructure.getInstance().user_home_location)
             random_name = names.get_full_name()
-            code, error_msg = self.patients_parameters[patient_uid].set_display_name(random_name, manual_change=False)
+            self.patients_parameters[patient_uid].set_display_name(random_name, manual_change=False)
             if active:
                 self.set_active_patient(patient_uid)
-        except Exception:
-            error_message = "[Software error] Error while trying to create a new empty patient: \n"
-            error_message = error_message + traceback.format_exc()
-            logging.error(error_message)
-        return patient_uid, error_message
+            return patient_uid
+        except Exception as e:
+            raise RuntimeError("Error while trying to create a new empty patient with: {}".format(e))
 
-    def load_patient(self, filename: str, active: bool = True) -> Union[str, Any]:
+    def load_patient(self, filename: str, active: bool = True) -> str:
         """
         Loads all patient-related files from parsing the scene file (*.raidionics). The current active patient is
         filled with the information, as an empty patient was created when the call for importing was made.
@@ -158,31 +155,27 @@ class SoftwareConfigResources:
         ----------
         patient_id str
             Unique id of the newly loaded parameter.
-        error_message Any (str or None)
-            None if no error was collected, otherwise a string with a human-readable description of the error.
         """
         patient_id = None
-        error_message = None
         logging.debug("Patient loading requested from {}.".format(filename))
         try:
             patient_instance = PatientParameters(dest_location=UserPreferencesStructure.getInstance().user_home_location,
                                                  patient_filename=filename)
-            error_message = patient_instance.import_patient(filename)
+            _ = patient_instance.import_patient(filename)
             # To prevent the save changes dialog to pop-up straight up after loading a patient scene file.
             patient_instance.set_unsaved_changes_state(False)
             patient_id = patient_instance.unique_id
             if patient_id in self.patients_parameters.keys():
                 # @TODO. The random unique key number is encountered twice, have to randomize it again.
-                error_message = error_message + '\nImport patient failed, unique id already exists.\n'
+                raise ValueError('Import patient failed, unique id already exists.')
             self.patients_parameters[patient_id] = patient_instance
             if active:
                 # Doing the following rather than set_active_patient(), to avoid the overhead of doing memory release/load.
                 self.active_patient_name = patient_id
         except Exception as e:
-            error_message = "[Software error] Error while trying to load a patient with: {}. \n".format(e)
-            error_message = error_message + traceback.format_exc()
-            logging.error(error_message)
-        return patient_id, error_message
+            e_msg = str(e).replace("[Software error]", "")
+            raise RuntimeError("Error while trying to load a patient with: {}.".format(e_msg))
+        return patient_id
 
     def update_active_patient_name(self, new_name: str) -> None:
         self.patients_parameters[self.active_patient_name].update_visible_name(new_name)
@@ -311,7 +304,7 @@ class SoftwareConfigResources:
             logging.error(error_message)
         return study_uid, error_message
 
-    def load_study(self, filename: str, active: bool = True) -> Union[str, Any]:
+    def load_study(self, filename: str, active: bool = True) -> str:
         """
         Loads all study-related and patient-related files from parsing the study file (*.sraidionics).
         The active patient is not changed at this point.
@@ -322,17 +315,15 @@ class SoftwareConfigResources:
             The full filepath to the study file, of type .sraidionics
         active: bool
             Boolean to specify if the loaded study should be set as the active study or not.
+
         Returns
         ----------
         study_id str
             Unique id of the newly loaded study.
-        error_message Any (str or None)
-            None if no error was collected, otherwise a string with a human-readable description of the error.
         """
         logging.info("Study loading requested from {}.".format(filename))
-        study_id = None
-        error_message = None
         try:
+            study_id = None
             study_instance = StudyParameters(study_filename=filename)
             error_message = study_instance.import_study(filename)
             # To prevent the save changes dialog to pop-up straight up after loading a patient scene file.
@@ -354,15 +345,11 @@ class SoftwareConfigResources:
                     assumed_patient_filename = os.path.join(study_instance.output_study_directory, 'patients',
                                                             included_pat_uids[p],
                                                             included_pat_uids[p] + '_scene.raidionics')
-                    pat_id, pat_err_mnsg = self.load_patient(filename=assumed_patient_filename, active=False)
-                    if pat_err_mnsg:
-                        error_message = error_message + "\n" + pat_err_mnsg
-        except Exception:
-            error_message = "[Software error] Error while trying to load a study: \n"
-            error_message = error_message + traceback.format_exc()
-            logging.error(error_message)
+                    pat_id = self.load_patient(filename=assumed_patient_filename, active=False)
+        except Exception as e:
+            raise RuntimeError("Loading the study failed with: {}".format(e))
 
-        return study_id, error_message
+        return study_id
 
     def save_study(self, study_id):
         self.study_parameters[study_id].save()

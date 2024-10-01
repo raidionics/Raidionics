@@ -318,21 +318,21 @@ class SinglePatientResultsWidget(QCollapsibleWidget):
 
     def __on_patient_name_modified(self):
         new_name = self.patient_name_lineedit.text()
-        code, msg = SoftwareConfigResources.getInstance().get_active_patient().set_display_name(new_name)
-        if code == 0:  # Name edition was successful
-            self.header.title_label.setText(new_name)
-            self.header.title = new_name
-            self.patient_name_edited.emit(self.uid, new_name)
-            self.output_dir_lineedit.setText(SoftwareConfigResources.getInstance().get_active_patient().output_folder)
-
-            # If some ongoing studies are opened, the associated folder must also be changed there
-            if not SoftwareConfigResources.getInstance().is_study_list_empty():
-                SoftwareConfigResources.getInstance().propagate_patient_name_change(SoftwareConfigResources.getInstance().get_active_patient_uid())
-        else:  # Requested name already exists, operation cancelled and user warned.
+        try:
+            SoftwareConfigResources.getInstance().get_active_patient().set_display_name(new_name)
+        except Exception as e:
             self.patient_name_lineedit.setText(SoftwareConfigResources.getInstance().get_active_patient().display_name)
-            diag = QErrorMessage(self)
-            diag.setWindowTitle("Operation not permitted")
-            diag.showMessage(msg)
+            logging.error("[Software error] Editing the patient name failed with: {}.".format(e))
+            return
+        self.header.title_label.setText(new_name)
+        self.header.title = new_name
+        self.patient_name_edited.emit(self.uid, new_name)
+        self.output_dir_lineedit.setText(SoftwareConfigResources.getInstance().get_active_patient().output_folder)
+
+        # If some ongoing studies are opened, the associated folder must also be changed there
+        if not SoftwareConfigResources.getInstance().is_study_list_empty():
+            SoftwareConfigResources.getInstance().propagate_patient_name_change(SoftwareConfigResources.getInstance().get_active_patient_uid())
+
 
     def __on_results_selector_index_changed(self, index):
         self.results_display_stackedwidget.setCurrentIndex(index)
