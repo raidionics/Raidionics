@@ -107,7 +107,7 @@ class MRISeriesLayerWidget(QWidget):
         # logging.debug("MRISeriesLayerWidget size set to {}.\n".format(self.size()))
 
     def __set_connections(self):
-        self.display_name_lineedit.textEdited.connect(self.on_name_change)
+        self.display_name_lineedit.returnPressed.connect(self.on_name_change)
         self.display_toggle_radiobutton.toggled.connect(self.on_visibility_toggled)
         self.options_pushbutton.clicked.connect(self.on_options_clicked)
         self.sequence_type_combobox.currentTextChanged.connect(self.on_sequence_type_changed)
@@ -343,10 +343,11 @@ class MRISeriesLayerWidget(QWidget):
         self.contrast_adjuster_pushbutton.setEnabled(self.display_toggle_radiobutton.isChecked())
         logging.info("[MRISeriesLayerWidget] Visibility toggled to {} for {}".format(state, self.uid))
 
-    def on_name_change(self, text):
+    def on_name_change(self):
         # @TODO. Should there be a check that the name is available?
-        SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_uid(self.uid).display_name = text
-        self.display_name_changed.emit(self.uid, text)
+        new_name = self.display_name_lineedit.text()
+        SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_uid(self.uid).display_name = new_name
+        self.display_name_changed.emit(self.uid, new_name)
 
     def on_sequence_type_changed(self, text) -> None:
         SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_uid(self.uid).set_sequence_type(text)

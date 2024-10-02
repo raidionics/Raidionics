@@ -105,17 +105,16 @@ class InvestigationTimestamp:
             self._display_name = text
             new_folder_name = self._display_name.strip().replace(" ", "")
             if os.path.exists(os.path.join(self._output_patient_folder, new_folder_name)):
-                # @TODO. Should return an error message, but then should be made into a set_display_name method....
-                return
+                msg = 'A timestamp with requested name already exists in the destination folder.<br>' + \
+                      'Requested name: {}.<br>'.format(new_folder_name) + \
+                      'Destination folder: {}.'.format(os.path.dirname(self._output_patient_folder))
+                raise ValueError(msg)
             if os.path.exists(os.path.join(self._output_patient_folder, self._folder_name)):
                 shutil.move(src=os.path.join(self._output_patient_folder, self._folder_name),
                             dst=os.path.join(self._output_patient_folder, new_folder_name))
                 logging.debug(
                     "Unsaved changes - Investigation timestamp folder name changed from {} to {}".format(self._folder_name,
                                                                                                          new_folder_name))
-            else:
-                raise ValueError("Folder not existing on disk at: {}".format(os.path.join(self._output_patient_folder,
-                                                                                          self._folder_name)))
             self._folder_name = new_folder_name
             self._unsaved_changes = True
         except Exception as e:

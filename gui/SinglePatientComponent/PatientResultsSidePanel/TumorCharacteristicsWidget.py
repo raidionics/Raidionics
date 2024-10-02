@@ -793,7 +793,7 @@ class TumorCharacteristicsWidget(QWidget):
 
         # BrainGrid structures
         self.braingridstructures_collapsiblegroupbox.clear_content_layout()
-        if UserPreferencesStructure.getInstance().compute_braingrid_structures:
+        if 'BrainGrid' in list(report_json['Main']['Total'].keys()): #UserPreferencesStructure.getInstance().compute_braingrid_structures:
             lay = QHBoxLayout()
             label_header = QLabel("Infiltration count:")
             label_header.setStyleSheet("""

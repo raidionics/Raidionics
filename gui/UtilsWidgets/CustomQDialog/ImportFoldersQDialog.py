@@ -192,6 +192,7 @@ class ImportFoldersQDialog(QDialog):
         self.load_progressbar.setValue(0)
 
         for input_folderpath in input_folderpaths:
+            logging.debug("[ImportFoldersQDialog] Parsing the current folder input with value: {}".format(input_folderpath))
             try:
                 folders_in_path = []
 

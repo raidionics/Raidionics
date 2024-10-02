@@ -102,6 +102,13 @@ jobs:
           export QT_QPA_PLATFORM="offscreen"
           cd ${{github.workspace}}/tests && python software_launch_test.py
 
+    - name: Integration tests
+      env:
+        DISPLAY: ':1'
+      run: |
+          pip install pytest
+          pytest ${{github.workspace}}/integration_tests
+
     - name: Make installer
       run: |
         mkdir -p assets/Raidionics_ubuntu/usr/local/bin

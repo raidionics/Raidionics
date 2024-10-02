@@ -45,21 +45,24 @@ class ReportingStructure:
 
     def __init__(self, uid: str, report_filename: str, output_patient_folder: str, inv_ts_uid: str,
                  inv_ts_folder_name: str = None, reload_params: dict = None) -> None:
-        self.__reset()
-        self._unique_id = uid
-        self._report_filename = report_filename
-        self._output_patient_folder = output_patient_folder
-        self._timestamp_uid = inv_ts_uid
-        if inv_ts_folder_name:
-            self._timestamp_folder_name = inv_ts_folder_name
+        try:
+            self.__reset()
+            self._unique_id = uid
+            self._report_filename = report_filename
+            self._output_patient_folder = output_patient_folder
+            self._timestamp_uid = inv_ts_uid
+            if inv_ts_folder_name:
+                self._timestamp_folder_name = inv_ts_folder_name
 
-        with open(self._report_filename, 'r') as infile:
-            self._report_content = json.load(infile)
+            with open(self._report_filename, 'r') as infile:
+                self._report_content = json.load(infile)
 
-        if reload_params:
-            self.__reload_from_disk(reload_params)
-        else:
-            self.__init_from_scratch()
+            if reload_params:
+                self.__reload_from_disk(reload_params)
+            else:
+                self.__init_from_scratch()
+        except Exception as e:
+            raise RuntimeError(e)
 
     def __reset(self):
         """
@@ -189,20 +192,23 @@ class ReportingStructure:
         """
 
         """
-        self._timestamp_uid = params['investigation_timestamp_uid']
-        if self._timestamp_uid:
-            self._timestamp_folder_name = params['report_filename'].split('/')[0]
-            if os.name == 'nt':
-                self._timestamp_folder_name = list(PurePath(params['report_filename']).parts)[0]
+        try:
+            self._timestamp_uid = params['investigation_timestamp_uid']
+            if self._timestamp_uid:
+                self._timestamp_folder_name = params['report_filename'].split('/')[0]
+                if os.name == 'nt':
+                    self._timestamp_folder_name = list(PurePath(params['report_filename']).parts)[0]
 
-        if 'parent_mri_uid' in list(params.keys()):
-            self._parent_mri_uid = params['parent_mri_uid']
+            if 'parent_mri_uid' in list(params.keys()):
+                self._parent_mri_uid = params['parent_mri_uid']
 
-        if 'task' in list(params.keys()):
-            self.set_reporting_type(params['task'])
+            if 'task' in list(params.keys()):
+                self.set_reporting_type(params['task'])
 
-        if 'report_filename_csv' in list(params.keys()):
-            self._report_filename_csv = os.path.join(self._output_patient_folder, params["report_filename_csv"])
+            if 'report_filename_csv' in list(params.keys()):
+                self._report_filename_csv = os.path.join(self._output_patient_folder, params["report_filename_csv"])
+        except Exception as e:
+            raise RuntimeError("""Reloading the reporting structure from disk failed for {} with {}.""".format(self.report_filename, e))
 
     def save(self) -> dict:
         """
@@ -227,5 +233,5 @@ class ReportingStructure:
                 report_params['report_filename_csv'] = os.path.relpath(self._report_filename_csv, base_patient_folder)
             self._unsaved_changes = False
             return report_params
-        except Exception:
-            logging.error("[Software error] ReportingStructure saving failed with:\n {}".format(traceback.format_exc()))
+        except Exception as e:
+            logging.error("ReportingStructure saving failed with: {}".format(e))

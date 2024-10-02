@@ -394,9 +394,8 @@ class PatientParameters:
 
         Returns
         -------
-        data_uid, error_message: [str, str]
-            A tuple [str, str] containing first the new internal unique identifier for the loaded volume, and second
-            a potential error message.
+        data_uid: str
+            A string containing the new internal unique identifier for the loaded volume.
         """
         data_uid = None
 

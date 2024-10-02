@@ -38,17 +38,20 @@ class StudyParameters:
         """
 
         """
-        self.__reset()
-        self._unique_id = uid.replace(" ", '_').strip()
+        try:
+            self.__reset()
+            self._unique_id = uid.replace(" ", '_').strip()
 
-        if study_filename:
-            # Empty init, self.import_study() must be called after the instance creation call.
-            pass
-        else:
-            if not dest_location:
-                logging.warning("Home folder location for new study creation is None.")
-                dest_location = os.path.join(os.path.expanduser('~'), '.raidionics')
-            self.__init_from_scratch(dest_location)
+            if study_filename:
+                # Empty init, self.import_study() must be called after the instance creation call.
+                pass
+            else:
+                if not dest_location:
+                    logging.warning("Home folder location for new study creation is None.")
+                    dest_location = os.path.join(os.path.expanduser('~'), '.raidionics')
+                self.__init_from_scratch(dest_location)
+        except Exception as e:
+            raise RuntimeError(e)
 
     def __reset(self):
         """
