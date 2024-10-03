@@ -312,10 +312,16 @@ class TimestampsLayerInteractor(QWidget):
         # self.timestamp_add_pushbutton.setEnabled(False)  # Unsure if it should be disabled or not.
         self.timestamp_remove_pushbutton.setEnabled(False)
 
-    def get_timestamp_widget_by_index(self, index: int) -> QWidget:
+    def get_timestamp_widget_by_index(self, index: int) -> TimestampLayerWidget:
         if index >= len(self.timestamps_widget):
             raise ValueError("[TimestampsLayerInteractor] Trying to retrieve a timestamp widget with an out-of-bound index value.")
-        return self.timestamps_widget[index]
+        return self.timestamps_widget[list(self.timestamps_widget.keys())[index]]
+
+    def get_timestamp_widget_by_visible_name(self, name: str) -> TimestampLayerWidget:
+        for w in list(self.timestamps_widget.keys()):
+            if self.timestamps_widget[w].visible_name == name:
+                return self.timestamps_widget[w]
+        raise ValueError("[TimestampsLayerInteractor] Trying to retrieve a non-existing timestamp widget by visible name with: {}.".format(name))
 
     def on_patient_view_toggled(self, patient_uid: str) -> None:
         """

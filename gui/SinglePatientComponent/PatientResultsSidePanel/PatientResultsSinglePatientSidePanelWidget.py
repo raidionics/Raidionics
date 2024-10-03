@@ -164,6 +164,20 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         self.patient_list_scrollarea_dummy_widget.setFixedSize(QSize(self.size().width(), actual_height))
         self.repaint()
 
+    def get_patient_results_widget_by_index(self, index: int) -> SinglePatientResultsWidget:
+        if index >= len(self.patient_results_widgets):
+            raise ValueError(
+                "[PatientResultsSinglePatientSidePanelWidget] Trying to retrieve a patient result widget with an out-of-bound index value.")
+        return self.patient_results_widgets[list(self.patient_results_widgets.keys())[index]]
+
+    def get_patient_results_widget_by_display_name(self, name: str) -> SinglePatientResultsWidget:
+        for w in list(self.patient_results_widgets.keys()):
+            if self.patient_results_widgets[w].header.title_label == name:
+                return self.patient_results_widgets[w]
+        raise ValueError(
+            "[PatientResultsSinglePatientSidePanelWidget] Trying to retrieve a non-existing patient result widget by visible name with: {}.".format(
+                name))
+
     def on_import_data(self):
         """
         In case some patients where imported at the same time as some image for the current patient?

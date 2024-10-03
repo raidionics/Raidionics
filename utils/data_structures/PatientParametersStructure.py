@@ -150,6 +150,10 @@ class PatientParameters:
     def get_active_investigation_timestamp_uid(self) -> str:
         return self._active_investigation_timestamp_uid
 
+    def get_active_investigation_timestamp(self) -> InvestigationTimestamp:
+        assert self.get_active_investigation_timestamp_uid() in list(self._investigation_timestamps.keys())
+        return self._investigation_timestamps[self.get_active_investigation_timestamp_uid()]
+
     def release_from_memory(self) -> None:
         """
         Releasing all data objects from memory when not viewing the results for the current patient.
