@@ -87,6 +87,17 @@ class AnnotationsLayersInteractor(QCollapsibleWidget):
             self.volumes_widget.pop(w)
         self.header.collapse()
 
+    def get_layer_widget_by_index(self, index: int) -> AnnotationSingleLayerWidget:
+        if index >= len(self.volumes_widget):
+            raise ValueError("[AnnotationsLayerInteractor] Trying to retrieve an Annotation layer widget with an out-of-bound index value.")
+        return self.volumes_widget[list(self.volumes_widget.keys())[index]]
+
+    def get_layer_widget_by_visible_name(self, name: str) -> AnnotationSingleLayerWidget:
+        for w in list(self.volumes_widget.keys()):
+            if self.volumes_widget[w].visible_name == name:
+                return self.volumes_widget[w]
+        raise ValueError("[AnnotationsLayerInteractor] Trying to retrieve a non-existing Annotation layer widget by visible name with: {}.".format(name))
+
     def on_volume_view_toggled(self, volume_uid, state):
         """
         @TODO. Might not be necessary, don't care about uid and state, just that the current annotations must be removed

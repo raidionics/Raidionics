@@ -120,10 +120,12 @@ def test_patient_loading_from_raidionics(qtbot, test_location, test_data_folder,
     window.single_patient_widget.import_data_dialog.set_parsing_filter("patient")
     window.single_patient_widget.import_data_dialog.setup_interface_from_files([raidionics_filename])
     window.single_patient_widget.import_data_dialog.__on_exit_accept_clicked()
-    assert len(list(SoftwareConfigResources.getInstance().get_patient_by_display_name("Patient1").mri_volumes.keys())) == 2
+    sleep(5)
+    assert len(list(SoftwareConfigResources.getInstance().get_active_patient().mri_volumes.keys())) == 2
 
     # Saving the latest modifications to the patient on disk by pressing the disk icon
     qtbot.mouseClick(window.single_patient_widget.results_panel.get_patient_results_widget_by_index(0).save_patient_pushbutton, Qt.MouseButton.LeftButton)
+
 
 # def test_annotation_loading(qtbot, test_location, test_data_folder, window):
 #     """

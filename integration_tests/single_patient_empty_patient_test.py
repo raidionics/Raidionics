@@ -80,7 +80,7 @@ def test_empty_patient_renaming(qtbot, test_location, window):
 
 def test_empty_patient_timestamp_creation_and_renaming(qtbot, test_location, window):
     """
-    Creation of a new timestamp for an empty patient and renaming.|
+    Creation of a new timestamp for an empty patient and renaming.
     """
     qtbot.addWidget(window)
 
