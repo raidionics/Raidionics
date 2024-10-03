@@ -77,8 +77,7 @@ def test_patient_loading_from_files(qtbot, test_location, test_data_folder, wind
     assert len(list(SoftwareConfigResources.getInstance().get_active_patient().mri_volumes.keys())) == 2
 
     # Saving the latest modifications to the patient on disk by pressing the disk icon
-    qtbot.mouseClick(window.single_patient_widget.results_panel.patient_results_widgets[
-                       list(window.single_patient_widget.results_panel.patient_results_widgets.keys())[0]].save_patient_pushbutton, Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(window.single_patient_widget.results_panel.get_patient_results_widget_by_index(0).save_patient_pushbutton, Qt.MouseButton.LeftButton)
 
 def test_patient_loading_from_folder(qtbot, test_location, test_data_folder, window):
     """
@@ -103,8 +102,7 @@ def test_patient_loading_from_folder(qtbot, test_location, test_data_folder, win
     assert len(list(SoftwareConfigResources.getInstance().get_patient_by_display_name("Raw").mri_volumes.keys())) == 2
 
     # Saving the latest modifications to the patient on disk by pressing the disk icon
-    qtbot.mouseClick(window.single_patient_widget.results_panel.patient_results_widgets[
-                       list(window.single_patient_widget.results_panel.patient_results_widgets.keys())[0]].save_patient_pushbutton, Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(window.single_patient_widget.results_panel.get_patient_results_widget_by_index(0).save_patient_pushbutton, Qt.MouseButton.LeftButton)
 
 
 def test_patient_loading_from_raidionics(qtbot, test_location, test_data_folder, window):
@@ -125,8 +123,7 @@ def test_patient_loading_from_raidionics(qtbot, test_location, test_data_folder,
     assert len(list(SoftwareConfigResources.getInstance().get_patient_by_display_name("Patient1").mri_volumes.keys())) == 2
 
     # Saving the latest modifications to the patient on disk by pressing the disk icon
-    qtbot.mouseClick(window.single_patient_widget.results_panel.patient_results_widgets[
-                       list(window.single_patient_widget.results_panel.patient_results_widgets.keys())[0]].save_patient_pushbutton, Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(window.single_patient_widget.results_panel.get_patient_results_widget_by_index(0).save_patient_pushbutton, Qt.MouseButton.LeftButton)
 
 # def test_annotation_loading(qtbot, test_location, test_data_folder, window):
 #     """

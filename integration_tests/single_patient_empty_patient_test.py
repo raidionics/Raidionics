@@ -162,24 +162,12 @@ def test_empty_patient_timestamp_data_inclusion(qtbot, test_location, test_data_
         list(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamps_widget.keys())[0]].volumes_collapsiblegroupbox.volumes_widget.keys())[0]].sequence_type_combobox.setCurrentIndex(1)
 
     # Changing the display name for the T1-CE MRI volume to case27-t1c
-    window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_index(0).volumes_collapsiblegroupbox.volumes_widget[
-        list(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamps_widget[
-                 list(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamps_widget.keys())[
-                     0]].volumes_collapsiblegroupbox.volumes_widget.keys())[0]].display_name_lineedit.setText("case27-t1c")
-    qtbot.keyClick(window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_index(0).volumes_collapsiblegroupbox.volumes_widget[
-        list(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamps_widget[
-                 list(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamps_widget.keys())[
-                     0]].volumes_collapsiblegroupbox.volumes_widget.keys())[0]].display_name_lineedit, Qt.Key_Enter)
+    window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_index(0).volumes_collapsiblegroupbox.get_layer_widget_by_index(0).display_name_lineedit.setText("case27-t1c")
+    qtbot.keyClick(window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_index(0).volumes_collapsiblegroupbox.get_layer_widget_by_index(0).display_name_lineedit, Qt.Key_Enter)
 
     # Changing the display name for the FLAIR MRI volume to case27-flair
-    window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_index(0).volumes_collapsiblegroupbox.volumes_widget[
-        list(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamps_widget[
-                 list(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamps_widget.keys())[
-                     0]].volumes_collapsiblegroupbox.volumes_widget.keys())[1]].display_name_lineedit.setText("case27-flair")
-    qtbot.keyClick(window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_index(0).volumes_collapsiblegroupbox.volumes_widget[
-        list(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamps_widget[
-                 list(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamps_widget.keys())[
-                     0]].volumes_collapsiblegroupbox.volumes_widget.keys())[1]].display_name_lineedit, Qt.Key_Enter)
+    window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_index(0).volumes_collapsiblegroupbox.get_layer_widget_by_index(1).display_name_lineedit.setText("case27-flair")
+    qtbot.keyClick(window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_index(0).volumes_collapsiblegroupbox.get_layer_widget_by_index(1).display_name_lineedit, Qt.Key_Enter)
 
     t1c_display_name = window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_index(0).volumes_collapsiblegroupbox.volumes_widget[list(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamps_widget[
         list(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamps_widget.keys())[0]].volumes_collapsiblegroupbox.volumes_widget.keys())[0]].display_name_lineedit.text()
@@ -187,22 +175,12 @@ def test_empty_patient_timestamp_data_inclusion(qtbot, test_location, test_data_
     assert SoftwareConfigResources.getInstance().get_active_patient().mri_volumes[SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_display_name(t1c_display_name)].get_sequence_type_str() == "T1-CE"
 
     # Setting the FLAIR input volume visible
-    qtbot.mouseClick(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamps_widget[
-        list(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamps_widget.keys())[
-            0]].volumes_collapsiblegroupbox.volumes_widget[
-        list(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamps_widget[
-                 list(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamps_widget.keys())[
-                     0]].volumes_collapsiblegroupbox.volumes_widget.keys())[1]].display_toggle_radiobutton, Qt.MouseButton.LeftButton)
-    assert window.single_patient_widget.center_panel.display_area_widget.displayed_image_uid == SoftwareConfigResources.getInstance().get_active_patient().mri_volumes[SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_display_name("case27-flair")].unique_id
+    qtbot.mouseClick(window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_index(0).volumes_collapsiblegroupbox.get_layer_widget_by_index(1).display_toggle_radiobutton, Qt.MouseButton.LeftButton)
+    assert window.single_patient_widget.center_panel.display_area_widget.displayed_image_uid == SoftwareConfigResources.getInstance().get_active_patient().get_mri_volume_by_display_name("case27-flair").unique_id
 
     # Removing the FLAIR radiological input from the timestamp
-    window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamps_widget[
-        list(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamps_widget.keys())[
-            0]].volumes_collapsiblegroupbox.volumes_widget[
-        list(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamps_widget[
-                 list(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamps_widget.keys())[
-                     0]].volumes_collapsiblegroupbox.volumes_widget.keys())[1]].delete_layer_action.trigger()
-    assert window.single_patient_widget.center_panel.display_area_widget.displayed_image_uid == SoftwareConfigResources.getInstance().get_active_patient().mri_volumes[SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_display_name("case27-t1c")].unique_id
+    window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_index(0).volumes_collapsiblegroupbox.get_layer_widget_by_index(1).delete_layer_action.trigger()
+    assert window.single_patient_widget.center_panel.display_area_widget.displayed_image_uid == SoftwareConfigResources.getInstance().get_active_patient().get_mri_volume_by_display_name("case27-t1c").unique_id
 
     # Saving the latest modifications to the patient on disk by pressing the disk icon
     qtbot.mouseClick(window.single_patient_widget.results_panel.get_patient_results_widget_by_index(0).save_patient_pushbutton, Qt.MouseButton.LeftButton)

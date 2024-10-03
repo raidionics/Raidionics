@@ -2,6 +2,7 @@ import os
 import configparser
 import platform
 import traceback
+from multiprocessing.managers import Value
 from os.path import expanduser
 import numpy as np
 from typing import Union, Any, List, Optional
@@ -241,11 +242,11 @@ class SoftwareConfigResources:
             logging.error("[Software error] Assertion error trying to query a missing patient with UID {}.\n {}".format(
                 uid, traceback.format_exc()))
 
-    def get_patient_by_display_name(self, display_name: str) -> Union[PatientParameters, None]:
+    def get_patient_by_display_name(self, display_name: str) -> PatientParameters:
         for uid in list(self.patients_parameters.keys()):
             if self.patients_parameters[uid].display_name == display_name:
                 return self.patients_parameters[uid]
-        return None
+        raise ValueError("[SoftwareConfig] No patient exists with the given display name: {}.".format(display_name))
 
     def remove_patient(self, uid: str) -> None:
         """

@@ -134,8 +134,8 @@ class PatientParameters:
         shutil.move(src=self._output_folder, dst=new_output_folder, copy_function=shutil.copytree)
         self._output_directory = directory
         self._output_folder = new_output_folder
-        for im in self._mri_volumes:
-            self._mri_volumes[im].set_output_patient_folder(self._output_folder)
+        for im in self.mri_volumes:
+            self.mri_volumes[im].set_output_patient_folder(self._output_folder)
         for an in self._annotation_volumes:
             self._annotation_volumes[an].set_output_patient_folder(self._output_folder)
         for at in self._atlas_volumes:
@@ -161,8 +161,8 @@ class PatientParameters:
         """
         logging.debug("Unloading patient {} from memory.".format(self._unique_id))
         try:
-            for im in self._mri_volumes:
-                self._mri_volumes[im].release_from_memory()
+            for im in self.mri_volumes:
+                self.mri_volumes[im].release_from_memory()
             for an in self._annotation_volumes:
                 self._annotation_volumes[an].release_from_memory()
             for at in self._atlas_volumes:
@@ -181,8 +181,8 @@ class PatientParameters:
         """
         logging.debug("Loading patient {} from memory.".format(self._unique_id))
         try:
-            for im in self._mri_volumes:
-                self._mri_volumes[im].load_in_memory()
+            for im in self.mri_volumes:
+                self.mri_volumes[im].load_in_memory()
             for an in self._annotation_volumes:
                 self._annotation_volumes[an].load_in_memory()
             for at in self._atlas_volumes:
@@ -199,8 +199,8 @@ class PatientParameters:
         self._unsaved_changes = state
         for ts in self._investigation_timestamps:
             self._investigation_timestamps[ts].set_unsaved_changes_state(state)
-        for im in self._mri_volumes:
-            self._mri_volumes[im].set_unsaved_changes_state(state)
+        for im in self.mri_volumes:
+            self.mri_volumes[im].set_unsaved_changes_state(state)
         for an in self._annotation_volumes:
             self._annotation_volumes[an].set_unsaved_changes_state(state)
         for at in self._atlas_volumes:
@@ -210,8 +210,8 @@ class PatientParameters:
         status = self._unsaved_changes
         for ts in self._investigation_timestamps:
             status = status | self._investigation_timestamps[ts].has_unsaved_changes()
-        for im in self._mri_volumes:
-            status = status | self._mri_volumes[im].has_unsaved_changes()
+        for im in self.mri_volumes:
+            status = status | self.mri_volumes[im].has_unsaved_changes()
         for an in self._annotation_volumes:
             status = status | self._annotation_volumes[an].has_unsaved_changes()
         for at in self._atlas_volumes:
@@ -264,8 +264,8 @@ class PatientParameters:
                 for i, disp in enumerate(list(self._investigation_timestamps.keys())):
                     self._investigation_timestamps[disp].output_patient_folder = new_output_folder
 
-                for i, disp in enumerate(list(self._mri_volumes.keys())):
-                    self._mri_volumes[disp].set_output_patient_folder(new_output_folder)
+                for i, disp in enumerate(list(self.mri_volumes.keys())):
+                    self.mri_volumes[disp].set_output_patient_folder(new_output_folder)
 
                 for i, disp in enumerate(list(self._annotation_volumes.keys())):
                     self._annotation_volumes[disp].set_output_patient_folder(new_output_folder)
@@ -341,7 +341,7 @@ class PatientParameters:
                                        input_filename=self._patient_parameters_dict['Volumes'][volume_id]['raw_input_filepath'],
                                        output_patient_folder=self._output_folder,
                                        reload_params=self._patient_parameters_dict['Volumes'][volume_id])
-                self._mri_volumes[volume_id] = mri_volume
+                self.mri_volumes[volume_id] = mri_volume
 
             for volume_id in list(self._patient_parameters_dict['Annotations'].keys()):
                 annotation_volume = AnnotationVolume(uid=volume_id,
@@ -431,17 +431,17 @@ class PatientParameters:
                 non_available_uid = True
                 while non_available_uid:
                     data_uid = str(np.random.randint(0, 10000)) + '_' + base_data_uid
-                    if data_uid not in list(self._mri_volumes.keys()):
+                    if data_uid not in list(self.mri_volumes.keys()):
                         non_available_uid = False
 
-                self._mri_volumes[data_uid] = MRIVolume(uid=data_uid, inv_ts_uid=investigation_ts,
+                self.mri_volumes[data_uid] = MRIVolume(uid=data_uid, inv_ts_uid=investigation_ts,
                                                         input_filename=filename,
                                                         output_patient_folder=self._output_folder)
             else:
-                if len(self._mri_volumes) != 0:
+                if len(self.mri_volumes) != 0:
                     # @TODO. Not optimal to set a default parent MRI, forces a manual update after, must be improved.
                     # Should at least take the first MRI series for the correct timestamp.
-                    default_parent_mri_uid = self.get_all_mri_volumes_for_timestamp(investigation_ts)[0] # list(self._mri_volumes.keys())[0]
+                    default_parent_mri_uid = self.get_all_mri_volumes_for_timestamp(investigation_ts)[0] # list(self.mri_volumes.keys())[0]
                     # Generating a unique id for the annotation volume
                     base_data_uid = os.path.basename(filename).strip().split('.')[0]
                     non_available_uid = True
@@ -508,10 +508,10 @@ class PatientParameters:
             else:
                 inv_ts_uid = inv_ts_object.unique_id
             uid, error_msg = self.import_data(ori_filename, investigation_ts=inv_ts_uid,  type="MRI")
-            self._mri_volumes[uid].set_dicom_metadata(dicom_series.dicom_tags)
+            self.mri_volumes[uid].set_dicom_metadata(dicom_series.dicom_tags)
 
             # Removing the temporary MRI Series placeholder.
-            self._mri_volumes[uid].set_usable_filepath_as_raw()
+            self.mri_volumes[uid].set_usable_filepath_as_raw()
             if ori_filename and os.path.exists(ori_filename):
                 os.remove(ori_filename)
             self._unsaved_changes = True
@@ -536,7 +536,7 @@ class PatientParameters:
 
                 self._atlas_volumes[data_uid] = AtlasVolume(uid=data_uid, input_filename=filename,
                                                             output_patient_folder=self._output_folder,
-                                                            inv_ts_uid=self._mri_volumes[parent_mri_uid].timestamp_uid,
+                                                            inv_ts_uid=self.mri_volumes[parent_mri_uid].timestamp_uid,
                                                             parent_mri_uid=parent_mri_uid,
                                                             inv_ts_folder_name=investigation_ts_folder_name,
                                                             description_filename=description)
@@ -575,8 +575,8 @@ class PatientParameters:
             for i, disp in enumerate(list(self._investigation_timestamps.keys())):
                 self._patient_parameters_dict['Timestamps'][disp] = self._investigation_timestamps[disp].save()
 
-            for i, disp in enumerate(list(self._mri_volumes.keys())):
-                self._patient_parameters_dict['Volumes'][disp] = self._mri_volumes[disp].save()
+            for i, disp in enumerate(list(self.mri_volumes.keys())):
+                self._patient_parameters_dict['Volumes'][disp] = self.mri_volumes[disp].save()
 
             for i, disp in enumerate(list(self._annotation_volumes.keys())):
                 self._patient_parameters_dict['Annotations'][disp] = self._annotation_volumes[disp].save()
@@ -645,7 +645,7 @@ class PatientParameters:
         try:
             self._investigation_timestamps[ts_uid].display_name = display_name
             for im in list(self.get_all_mri_volumes_for_timestamp(timestamp_uid=ts_uid)):
-                self._mri_volumes[im].timestamp_folder_name = self._investigation_timestamps[ts_uid].folder_name
+                self.mri_volumes[im].timestamp_folder_name = self._investigation_timestamps[ts_uid].folder_name
             for im in list(self.get_all_annotation_uids_for_timestamp(timestamp_uid=ts_uid)):
                 self._annotation_volumes[im].timestamp_folder_name = self._investigation_timestamps[ts_uid].folder_name
             for im in list(self.get_all_atlas_uids_for_timestamp(timestamp_uid=ts_uid)):
@@ -665,47 +665,65 @@ class PatientParameters:
         When loading MRI series from DICOM, the patient DICOM ID can be retrieved.
         """
         res = None
-        for im in list(self._mri_volumes.keys()):
-            if self._mri_volumes[im].get_dicom_metadata() and '0010|0020' in self._mri_volumes[im].get_dicom_metadata().keys():
-                res = self._mri_volumes[im].get_dicom_metadata()['0010|0020'].strip()
+        for im in list(self.mri_volumes.keys()):
+            if self.mri_volumes[im].get_dicom_metadata() and '0010|0020' in self.mri_volumes[im].get_dicom_metadata().keys():
+                res = self.mri_volumes[im].get_dicom_metadata()['0010|0020'].strip()
                 return res
         return res
 
     def is_mri_raw_filepath_already_loaded(self, volume_filepath: str) -> bool:
         state = False
-        for im in self._mri_volumes:
-            if self._mri_volumes[im].raw_input_filepath == volume_filepath:
+        for im in self.mri_volumes:
+            if self.mri_volumes[im].raw_input_filepath == volume_filepath:
                 return True
         return state
 
     def get_all_mri_volumes_uids(self) -> List[str]:
-        return list(self._mri_volumes.keys())
+        return list(self.mri_volumes.keys())
 
     def get_patient_mri_volumes_number(self) -> int:
-        return len(self._mri_volumes)
+        return len(self.mri_volumes)
 
     def get_all_mri_volumes_display_names(self) -> List[str]:
         res = []
-        for im in self._mri_volumes:
-            res.append(self._mri_volumes[im].display_name)
+        for im in self.mri_volumes:
+            res.append(self.mri_volumes[im].display_name)
         return res
 
     def get_mri_by_uid(self, mri_uid: str) -> MRIVolume:
-        assert mri_uid in list(self._mri_volumes.keys())
-        return self._mri_volumes[mri_uid]
+        assert mri_uid in list(self.mri_volumes.keys())
+        return self.mri_volumes[mri_uid]
 
     def get_mri_by_display_name(self, display_name: str) -> str:
         res = "-1"
-        for im in self._mri_volumes:
-            if self._mri_volumes[im].display_name == display_name:
+        for im in self.mri_volumes:
+            if self.mri_volumes[im].display_name == display_name:
                 return im
         return res
 
+    def get_mri_volume_by_display_name(self, display_name: str) -> MRIVolume:
+        """
+        Return the radiological volume for the current patient based on the requested display name
+
+        Parameters
+        ----------
+        display_name: str
+            Display name of the radiological volume to retrieve
+
+        Raises
+        -----
+        ValueError if no radiological with the given display name can be found for the current patient.
+        """
+        for im in self.mri_volumes:
+            if self.mri_volumes[im].display_name == display_name:
+                return self.mri_volumes[im]
+        raise ValueError("[PatientParametersStructure] No MRI volume exist with the following display name: {}".format(display_name))
+
     def get_mri_volume_by_base_filename(self, base_fn: str) -> Union[None, MRIVolume]:
         result = None
-        for im in self._mri_volumes:
-            if os.path.basename(self._mri_volumes[im].get_usable_input_filepath()) == base_fn:
-                return self._mri_volumes[im]
+        for im in self.mri_volumes:
+            if os.path.basename(self.mri_volumes[im].get_usable_input_filepath()) == base_fn:
+                return self.mri_volumes[im]
         return result
 
     def get_all_mri_volumes_for_sequence_type(self, sequence_type: MRISequenceType) -> List[str]:
@@ -723,8 +741,8 @@ class PatientParameters:
             A list of unique identifiers for each MRI volume object associated with the given sequence type.
         """
         res = []
-        for im in self._mri_volumes:
-            if self._mri_volumes[im].get_sequence_type_enum() == sequence_type:
+        for im in self.mri_volumes:
+            if self.mri_volumes[im].get_sequence_type_enum() == sequence_type:
                 res.append(im)
         return res
 
@@ -743,8 +761,8 @@ class PatientParameters:
         """
         res = []
 
-        for im in self._mri_volumes:
-            if self._mri_volumes[im].timestamp_uid == timestamp_uid:
+        for im in self.mri_volumes:
+            if self.mri_volumes[im].timestamp_uid == timestamp_uid:
                 res.append(im)
         return res
 
@@ -773,9 +791,9 @@ class PatientParameters:
         if not inv_ts_uid:
             return res
 
-        for im in self._mri_volumes:
-            if self._mri_volumes[im].get_sequence_type_enum() == sequence_type \
-                    and self._mri_volumes[im].timestamp_uid == inv_ts_uid:
+        for im in self.mri_volumes:
+            if self.mri_volumes[im].get_sequence_type_enum() == sequence_type \
+                    and self.mri_volumes[im].timestamp_uid == inv_ts_uid:
                 res.append(im)
         return res
 
@@ -1005,8 +1023,8 @@ class PatientParameters:
         if len(linked_atlases) != 0:
             results['Atlases'] = linked_atlases
 
-        self._mri_volumes[volume_uid].delete()
-        del self._mri_volumes[volume_uid]
+        self.mri_volumes[volume_uid].delete()
+        del self.mri_volumes[volume_uid]
         logging.info("Removed MRI volume {} for patient {}".format(volume_uid, self._unique_id))
         self.save_patient()
 
