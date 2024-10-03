@@ -77,6 +77,14 @@ jobs:
         pip uninstall -y PySide6 PySide6-Addons PySide6-Essentials
         pip install --force-reinstall --no-cache-dir pyside6==6.2.4
 
+    - name: Integration tests
+      env:
+        DISPLAY: ':99.0'
+      run: |
+          pip install pytest-qt
+          /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1920x1200x24 -ac +extension GLX
+          pytest ${{github.workspace}}/integration_tests
+
     - name: Build software
       run: |
         pip install pyinstaller==5.13.2
@@ -101,13 +109,6 @@ jobs:
       run: |
           export QT_QPA_PLATFORM="offscreen"
           cd ${{github.workspace}}/tests && python software_launch_test.py
-
-    - name: Integration tests
-      env:
-        DISPLAY: ':1'
-      run: |
-          pip install pytest-qt
-          pytest ${{github.workspace}}/integration_tests
 
     - name: Make installer
       run: |

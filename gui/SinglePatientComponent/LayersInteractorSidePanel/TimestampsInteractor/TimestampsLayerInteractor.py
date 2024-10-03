@@ -312,6 +312,11 @@ class TimestampsLayerInteractor(QWidget):
         # self.timestamp_add_pushbutton.setEnabled(False)  # Unsure if it should be disabled or not.
         self.timestamp_remove_pushbutton.setEnabled(False)
 
+    def get_timestamp_widget_by_index(self, index: int) -> QWidget:
+        if index >= len(self.timestamps_widget):
+            raise ValueError("[TimestampsLayerInteractor] Trying to retrieve a timestamp widget with an out-of-bound index value.")
+        return self.timestamps_widget[index]
+
     def on_patient_view_toggled(self, patient_uid: str) -> None:
         """
         The active patient has been changed by the user. All displayed info in the widget are obsolete and should

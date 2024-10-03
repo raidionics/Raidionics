@@ -90,7 +90,7 @@ class StudyPatientsSegmentationSummaryWidget(QWidget):
 
     def __on_header_section_clicked(self, pos):
         # @TODO. Have to make a custom QTableWidget and make the whole header section fully custom
-        self.sorting_options_menu.exec_(self.mapToGlobal(pos))
+        self.sorting_options_menu.exec(self.mapToGlobal(pos))
 
     def on_patients_import(self) -> None:
         """

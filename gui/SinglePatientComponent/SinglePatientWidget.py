@@ -224,14 +224,14 @@ class SinglePatientWidget(QWidget):
         """
         self.import_data_dialog.reset()
         self.import_data_dialog.set_parsing_filter("data")
-        code = self.import_data_dialog.exec_()
+        code = self.import_data_dialog.exec()
         # if code == QDialog.Accepted:
         #     self.import_data_triggered.emit()
 
     def __on_import_custom_clicked(self) -> None:
         self.import_data_dialog.reset()
         self.import_data_dialog.set_parsing_filter("patient")
-        code = self.import_data_dialog.exec_()
+        code = self.import_data_dialog.exec()
         if code == QDialog.Accepted:
             self.top_logo_panel_label_import_dicom_pushbutton.setEnabled(True)
             self.top_logo_panel_statistics_pushbutton.setEnabled(True)
@@ -243,7 +243,7 @@ class SinglePatientWidget(QWidget):
         patient_dicom_id = SoftwareConfigResources.getInstance().get_active_patient().get_dicom_id()
         if patient_dicom_id:
             self.import_dicom_dialog.set_fixed_patient(patient_dicom_id)
-        code = self.import_dicom_dialog.exec_()
+        code = self.import_dicom_dialog.exec()
         if code == QDialog.Accepted:
             self.top_logo_panel_label_import_dicom_pushbutton.setEnabled(True)
             self.top_logo_panel_statistics_pushbutton.setEnabled(True)
@@ -252,7 +252,7 @@ class SinglePatientWidget(QWidget):
         """
 
         """
-        code = self.import_dicom_dialog.exec_()
+        code = self.import_dicom_dialog.exec()
         # if code == QDialog.Accepted:
         #     self.import_data_triggered.emit()
 
@@ -260,14 +260,14 @@ class SinglePatientWidget(QWidget):
         self.import_folder_dialog.reset()
         self.import_folder_dialog.set_parsing_mode("single")
         self.import_folder_dialog.set_target_type("regular")
-        code = self.import_folder_dialog.exec_()
+        code = self.import_folder_dialog.exec()
         if code == QDialog.Accepted:
             self.top_logo_panel_label_import_dicom_pushbutton.setEnabled(True)
             self.top_logo_panel_statistics_pushbutton.setEnabled(True)
 
     def __on_show_statistics_clicked(self):
         diag = VolumeStatisticsDialog(self)
-        diag.exec_()
+        diag.exec()
 
     def __on_patient_selected(self, patient_uid):
         # @TODO. Quick dirty hack, should not have to set the flag everytime a patient is selected, but only once.

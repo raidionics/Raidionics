@@ -440,7 +440,7 @@ class ImportDICOMDataQDialog(QDialog):
         # print("Metadata for row {}".format(series_index))
         study_id_item = self.content_study_tablewidget.item(self.content_study_tablewidget.currentRow(), 1)
         diag = DisplayMetadataDICOMDialog(self.dicom_holder.studies[study_id_item.text()].dicom_series[self.content_series_tablewidget.item(series_index, 0).text()].dicom_tags)
-        diag.exec_()
+        diag.exec()
 
     def __on_remove_selected_series_triggered(self, series_index: int) -> None:
         self.selected_series_tablewidget.removeRow(series_index)

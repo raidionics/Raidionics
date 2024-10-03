@@ -191,7 +191,7 @@ class AtlasSingleLayerWidget(QWidget):
         self.resizeRequested.emit()
 
     def on_options_clicked(self, point):
-        self.options_menu.exec_(self.options_pushbutton.mapToGlobal(QPoint(0, 0)))
+        self.options_menu.exec(self.options_pushbutton.mapToGlobal(QPoint(0, 0)))
 
     def on_advanced_options_clicked(self):
         self.adjustSize()

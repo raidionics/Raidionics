@@ -311,7 +311,7 @@ class MRISeriesLayerWidget(QWidget):
                                       QMessageBox.Ok)
         else:
             diag = DisplayMetadataDICOMDialog(dicom_tags)
-            diag.exec_()
+            diag.exec()
 
     def update_interface_from_external_toggle(self, state):
         """
@@ -353,10 +353,10 @@ class MRISeriesLayerWidget(QWidget):
         SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_uid(self.uid).set_sequence_type(text)
 
     def on_contrast_adjustment_clicked(self):
-        self.contrast_adjuster.exec_()
+        self.contrast_adjuster.exec()
 
     def on_options_clicked(self, point):
-        self.options_menu.exec_(self.options_pushbutton.mapToGlobal(QPoint(0, 0)))
+        self.options_menu.exec(self.options_pushbutton.mapToGlobal(QPoint(0, 0)))
 
     def on_contrast_changed(self):
         self.contrast_changed.emit(self.uid)

@@ -145,7 +145,7 @@ class StudyBatchWidget(QWidget):
     def __on_import_custom_clicked(self) -> None:
         self.import_data_dialog.reset()
         self.import_data_dialog.set_parsing_filter("study")
-        code = self.import_data_dialog.exec_()
+        code = self.import_data_dialog.exec()
         # if code == QDialog.Accepted:
         #     self.study_imported.emit()
 

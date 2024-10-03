@@ -493,7 +493,7 @@ class SingleStudyWidget(QCollapsibleWidget):
         """
         if SoftwareConfigResources.getInstance().get_study(self.uid).has_unsaved_changes():
             dialog = SavePatientChangesDialog()
-            code = dialog.exec_()
+            code = dialog.exec()
             if code == 0:  # Operation cancelled
                 # The widget for the clicked patient must be collapsed back down, since the change has not
                 # been confirmed by the user in the end.
@@ -543,7 +543,7 @@ class SingleStudyWidget(QCollapsibleWidget):
         self.import_data_dialog.reset()
         self.import_data_dialog.set_parsing_mode('single')
         self.import_data_dialog.set_target_type('regular')
-        code = self.import_data_dialog.exec_()
+        code = self.import_data_dialog.exec()
         if code == QDialog.Accepted:
             self.patients_import_finished.emit()
 
@@ -551,7 +551,7 @@ class SingleStudyWidget(QCollapsibleWidget):
         self.import_data_dialog.reset()
         self.import_data_dialog.set_parsing_mode('multiple')
         self.import_data_dialog.set_target_type('regular')
-        code = self.import_data_dialog.exec_()
+        code = self.import_data_dialog.exec()
         if code == QDialog.Accepted:
             self.patients_import_finished.emit()
 
@@ -564,7 +564,7 @@ class SingleStudyWidget(QCollapsibleWidget):
         self.import_data_dialog.reset()
         self.import_data_dialog.set_parsing_mode('single')
         self.import_data_dialog.set_target_type('dicom')
-        code = self.import_data_dialog.exec_()
+        code = self.import_data_dialog.exec()
         if code == QDialog.Accepted:
             self.patients_import_finished.emit()
 
@@ -572,7 +572,7 @@ class SingleStudyWidget(QCollapsibleWidget):
         self.import_data_dialog.reset()
         self.import_data_dialog.set_parsing_mode('multiple')
         self.import_data_dialog.set_target_type('dicom')
-        code = self.import_data_dialog.exec_()
+        code = self.import_data_dialog.exec()
         if code == QDialog.Accepted:
             self.patients_import_finished.emit()
 
@@ -589,7 +589,7 @@ class SingleStudyWidget(QCollapsibleWidget):
         self.model_name = ""
         if pipeline_task != "folders_classification":
             diag = TumorTypeSelectionQDialog(self)
-            code = diag.exec_()
+            code = diag.exec()
 
             if code == 0:  # Operation was cancelled by the user
                 return

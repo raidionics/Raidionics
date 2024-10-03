@@ -72,7 +72,7 @@ class RaidionicsMainWindow(QMainWindow):
                 and SoftwareConfigResources.getInstance().get_active_patient_uid() \
                 and SoftwareConfigResources.getInstance().get_active_patient().has_unsaved_changes():
             dialog = SavePatientChangesDialog()
-            code = dialog.exec_()
+            code = dialog.exec()
             if code == 0:  # Operation cancelled
                 event.ignore()
         logging.info("Graceful exit.")
@@ -93,7 +93,7 @@ class RaidionicsMainWindow(QMainWindow):
                 and SoftwareConfigResources.getInstance().get_active_patient() is not None\
                 and SoftwareConfigResources.getInstance().get_active_patient().has_unsaved_changes():
             dialog = SavePatientChangesDialog()
-            code = dialog.exec_()
+            code = dialog.exec()
             if code == 1:  # Operation approved
                 logging.info("Graceful exit.")
                 sys.exit()
@@ -445,7 +445,7 @@ class RaidionicsMainWindow(QMainWindow):
     def __on_settings_preferences_clicked(self):
         patient_space = UserPreferencesStructure.getInstance().display_space
         diag = SoftwareSettingsDialog(self)
-        diag.exec_()
+        diag.exec()
 
         # Reloading the interface is mainly meant to perform a visual refreshment based on the latest user display choices
         # For now: changing the display space for viewing a patient images.
@@ -471,11 +471,11 @@ class RaidionicsMainWindow(QMainWindow):
 
     def __on_community_action_triggered(self):
         popup = ResearchCommunityDialog(self)
-        popup.exec_()
+        popup.exec()
 
     def __on_about_action_triggered(self):
         popup = AboutDialog()
-        popup.exec_()
+        popup.exec()
 
     def __on_help_action_triggered(self) -> None:
         """
@@ -491,11 +491,11 @@ class RaidionicsMainWindow(QMainWindow):
         Opens up a pop-up dialog allowing to read through the log file.
         """
         diag = LogsViewerDialog(self)
-        diag.exec_()
+        diag.exec()
 
     def __on_shortcuts_action_triggered(self):
         popup = KeyboardShortcutsDialog(self)
-        popup.exec_()
+        popup.exec()
 
     def __on_save_file_triggered(self):
         if SoftwareConfigResources.getInstance().get_active_patient_uid() \

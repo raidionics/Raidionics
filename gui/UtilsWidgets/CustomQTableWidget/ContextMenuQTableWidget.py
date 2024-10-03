@@ -35,7 +35,7 @@ class ContextMenuQTableWidget(QTableWidget):
             if item is not None:
                 # print('Table Item:', item.row(), item.column())
                 self.current_item = item
-                self.context_menu.exec_(event.globalPos())
+                self.context_menu.exec(event.globalPos())
         super(ContextMenuQTableWidget, self).mousePressEvent(event)
 
     def get_column_values(self, column_index):

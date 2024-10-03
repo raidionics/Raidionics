@@ -422,7 +422,7 @@ class CustomQFileDialog(QFileDialog):
         # if f_tree_view:
         #     f_tree_view.setSelectionMode(QAbstractItemView.MultiSelection)
 
-    # def exec_(self) -> int:
+    # def exec(self) -> int:
     #     # self.setFileMode(QFileDialog.DirectoryOnly)
     #     # self.setOption(QFileDialog.DontUseNativeDialog, True)
     #     file_view = self.findChild(QListView, 'listView')
@@ -434,7 +434,7 @@ class CustomQFileDialog(QFileDialog):
     #     if f_tree_view:
     #         f_tree_view.setSelectionMode(QAbstractItemView.MultiSelection)
     #
-    #     self.exec_()
+    #     self.exec()
 
 
 def import_patient_from_folder(folder_path: str) -> dict:

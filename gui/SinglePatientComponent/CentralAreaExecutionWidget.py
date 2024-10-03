@@ -148,7 +148,7 @@ class CentralAreaExecutionWidget(QLabel):
         """
         self.model_name = ""
         if ("Classification" not in pipeline_code) and ("Brain" not in pipeline_code) and ("postop" not in pipeline_code) and ("Edema" not in pipeline_code) and ("Cavity" not in pipeline_code):
-            code = self._tumor_type_diag.exec_()
+            code = self._tumor_type_diag.exec()
             if code == 0:  # Operation cancelled
                 return
 
@@ -166,7 +166,7 @@ class CentralAreaExecutionWidget(QLabel):
                 if self._tumor_type_diag.tumor_type == 'Low-Grade Glioma':
                     self.model_name = "MRI_GBM_multiclass"
         elif "postop" in pipeline_code:
-            code = self._tumor_type_diag.exec_()
+            code = self._tumor_type_diag.exec()
             if code == 0:  # Operation cancelled
                 return
             if self._tumor_type_diag.tumor_type == 'Glioblastoma':
@@ -257,7 +257,7 @@ class CentralAreaExecutionWidget(QLabel):
                 color: rgba(0, 0, 0, 1);
                 background-color: rgba(255, 255, 255, 1);
                 }""")
-                box.exec_()
+                box.exec()
                 return False
         else:
             valid_ids = SoftwareConfigResources.getInstance().get_active_patient().get_all_mri_volumes_for_sequence_type(MRISequenceType.FLAIR)
@@ -272,7 +272,7 @@ class CentralAreaExecutionWidget(QLabel):
                 color: rgba(0, 0, 0, 1);
                 background-color: rgba(255, 255, 255, 1);
                 }""")
-                box.exec_()
+                box.exec()
                 return False
 
         return True

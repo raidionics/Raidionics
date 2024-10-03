@@ -306,7 +306,7 @@ class SinglePatientResultsWidget(QCollapsibleWidget):
         """
         # if SoftwareConfigResources.getInstance().get_patient(self.uid).has_unsaved_changes():
         #     dialog = SavePatientChangesDialog()
-        #     code = dialog.exec_()
+        #     code = dialog.exec()
         #     if code == 0:  # Operation cancelled
         #         # The widget for the clicked patient must be collapsed back down, since the change has not
         #         # been confirmed by the user in the end.

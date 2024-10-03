@@ -262,7 +262,7 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
 
         if SoftwareConfigResources.getInstance().get_patient(widget_id).has_unsaved_changes():
             dialog = SavePatientChangesDialog()
-            code = dialog.exec_()
+            code = dialog.exec()
             if code == 0:  # Operation cancelled
                 return
 
@@ -306,7 +306,7 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         if SoftwareConfigResources.getInstance().get_active_patient_uid() != None \
                 and SoftwareConfigResources.getInstance().get_active_patient().has_unsaved_changes():
             dialog = SavePatientChangesDialog()
-            code = dialog.exec_()
+            code = dialog.exec()
             if code == 0:  # Operation cancelled
                 # The widget for the clicked patient must be collapsed back down, since the change has not
                 # been confirmed by the user in the end.
@@ -330,7 +330,7 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         if SoftwareConfigResources.getInstance().active_patient_name and\
                 SoftwareConfigResources.getInstance().get_active_patient().has_unsaved_changes():
             dialog = SavePatientChangesDialog()
-            code = dialog.exec_()
+            code = dialog.exec()
             if code == 1:  # Changes have been either saved or discarded
                 uid = SoftwareConfigResources.getInstance().add_new_empty_patient(active=False)
                 self.add_new_patient(uid)
@@ -352,12 +352,12 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
     def on_import_options_clicked(self, point):
         ## Bottom position
         # if os.name == 'nt':
-        #     self.options_menu.exec_(self.bottom_add_patient_pushbutton.mapToGlobal(QPoint(0, -106)))
+        #     self.options_menu.exec(self.bottom_add_patient_pushbutton.mapToGlobal(QPoint(0, -106)))
         # else:
-        #     self.options_menu.exec_(self.bottom_add_patient_pushbutton.mapToGlobal(QPoint(0, -95)))
+        #     self.options_menu.exec(self.bottom_add_patient_pushbutton.mapToGlobal(QPoint(0, -95)))
 
         # Top position
-        self.options_menu.exec_(self.bottom_add_patient_pushbutton.mapToGlobal(QPoint(0, 0)))
+        self.options_menu.exec(self.bottom_add_patient_pushbutton.mapToGlobal(QPoint(0, 0)))
 
     def on_import_patient_from_data_requested(self):
         self.on_add_new_empty_patient()

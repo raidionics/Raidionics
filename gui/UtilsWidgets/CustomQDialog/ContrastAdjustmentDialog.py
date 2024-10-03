@@ -25,7 +25,7 @@ class ContrastAdjustmentDialog(QDialog):
         self.volume_uid = volume_uid
         self.starting_contrast = None
 
-    def exec_(self) -> int:
+    def exec(self) -> int:
         curr_img = SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_uid(self.volume_uid)
         self.intensity_window_min_spinbox.blockSignals(True)
         self.intensity_window_min_spinbox.setMinimum(curr_img.get_resampled_minimum_intensity())
@@ -39,7 +39,7 @@ class ContrastAdjustmentDialog(QDialog):
         self.intensity_window_max_spinbox.blockSignals(False)
         self.__set_hist()
         self.starting_contrast = [curr_img.get_contrast_window_minimum(), curr_img.get_contrast_window_maximum()]
-        return super().exec_()
+        return super().exec()
 
     def __set_interface(self):
         self.base_layout = QVBoxLayout(self)
