@@ -299,6 +299,7 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         if not state:
             return
 
+        # @TODO. The following should be disabled if viewing a patient coming from the Study widget... has to be adjusted
         if SoftwareConfigResources.getInstance().get_active_patient_uid() != None and SoftwareConfigResources.getInstance().get_active_patient_uid() == widget_id:
             return
 

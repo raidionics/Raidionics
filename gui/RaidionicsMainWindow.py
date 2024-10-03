@@ -464,9 +464,10 @@ class RaidionicsMainWindow(QMainWindow):
             Internal unique identifier for the patient that should be visualized.
 
         """
+        SoftwareConfigResources.getInstance().set_active_patient(patient_uid=patient_uid)
         self.__on_single_patient_clicked()
         self.single_patient_widget.on_patient_selected(patient_uid)
-        SoftwareConfigResources.getInstance().set_active_patient(patient_uid=patient_uid)
+
 
     def __on_community_action_triggered(self):
         popup = ResearchCommunityDialog(self)

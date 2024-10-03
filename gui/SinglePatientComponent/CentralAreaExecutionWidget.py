@@ -34,6 +34,7 @@ class CentralAreaExecutionWidget(QLabel):
         super(CentralAreaExecutionWidget, self).__init__()
         self.parent = parent
         self.widget_name = "central_area_execution_widget"
+        self._tumor_type_diag = TumorTypeSelectionQDialog(self)
         self.__set_interface()
         self.__set_layout_dimensions()
         self.__set_stylesheets()
@@ -147,33 +148,31 @@ class CentralAreaExecutionWidget(QLabel):
         """
         self.model_name = ""
         if ("Classification" not in pipeline_code) and ("Brain" not in pipeline_code) and ("postop" not in pipeline_code) and ("Edema" not in pipeline_code) and ("Cavity" not in pipeline_code):
-            diag = TumorTypeSelectionQDialog(self)
-            code = diag.exec_()
+            code = self._tumor_type_diag.exec_()
             if code == 0:  # Operation cancelled
                 return
 
-            if diag.tumor_type == 'Glioblastoma':
+            if self._tumor_type_diag.tumor_type == 'Glioblastoma':
                 self.model_name = "MRI_GBM"
-            elif diag.tumor_type == 'Low-Grade Glioma':
+            elif self._tumor_type_diag.tumor_type == 'Low-Grade Glioma':
                 self.model_name = "MRI_LGGlioma"
-            elif diag.tumor_type == 'Metastasis':
+            elif self._tumor_type_diag.tumor_type == 'Metastasis':
                 self.model_name = "MRI_Metastasis"
-            elif diag.tumor_type == 'Meningioma':
+            elif self._tumor_type_diag.tumor_type == 'Meningioma':
                 self.model_name = "MRI_Meningioma"
 
             if UserPreferencesStructure.getInstance().segmentation_tumor_model_type != "Tumor":
                 self.model_name = self.model_name + '_multiclass'
-                if diag.tumor_type == 'Low-Grade Glioma':
+                if self._tumor_type_diag.tumor_type == 'Low-Grade Glioma':
                     self.model_name = "MRI_GBM_multiclass"
         elif "postop" in pipeline_code:
-            diag = TumorTypeSelectionQDialog(self)
-            code = diag.exec_()
+            code = self._tumor_type_diag.exec_()
             if code == 0:  # Operation cancelled
                 return
-            if diag.tumor_type == 'Glioblastoma':
+            if self._tumor_type_diag.tumor_type == 'Glioblastoma':
                 self.model_name = "MRI_GBM_Postop_FV_4p"
                 pipeline_code = pipeline_code + '_GBM'
-            elif diag.tumor_type == 'Low-Grade Glioma':
+            elif self._tumor_type_diag.tumor_type == 'Low-Grade Glioma':
                 self.model_name = "MRI_LGGlioma_Postop"
                 pipeline_code = pipeline_code + '_LGGlioma'
         elif "Brain" in pipeline_code:

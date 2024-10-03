@@ -19,14 +19,16 @@ def_loc = UserPreferencesStructure.getInstance().user_home_location
 def test_location():
     test_loc = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'integrationtests')
     UserPreferencesStructure.getInstance().user_home_location = test_loc
-    if os.path.exists(test_loc):
-        shutil.rmtree(test_loc)
-    os.makedirs(test_loc)
+    os.makedirs(test_loc, exist_ok=True)
+    if os.path.exists(os.path.join(test_loc, "patients")):
+        shutil.rmtree(os.path.join(test_loc, "patients"))
+    if os.path.exists(os.path.join(test_loc, "studies")):
+        shutil.rmtree(os.path.join(test_loc, "studies"))
     return test_loc
 
 @pytest.fixture
 def test_data_folder():
-    test_data_url = 'https://github.com/raidionics/Raidionics-models/releases/download/1.2.0/Samples-Raidionics-ApprovedExample-v1.2.zip'
+    test_data_url = 'https://github.com/raidionics/Raidionics-models/releases/download/v1.3.0-rc/Samples-Raidionics-ApprovedExample-v1.3.zip'
     test_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'integrationtests')
     test_data_dir = os.path.join(test_dir, 'ApprovedExample')
     if os.path.exists(test_data_dir) and len(os.listdir(test_data_dir)) > 0:
