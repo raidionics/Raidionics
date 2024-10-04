@@ -130,6 +130,10 @@ class RaidionicsMainWindow(QMainWindow):
                                                                        'Images/download-tray-icon.png')),
                                                     'Download test data', self)
         self.file_menu.addAction(self.download_example_data_action)
+        self.clear_scene_action = QAction(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                      'Images/trash-bin_icon.png')), 'Clear', self)
+        self.file_menu.addAction(self.clear_scene_action)
+
         self.quit_action = QAction(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                       'Images/power-icon.png')), 'Quit', self)
         self.quit_action.setShortcut("Ctrl+Q")
@@ -367,6 +371,7 @@ class RaidionicsMainWindow(QMainWindow):
         self.batch_mode_action.triggered.connect(self.__on_study_batch_clicked)
         self.settings_preferences_action.triggered.connect(self.__on_settings_preferences_clicked)
         # self.quit_action.triggered.connect(sys.exit)
+        self.clear_scene_action.triggered.connect(self.on_clear_scene)
         self.quit_action.triggered.connect(self.__on_exit_software)
         self.download_example_data_action.triggered.connect(self.__on_download_example_data)
 
@@ -533,3 +538,11 @@ class RaidionicsMainWindow(QMainWindow):
             # self.singleuse_mode_widget.standardOutputWritten(text)
         elif self.central_stackedwidget.currentIndex() == 2:
             self.batch_mode_widget.standardOutputWritten(text)
+
+    def on_clear_scene(self):
+        logging.info("[RaidionicsMainWindow] Interface clean-up. Removing all loaded patients and studies.")
+        self.batch_study_widget.on_clear_scene()
+        self.single_patient_widget.on_clear_scene()
+        SoftwareConfigResources.getInstance().reset() # <= Necessary for the integration tests not to crash...
+        if len(list(SoftwareConfigResources.getInstance().patients_parameters.keys())) > 0:
+            raise ValueError("[Software error] Existing patient IDs after clearing the scene!")

@@ -46,6 +46,13 @@ jobs:
         pip install matplotlib==3.3.4
         pip install --force-reinstall --no-cache-dir pyside6
 
+    - name: Integration tests
+      env:
+        DISPLAY: ':99.0'
+      run: |
+          pip install pytest-qt pytest-cov
+          pytest --cov=gui --cov=utils ${{github.workspace}}/integration_tests
+
     - name: Build software
       run: |              
         pip install pyinstaller==5.13.2

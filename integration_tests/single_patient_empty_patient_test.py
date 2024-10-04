@@ -1,3 +1,4 @@
+import logging
 import os
 import shutil
 from time import sleep
@@ -53,6 +54,7 @@ def window():
 
     """
     window = RaidionicsMainWindow()
+    window.on_clear_scene()
     return window
 
 

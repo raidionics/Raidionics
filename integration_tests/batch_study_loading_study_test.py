@@ -51,6 +51,7 @@ def window():
 
     """
     window = RaidionicsMainWindow()
+    window.on_clear_scene()
     return window
 
 """
@@ -77,6 +78,7 @@ def test_study_reloading(qtbot, test_location, test_data_folder, window):
     window.batch_study_widget.import_data_dialog.__on_exit_accept_clicked()
     sleep(10)
     assert len(list(SoftwareConfigResources.getInstance().get_active_study().included_patients_uids.keys())) == 2
+
 
 def test_cleanup(window):
     if window.logs_thread.isRunning():

@@ -192,3 +192,8 @@ class StudyBatchWidget(QWidget):
         SoftwareConfigResources.getInstance().get_active_study().refresh_patient_statistics(patient_uid,
                                                                                             SoftwareConfigResources.getInstance().get_patient(patient_uid))
         self.patient_refreshed.emit(patient_uid)
+
+    def on_clear_scene(self):
+        # @TODO. Not enough, the graphical display for the center and right panels should also be cleared and updated.
+        for w in list(self.studies_panel.single_study_widgets.keys()):
+            self.studies_panel.single_study_widgets[w].study_closed.emit(w)

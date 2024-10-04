@@ -335,3 +335,6 @@ class SinglePatientWidget(QWidget):
     def on_atlas_volume_imported(self, uid: str) -> None:
         self.layers_panel.on_atlas_volume_import(uid)
 
+    def on_clear_scene(self):
+        for w in list(self.results_panel.patient_results_widgets.keys()):
+            self.results_panel.patient_results_widgets[w].patient_closed.emit(w)

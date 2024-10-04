@@ -56,6 +56,7 @@ def window():
 
     """
     window = RaidionicsMainWindow()
+    window.on_clear_scene()
     return window
 
 """ Remaining tests to add:

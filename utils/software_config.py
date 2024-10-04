@@ -456,3 +456,6 @@ class SoftwareConfigResources:
         for anno in AnnotationGenerationType:
             results.append(anno.name)
         return results
+
+    def reset(self):
+        self.__set_default_values()
