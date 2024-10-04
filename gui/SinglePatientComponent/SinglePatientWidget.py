@@ -286,6 +286,8 @@ class SinglePatientWidget(QWidget):
 
     def on_patient_selected(self, patient_name):
         self.results_panel.on_external_patient_selection(patient_name)
+        self.center_panel.on_patient_selected(patient_name)
+        self.layers_panel.on_patient_selected(patient_name)
 
     def on_single_patient_clicked(self, patient_name):
         # @TODO. Renaming to do, confusing name since it adds a new patient...

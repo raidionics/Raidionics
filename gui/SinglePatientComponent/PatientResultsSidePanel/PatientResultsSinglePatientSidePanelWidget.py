@@ -232,8 +232,11 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         When the patient selection has been requested from a module (e.g. study) outside the single-use mode.
         """
         self.__on_patient_selection(True, patient_id)
-        self.patient_results_widgets[patient_id].manual_header_pushbutton_clicked(True)
-        self.adjustSize()  # To trigger a proper redrawing after the previous call
+        # Next two lines are not the cleanest, but it seems to work. @TODO. Have to improve this part.
+        self.patient_results_widgets[patient_id].header.expand()
+        self.patient_results_widgets[patient_id].set_stylesheets(True)
+        # To trigger a proper redrawing after the previous call
+        self.adjustSize()
 
     def on_process_started(self):
         self.bottom_add_patient_pushbutton.setEnabled(False)
@@ -313,7 +316,6 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         if not state:
             return
 
-        # @TODO. The following should be disabled if viewing a patient coming from the Study widget... has to be adjusted
         if SoftwareConfigResources.getInstance().get_active_patient_uid() != None and SoftwareConfigResources.getInstance().get_active_patient_uid() == widget_id:
             return
 

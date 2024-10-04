@@ -468,10 +468,9 @@ class RaidionicsMainWindow(QMainWindow):
             Internal unique identifier for the patient that should be visualized.
 
         """
-        SoftwareConfigResources.getInstance().set_active_patient(patient_uid=patient_uid)
         self.__on_single_patient_clicked()
         self.single_patient_widget.on_patient_selected(patient_uid)
-
+        SoftwareConfigResources.getInstance().set_active_patient(patient_uid=patient_uid)
 
     def __on_community_action_triggered(self):
         popup = ResearchCommunityDialog(self)
@@ -510,7 +509,7 @@ class RaidionicsMainWindow(QMainWindow):
             SoftwareConfigResources.getInstance().get_active_study().save()
 
     def __on_download_example_data(self):
-        QDesktopServices.openUrl(QUrl("https://drive.google.com/file/d/1W3klW_F7Rfge9-utczz9qp7uWh-pVPS1/view?usp=sharing"))
+        QDesktopServices.openUrl(QUrl("https://github.com/raidionics/Raidionics-models/releases/download/v1.3.0-rc/Samples-Raidionics-ApprovedExample-v1.3.zip"))
 
     def on_process_log_message(self, log_msg: str) -> None:
         """

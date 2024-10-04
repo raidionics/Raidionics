@@ -56,6 +56,13 @@ def window():
     return window
 
 
+""" Remaining tests to add
+# * Loading data from DICOM folder (must add a DICOM folder in the test data package
+# * Adding extra MRI volume from the same DICOM folder afterwards
+# * Open a new DICOM folder
+# * Delete an image
+"""
+
 def test_empty_patient_creation(qtbot, test_location, window):
     """
     Creation of a new empty patient.
@@ -184,6 +191,7 @@ def test_empty_patient_timestamp_data_inclusion(qtbot, test_location, test_data_
 
     # Saving the latest modifications to the patient on disk by pressing the disk icon
     qtbot.mouseClick(window.single_patient_widget.results_panel.get_patient_results_widget_by_index(0).save_patient_pushbutton, Qt.MouseButton.LeftButton)
+
 
 def test_cleanup(window):
     """

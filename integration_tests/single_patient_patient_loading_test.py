@@ -58,6 +58,11 @@ def window():
     window = RaidionicsMainWindow()
     return window
 
+""" Remaining tests to add:
+# * Changing display space from Patient to MNI and back
+# * Changing the parent MRI for annotation files
+# * Deleting an annotation
+"""
 
 def test_patient_loading_from_files(qtbot, test_location, test_data_folder, window):
     """
@@ -125,75 +130,6 @@ def test_patient_loading_from_raidionics(qtbot, test_location, test_data_folder,
 
     # Saving the latest modifications to the patient on disk by pressing the disk icon
     qtbot.mouseClick(window.single_patient_widget.results_panel.get_patient_results_widget_by_index(0).save_patient_pushbutton, Qt.MouseButton.LeftButton)
-
-
-# def test_annotation_loading(qtbot, test_location, test_data_folder, window):
-#     """
-#     Loading two annotation files for the patient, changing the parent radiological volume for both
-#     """
-#     qtbot.addWidget(window)
-#     # Entering the single patient widget view
-#     qtbot.mouseClick(window.welcome_widget.left_panel_single_patient_pushbutton, Qt.MouseButton.LeftButton)
-#
-#     # Importing MRI files from Import patient > Other data type (*.nii)
-#     # window.single_patient_widget.results_panel.add_other_data_action.trigger() <= Cannot use the actual pushbutton action as it would open the QDialog...
-#     window.single_patient_widget.results_panel.on_add_new_empty_patient()
-#
-#     # Loading the radiological volumes first
-#     flair_sample_mri_filename = os.path.join(test_data_folder, 'Raw', 'Case27-FLAIR.nii.gz')
-#     t1_sample_mri_filename = os.path.join(test_data_folder, 'Raw', 'Case27-T1.nii.gz')
-#     window.single_patient_widget.import_data_dialog.setup_interface_from_files([flair_sample_mri_filename, t1_sample_mri_filename])
-#     window.single_patient_widget.import_data_dialog.__on_exit_accept_clicked()
-#
-#     window.single_patient_widget.import_data_dialog.reset()
-#     tumor_annotation_filename = os.path.join(test_data_folder, 'Raidionics', 'patients', 'patient0', 'PreOp', 'raw', 'Case27-T1_annotation-Tumor.nii.gz')
-#     brain_annotation_filename = os.path.join(test_data_folder, 'Raidionics', 'patients', 'patient0', 'PreOp', 'raw', 'Case27-T1_annotation-Brain.nii.gz')
-#     window.single_patient_widget.import_data_dialog.setup_interface_from_files(
-#         [brain_annotation_filename, tumor_annotation_filename])
-#     window.single_patient_widget.import_data_dialog.__on_exit_accept_clicked()
-#     assert len(list(SoftwareConfigResources.getInstance().get_active_patient().annotation_volumes.keys())) == 2
-#
-#     # Changing the display name for the T1-CE MRI volume to case27-t1c
-#     window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamps_widget[
-#         list(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamps_widget.keys())[
-#             0]].volumes_collapsiblegroupbox.volumes_widget[
-#         list(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamps_widget[
-#                  list(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamps_widget.keys())[
-#                      0]].volumes_collapsiblegroupbox.volumes_widget.keys())[0]].display_name_lineedit.setText("case27-t1c")
-#     qtbot.keyClick(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamps_widget[
-#         list(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamps_widget.keys())[
-#             0]].volumes_collapsiblegroupbox.volumes_widget[
-#         list(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamps_widget[
-#                  list(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamps_widget.keys())[
-#                      0]].volumes_collapsiblegroupbox.volumes_widget.keys())[0]].display_name_lineedit, Qt.Key_Enter)
-#
-#     # Changing the display name for the FLAIR MRI volume to case27-flair
-#     window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamps_widget[
-#         list(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamps_widget.keys())[
-#             0]].volumes_collapsiblegroupbox.volumes_widget[
-#         list(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamps_widget[
-#                  list(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamps_widget.keys())[
-#                      0]].volumes_collapsiblegroupbox.volumes_widget.keys())[1]].display_name_lineedit.setText("case27-flair")
-#     qtbot.keyClick(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamps_widget[
-#         list(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamps_widget.keys())[
-#             0]].volumes_collapsiblegroupbox.volumes_widget[
-#         list(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamps_widget[
-#                  list(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamps_widget.keys())[
-#                      0]].volumes_collapsiblegroupbox.volumes_widget.keys())[1]].display_name_lineedit, Qt.Key_Enter)
-#
-#     # Changing the ownership to the brain annotation
-#     window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamps_widget[
-#         list(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamps_widget.keys())[
-#             0]].annotations_collapsiblegroupbox.volumes_widget[
-#         list(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamps_widget[
-#                  list(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamps_widget.keys())[
-#                      0]].annotations_collapsiblegroupbox.volumes_widget.keys())[0]].parent_image_combobox.setCurrentIndex(1)
-#     assert len(SoftwareConfigResources.getInstance().get_active_patient().get_specific_annotations_for_mri(mri_volume_uid=SoftwareConfigResources.getInstance().get_active_patient().mri_volumes[SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_display_name("case27-t1c")], annotation_class=AnnotationClassType.Brain)) == 1
-#
-#     # Saving the latest modifications to the patient on disk by pressing the disk icon
-#     qtbot.mouseClick(window.single_patient_widget.results_panel.patient_results_widgets[
-#                          list(window.single_patient_widget.results_panel.patient_results_widgets.keys())[
-#                              0]].save_patient_pushbutton, Qt.MouseButton.LeftButton)
 
 def test_cleanup(window):
     if window.logs_thread.isRunning():
