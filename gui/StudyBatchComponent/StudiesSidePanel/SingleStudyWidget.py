@@ -493,7 +493,7 @@ class SingleStudyWidget(QCollapsibleWidget):
         """
         if SoftwareConfigResources.getInstance().get_study(self.uid).has_unsaved_changes():
             dialog = SavePatientChangesDialog()
-            code = dialog.exec_()
+            code = dialog.exec()
             if code == 0:  # Operation cancelled
                 # The widget for the clicked patient must be collapsed back down, since the change has not
                 # been confirmed by the user in the end.
@@ -505,17 +505,19 @@ class SingleStudyWidget(QCollapsibleWidget):
         Internal update of the visible study name after user manual editing, the folder name on disk for the study
         is also updated with the new requested name (if available).
         """
-        code, err_msg = SoftwareConfigResources.getInstance().get_active_study().set_display_name(self.study_name_lineedit.text())
-        if code == 1:  # Operation failed
+        try:
+            SoftwareConfigResources.getInstance().get_active_study().set_display_name(self.study_name_lineedit.text())
+        except Exception as e:
             self.study_name_lineedit.blockSignals(True)
             self.study_name_lineedit.setText(SoftwareConfigResources.getInstance().get_active_study().display_name)
             self.study_name_lineedit.blockSignals(False)
-        else:
-            self.header.title_label.setText(self.study_name_lineedit.text())
-            self.header.title = self.study_name_lineedit.text()
-            self.output_dir_lineedit.setText(SoftwareConfigResources.getInstance().get_active_study().output_study_folder)
-            self.output_dir_lineedit.setCursorPosition(0)
-            self.output_dir_lineedit.home(True)
+            logging.error("[Software error] Editing the patient name failed with: {}.".format(e))
+            return
+        self.header.title_label.setText(self.study_name_lineedit.text())
+        self.header.title = self.study_name_lineedit.text()
+        self.output_dir_lineedit.setText(SoftwareConfigResources.getInstance().get_active_study().output_study_folder)
+        self.output_dir_lineedit.setCursorPosition(0)
+        self.output_dir_lineedit.home(True)
 
     def manual_header_pushbutton_clicked(self, state):
         if state:
@@ -541,7 +543,7 @@ class SingleStudyWidget(QCollapsibleWidget):
         self.import_data_dialog.reset()
         self.import_data_dialog.set_parsing_mode('single')
         self.import_data_dialog.set_target_type('regular')
-        code = self.import_data_dialog.exec_()
+        code = self.import_data_dialog.exec()
         if code == QDialog.Accepted:
             self.patients_import_finished.emit()
 
@@ -549,7 +551,7 @@ class SingleStudyWidget(QCollapsibleWidget):
         self.import_data_dialog.reset()
         self.import_data_dialog.set_parsing_mode('multiple')
         self.import_data_dialog.set_target_type('regular')
-        code = self.import_data_dialog.exec_()
+        code = self.import_data_dialog.exec()
         if code == QDialog.Accepted:
             self.patients_import_finished.emit()
 
@@ -562,7 +564,7 @@ class SingleStudyWidget(QCollapsibleWidget):
         self.import_data_dialog.reset()
         self.import_data_dialog.set_parsing_mode('single')
         self.import_data_dialog.set_target_type('dicom')
-        code = self.import_data_dialog.exec_()
+        code = self.import_data_dialog.exec()
         if code == QDialog.Accepted:
             self.patients_import_finished.emit()
 
@@ -570,7 +572,7 @@ class SingleStudyWidget(QCollapsibleWidget):
         self.import_data_dialog.reset()
         self.import_data_dialog.set_parsing_mode('multiple')
         self.import_data_dialog.set_target_type('dicom')
-        code = self.import_data_dialog.exec_()
+        code = self.import_data_dialog.exec()
         if code == QDialog.Accepted:
             self.patients_import_finished.emit()
 
@@ -587,7 +589,7 @@ class SingleStudyWidget(QCollapsibleWidget):
         self.model_name = ""
         if pipeline_task != "folders_classification":
             diag = TumorTypeSelectionQDialog(self)
-            code = diag.exec_()
+            code = diag.exec()
 
             if code == 0:  # Operation was cancelled by the user
                 return

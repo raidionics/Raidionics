@@ -90,6 +90,17 @@ class MRIVolumesLayerInteractor(QCollapsibleWidget):
             self.volumes_widget.pop(w)
         self.header.collapse()
 
+    def get_layer_widget_by_index(self, index: int) -> MRISeriesLayerWidget:
+        if index >= len(self.volumes_widget):
+            raise ValueError("[MRIVolumeLayerInteractor] Trying to retrieve an MRI Layer widget with an out-of-bound index value.")
+        return self.volumes_widget[list(self.volumes_widget.keys())[index]]
+
+    def get_layer_widget_by_visible_name(self, name: str) -> MRISeriesLayerWidget:
+        for w in list(self.volumes_widget.keys()):
+            if self.volumes_widget[w].visible_name == name:
+                return self.volumes_widget[w]
+        raise ValueError("[TimestampsLayerInteractor] Trying to retrieve a non-existing MRI layer widget by visible name with: {}.".format(name))
+
     def on_mri_volume_import(self, uid: str) -> None:
         """
         Default slot anytime a new MRI volume is added to the scene (i.e., on the current active patient)

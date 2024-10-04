@@ -46,6 +46,13 @@ jobs:
         pip install matplotlib==3.3.4
         pip install --force-reinstall --no-cache-dir pyside6
 
+#    - name: Integration tests
+#      env:
+#        DISPLAY: ':99.0'
+#      run: |
+#          pip install pytest-qt pytest-cov
+#          pytest --cov=gui --cov=utils ${{github.workspace}}/integration_tests
+
     - name: Build software
       run: |              
         pip install pyinstaller==5.13.2
@@ -62,7 +69,7 @@ jobs:
     - name: Make installer
       run: |
         makensis.exe assets/Raidionics.nsi
-        cp -r assets/Raidionics-1.2.4-win.exe dist/Raidionics-1.2.4-win.exe
+        cp -r assets/Raidionics-1.3.0-win.exe dist/Raidionics-1.3.0-win.exe
 
     - name: Upload package
       uses: actions/upload-artifact@v4

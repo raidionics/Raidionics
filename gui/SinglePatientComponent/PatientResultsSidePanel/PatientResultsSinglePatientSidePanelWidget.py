@@ -164,6 +164,20 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         self.patient_list_scrollarea_dummy_widget.setFixedSize(QSize(self.size().width(), actual_height))
         self.repaint()
 
+    def get_patient_results_widget_by_index(self, index: int) -> SinglePatientResultsWidget:
+        if index >= len(self.patient_results_widgets):
+            raise ValueError(
+                "[PatientResultsSinglePatientSidePanelWidget] Trying to retrieve a patient result widget with an out-of-bound index value.")
+        return self.patient_results_widgets[list(self.patient_results_widgets.keys())[index]]
+
+    def get_patient_results_widget_by_display_name(self, name: str) -> SinglePatientResultsWidget:
+        for w in list(self.patient_results_widgets.keys()):
+            if self.patient_results_widgets[w].header.title_label == name:
+                return self.patient_results_widgets[w]
+        raise ValueError(
+            "[PatientResultsSinglePatientSidePanelWidget] Trying to retrieve a non-existing patient result widget by visible name with: {}.".format(
+                name))
+
     def on_import_data(self):
         """
         In case some patients where imported at the same time as some image for the current patient?
@@ -218,8 +232,11 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         When the patient selection has been requested from a module (e.g. study) outside the single-use mode.
         """
         self.__on_patient_selection(True, patient_id)
-        self.patient_results_widgets[patient_id].manual_header_pushbutton_clicked(True)
-        self.adjustSize()  # To trigger a proper redrawing after the previous call
+        # Next two lines are not the cleanest, but it seems to work. @TODO. Have to improve this part.
+        self.patient_results_widgets[patient_id].header.expand()
+        self.patient_results_widgets[patient_id].set_stylesheets(True)
+        # To trigger a proper redrawing after the previous call
+        self.adjustSize()
 
     def on_process_started(self):
         self.bottom_add_patient_pushbutton.setEnabled(False)
@@ -262,7 +279,7 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
 
         if SoftwareConfigResources.getInstance().get_patient(widget_id).has_unsaved_changes():
             dialog = SavePatientChangesDialog()
-            code = dialog.exec_()
+            code = dialog.exec()
             if code == 0:  # Operation cancelled
                 return
 
@@ -305,7 +322,7 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         if SoftwareConfigResources.getInstance().get_active_patient_uid() != None \
                 and SoftwareConfigResources.getInstance().get_active_patient().has_unsaved_changes():
             dialog = SavePatientChangesDialog()
-            code = dialog.exec_()
+            code = dialog.exec()
             if code == 0:  # Operation cancelled
                 # The widget for the clicked patient must be collapsed back down, since the change has not
                 # been confirmed by the user in the end.
@@ -329,15 +346,15 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         if SoftwareConfigResources.getInstance().active_patient_name and\
                 SoftwareConfigResources.getInstance().get_active_patient().has_unsaved_changes():
             dialog = SavePatientChangesDialog()
-            code = dialog.exec_()
+            code = dialog.exec()
             if code == 1:  # Changes have been either saved or discarded
-                uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_patient(active=False)
+                uid = SoftwareConfigResources.getInstance().add_new_empty_patient(active=False)
                 self.add_new_patient(uid)
                 # Both lines are needed to uncollapse the widget for the new patient and collapse the previous
                 self.patient_results_widgets[uid].manual_header_pushbutton_clicked(True)
                 self.__on_patient_selection(True, uid)
         else:
-            uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_patient(active=False)
+            uid = SoftwareConfigResources.getInstance().add_new_empty_patient(active=False)
             self.add_new_patient(uid)
             self.patient_results_widgets[uid].manual_header_pushbutton_clicked(True)
             self.__on_patient_selection(True, uid)
@@ -351,12 +368,12 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
     def on_import_options_clicked(self, point):
         ## Bottom position
         # if os.name == 'nt':
-        #     self.options_menu.exec_(self.bottom_add_patient_pushbutton.mapToGlobal(QPoint(0, -106)))
+        #     self.options_menu.exec(self.bottom_add_patient_pushbutton.mapToGlobal(QPoint(0, -106)))
         # else:
-        #     self.options_menu.exec_(self.bottom_add_patient_pushbutton.mapToGlobal(QPoint(0, -95)))
+        #     self.options_menu.exec(self.bottom_add_patient_pushbutton.mapToGlobal(QPoint(0, -95)))
 
         # Top position
-        self.options_menu.exec_(self.bottom_add_patient_pushbutton.mapToGlobal(QPoint(0, 0)))
+        self.options_menu.exec(self.bottom_add_patient_pushbutton.mapToGlobal(QPoint(0, 0)))
 
     def on_import_patient_from_data_requested(self):
         self.on_add_new_empty_patient()

@@ -145,9 +145,9 @@ def run_pipeline(task: str, model_name: str, patient_parameters: PatientParamete
         #     ret = result.get()[0]
 
         results = collect_results(patient_parameters, pipeline)
-    except Exception:
-        logging.error('Pipeline process for patient {}, for task {} failed with: \n{}'.format(patient_parameters.unique_id,
-                                                                                       task, traceback.format_exc()))
+    except Exception as e:
+        logging.error('[Software error] Pipeline process for patient {}, for task {} failed.<br><br> Reason: {}. \n{}'.format(patient_parameters.unique_id,
+                                                                                       task, e, traceback.format_exc()))
         if os.path.exists(rads_config_filename):
             os.remove(rads_config_filename)
         if os.path.exists(pipeline_filename):

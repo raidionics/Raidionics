@@ -18,8 +18,8 @@ class AboutDialog(QDialog):
         self.__set_stylesheets()
         self.__textfill()
 
-    def exec_(self) -> int:
-        return super().exec_()
+    def exec(self) -> int:
+        return super().exec()
 
     def __set_interface(self):
         self.layout = QVBoxLayout(self)

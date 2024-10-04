@@ -24,8 +24,8 @@ class VolumeStatisticsDialog(QDialog):
         self.__set_connections()
         self.__default_setup()
 
-    def exec_(self) -> int:
-        return super().exec_()
+    def exec(self) -> int:
+        return super().exec()
 
     def __set_interface(self):
         self.layout = QVBoxLayout(self)

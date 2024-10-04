@@ -38,17 +38,20 @@ class StudyParameters:
         """
 
         """
-        self.__reset()
-        self._unique_id = uid.replace(" ", '_').strip()
+        try:
+            self.__reset()
+            self._unique_id = uid.replace(" ", '_').strip()
 
-        if study_filename:
-            # Empty init, self.import_study() must be called after the instance creation call.
-            pass
-        else:
-            if not dest_location:
-                logging.warning("Home folder location for new study creation is None.")
-                dest_location = os.path.join(os.path.expanduser('~'), '.raidionics')
-            self.__init_from_scratch(dest_location)
+            if study_filename:
+                # Empty init, self.import_study() must be called after the instance creation call.
+                pass
+            else:
+                if not dest_location:
+                    logging.warning("Home folder location for new study creation is None.")
+                    dest_location = os.path.join(os.path.expanduser('~'), '.raidionics')
+                self.__init_from_scratch(dest_location)
+        except Exception as e:
+            raise RuntimeError(e)
 
     def __reset(self):
         """
@@ -103,10 +106,14 @@ class StudyParameters:
         self._unsaved_changes = state
 
     @property
+    def output_study_directory(self) -> str:
+        return self._output_study_directory
+
+    @property
     def display_name(self) -> str:
         return self._display_name
 
-    def set_display_name(self, new_name: str, manual_change: bool = True) -> Tuple[int, str]:
+    def set_display_name(self, new_name: str, manual_change: bool = True) -> None:
         """
         Edit to the display name for the current study, which does not alter its unique_uid.
         The use of an additional boolean parameter is needed to prevent updating the unsaved_changes state when
@@ -119,37 +126,34 @@ class StudyParameters:
             Name to be given to the current study.
         manual_change : bool
             Indication whether the modification has been triggered by the user (True) or the system (False)
-
-        Returns
-        -------
-        Tuple[int, str]
-            The first element is the code indicating success (0) or failure (1) of the operation. The second element
-            is a human-readable string describing the problem encountered, if any, otherwise is empty.
         """
-        # Removing spaces to prevent potential issues in folder name/access when performing disk IO operations
-        new_output_folder = os.path.join(self._output_study_directory, "studies", new_name.strip().lower().replace(" ", '_'))
-        if os.path.exists(new_output_folder):
-            msg = """A study with requested name already exists in the destination folder.\n
-            Requested name: [{}].\n
-            Destination folder: [{}].""".format(new_name, os.path.dirname(self._output_study_directory))
-            return 1, msg
-        else:
-            self._display_name = new_name.strip()
-            new_study_parameters_filename = os.path.join(self._output_study_folder,
-                                                         self._display_name.strip().lower().replace(" ", "_")
-                                                         + '_study.sraidionics')
-            if os.path.exists(self._study_parameters_filename):
-                os.rename(src=self._study_parameters_filename, dst=new_study_parameters_filename)
-            self._study_parameters_filename = new_study_parameters_filename
+        try:
+            # Removing spaces to prevent potential issues in folder name/access when performing disk IO operations
+            new_output_folder = os.path.join(self.output_study_directory, "studies",
+                                             new_name.strip().lower().replace(" ", '_'))
+            if os.path.exists(new_output_folder):
+                msg = 'A study with requested name already exists in the destination folder.<br>' + \
+                      'Requested name: {}.<br>'.format(new_name) + \
+                      'Destination folder: {}.'.format(os.path.dirname(self.output_study_directory))
+                raise ValueError(msg)
+            else:
+                self._display_name = new_name.strip()
+                new_study_parameters_filename = os.path.join(self._output_study_folder,
+                                                             self._display_name.strip().lower().replace(" ", "_")
+                                                             + '_study.sraidionics')
+                if os.path.exists(self._study_parameters_filename):
+                    os.rename(src=self._study_parameters_filename, dst=new_study_parameters_filename)
+                self._study_parameters_filename = new_study_parameters_filename
 
-            if os.path.exists(self._output_study_folder):
-                shutil.move(src=self._output_study_folder, dst=new_output_folder, copy_function=shutil.copytree)
-            self._output_study_folder = new_output_folder
+                if os.path.exists(self._output_study_folder):
+                    shutil.move(src=self._output_study_folder, dst=new_output_folder, copy_function=shutil.copytree)
+                self._output_study_folder = new_output_folder
 
-            logging.info("Renamed current study destination folder to: {}".format(self._output_study_folder))
-            if manual_change:
-                self._unsaved_changes = True
-            return 0, ""
+                logging.info("Renamed current study destination folder to: {}".format(self._output_study_folder))
+                if manual_change:
+                    self._unsaved_changes = True
+        except Exception as e:
+            raise RuntimeError("Attempting to change the study display name failed with: {}".format(e))
 
     def set_output_study_folder(self, output_folder: str) -> None:
         """
@@ -180,7 +184,7 @@ class StudyParameters:
     def reporting_statistics_df(self) -> pd.DataFrame:
         return self._reporting_statistics_df
 
-    def include_study_patient(self, uid: str, folder_name: str, patient_parameters) -> int:
+    def include_study_patient(self, uid: str, folder_name: str, patient_parameters) -> None:
         """
         When a patient is included in the study, the statistics components must be updated with whatever is accessible
         from this patient folder.
@@ -194,15 +198,15 @@ class StudyParameters:
         patient_parameters:
             Internal patient instance containing all elements loaded for the current patient.
         """
-        if uid not in self._included_patients_uids.keys():
-            self._included_patients_uids[uid] = os.path.basename(folder_name)
-            self.include_segmentation_statistics(patient_uid=uid, annotation_uids=[],
-                                                 patient_parameters=patient_parameters)
-            self.include_reporting_statistics(patient_uid=uid, reporting_uids=[], patient_parameters=patient_parameters)
-            self._unsaved_changes = True
-            return 0
-        else:
-            return 1
+        try:
+            if uid not in self._included_patients_uids.keys():
+                self._included_patients_uids[uid] = os.path.basename(folder_name)
+                self.include_segmentation_statistics(patient_uid=uid, annotation_uids=[],
+                                                     patient_parameters=patient_parameters)
+                self.include_reporting_statistics(patient_uid=uid, reporting_uids=[], patient_parameters=patient_parameters)
+                self._unsaved_changes = True
+        except Exception as e:
+            raise RuntimeError("Including study patient failed with: {}".format(e))
 
     def remove_study_patient(self, uid: str) -> int:
         if uid not in self._included_patients_uids.keys():
@@ -335,7 +339,8 @@ class StudyParameters:
             row_df = pd.DataFrame(data=np.array(row_values).reshape(1, len(self._seg_stats_cnames)),
                                   columns=self._seg_stats_cnames)
             # @TODO. Check that a similar row does not already exist?
-            self._segmentation_statistics_df = self._segmentation_statistics_df.append(row_df)
+            self._segmentation_statistics_df = pd.concat([self._segmentation_statistics_df, pd.DataFrame(row_df)],
+                                                      ignore_index=True)
 
     def include_reporting_statistics(self, patient_uid: str, reporting_uids: List[str], patient_parameters) -> None:
         """
@@ -358,7 +363,8 @@ class StudyParameters:
                 row_df = pd.DataFrame(data=np.array(row_values).reshape(1, len(self._reporting_stats_cnames)),
                                       columns=self._reporting_stats_cnames)
                 # @TODO. Check that a similar row does not already exist?
-                self._reporting_statistics_df = self._reporting_statistics_df.append(row_df)
+                self._reporting_statistics_df  = pd.concat([self._reporting_statistics_df , pd.DataFrame(row_df)],
+                                                           ignore_index=True)
 
     def refresh_patient_statistics(self, patient_uid: str, patient_parameters):
         """

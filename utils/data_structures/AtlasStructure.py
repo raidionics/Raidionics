@@ -42,23 +42,26 @@ class AtlasVolume:
 
     def __init__(self, uid: str, input_filename: str, output_patient_folder: str, inv_ts_uid: str, parent_mri_uid: str,
                  description_filename: str, inv_ts_folder_name: str = None, reload_params: dict = None) -> None:
-        self.__reset()
-        self._unique_id = uid
-        self._raw_input_filepath = input_filename
-        self._output_patient_folder = output_patient_folder
-        self._timestamp_uid = inv_ts_uid
-        if inv_ts_folder_name:
-            self._timestamp_folder_name = inv_ts_folder_name
-        else:
-            self._timestamp_folder_name = self._timestamp_uid
+        try:
+            self.__reset()
+            self._unique_id = uid
+            self._raw_input_filepath = input_filename
+            self._output_patient_folder = output_patient_folder
+            self._timestamp_uid = inv_ts_uid
+            if inv_ts_folder_name:
+                self._timestamp_folder_name = inv_ts_folder_name
+            else:
+                self._timestamp_folder_name = self._timestamp_uid
 
-        self._class_description_filename = description_filename
-        self._parent_mri_uid = parent_mri_uid
+            self._class_description_filename = description_filename
+            self._parent_mri_uid = parent_mri_uid
 
-        if reload_params:
-            self.__reload_from_disk(reload_params)
-        else:
-            self.__init_from_scratch()
+            if reload_params:
+                self.__reload_from_disk(reload_params)
+            else:
+                self.__init_from_scratch()
+        except Exception as e:
+            raise RuntimeError(e)
 
     def __reset(self):
         """
@@ -117,8 +120,8 @@ class AtlasVolume:
             elif "MNI" in self._unique_id:
                 self._display_name = "MNI group"
         except Exception as e:
-            logging.error("""[Software error] Initializing atlas structure from scratch failed 
-            for: {} with: {}.\n {}""".format(self._raw_input_filepath, e, traceback.format_exc()))
+            raise RuntimeError("""Initializing atlas structure from scratch failed  for: {} 
+            with: {}.""".format(self._raw_input_filepath, e))
 
     def __reload_from_disk(self, parameters: dict) -> None:
         """
@@ -156,8 +159,8 @@ class AtlasVolume:
             if 'display_opacities' in parameters.keys():
                 self._class_display_opacity = {int(k): v for k, v in parameters['display_opacities'].items()}
         except Exception as e:
-            logging.error(""" [Software error] Reloading atlas structure from disk failed 
-            for: {} with: {}.\n {}""".format(self.display_name, e, traceback.format_exc()))
+            raise RuntimeError("""Reloading atlas structure from disk failed for: {} 
+            with: {}.""".format(self.display_name, e))
 
     def load_in_memory(self) -> None:
         try:
@@ -258,15 +261,20 @@ class AtlasVolume:
         self._unsaved_changes = True
 
     def set_output_patient_folder(self, output_folder: str) -> None:
-        if self._raw_input_filepath and self._output_patient_folder in self._raw_input_filepath:
-            self._raw_input_filepath = self._raw_input_filepath.replace(self._output_patient_folder, output_folder)
-        if self._class_description_filename and self._output_patient_folder in self._class_description_filename:
-            self._class_description_filename = self._class_description_filename.replace(self._output_patient_folder,
-                                                                                        output_folder)
-        if self._resampled_input_volume_filepath:
-            self._resampled_input_volume_filepath = self._resampled_input_volume_filepath.replace(self._output_patient_folder,
-                                                                                                  output_folder)
-        self._output_patient_folder = output_folder
+        try:
+            if self._raw_input_filepath and self._output_patient_folder in self._raw_input_filepath:
+                self._raw_input_filepath = self._raw_input_filepath.replace(self._output_patient_folder, output_folder)
+            if self._class_description_filename and self._output_patient_folder in self._class_description_filename:
+                self._class_description_filename = self._class_description_filename.replace(self._output_patient_folder,
+                                                                                            output_folder)
+            if self._resampled_input_volume_filepath:
+                self._resampled_input_volume_filepath = self._resampled_input_volume_filepath.replace(self._output_patient_folder,
+                                                                                                      output_folder)
+            for i, fn in enumerate(self.atlas_space_filepaths.keys()):
+                self.atlas_space_filepaths[fn] = self.atlas_space_filepaths[fn].replace(self._output_patient_folder, output_folder)
+            self._output_patient_folder = output_folder
+        except Exception as e:
+            raise ValueError("Changing the output patient folder name for the AtlasStructure failed with: {}".format(e))
 
     @property
     def timestamp_uid(self) -> str:
@@ -282,38 +290,44 @@ class AtlasVolume:
 
     @timestamp_folder_name.setter
     def timestamp_folder_name(self, folder_name: str) -> None:
-        self._timestamp_folder_name = folder_name
-        if self._output_patient_folder in self._raw_input_filepath:
-            if os.name == 'nt':
-                path_parts = list(PurePath(os.path.relpath(self._raw_input_filepath,
-                                                           self._output_patient_folder)).parts[1:])
-                rel_path = PurePath()
-                rel_path = rel_path.joinpath(self._output_patient_folder)
-                rel_path = rel_path.joinpath(self._timestamp_folder_name)
-                for x in path_parts:
-                    rel_path = rel_path.joinpath(x)
-                self._raw_input_filepath = os.fspath(rel_path)
-            else:
-                rel_path = '/'.join(os.path.relpath(self._raw_input_filepath,
-                                                    self._output_patient_folder).split('/')[1:])
-                self._raw_input_filepath = os.path.join(self._output_patient_folder, self._timestamp_folder_name,
-                                                           rel_path)
-        if self._resampled_input_volume_filepath:
-            if os.name == 'nt':
-                path_parts = list(PurePath(os.path.relpath(self._resampled_input_volume_filepath,
-                                                           self._output_patient_folder)).parts[1:])
-                rel_path = PurePath()
-                rel_path = rel_path.joinpath(self._output_patient_folder)
-                rel_path = rel_path.joinpath(self._timestamp_folder_name)
-                for x in path_parts:
-                    rel_path = rel_path.joinpath(x)
-                self._resampled_input_volume_filepath = os.fspath(rel_path)
-            else:
-                rel_path = '/'.join(os.path.relpath(self._resampled_input_volume_filepath,
-                                                    self._output_patient_folder).split('/')[1:])
-                self._resampled_input_volume_filepath = os.path.join(self._output_patient_folder,
-                                                                     self._timestamp_folder_name,
-                                                                     rel_path)
+        try:
+            for i, fn in enumerate(self.atlas_space_filepaths.keys()):
+                self.atlas_space_filepaths[fn] = self.atlas_space_filepaths[fn].replace(self._timestamp_folder_name, folder_name)
+
+            self._timestamp_folder_name = folder_name
+            if self._output_patient_folder in self._raw_input_filepath:
+                if os.name == 'nt':
+                    path_parts = list(PurePath(os.path.relpath(self._raw_input_filepath,
+                                                               self._output_patient_folder)).parts[1:])
+                    rel_path = PurePath()
+                    rel_path = rel_path.joinpath(self._output_patient_folder)
+                    rel_path = rel_path.joinpath(self._timestamp_folder_name)
+                    for x in path_parts:
+                        rel_path = rel_path.joinpath(x)
+                    self._raw_input_filepath = os.fspath(rel_path)
+                else:
+                    rel_path = '/'.join(os.path.relpath(self._raw_input_filepath,
+                                                        self._output_patient_folder).split('/')[1:])
+                    self._raw_input_filepath = os.path.join(self._output_patient_folder, self._timestamp_folder_name,
+                                                               rel_path)
+            if self._resampled_input_volume_filepath:
+                if os.name == 'nt':
+                    path_parts = list(PurePath(os.path.relpath(self._resampled_input_volume_filepath,
+                                                               self._output_patient_folder)).parts[1:])
+                    rel_path = PurePath()
+                    rel_path = rel_path.joinpath(self._output_patient_folder)
+                    rel_path = rel_path.joinpath(self._timestamp_folder_name)
+                    for x in path_parts:
+                        rel_path = rel_path.joinpath(x)
+                    self._resampled_input_volume_filepath = os.fspath(rel_path)
+                else:
+                    rel_path = '/'.join(os.path.relpath(self._resampled_input_volume_filepath,
+                                                        self._output_patient_folder).split('/')[1:])
+                    self._resampled_input_volume_filepath = os.path.join(self._output_patient_folder,
+                                                                         self._timestamp_folder_name,
+                                                                         rel_path)
+        except Exception as e:
+            raise ValueError("Changing the timestamp folder name for the AtlasStructure failed with: {}".format(e))
 
     def get_class_description(self) -> Union[pd.DataFrame, dict]:
         return self._class_description
@@ -344,8 +358,8 @@ class AtlasVolume:
             logging.debug("""Unsaved changes - Structures atlas in space {} added in {}.""".format(
                 registration_space, filepath))
             self._unsaved_changes = True
-        except Exception:
-            logging.error(" [Software error] Error while importing a registered radiological volume.\n {}".format(traceback.format_exc()))
+        except Exception as e:
+            raise ValueError("Error while importing a registered radiological volume with: {}".format(e))
 
     def save(self) -> dict:
         """
@@ -382,8 +396,8 @@ class AtlasVolume:
             volume_params['display_opacities'] = self._class_display_opacity
             self._unsaved_changes = False
             return volume_params
-        except Exception:
-            logging.error(" [Software error] AtlasStructure saving failed with:\n {}".format(traceback.format_exc()))
+        except Exception as e:
+            raise RuntimeError("AtlasStructure saving failed with: {}".format(e))
 
     def __generate_standardized_input_volume(self) -> None:
         """

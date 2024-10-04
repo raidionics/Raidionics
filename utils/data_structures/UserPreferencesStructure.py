@@ -56,10 +56,11 @@ class UserPreferencesStructure:
 
         """
         self._preferences_filename = os.path.join(expanduser('~'), '.raidionics', 'raidionics_preferences.json')
+        os.makedirs(os.path.dirname(self._preferences_filename), exist_ok=True)
         if os.path.exists(self._preferences_filename):
             self.__parse_preferences()
         else:
-            self._user_home_location = os.path.join(expanduser('~'), '.raidionics')
+            self.user_home_location = os.path.join(expanduser('~'), '.raidionics')
             self.save_preferences()
 
     @property

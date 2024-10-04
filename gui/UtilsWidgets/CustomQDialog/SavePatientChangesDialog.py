@@ -50,12 +50,12 @@ class SavePatientChangesDialog(QDialog):
         font-size: 12px;
         }""")
 
-    def exec_(self) -> int:
+    def exec(self) -> int:
         curr_patient = SoftwareConfigResources.getInstance().get_active_patient()
         self.destination_folder_lineedit.blockSignals(True)
         self.destination_folder_lineedit.setText(curr_patient.output_folder)
         self.destination_folder_lineedit.blockSignals(False)
-        return super().exec_()
+        return super().exec()
 
     def save_changes(self):
         SoftwareConfigResources.getInstance().get_active_patient().save_patient()

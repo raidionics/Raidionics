@@ -224,14 +224,14 @@ class SinglePatientWidget(QWidget):
         """
         self.import_data_dialog.reset()
         self.import_data_dialog.set_parsing_filter("data")
-        code = self.import_data_dialog.exec_()
+        code = self.import_data_dialog.exec()
         # if code == QDialog.Accepted:
         #     self.import_data_triggered.emit()
 
     def __on_import_custom_clicked(self) -> None:
         self.import_data_dialog.reset()
         self.import_data_dialog.set_parsing_filter("patient")
-        code = self.import_data_dialog.exec_()
+        code = self.import_data_dialog.exec()
         if code == QDialog.Accepted:
             self.top_logo_panel_label_import_dicom_pushbutton.setEnabled(True)
             self.top_logo_panel_statistics_pushbutton.setEnabled(True)
@@ -243,7 +243,7 @@ class SinglePatientWidget(QWidget):
         patient_dicom_id = SoftwareConfigResources.getInstance().get_active_patient().get_dicom_id()
         if patient_dicom_id:
             self.import_dicom_dialog.set_fixed_patient(patient_dicom_id)
-        code = self.import_dicom_dialog.exec_()
+        code = self.import_dicom_dialog.exec()
         if code == QDialog.Accepted:
             self.top_logo_panel_label_import_dicom_pushbutton.setEnabled(True)
             self.top_logo_panel_statistics_pushbutton.setEnabled(True)
@@ -252,7 +252,7 @@ class SinglePatientWidget(QWidget):
         """
 
         """
-        code = self.import_dicom_dialog.exec_()
+        code = self.import_dicom_dialog.exec()
         # if code == QDialog.Accepted:
         #     self.import_data_triggered.emit()
 
@@ -260,14 +260,14 @@ class SinglePatientWidget(QWidget):
         self.import_folder_dialog.reset()
         self.import_folder_dialog.set_parsing_mode("single")
         self.import_folder_dialog.set_target_type("regular")
-        code = self.import_folder_dialog.exec_()
+        code = self.import_folder_dialog.exec()
         if code == QDialog.Accepted:
             self.top_logo_panel_label_import_dicom_pushbutton.setEnabled(True)
             self.top_logo_panel_statistics_pushbutton.setEnabled(True)
 
     def __on_show_statistics_clicked(self):
         diag = VolumeStatisticsDialog(self)
-        diag.exec_()
+        diag.exec()
 
     def __on_patient_selected(self, patient_uid):
         # @TODO. Quick dirty hack, should not have to set the flag everytime a patient is selected, but only once.
@@ -278,6 +278,7 @@ class SinglePatientWidget(QWidget):
     def on_reload_interface(self) -> None:
         """
         In order to generate a new central panel, for example because the display space has changed.
+        @TODO. Should also reload the interface for the right-hand panel and set to default
         """
         if not SoftwareConfigResources.getInstance().is_patient_list_empty():
             SoftwareConfigResources.getInstance().get_active_patient().load_in_memory()
@@ -285,6 +286,8 @@ class SinglePatientWidget(QWidget):
 
     def on_patient_selected(self, patient_name):
         self.results_panel.on_external_patient_selection(patient_name)
+        self.center_panel.on_patient_selected(patient_name)
+        self.layers_panel.on_patient_selected(patient_name)
 
     def on_single_patient_clicked(self, patient_name):
         # @TODO. Renaming to do, confusing name since it adds a new patient...
@@ -332,3 +335,6 @@ class SinglePatientWidget(QWidget):
     def on_atlas_volume_imported(self, uid: str) -> None:
         self.layers_panel.on_atlas_volume_import(uid)
 
+    def on_clear_scene(self):
+        for w in list(self.results_panel.patient_results_widgets.keys()):
+            self.results_panel.patient_results_widgets[w].patient_closed.emit(w)

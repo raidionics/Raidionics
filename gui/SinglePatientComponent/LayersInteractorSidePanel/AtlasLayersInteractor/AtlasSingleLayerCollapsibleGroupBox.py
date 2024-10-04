@@ -247,7 +247,7 @@ class SingleLineAtlasStructureWidget(QWidget):
         self.visibility_toggled.emit(self.atlas_id, struct_ind, state)
 
     def __on_color_selector_clicked(self):
-        code = self.color_dialog.exec_()
+        code = self.color_dialog.exec()
         if code == QColorDialog.Accepted:
             color = self.color_dialog.currentColor()
             custom_color_str = "background-color:rgb({}, {}, {})".format(color.red(), color.green(), color.blue())

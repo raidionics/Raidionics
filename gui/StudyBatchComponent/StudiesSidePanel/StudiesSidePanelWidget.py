@@ -193,7 +193,7 @@ class StudiesSidePanelWidget(QWidget):
 
         if SoftwareConfigResources.getInstance().get_active_study_uid() and SoftwareConfigResources.getInstance().get_active_study().has_unsaved_changes():
             dialog = SavePatientChangesDialog()
-            code = dialog.exec_()
+            code = dialog.exec()
             if code == 0:  # Operation cancelled
                 return
 
@@ -212,7 +212,7 @@ class StudiesSidePanelWidget(QWidget):
         if SoftwareConfigResources.getInstance().active_study_name and\
                 SoftwareConfigResources.getInstance().get_active_study().has_unsaved_changes():
             dialog = SavePatientChangesDialog()
-            code = dialog.exec_()
+            code = dialog.exec()
             if code == 1:  # Changes have been either saved or discarded
                 uid, error_msg = SoftwareConfigResources.getInstance().add_new_empty_study(active=False)
                 self.add_new_study(uid)
@@ -250,18 +250,18 @@ class StudiesSidePanelWidget(QWidget):
         """
         ## Bottom position
         # if os.name == 'nt':
-        #     self.options_menu.exec_(self.bottom_add_study_pushbutton.mapToGlobal(QPoint(0, -18)))
+        #     self.options_menu.exec(self.bottom_add_study_pushbutton.mapToGlobal(QPoint(0, -18)))
         # else:
-        #     self.options_menu.exec_(self.bottom_add_study_pushbutton.mapToGlobal(QPoint(0, -15)))
+        #     self.options_menu.exec(self.bottom_add_study_pushbutton.mapToGlobal(QPoint(0, -15)))
 
         # Top position
-        self.options_menu.exec_(self.bottom_add_study_pushbutton.mapToGlobal(QPoint(0, 0)))
+        self.options_menu.exec(self.bottom_add_study_pushbutton.mapToGlobal(QPoint(0, 0)))
 
     def on_add_existing_study_requested(self):
         if SoftwareConfigResources.getInstance().active_study_name and\
                 SoftwareConfigResources.getInstance().get_active_study().has_unsaved_changes():
             dialog = SavePatientChangesDialog()
-            code = dialog.exec_()
+            code = dialog.exec()
             if code == 1:  # Changes have been either saved or discarded
                 self.import_study_from_file_requested.emit()
         else:

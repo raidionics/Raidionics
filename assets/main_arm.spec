@@ -84,7 +84,7 @@ if sys.platform == "darwin":
                     'CFBundleIdentifier': 'Raidionics',
                     'CFBundleInfoDictionaryVersion': '6.0',
                     'CFBundleName': 'Raidionics',
-                    'CFBundleVersion': '1.2.4',
+                    'CFBundleVersion': '1.3.0',
                     'CFBundlePackageType': 'APPL',
                     'LSBackgroundOnly': 'false',
                 },

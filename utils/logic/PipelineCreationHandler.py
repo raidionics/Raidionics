@@ -49,7 +49,7 @@ def create_pipeline(model_name: str, patient_parameters, task: str) -> dict:
     How to allow for all possible combinations of what to use/what to run/on which timestamps?
 
     @TODO. Still heavily hard-coded atm, will need to rely only on the pipeline json files
-    @TODO. Postop segmentation not adapting to the number of inputs, defaulting to the 4 inputs.
+    @TODO. Will have to clean up all this for dealing with the new use-cases and let the backend handle most of it
     Returns
     -------
     dict
@@ -66,9 +66,13 @@ def create_pipeline(model_name: str, patient_parameters, task: str) -> dict:
     if task == 'folders_classification':
         return __create_folders_classification_pipeline()
     elif task == 'preop_segmentation':
+        if UserPreferencesStructure.getInstance().segmentation_tumor_model_type != "Tumor" and "GBM" not in model_name:
+            logging.warning(
+                """[Software error] Using a multiple output class model can only be performed for the Glioblastoma type
+                 (cf.Settings > Preferences > Processing - Segmentation > Segmentation models).""")
+            return {}
         return __create_segmentation_pipeline(model_name, patient_parameters)
     elif 'postop_segmentation' in task:
-        # @TODO. Will have to clean up all this for dealing with the new use-cases...
         if "GBM" in task:
             model_name = select_appropriate_postop_model(patient_parameters)
         download_model(model_name=model_name)
@@ -76,6 +80,11 @@ def create_pipeline(model_name: str, patient_parameters, task: str) -> dict:
     elif task == 'other_segmentation':
         return __create_other_segmentation_pipeline(model_name, patient_parameters)
     elif task == 'preop_reporting':
+        if UserPreferencesStructure.getInstance().segmentation_tumor_model_type != "Tumor":
+            logging.warning(
+                """[Software error] The clinical reporting can only be performed when using a singular output class
+                 model (cf.Settings > Preferences > Processing - Segmentation > Segmentation models).""")
+            return {}
         return __create_preop_reporting_pipeline(model_name, patient_parameters)
     elif task == 'postop_reporting':
         model_name = select_appropriate_postop_model(patient_parameters)

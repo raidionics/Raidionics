@@ -46,13 +46,15 @@ class RaidionicsMainWindow(QMainWindow):
     reload_interface = Signal()
     new_patient_clicked = Signal(str)  # Internal unique_id of the clicked patient
 
-    def __init__(self, application, *args, **kwargs):
+    def __init__(self, application=None, *args, **kwargs):
         super(RaidionicsMainWindow, self).__init__(*args, **kwargs)
 
-        self.app = application
-        self.app.setWindowIcon(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                                  'Images/raidionics-icon.png')))
-        self.app.setStyle("Fusion")  # @TODO: Should we remove Fusion style? Looks strange on macOS
+        self.app = None
+        if application is not None:
+            self.app = application
+            self.app.setWindowIcon(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                      'Images/raidionics-icon.png')))
+            self.app.setStyle("Fusion")  # @TODO: Should we remove Fusion style? Looks strange on macOS
         self.logs_thread = LogReaderThread()
         self.logs_thread.start()
         self.__set_interface()
@@ -70,9 +72,11 @@ class RaidionicsMainWindow(QMainWindow):
                 and SoftwareConfigResources.getInstance().get_active_patient_uid() \
                 and SoftwareConfigResources.getInstance().get_active_patient().has_unsaved_changes():
             dialog = SavePatientChangesDialog()
-            code = dialog.exec_()
+            code = dialog.exec()
             if code == 0:  # Operation cancelled
                 event.ignore()
+        if self.logs_thread.isRunning():
+            self.logs_thread.stop()
         logging.info("Graceful exit.")
 
     def resizeEvent(self, event):
@@ -86,11 +90,14 @@ class RaidionicsMainWindow(QMainWindow):
         """
         Mirroring of the closeEvent, for when the user press the Quit action in the main menu.
         """
-        self.logs_thread.stop()
+        if self.logs_thread.isRunning():
+            self.logs_thread.stop()
+
         if not SoftwareConfigResources.getInstance().is_patient_list_empty()\
+                and SoftwareConfigResources.getInstance().get_active_patient() is not None\
                 and SoftwareConfigResources.getInstance().get_active_patient().has_unsaved_changes():
             dialog = SavePatientChangesDialog()
-            code = dialog.exec_()
+            code = dialog.exec()
             if code == 1:  # Operation approved
                 logging.info("Graceful exit.")
                 sys.exit()
@@ -123,6 +130,10 @@ class RaidionicsMainWindow(QMainWindow):
                                                                        'Images/download-tray-icon.png')),
                                                     'Download test data', self)
         self.file_menu.addAction(self.download_example_data_action)
+        self.clear_scene_action = QAction(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                      'Images/trash-bin_icon.png')), 'Clear', self)
+        self.file_menu.addAction(self.clear_scene_action)
+
         self.quit_action = QAction(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                       'Images/power-icon.png')), 'Quit', self)
         self.quit_action.setShortcut("Ctrl+Q")
@@ -360,12 +371,16 @@ class RaidionicsMainWindow(QMainWindow):
         self.batch_mode_action.triggered.connect(self.__on_study_batch_clicked)
         self.settings_preferences_action.triggered.connect(self.__on_settings_preferences_clicked)
         # self.quit_action.triggered.connect(sys.exit)
+        self.clear_scene_action.triggered.connect(self.on_clear_scene)
         self.quit_action.triggered.connect(self.__on_exit_software)
         self.download_example_data_action.triggered.connect(self.__on_download_example_data)
 
     def __get_screen_dimensions(self):
-        screen = self.app.primaryScreen()
-        self.primary_screen_dimensions = screen.size()
+        if self.app is None:
+            self.primary_screen_dimensions = QSize(1200, 700)
+        else:
+            screen = self.app.primaryScreen()
+            self.primary_screen_dimensions = screen.size()
         logging.debug("Detected primary screen size [w: {}, h: {}]".format(self.primary_screen_dimensions.width(),
                                                                            self.primary_screen_dimensions.height()))
 
@@ -439,7 +454,7 @@ class RaidionicsMainWindow(QMainWindow):
     def __on_settings_preferences_clicked(self):
         patient_space = UserPreferencesStructure.getInstance().display_space
         diag = SoftwareSettingsDialog(self)
-        diag.exec_()
+        diag.exec()
 
         # Reloading the interface is mainly meant to perform a visual refreshment based on the latest user display choices
         # For now: changing the display space for viewing a patient images.
@@ -464,11 +479,11 @@ class RaidionicsMainWindow(QMainWindow):
 
     def __on_community_action_triggered(self):
         popup = ResearchCommunityDialog(self)
-        popup.exec_()
+        popup.exec()
 
     def __on_about_action_triggered(self):
         popup = AboutDialog()
-        popup.exec_()
+        popup.exec()
 
     def __on_help_action_triggered(self) -> None:
         """
@@ -484,11 +499,11 @@ class RaidionicsMainWindow(QMainWindow):
         Opens up a pop-up dialog allowing to read through the log file.
         """
         diag = LogsViewerDialog(self)
-        diag.exec_()
+        diag.exec()
 
     def __on_shortcuts_action_triggered(self):
         popup = KeyboardShortcutsDialog(self)
-        popup.exec_()
+        popup.exec()
 
     def __on_save_file_triggered(self):
         if SoftwareConfigResources.getInstance().get_active_patient_uid() \
@@ -499,7 +514,7 @@ class RaidionicsMainWindow(QMainWindow):
             SoftwareConfigResources.getInstance().get_active_study().save()
 
     def __on_download_example_data(self):
-        QDesktopServices.openUrl(QUrl("https://drive.google.com/file/d/1W3klW_F7Rfge9-utczz9qp7uWh-pVPS1/view?usp=sharing"))
+        QDesktopServices.openUrl(QUrl("https://github.com/raidionics/Raidionics-models/releases/download/v1.3.0-rc/Samples-Raidionics-ApprovedExample-v1.3.zip"))
 
     def on_process_log_message(self, log_msg: str) -> None:
         """
@@ -510,7 +525,7 @@ class RaidionicsMainWindow(QMainWindow):
         if True in [x in log_msg for x in cases]:
             diag = QErrorMessage(self)
             diag.setWindowTitle("Error or warning identified!")
-            diag.showMessage(log_msg + "\nPlease visit the log file (Settings > Logs)")
+            diag.showMessage(log_msg + "<br><br>Please visit the log file (Settings > Logs)")
             diag.setMinimumSize(QSize(400, 150))
             diag.exec()
 
@@ -523,3 +538,11 @@ class RaidionicsMainWindow(QMainWindow):
             # self.singleuse_mode_widget.standardOutputWritten(text)
         elif self.central_stackedwidget.currentIndex() == 2:
             self.batch_mode_widget.standardOutputWritten(text)
+
+    def on_clear_scene(self):
+        logging.info("[RaidionicsMainWindow] Interface clean-up. Removing all loaded patients and studies.")
+        self.batch_study_widget.on_clear_scene()
+        self.single_patient_widget.on_clear_scene()
+        SoftwareConfigResources.getInstance().reset() # <= Necessary for the integration tests not to crash...
+        if len(list(SoftwareConfigResources.getInstance().patients_parameters.keys())) > 0:
+            raise ValueError("[Software error] Existing patient IDs after clearing the scene!")

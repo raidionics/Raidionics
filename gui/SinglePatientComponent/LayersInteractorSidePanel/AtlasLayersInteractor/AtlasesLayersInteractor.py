@@ -91,6 +91,17 @@ class AtlasesLayersInteractor(QCollapsibleWidget):
             self.volumes_widget.pop(w)
         self.header.collapse()
 
+    def get_layer_widget_by_index(self, index: int) -> AtlasSingleLayerWidget:
+        if index >= len(self.volumes_widget):
+            raise ValueError("[AtlasesLayerInteractor] Trying to retrieve an Atlas layer widget with an out-of-bound index value.")
+        return self.volumes_widget[list(self.volumes_widget.keys())[index]]
+
+    def get_layer_widget_by_visible_name(self, name: str) -> AtlasSingleLayerWidget:
+        for w in list(self.volumes_widget.keys()):
+            if self.volumes_widget[w].visible_name == name:
+                return self.volumes_widget[w]
+        raise ValueError("[AtlasesLayerInteractor] Trying to retrieve a non-existing Atlas layer widget by visible name with: {}.".format(name))
+
     def on_volume_view_toggled(self, volume_uid: str, state: bool) -> None:
         """
         A change of the displayed MRI volume has been requested by the user, which should lead to an update of all

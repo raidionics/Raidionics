@@ -178,7 +178,7 @@ class CustomQGraphicsView(QGraphicsView):
         dialog.patient_imported.connect(self.patient_imported)
 
         dialog.setup_interface_from_files(entered_eligible_files)
-        code = dialog.exec_()
+        code = dialog.exec()
 
         # if code == QDialog.Accepted:
 

@@ -41,20 +41,23 @@ class InvestigationTimestamp:
 
     def __init__(self, uid: str, order: int, output_patient_folder: str, dicom_study_id: str = None,
                  inv_time: str = None, reload_params: dict = None) -> None:
-        self.__reset()
-        self._unique_id = uid
-        if dicom_study_id:
-            self._dicom_study_id = dicom_study_id
-        self._order = order
-        self._output_patient_folder = output_patient_folder
-        if inv_time:
-            self._datetime = datetime.datetime.strptime(inv_time, "%Y%m%d").date()
-        self._display_name = uid
+        try:
+            self.__reset()
+            self._unique_id = uid
+            if dicom_study_id:
+                self._dicom_study_id = dicom_study_id
+            self._order = order
+            self._output_patient_folder = output_patient_folder
+            if inv_time:
+                self._datetime = datetime.datetime.strptime(inv_time, "%Y%m%d").date()
+            self._display_name = uid
 
-        if reload_params:
-            self.__reload_from_disk(reload_params)
-        else:
-            self.__init_from_scratch()
+            if reload_params:
+                self.__reload_from_disk(reload_params)
+            else:
+                self.__init_from_scratch()
+        except Exception as e:
+            raise RuntimeError(e)
 
     def __reset(self):
         self._unique_id = None
@@ -98,19 +101,24 @@ class InvestigationTimestamp:
         logging.debug(
             "Unsaved changes - Investigation timestamp display name changed from {} to {}".format(self._display_name,
                                                                                                   text))
-        self._display_name = text
-        new_folder_name = self._display_name.strip().replace(" ", "")
-        if os.path.exists(os.path.join(self._output_patient_folder, new_folder_name)):
-            # @TODO. Should return an error message, but then should be made into a set_display_name method....
-            return
-        if os.path.exists(os.path.join(self._output_patient_folder, self._folder_name)):
-            shutil.move(src=os.path.join(self._output_patient_folder, self._folder_name),
-                        dst=os.path.join(self._output_patient_folder, new_folder_name))
-        logging.debug(
-            "Unsaved changes - Investigation timestamp folder name changed from {} to {}".format(self._folder_name,
-                                                                                                 new_folder_name))
-        self._folder_name = new_folder_name
-        self._unsaved_changes = True
+        try:
+            self._display_name = text
+            new_folder_name = self._display_name.strip().replace(" ", "")
+            if os.path.exists(os.path.join(self._output_patient_folder, new_folder_name)):
+                msg = 'A timestamp with requested name already exists in the destination folder.<br>' + \
+                      'Requested name: {}.<br>'.format(new_folder_name) + \
+                      'Destination folder: {}.'.format(os.path.dirname(self._output_patient_folder))
+                raise ValueError(msg)
+            if os.path.exists(os.path.join(self._output_patient_folder, self._folder_name)):
+                shutil.move(src=os.path.join(self._output_patient_folder, self._folder_name),
+                            dst=os.path.join(self._output_patient_folder, new_folder_name))
+                logging.debug(
+                    "Unsaved changes - Investigation timestamp folder name changed from {} to {}".format(self._folder_name,
+                                                                                                         new_folder_name))
+            self._folder_name = new_folder_name
+            self._unsaved_changes = True
+        except Exception as e:
+            raise RuntimeError("Changing Timestamp display name from {} to {} failed with: {}".format(self._folder_name, text, e))
 
     def set_datetime(self, inv_time: str) -> None:
         self._datetime = datetime.datetime.strptime(inv_time, "%d/%m/%Y, %H:%M:%S")
@@ -146,15 +154,18 @@ class InvestigationTimestamp:
             timestamp_params['datetime'] = self._datetime.strftime("%d/%m/%Y, %H:%M:%S") if self._datetime else None
             self._unsaved_changes = False
             return timestamp_params
-        except Exception:
-            logging.error("[Software error] InvestigationTimestampStructure saving failed with:\n {}".format(traceback.format_exc()))
+        except Exception as e:
+            raise RuntimeError("InvestigationTimestampStructure saving failed with: {}".format(e))
 
     def delete(self) -> None:
         if os.path.exists(os.path.join(self._output_patient_folder, self._folder_name)):
             shutil.rmtree(os.path.join(self._output_patient_folder, self._folder_name))
 
     def __init_from_scratch(self) -> None:
-        self._folder_name = self._display_name.strip().replace(" ", "")
+        try:
+            self._folder_name = self._display_name.strip().replace(" ", "")
+        except Exception as e:
+            raise RuntimeError("InvestigationTimestampStructure init from scratch failed with: {}".format(e))
 
     def __reload_from_disk(self, parameters: dict) -> None:
         try:
@@ -167,5 +178,5 @@ class InvestigationTimestamp:
                 self._folder_name = self._display_name.strip().replace(" ", "")
             if 'datetime' in list(parameters.keys()) and parameters['datetime']:
                 self._datetime = datetime.datetime.strptime(parameters['datetime'], "%d/%m/%Y, %H:%M:%S")
-        except Exception:
-            logging.error("[Software error] InvestigationTimestampStructure reloading from disk failed with:\n {}".format(traceback.format_exc()))
+        except Exception as e:
+            raise RuntimeError("InvestigationTimestampStructure reloading from disk failed with: {}".format(e))

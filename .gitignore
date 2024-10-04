@@ -37,3 +37,4 @@ quickpkg/
 *.zip
 *.tar.gz
 assets/Raidionics_ubuntu/usr/local/bin
+.coverage
