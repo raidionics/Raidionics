@@ -53,8 +53,11 @@ jobs:
       env:
         DISPLAY: ':99.0'
       run: |
-          pip install pytest-qt pytest-cov
+          cd ${{github.workspace}}
+          source tmp/venv/bin/activate
+          pip3 install pytest-qt pytest-cov
           pytest --cov=gui --cov=utils ${{github.workspace}}/integration_tests
+          deactivate
 
     - name: Build software
       run: |
