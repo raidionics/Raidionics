@@ -75,6 +75,8 @@ class RaidionicsMainWindow(QMainWindow):
             code = dialog.exec()
             if code == 0:  # Operation cancelled
                 event.ignore()
+        if self.logs_thread.isRunning():
+            self.logs_thread.stop()
         logging.info("Graceful exit.")
 
     def resizeEvent(self, event):
@@ -88,7 +90,9 @@ class RaidionicsMainWindow(QMainWindow):
         """
         Mirroring of the closeEvent, for when the user press the Quit action in the main menu.
         """
-        self.logs_thread.stop()
+        if self.logs_thread.isRunning():
+            self.logs_thread.stop()
+
         if not SoftwareConfigResources.getInstance().is_patient_list_empty()\
                 and SoftwareConfigResources.getInstance().get_active_patient() is not None\
                 and SoftwareConfigResources.getInstance().get_active_patient().has_unsaved_changes():

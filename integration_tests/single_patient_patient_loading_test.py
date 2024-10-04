@@ -195,7 +195,10 @@ def test_patient_loading_from_raidionics(qtbot, test_location, test_data_folder,
 #                          list(window.single_patient_widget.results_panel.patient_results_widgets.keys())[
 #                              0]].save_patient_pushbutton, Qt.MouseButton.LeftButton)
 
-def test_cleanup():
+def test_cleanup(window):
+    if window.logs_thread.isRunning():
+        window.logs_thread.stop()
+        sleep(2)
     UserPreferencesStructure.getInstance().user_home_location = def_loc
     test_loc = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'integrationtests')
     if os.path.exists(test_loc):

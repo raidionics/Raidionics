@@ -185,7 +185,14 @@ def test_empty_patient_timestamp_data_inclusion(qtbot, test_location, test_data_
     # Saving the latest modifications to the patient on disk by pressing the disk icon
     qtbot.mouseClick(window.single_patient_widget.results_panel.get_patient_results_widget_by_index(0).save_patient_pushbutton, Qt.MouseButton.LeftButton)
 
-def test_cleanup():
+def test_cleanup(window):
+    """
+    To delete the temporary resources needed for running the different tests and to prevent Core dumped error when
+    the window object will be destroyed (manually stopping running threads)
+    """
+    if window.logs_thread.isRunning():
+        window.logs_thread.stop()
+        sleep(2)
     UserPreferencesStructure.getInstance().user_home_location = def_loc
     test_loc = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'integrationtests')
     if os.path.exists(test_loc):
