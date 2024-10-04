@@ -6,7 +6,7 @@
 [![GitHub Downloads](https://img.shields.io/github/downloads/dbouget/Raidionics/total?label=GitHub%20downloads&logo=github)](https://github.com/dbouget/Raidionics/releases)
 [![License](https://img.shields.io/badge/License-BSD%202--Clause-orange.svg)](https://opensource.org/licenses/BSD-2-Clause)
 [![Paper](https://zenodo.org/badge/DOI/10.1038/s41598-023-42048-7.svg)](https://doi.org/10.1038/s41598-023-42048-7)
- 
+[![codecov](https://codecov.io/gh/raidionics/Raidionics/branch/master/graph/badge.svg?token=ZSPQVR7RKX)](https://codecov.io/gh/raidionics/Raidionics)
 **Raidionics** was developed by SINTEF Medical Image Analysis. A paper presenting the software and some benchmarks has been published in [Scientific Reports](https://doi.org/10.1038/s41598-023-42048-7).
  
  <img src="assets/images/Preview_SingleUse.gif" width="85%">
