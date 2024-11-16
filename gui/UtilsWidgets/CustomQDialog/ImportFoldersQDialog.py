@@ -291,7 +291,11 @@ class ImportFoldersQDialog(QDialog):
                         SoftwareConfigResources.getInstance().get_patient(uid=pat_uid).set_display_name(dicom_holder.patient_id)
                         for study_id in dicom_holder.studies.keys():
                             for series_id in dicom_holder.studies[study_id].dicom_series.keys():
-                                volume_uid = SoftwareConfigResources.getInstance().get_patient(uid=pat_uid).import_dicom_data(dicom_holder.studies[study_id].dicom_series[series_id])
+                                try:
+                                    volume_uid = SoftwareConfigResources.getInstance().get_patient(uid=pat_uid).import_dicom_data(dicom_holder.studies[study_id].dicom_series[series_id])
+                                except Exception as e:
+                                    logging.info("[ImportFoldersQDialog] Skipping importing {} because {}".format(series_id, e))
+                                    continue
                         self.patient_imported.emit(pat_uid)
                         SoftwareConfigResources.getInstance().get_patient(pat_uid).save_patient()
                         if self.operation_mode == 'study':

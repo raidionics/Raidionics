@@ -13,7 +13,7 @@ class StudiesSidePanelWidget(QWidget):
     """
 
     """
-    study_selected = Signal(str)  # Unique internal id of the selected patient
+    study_selected = Signal(str)  # Unique internal id of the selected study
     import_study_from_file_requested = Signal()
     mri_volume_imported = Signal(str)
     annotation_volume_imported = Signal(str)
@@ -140,6 +140,23 @@ class StudiesSidePanelWidget(QWidget):
         self.study_list_scrollarea_dummy_widget.setFixedSize(QSize(self.size().width(), actual_height))
         # logging.debug("Studies scroll area size set to {}.\n".format(QSize(self.size().width(), actual_height)))
 
+    def get_study_widget_length(self) -> int:
+        return len(self.single_study_widgets)
+
+    def get_study_widget_by_index(self, index: int) -> SingleStudyWidget:
+        if index >= len(self.single_study_widgets):
+            raise ValueError(
+                "[StudiesSidePanelWidget] Trying to retrieve a study widget with an out-of-bound index value.")
+        return self.single_study_widgets[list(self.single_study_widgets.keys())[index]]
+
+    def get_study_widget_by_display_name(self, name: str) -> SingleStudyWidget:
+        for w in list(self.single_study_widgets.keys()):
+            if self.single_study_widgets[w].header.title_label == name:
+                return self.single_study_widgets[w]
+        raise ValueError(
+            "[StudiesSidePanelWidget] Trying to retrieve a non-existing study widget by visible name with: {}.".format(
+                name))
+
     def on_import_data(self):
         """
         In case some patients where imported at the same time as some image for the current patient?
@@ -209,6 +226,10 @@ class StudiesSidePanelWidget(QWidget):
         self.adjustSize()  # To trigger a removal of the side scroll bar if needs be.
 
     def on_add_new_empty_study(self):
+        """
+        @TODO. There's a bug where the active study changes on the left side, but the other two panels are not being
+        updated accordingly.
+        """
         if SoftwareConfigResources.getInstance().active_study_name and\
                 SoftwareConfigResources.getInstance().get_active_study().has_unsaved_changes():
             dialog = SavePatientChangesDialog()
@@ -257,7 +278,11 @@ class StudiesSidePanelWidget(QWidget):
         # Top position
         self.options_menu.exec(self.bottom_add_study_pushbutton.mapToGlobal(QPoint(0, 0)))
 
-    def on_add_existing_study_requested(self):
+    def on_add_existing_study_requested(self) -> None:
+        """
+        @TODO. Here, the newly added study should become the active study and somewhat __on_study_selection
+        should be triggered. As of now the left-handed side panel is not properly updated...
+        """
         if SoftwareConfigResources.getInstance().active_study_name and\
                 SoftwareConfigResources.getInstance().get_active_study().has_unsaved_changes():
             dialog = SavePatientChangesDialog()

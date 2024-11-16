@@ -59,7 +59,7 @@ def window():
 
 
 """ Remaining tests to add
-# * Loading data from DICOM folder (must add a DICOM folder in the test data package
+# * Loading data from DICOM folder (must add a DICOM folder in the test data package)
 # * Adding extra MRI volume from the same DICOM folder afterwards
 # * Open a new DICOM folder
 # * Delete an image

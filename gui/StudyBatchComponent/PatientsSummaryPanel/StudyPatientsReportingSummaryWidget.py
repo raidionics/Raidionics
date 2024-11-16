@@ -73,6 +73,9 @@ class StudyPatientsReportingSummaryWidget(QWidget):
     def adjustSize(self) -> None:
         pass
 
+    def on_reset_interface(self) -> None:
+        self.content_table_widget.setRowCount(0)
+
     def on_patients_import(self) -> None:
         """
         @TODO. Should get the list of imported patients to only update those, rather than redo everything

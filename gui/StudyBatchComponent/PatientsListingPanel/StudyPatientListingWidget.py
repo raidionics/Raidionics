@@ -149,6 +149,15 @@ class StudyPatientListingWidget(QWidget):
         # logging.debug("Study patient listing scroll area size set to {}.\n".format(QSize(self.size().width(),
         #                                                                                  actual_height)))
 
+    def on_reset_interface(self) -> None:
+        for wid in reversed(list(self.study_patient_widgetitems.keys())):
+            self.patients_list_scrollarea_layout.removeWidget(self.study_patient_widgetitems[wid])
+            self.study_patient_widgetitems[wid].setParent(None)
+            del self.study_patient_widgetitems[wid]
+        self.study_patient_widgetitems = {}
+        self.adjustSize()
+        self.repaint()
+
     def on_patient_imported(self, patient_uid: str) -> None:
         wid = PatientListingWidgetItem(patient_uid=patient_uid, parent=self)
         self.study_patient_widgetitems[patient_uid] = wid
@@ -193,3 +202,10 @@ class StudyPatientListingWidget(QWidget):
 
     def on_process_finished(self):
         self.patients_refresh_pushbutton.setEnabled(True)
+
+    def on_study_selected(self, uid: str) -> None:
+        """
+        Working on the active study anyway here, so the uid parameter is not used for now.
+        """
+        self.on_reset_interface()
+        self.on_study_imported(uid)

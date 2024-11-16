@@ -97,6 +97,9 @@ class StudyPatientsContentSummaryPanelWidget(QWidget):
     def adjustSize(self) -> None:
         pass
 
+    def on_reset_interface(self) -> None:
+        self.content_tree_widget.clear()
+
     def on_patients_import(self) -> None:
         self.content_tree_widget.clear()
         study_patients_uid = SoftwareConfigResources.getInstance().get_active_study().included_patients_uids

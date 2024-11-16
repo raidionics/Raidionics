@@ -131,6 +131,13 @@ class StudyPatientsSummaryPanelWidget(QWidget):
     def __on_selector_index_changed(self, index: int) -> None:
         self.main_stackedwidget.setCurrentIndex(index)
 
+    def on_study_selected(self, uid: str) -> None:
+        """
+        The selected study is∕should be the active study, so no need to use the uid here?
+        Otherwise another method should be designed.
+        """
+        self.on_processing_finished()
+
     def on_processing_finished(self):
         self.patients_content_summary_panel.postprocessing_update()
         self.patients_segmentation_summary_panel.postprocessing_update()
@@ -148,3 +155,10 @@ class StudyPatientsSummaryPanelWidget(QWidget):
         self.patients_content_summary_panel.postprocessing_update()
         self.patients_segmentation_summary_panel.postprocessing_update()
         self.patients_reporting_summary_panel.postprocessing_update()
+
+    def on_reset_interface(self) -> None:
+        self.patients_content_summary_panel.on_reset_interface()
+        self.patients_segmentation_summary_panel.on_reset_interface()
+        self.patients_reporting_summary_panel.on_reset_interface()
+        self.adjustSize()
+        self.repaint()

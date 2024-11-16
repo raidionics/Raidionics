@@ -110,6 +110,10 @@ class StudyBatchWidget(QWidget):
         self.studies_panel.patient_imported.connect(self.patient_listing_panel.on_patient_imported)
         self.studies_panel.batch_pipeline_execution_requested.connect(self.on_batch_pipeline_execution_wrapper)
         self.studies_panel.patients_import_finished.connect(self.patients_summary_panel.patients_imported)
+        self.studies_panel.reset_interface_requested.connect(self.patient_listing_panel.on_reset_interface)
+        self.studies_panel.reset_interface_requested.connect(self.patients_summary_panel.on_reset_interface)
+        self.studies_panel.study_selected.connect(self.patient_listing_panel.on_study_selected)
+        self.studies_panel.study_selected.connect(self.patients_summary_panel.on_study_selected)
         self.study_imported.connect(self.studies_panel.on_study_imported)
 
         self.patient_listing_panel.patient_selected.connect(self.patient_selected)
@@ -150,6 +154,9 @@ class StudyBatchWidget(QWidget):
         #     self.study_imported.emit()
 
     def on_study_imported(self, study_uid: str):
+        """
+
+        """
         self.study_imported.emit(study_uid)
         for pat_uid in SoftwareConfigResources.getInstance().get_study(study_uid).included_patients_uids.keys():
             self.patient_imported.emit(pat_uid)

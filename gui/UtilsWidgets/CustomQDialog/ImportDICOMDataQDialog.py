@@ -26,6 +26,8 @@ class ImportDICOMDataQDialog(QDialog):
     patient_imported = Signal(str)
     # The str is the unique id for the mri volume, belonging to the active patient
     mri_volume_imported = Signal(str)
+    # The str is the unique id for the annotation volume, belonging to the active patient
+    annotation_volume_imported = Signal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -123,9 +125,9 @@ class ImportDICOMDataQDialog(QDialog):
     def __set_selected_dicom_content_area(self):
         self.selected_series_tablewidget = ImportDICOMQTableWidget(self)
         self.selected_series_tablewidget.setEditTriggers(QTableWidget.NoEditTriggers)
-        self.selected_series_tablewidget.setColumnCount(6)
-        self.selected_series_tablewidget.setHorizontalHeaderLabels(["Study ID", "Series #", "Series ID",
-                                                                    "Series description", "Size", "Date"])
+        self.selected_series_tablewidget.setColumnCount(7)
+        self.selected_series_tablewidget.setHorizontalHeaderLabels(["Study ID", "Study description", "Series #",
+                                                                    "Series ID", "Series description", "Size", "Date"])
         self.selected_series_tablewidget.setSelectionBehavior(QTableWidget.SelectRows)
 
     def __set_connections(self):
@@ -247,6 +249,8 @@ class ImportDICOMDataQDialog(QDialog):
 
         self.current_folder = os.path.dirname(input_directory)
         try:
+            # @TODO. If the directory contains data for more than one patient, all scans will be treated
+            # as coming from the same patient...
             dicom_holder = PatientDICOM(input_directory)
             dicom_holder.parse_dicom_folder()
             if dicom_holder.patient_id not in list(self.dicom_holders.keys()):
@@ -273,15 +277,22 @@ class ImportDICOMDataQDialog(QDialog):
             self.load_progressbar.setValue(0)
 
             # Ordering selecting series by date for timestamp-ordered import.
-            ordered_series_ids = self.__sort_selected_series_by_date(study_uids=[self.selected_series_tablewidget.item(elem, 0).text() for
+            ordered_series_ids = self.__sort_selected_series_by_date(study_uids=[self.selected_series_tablewidget.item(elem, 0).text() + '_' + self.selected_series_tablewidget.item(elem, 1).text() for
                                                              elem in range(self.selected_series_tablewidget.rowCount())],
-                                                            series_uids=[self.selected_series_tablewidget.item(elem, 2).text() for
+                                                            series_uids=[self.selected_series_tablewidget.item(elem, 3).text() for
                                                              elem in range(self.selected_series_tablewidget.rowCount())])
 
             for i, elem in enumerate(ordered_series_ids.keys()):
                 series_reader = self.dicom_holder.studies[ordered_series_ids[elem]].dicom_series[elem]
-                uid = SoftwareConfigResources.getInstance().get_active_patient().import_dicom_data(series_reader)
-                self.mri_volume_imported.emit(uid)
+                # @TODO. The check does not look for content in the Annotations...
+                if not SoftwareConfigResources.getInstance().get_active_patient().is_dicom_series_already_loaded(series_reader.series_id):
+                    uid, data_type = SoftwareConfigResources.getInstance().get_active_patient().import_dicom_data(series_reader)
+                    if data_type == "MRI":
+                        self.mri_volume_imported.emit(uid)
+                    elif data_type == "Annotation":
+                        self.annotation_volume_imported.emit(uid)
+                else:
+                    logging.info("Skipping DICOM input as it is already loaded in the software.")
                 self.load_progressbar.setValue(i + 1)
         except Exception as e:
             logging.error("[Software error] Importing new DICOM data failed. <br><br> Reason: {}".format(e))
@@ -323,15 +334,18 @@ class ImportDICOMDataQDialog(QDialog):
             Row value for the clicked cell.
         """
         study_id = self.content_study_tablewidget.item(row, 1).text()
-        self.__update_series_display(study_id=study_id)
+        study_desc = self.content_study_tablewidget.item(row, 2).text()
+        study_name = study_id + '_' + study_desc
+        self.__update_series_display(study_id=study_name)
         self.set_fixed_patient(patient_id=None)
 
     def __on_series_selected(self, row, column):
         study_id_item = self.content_study_tablewidget.item(self.content_study_tablewidget.currentRow(), 1)
+        study_desc_item = self.content_study_tablewidget.item(self.content_study_tablewidget.currentRow(), 2)
         series_id_item = self.content_series_tablewidget.item(self.content_series_tablewidget.currentRow(), 0)
-        series = self.dicom_holder.studies[study_id_item.text()].dicom_series[series_id_item.text()]
+        series = self.dicom_holder.studies[study_id_item.text() + '_' + study_desc_item.text()].dicom_series[series_id_item.text()]
         series_study = series.get_metadata_value('0020|0010')
-        status = (series_study in self.selected_series_tablewidget.get_column_values(0)) and (series.series_id in self.selected_series_tablewidget.get_column_values(2))
+        status = (series_study in self.selected_series_tablewidget.get_column_values(0)) and (series.series_id in self.selected_series_tablewidget.get_column_values(3))
         # @TODO. Should in addition check that the series has not already been included (if appearing as green), or should
         # disable click events on the row when setting it to green?
         if not status:
@@ -339,14 +353,16 @@ class ImportDICOMDataQDialog(QDialog):
             self.selected_series_tablewidget.setItem(self.selected_series_tablewidget.rowCount() - 1, 0,
                                                      QTableWidgetItem(series.get_metadata_value('0020|0010')))
             self.selected_series_tablewidget.setItem(self.selected_series_tablewidget.rowCount() - 1, 1,
-                                                    QTableWidgetItem(series.series_number))
+                                                     QTableWidgetItem(series.get_metadata_value('0008|1030')))
             self.selected_series_tablewidget.setItem(self.selected_series_tablewidget.rowCount() - 1, 2,
-                                                    QTableWidgetItem(series.series_id))
+                                                    QTableWidgetItem(series.series_number))
             self.selected_series_tablewidget.setItem(self.selected_series_tablewidget.rowCount() - 1, 3,
-                                                    QTableWidgetItem(series.get_series_description()))
+                                                    QTableWidgetItem(series.series_id))
             self.selected_series_tablewidget.setItem(self.selected_series_tablewidget.rowCount() - 1, 4,
-                                                    QTableWidgetItem("x".join(str(x) for x in series.volume_size)))
+                                                    QTableWidgetItem(series.get_series_description()))
             self.selected_series_tablewidget.setItem(self.selected_series_tablewidget.rowCount() - 1, 5,
+                                                    QTableWidgetItem("x".join(str(x) for x in series.volume_size)))
+            self.selected_series_tablewidget.setItem(self.selected_series_tablewidget.rowCount() - 1, 6,
                                                     QTableWidgetItem(series.series_date))
             for c in range(self.selected_series_tablewidget.columnCount()):
                 self.selected_series_tablewidget.resizeColumnToContents(c)
@@ -381,8 +397,8 @@ class ImportDICOMDataQDialog(QDialog):
         for study_id in list(self.dicom_holder.studies.keys()):
             study = self.dicom_holder.studies[study_id]
             self.content_study_tablewidget.insertRow(self.content_study_tablewidget.rowCount())
-            self.content_study_tablewidget.setItem(self.content_study_tablewidget.rowCount() - 1, 0, QTableWidgetItem(study.study_acquisition_date))
-            self.content_study_tablewidget.setItem(self.content_study_tablewidget.rowCount() - 1, 1, QTableWidgetItem(study_id))
+            self.content_study_tablewidget.setItem(self.content_study_tablewidget.rowCount() - 1, 0, QTableWidgetItem(study.study_date))
+            self.content_study_tablewidget.setItem(self.content_study_tablewidget.rowCount() - 1, 1, QTableWidgetItem(study.study_id))
             self.content_study_tablewidget.setItem(self.content_study_tablewidget.rowCount() - 1, 2, QTableWidgetItem(study.study_description))
             self.content_study_tablewidget.setItem(self.content_study_tablewidget.rowCount() - 1, 3, QTableWidgetItem(str(len(study.dicom_series))))
 
@@ -477,7 +493,8 @@ class ImportDICOMDataQDialog(QDialog):
         ordered_series_uids = {}
         try:
             for i, series_uid in enumerate(study_uids):
-                study_ids.append(self.selected_series_tablewidget.item(i, 0).text())
+                study_ids.append(self.selected_series_tablewidget.item(i, 0).text() +
+                                 '_' + self.selected_series_tablewidget.item(i, 1).text())
 
             unique_study_ids = np.unique(study_ids)
             if len(unique_study_ids) == 1:

@@ -57,6 +57,9 @@ def window():
 """
 Remaining tests to add:
 * Import patient and jump to patient view and assert that the MRIs are correctly displayed (not working now)
+* Using the Clear main option should also properly reset all related Study Widgets (working now)
+* Adding multiple new studies in a row (first with a patient and then without) and checking that the other two
+panels are displaying one or no patient accordingly (not working now)
 """
 
 
@@ -68,6 +71,19 @@ def test_empty_study_creation(qtbot, test_location, window):
     qtbot.mouseClick(window.welcome_widget.left_panel_multiple_patients_pushbutton, Qt.MouseButton.LeftButton)
     window.batch_study_widget.studies_panel.add_empty_study_action.trigger()
     assert len(SoftwareConfigResources.getInstance().study_parameters) == 1
+
+def test_empty_study_renaming(qtbot, test_location, window):
+    """
+    Creation of a new empty study followed by renaming.
+    """
+    qtbot.addWidget(window)
+    qtbot.mouseClick(window.welcome_widget.left_panel_multiple_patients_pushbutton, Qt.MouseButton.LeftButton)
+    window.batch_study_widget.studies_panel.add_empty_study_action.trigger()
+    window.batch_study_widget.studies_panel.get_study_widget_by_index(0).study_name_lineedit.setText("Study1")
+    qtbot.keyClick(window.batch_study_widget.studies_panel.get_study_widget_by_index(0).study_name_lineedit, Qt.Key_Enter)
+    assert SoftwareConfigResources.getInstance().get_active_study().display_name == "Study1"
+
+    qtbot.mouseClick(window.batch_study_widget.studies_panel.get_study_widget_by_index(0).save_study_pushbutton, Qt.MouseButton.LeftButton)
 
 def test_cleanup(window):
     if window.logs_thread.isRunning():
