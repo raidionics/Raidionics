@@ -10,8 +10,6 @@ import pytest
 from PySide6.QtCore import Qt
 
 from gui.RaidionicsMainWindow import RaidionicsMainWindow
-from gui.UtilsWidgets.CustomQDialog.ImportDataQDialog import ImportDataQDialog
-from gui.UtilsWidgets.CustomQDialog.ImportFoldersQDialog import ImportFolderLineWidget
 from utils.software_config import SoftwareConfigResources
 from utils.data_structures.UserPreferencesStructure import UserPreferencesStructure
 
@@ -60,10 +58,7 @@ def window():
 
 
 """ Remaining tests to add
-# * Loading data from DICOM folder (must add a DICOM folder in the test data package)
-# * Adding extra MRI volume from the same DICOM folder afterwards
-# * Open a new DICOM folder
-# * Delete an image
+    * Delete an image
 """
 
 def test_empty_patient_creation(qtbot, test_location, window):
@@ -76,6 +71,7 @@ def test_empty_patient_creation(qtbot, test_location, window):
 
     assert len(SoftwareConfigResources.getInstance().patients_parameters) == 1
     assert window.single_patient_widget.results_panel.get_patient_results_widget_size() == 1
+    window.on_clear_scene()
 
 
 def test_empty_patient_timestamp_data_inclusion(qtbot, test_location, test_data_folder, window):
@@ -129,6 +125,7 @@ def test_empty_patient_timestamp_data_inclusion(qtbot, test_location, test_data_
 
     # Saving the latest modifications to the patient on disk by pressing the disk icon
     qtbot.mouseClick(window.single_patient_widget.results_panel.get_patient_results_widget_by_index(0).save_patient_pushbutton, Qt.MouseButton.LeftButton)
+    window.on_clear_scene()
 
 
 def test_patient_loading_from_files(qtbot, test_location, test_data_folder, window):
@@ -150,6 +147,7 @@ def test_patient_loading_from_files(qtbot, test_location, test_data_folder, wind
 
     # Saving the latest modifications to the patient on disk by pressing the disk icon
     qtbot.mouseClick(window.single_patient_widget.results_panel.get_patient_results_widget_by_index(0).save_patient_pushbutton, Qt.MouseButton.LeftButton)
+    window.on_clear_scene()
 
 
 def test_patient_loading_from_folder(qtbot, test_location, test_data_folder, window):
@@ -169,14 +167,14 @@ def test_patient_loading_from_folder(qtbot, test_location, test_data_folder, win
     window.single_patient_widget.import_folder_dialog.reset()
     window.single_patient_widget.import_folder_dialog.set_parsing_mode("single")
     window.single_patient_widget.import_folder_dialog.set_target_type("regular")
-    wid = ImportFolderLineWidget()
-    wid.filepath_lineedit.setText(sample_folder)
-    window.single_patient_widget.import_folder_dialog.import_scrollarea_layout.insertWidget(window.single_patient_widget.import_folder_dialog.import_scrollarea_layout.count() - 1, wid)
+    window.single_patient_widget.import_folder_dialog.setup_interface_from_selection(sample_folder)
     window.single_patient_widget.import_folder_dialog.__on_exit_accept_clicked()
     assert len(list(SoftwareConfigResources.getInstance().get_patient_by_display_name("Raw").mri_volumes.keys())) == 2
 
     # Saving the latest modifications to the patient on disk by pressing the disk icon
     qtbot.mouseClick(window.single_patient_widget.results_panel.get_patient_results_widget_by_index(0).save_patient_pushbutton, Qt.MouseButton.LeftButton)
+    window.on_clear_scene()
+
 
 def test_patient_loading_from_folder_multiple_ts(qtbot, test_location, test_data_folder, window):
     """
@@ -188,25 +186,23 @@ def test_patient_loading_from_folder_multiple_ts(qtbot, test_location, test_data
 
     # Importing MRI files from Import patient > Other data type (*.nii)
     # window.single_patient_widget.results_panel.add_folder_data_action.trigger() <= Cannot use the actual pushbutton action as it would open the QDialog...
-    window.single_patient_widget.results_panel.on_add_new_empty_patient()
     sample_folder = os.path.join(test_data_folder, 'Raw_WithTS')
 
     window.single_patient_widget.import_folder_dialog.reset()
     window.single_patient_widget.import_folder_dialog.set_parsing_mode("single")
     window.single_patient_widget.import_folder_dialog.set_target_type("regular")
-    wid = ImportFolderLineWidget()
-    wid.filepath_lineedit.setText(sample_folder)
-    window.single_patient_widget.import_folder_dialog.import_scrollarea_layout.insertWidget(window.single_patient_widget.import_folder_dialog.import_scrollarea_layout.count() - 1, wid)
+    window.single_patient_widget.import_folder_dialog.setup_interface_from_selection(sample_folder)
     window.single_patient_widget.import_folder_dialog.__on_exit_accept_clicked()
-
     # Verifying that two timestamps exist for the patient and that each timestamp contains two images
-    ts_uids = SoftwareConfigResources.getInstance().get_patient_by_display_name("Raw_WithTS").get_all_timestamps_uids()
+    ts_uids = SoftwareConfigResources.getInstance().get_active_patient().get_all_timestamps_uids()
     assert len(ts_uids) == 2
-    assert len(SoftwareConfigResources.getInstance().get_all_mri_volumes_for_timestamp(ts_uids[0])) == 2
-    assert len(SoftwareConfigResources.getInstance().get_all_mri_volumes_for_timestamp(ts_uids[1])) == 2
+    assert len(SoftwareConfigResources.getInstance().get_active_patient().get_all_mri_volumes_for_timestamp(ts_uids[0])) == 2
+    assert len(SoftwareConfigResources.getInstance().get_active_patient().get_all_mri_volumes_for_timestamp(ts_uids[1])) == 2
 
     # Saving the latest modifications to the patient on disk by pressing the disk icon
     qtbot.mouseClick(window.single_patient_widget.results_panel.get_patient_results_widget_by_index(0).save_patient_pushbutton, Qt.MouseButton.LeftButton)
+    window.on_clear_scene()
+
 
 def test_cleanup(window):
     """
