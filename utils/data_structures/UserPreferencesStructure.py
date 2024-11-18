@@ -63,6 +63,28 @@ class UserPreferencesStructure:
             self.user_home_location = os.path.join(expanduser('~'), '.raidionics')
             self.save_preferences()
 
+    def reset(self):
+        self.user_home_location = None
+        self.active_model_update = False
+        self.use_manual_sequences = True
+        self.use_manual_annotations = False
+        self.export_results_as_rtstruct = False
+        self.use_stripped_inputs = False
+        self.use_registered_inputs = False
+        self.display_space = 'Patient'
+        self.segmentation_tumor_model_type = "Tumor"
+        self.perform_segmentation_refinement = False
+        self.segmentation_refinement_type = "dilation"
+        self.segmentation_refinement_dilation_percentage = 0
+        self.compute_cortical_structures = True
+        self.cortical_structures_list = ["MNI", "Schaefer7", "Schaefer17", "Harvard-Oxford"]
+        self.compute_subcortical_structures = True
+        self.subcortical_structures_list = ["BCB", "BrainGrid"]
+        self.compute_braingrid_structures = False
+        self.braingrid_structures_list = ["Voxels"]
+        self.use_dark_mode = False
+        self.save_preferences()
+
     @property
     def preferences_filename(self) -> str:
         return self._preferences_filename
@@ -181,6 +203,15 @@ class UserPreferencesStructure:
     @perform_segmentation_refinement.setter
     def perform_segmentation_refinement(self, state: bool) -> None:
         self._perform_segmentation_refinement = state
+        self.save_preferences()
+
+    @property
+    def segmentation_refinement_type(self) -> str:
+        return self._segmentation_refinement_type
+
+    @segmentation_refinement_type.setter
+    def segmentation_refinement_type(self, ntype: str) -> None:
+        self._segmentation_refinement_type = ntype
         self.save_preferences()
 
     @property

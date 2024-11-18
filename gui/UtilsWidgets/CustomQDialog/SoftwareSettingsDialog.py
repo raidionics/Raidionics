@@ -12,7 +12,9 @@ from utils.data_structures.UserPreferencesStructure import UserPreferencesStruct
 
 
 class SoftwareSettingsDialog(QDialog):
-
+    """
+    @TODO. Should add a box to reset all parameters to the default settings
+    """
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Settings")

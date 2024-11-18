@@ -65,31 +65,9 @@ def window():
 # * Delete an image
 """
 
-def test_empty_patient_creation(qtbot, test_location, window):
+def test_patient_renaming(qtbot, test_location, window):
     """
-    Creation of a new empty patient.
-    """
-    qtbot.addWidget(window)
-    qtbot.mouseClick(window.welcome_widget.left_panel_single_patient_pushbutton, Qt.MouseButton.LeftButton)
-    window.single_patient_widget.results_panel.add_empty_patient_action.trigger()
-    assert len(SoftwareConfigResources.getInstance().patients_parameters) == 1
-
-def test_empty_patient_renaming(qtbot, test_location, window):
-    """
-    Creation of a new empty patient followed by renaming.
-    """
-    qtbot.addWidget(window)
-    qtbot.mouseClick(window.welcome_widget.left_panel_single_patient_pushbutton, Qt.MouseButton.LeftButton)
-    window.single_patient_widget.results_panel.add_empty_patient_action.trigger()
-    window.single_patient_widget.results_panel.get_patient_results_widget_by_index(0).patient_name_lineedit.setText("Patient1")
-    qtbot.keyClick(window.single_patient_widget.results_panel.get_patient_results_widget_by_index(0).patient_name_lineedit, Qt.Key_Enter)
-    assert SoftwareConfigResources.getInstance().get_active_patient().display_name == "Patient1"
-
-    qtbot.mouseClick(window.single_patient_widget.results_panel.get_patient_results_widget_by_index(0).save_patient_pushbutton, Qt.MouseButton.LeftButton)
-
-def test_empty_patient_timestamp_creation_and_renaming(qtbot, test_location, window):
-    """
-    Creation of a new timestamp for an empty patient and renaming.
+    Creation of a new empty patient followed by renaming to Patient1.
     """
     qtbot.addWidget(window)
 
@@ -98,16 +76,49 @@ def test_empty_patient_timestamp_creation_and_renaming(qtbot, test_location, win
 
     # Clicking on the Import patient > Empty patient button
     window.single_patient_widget.results_panel.add_empty_patient_action.trigger()
+
+    # Setting the patient's QLineEdit to Patient1
+    window.single_patient_widget.results_panel.get_patient_results_widget_by_index(0).patient_name_lineedit.setText("Patient1")
+    qtbot.keyClick(window.single_patient_widget.results_panel.get_patient_results_widget_by_index(0).patient_name_lineedit, Qt.Key_Enter)
+    assert SoftwareConfigResources.getInstance().get_active_patient().display_name == "Patient1"
+
+    qtbot.mouseClick(window.single_patient_widget.results_panel.get_patient_results_widget_by_index(0).save_patient_pushbutton, Qt.MouseButton.LeftButton)
+
+def test_timestamp_creation_and_renaming(qtbot, test_location, window):
+    """
+    The following sequence is tested:
+        * Creation of an empty patient.
+        * Creation of one timestamp
+        * Renaming of the timestamp to PreOp
+        * Saving the patient data on disk.
+    """
+    qtbot.addWidget(window)
+
+    # Entering the single patient widget view
+    qtbot.mouseClick(window.welcome_widget.left_panel_single_patient_pushbutton, Qt.MouseButton.LeftButton)
+
+    # Clicking on the Import patient > Empty patient button
+    window.single_patient_widget.results_panel.add_empty_patient_action.trigger()
+
+    # Clicking on the + button indicating a new timestamp
     qtbot.mouseClick(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamp_add_pushbutton, Qt.MouseButton.LeftButton)
+
+    # Setting the timestamp's QLineEdit to PreOp
     window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_index(0).timestamp_name_lineedit.setText("PreOp")
     qtbot.keyClick(window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_index(0).timestamp_name_lineedit, Qt.Key_Enter)
     assert SoftwareConfigResources.getInstance().get_active_patient().get_active_investigation_timestamp().display_name == "PreOp"
 
     qtbot.mouseClick(window.single_patient_widget.results_panel.get_patient_results_widget_by_index(0).save_patient_pushbutton, Qt.MouseButton.LeftButton)
 
-def test_empty_patient_timestamp_selection_and_removal(qtbot, test_location, window):
+
+def test_timestamp_selection_and_removal(qtbot, test_location, window):
     """
-    Creation of multiple timestamps for an empty patient, renaming, swapping between them, and removing them.
+    The following sequence is tested:
+        * Creation of an empty patient
+        * Creation of two timestamps (PreOp and PostOp)
+        * Swapping the visible timestamp
+        * Deleting the first timestamp
+        * Saving the patient data on disk.
     """
     qtbot.addWidget(window)
 
@@ -142,9 +153,14 @@ def test_empty_patient_timestamp_selection_and_removal(qtbot, test_location, win
     # Saving the latest modifications to the patient on disk by pressing the disk icon
     qtbot.mouseClick(window.single_patient_widget.results_panel.get_patient_results_widget_by_index(0).save_patient_pushbutton, Qt.MouseButton.LeftButton)
 
-def test_empty_patient_timestamp_data_inclusion(qtbot, test_location, test_data_folder, window):
+
+def test_volume_modification_deletion(qtbot, test_location, test_data_folder, window):
     """
-    Creation of a new timestamp for an empty patient and importing two radiological volumes.
+    The following sequence is tested:
+        * Change to the sequence type for a radiological volume.
+        * Swapping which radiological volume is set to be visible.
+        * Removing a radiological volume from the right-handed side panel.
+        * Saving the patient data on disk.
     """
     qtbot.addWidget(window)
 
@@ -193,7 +209,6 @@ def test_empty_patient_timestamp_data_inclusion(qtbot, test_location, test_data_
 
     # Saving the latest modifications to the patient on disk by pressing the disk icon
     qtbot.mouseClick(window.single_patient_widget.results_panel.get_patient_results_widget_by_index(0).save_patient_pushbutton, Qt.MouseButton.LeftButton)
-
 
 def test_cleanup(window):
     """

@@ -132,7 +132,7 @@ class ImportDICOMDataQDialog(QDialog):
 
     def __set_connections(self):
         self.import_select_directory_pushbutton.clicked.connect(self.__on_import_directory_clicked)
-        self.clear_selection_pushbutton.clicked.connect(self.__reset_interface)
+        self.clear_selection_pushbutton.clicked.connect(self.reset_interface)
         self.exit_accept_pushbutton.clicked.connect(self.__on_exit_accept_clicked)
         self.exit_cancel_pushbutton.clicked.connect(self.__on_exit_cancel_clicked)
 
@@ -222,13 +222,28 @@ class ImportDICOMDataQDialog(QDialog):
         #                            "QTableCornerButton::section { background-color:#232326; }"
         #                            "QHeaderView::section { color:white; background-color:#232326; }");
 
-    def __reset_interface(self):
+    def reset_interface(self):
         self.content_patient_tablewidget.setRowCount(0)
         self.content_study_tablewidget.setRowCount(0)
         self.content_series_tablewidget.setRowCount(0)
         self.selected_series_tablewidget.setRowCount(0)
         self.dicom_holders.clear()
         self.dicom_holder = None
+
+    def setup_interface_from_selection(self, directory: str) -> None:
+        try:
+            if directory == '':
+                return
+            self.current_folder = os.path.dirname(directory)
+            dicom_holder = PatientDICOM(directory)
+            dicom_holder.parse_dicom_folder()
+            if dicom_holder.patient_id not in list(self.dicom_holders.keys()):
+                self.dicom_holders[dicom_holder.patient_id] = dicom_holder
+
+            self.dicom_holder = dicom_holder
+            self.__populate_dicom_browser()
+        except Exception as e:
+            logging.error("[Software error] Importing DICOM folder failed. <br><br> Reason: {}".format(e))
 
     def __on_import_directory_clicked(self):
         input_image_filedialog = QFileDialog(self)
@@ -244,22 +259,7 @@ class ImportDICOMDataQDialog(QDialog):
                                                                           dir=self.tr(self.current_folder),
                                                                           options=QFileDialog.ShowDirsOnly |
                                                                                   QFileDialog.DontResolveSymlinks)
-        if input_directory == '':
-            return
-
-        self.current_folder = os.path.dirname(input_directory)
-        try:
-            # @TODO. If the directory contains data for more than one patient, all scans will be treated
-            # as coming from the same patient...
-            dicom_holder = PatientDICOM(input_directory)
-            dicom_holder.parse_dicom_folder()
-            if dicom_holder.patient_id not in list(self.dicom_holders.keys()):
-                self.dicom_holders[dicom_holder.patient_id] = dicom_holder
-
-            self.dicom_holder = dicom_holder
-            self.__populate_dicom_browser()
-        except Exception as e:
-            logging.error("[Software error] Importing DICOM folder failed. <br><br> Reason: {}".format(e))
+        self.setup_interface_from_selection(input_directory)
 
     def __on_exit_accept_clicked(self) -> None:
         """
@@ -340,9 +340,18 @@ class ImportDICOMDataQDialog(QDialog):
         self.set_fixed_patient(patient_id=None)
 
     def __on_series_selected(self, row, column):
+        """
+
+        Parameters
+        ----------
+        row: int
+            Integer for the row number that has been manually clicked by the user.
+        column: int
+            Integer for the column number that has been manually clicked by the user.
+        """
         study_id_item = self.content_study_tablewidget.item(self.content_study_tablewidget.currentRow(), 1)
         study_desc_item = self.content_study_tablewidget.item(self.content_study_tablewidget.currentRow(), 2)
-        series_id_item = self.content_series_tablewidget.item(self.content_series_tablewidget.currentRow(), 0)
+        series_id_item = self.content_series_tablewidget.item(row, 0)
         series = self.dicom_holder.studies[study_id_item.text() + '_' + study_desc_item.text()].dicom_series[series_id_item.text()]
         series_study = series.get_metadata_value('0020|0010')
         status = (series_study in self.selected_series_tablewidget.get_column_values(0)) and (series.series_id in self.selected_series_tablewidget.get_column_values(3))
@@ -359,7 +368,7 @@ class ImportDICOMDataQDialog(QDialog):
             self.selected_series_tablewidget.setItem(self.selected_series_tablewidget.rowCount() - 1, 3,
                                                     QTableWidgetItem(series.series_id))
             self.selected_series_tablewidget.setItem(self.selected_series_tablewidget.rowCount() - 1, 4,
-                                                    QTableWidgetItem(series.get_series_description()))
+                                                    QTableWidgetItem(series.series_description))
             self.selected_series_tablewidget.setItem(self.selected_series_tablewidget.rowCount() - 1, 5,
                                                     QTableWidgetItem("x".join(str(x) for x in series.volume_size)))
             self.selected_series_tablewidget.setItem(self.selected_series_tablewidget.rowCount() - 1, 6,
@@ -409,7 +418,7 @@ class ImportDICOMDataQDialog(QDialog):
                 self.content_series_tablewidget.insertRow(self.content_series_tablewidget.rowCount())
                 self.content_series_tablewidget.setItem(self.content_series_tablewidget.rowCount() - 1, 0, QTableWidgetItem(series.series_id))
                 self.content_series_tablewidget.setItem(self.content_series_tablewidget.rowCount() - 1, 1, QTableWidgetItem(series.series_number))
-                self.content_series_tablewidget.setItem(self.content_series_tablewidget.rowCount() - 1, 2, QTableWidgetItem(series.get_series_description()))
+                self.content_series_tablewidget.setItem(self.content_series_tablewidget.rowCount() - 1, 2, QTableWidgetItem(series.series_description))
                 self.content_series_tablewidget.setItem(self.content_series_tablewidget.rowCount() - 1, 3, QTableWidgetItem("x".join(str(x) for x in series.volume_size)))
                 self.content_series_tablewidget.setItem(self.content_series_tablewidget.rowCount() - 1, 4, QTableWidgetItem(series.series_date))
 
@@ -445,7 +454,7 @@ class ImportDICOMDataQDialog(QDialog):
             self.content_series_tablewidget.insertRow(self.content_series_tablewidget.rowCount())
             self.content_series_tablewidget.setItem(self.content_series_tablewidget.rowCount() - 1, 0, QTableWidgetItem(series.series_id))
             self.content_series_tablewidget.setItem(self.content_series_tablewidget.rowCount() - 1, 1, QTableWidgetItem(series.series_number))
-            self.content_series_tablewidget.setItem(self.content_series_tablewidget.rowCount() - 1, 2, QTableWidgetItem(series.get_series_description()))
+            self.content_series_tablewidget.setItem(self.content_series_tablewidget.rowCount() - 1, 2, QTableWidgetItem(series.series_description))
             self.content_series_tablewidget.setItem(self.content_series_tablewidget.rowCount() - 1, 3, QTableWidgetItem("x".join(str(x) for x in series.volume_size)))
             self.content_series_tablewidget.setItem(self.content_series_tablewidget.rowCount() - 1, 4, QTableWidgetItem(series.series_date))
 

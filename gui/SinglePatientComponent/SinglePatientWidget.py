@@ -339,3 +339,4 @@ class SinglePatientWidget(QWidget):
     def on_clear_scene(self):
         for w in list(self.results_panel.patient_results_widgets.keys()):
             self.results_panel.patient_results_widgets[w].patient_closed.emit(w)
+        self.import_dicom_dialog.reset_interface()

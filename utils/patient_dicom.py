@@ -81,8 +81,9 @@ class PatientDICOM:
         try:
             all_dir = glob(os.path.join(self.dicom_folder, "**/"), recursive=True)
             scans_dir = []
+            log_message = None
             for d in all_dir:
-                if True not in [os.path.isdir(x) for x in os.listdir(d)]:
+                if True not in [os.path.isdir(os.path.join(d, x)) for x in os.listdir(d)]:
                     reader = sitk.ImageSeriesReader()
                     serie_names = reader.GetGDCMSeriesIDs(d)
 
@@ -107,7 +108,13 @@ class PatientDICOM:
 
                         if study_name not in list(self.studies.keys()):
                             self.studies[study_name] = DICOMStudy(study_id)
-                        self.studies[study_name].insert_series(dicom_series)
+                            self.studies[study_name].insert_series(dicom_series)
+                        # If a folder of DICOM folders is imported, multiple patients are mixed, which cannot be
+                        # handled here. The user should select a folder containing data for only one patient.
+                        elif dicom_series.get_patient_id() == self.studies[study_name].patient_id:
+                            self.studies[study_name].insert_series(dicom_series)
+                        else:
+                            log_message = "[Software warning] Trying to load a DICOM folder containing data for multiple patients. Please only try importing a single patient's DICOM folder."
 
                         # Filling the patient info as the iteration over the series goes.
                         if self.patient_id is None and dicom_series.get_patient_id() is not None:
@@ -116,98 +123,15 @@ class PatientDICOM:
                             self.gender = dicom_series.get_patient_gender()
                         if self.birth_date == "" and dicom_series.get_patient_birthdate() is not None:
                             self.birth_date = dicom_series.get_patient_birthdate()
-
-        # main_dicom_dir = []
-        # for _, dirs, _ in os.walk(patient_base_dicom):
-        #     for name in dirs:
-        #         if True not in [os.path.isdir(os.path.join(patient_base_dicom, name))]:
-        #             main_dicom_dir.append(name)
-        #
-        # if len(main_dicom_dir) == 0:
-        #     raise RuntimeError('Provided folder does not contain any proper DICOM folder hierarchy. Aborting loading.')
-        #
-        # try:
-        #     main_dicom_investigations = []
-        #     main_dicom_order = 0
-        #     for mdd in main_dicom_dir:
-        #         main_dicom_order = main_dicom_order + 1
-        #         patient_base_main_dicom = os.path.join(patient_base_dicom, mdd)
-        #         timestamp_dicom_sub_dirs = []
-        #         for _, dirs, _ in os.walk(patient_base_main_dicom):
-        #             for name in dirs:
-        #                 timestamp_dicom_sub_dirs.append(name)
-        #             break
-        #
-        #         dicom_investigations = {}
-        #         # Iterating over each timestamp
-        #         ts_order = 0
-        #         for subdir in timestamp_dicom_sub_dirs:
-        #             ts_order = ts_order + 1
-        #             timestamp = None
-        #             investigations_for_timestamp = []
-        #             timestamp_base_main_dicom = os.path.join(patient_base_main_dicom, subdir)
-        #             sub_dir = []
-        #             for _, dirs, _ in os.walk(timestamp_base_main_dicom):
-        #                 for name in dirs:
-        #                     sub_dir.append(name)
-        #                 break
-        #
-        #             timestamp_base_main_dicom = os.path.join(timestamp_base_main_dicom, sub_dir[0])
-        #             investigation_dirs = []
-        #             for _, dirs, _ in os.walk(timestamp_base_main_dicom):
-        #                 for name in dirs:
-        #                     investigation_dirs.append(name)
-        #                 break
-        #
-        #             # Collecting each investigation for the current <patient, timestamp>
-        #             for inv in investigation_dirs:
-        #                 try:
-        #                     current_dicom_investigation_path = os.path.join(timestamp_base_main_dicom, inv)
-        #                     reader = sitk.ImageSeriesReader()
-        #                     serie_names = reader.GetGDCMSeriesIDs(current_dicom_investigation_path)
-        #
-        #                     # dicom_names = reader.GetGDCMSeriesFileNames(current_dicom_investigation_path, useSeriesDetails=True)
-        #                     # tmp_data = Path(current_dicom_investigation_path)
-        #                     # tmp_dicom_names = list(tmp_data.glob('*'))
-        #                     # dicom_names_set = [dicom_names]
-        #                     # if len(tmp_dicom_names) > len(dicom_names):
-        #                     #     dicom_names_set = [[str(x) for x in tmp_dicom_names[:len(dicom_names)]],
-        #                     #                        [str(x) for x in tmp_dicom_names[len(dicom_names):]]]
-        #                     #     print('Nested images into one DICOM sub-folder......')
-        #
-        #                     for s, serie in enumerate(serie_names):
-        #                         dicom_names = reader.GetGDCMSeriesFileNames(current_dicom_investigation_path, serie)
-        #                         reader.SetFileNames(dicom_names)
-        #                         reader.LoadPrivateTagsOn()
-        #                         reader.SetMetaDataDictionaryArrayUpdate(True)
-        #                         dicom_series = DICOMSeries(reader)
-        #                         study_id = dicom_series.get_metadata_value('0020|0010')
-        #                         if study_id not in list(self.studies.keys()):
-        #                             self.studies[study_id] = DICOMStudy(study_id)
-        #                         self.studies[study_id].insert_series(dicom_series)
-        #
-        #                         # Filling the patient info as the iteration over the series goes.
-        #                         if self.patient_id is None and dicom_series.get_patient_id() is not None:
-        #                             self.patient_id = dicom_series.get_patient_id()
-        #                         if self.gender == "" and dicom_series.get_patient_gender() is not None:
-        #                             self.gender = dicom_series.get_patient_gender()
-        #
-        #                 except Exception as e:
-        #                     # @TODO. Would have to couple the message to a code int, because an exception here is not
-        #                     # critical.
-        #                     # curr_msg = """DICOM Series reading error with:\n {}""".format(traceback.format_exc())
-        #                     # logging.warning(curr_msg)
-        #                     # if error_msg is None:
-        #                     #     error_msg = curr_msg
-        #                     # else:
-        #                     #     error_msg = error_msg + curr_msg
-        #                     logging.warning("DICOM Series reading issue with:\n {}".format(traceback.format_exc()))
-        #                     continue
         except Exception as e:
             raise RuntimeError("Provided DICOM could not be processed, with: {}".format(e))
 
+        # In order to only print once and for all any non-critical error/warning message obtained during parsing.
+        if log_message is not None:
+            logging.warning(log_message)
 
 class DICOMStudy():
+    _patient_id = None
     _study_id = None
     _study_date = None
     _study_description = None
@@ -216,6 +140,14 @@ class DICOMStudy():
         self.__reset()
         self._study_id = study_id
         self.study_acquisition_date = None
+
+    @property
+    def patient_id(self) -> str:
+        return self._patient_id
+
+    @patient_id.setter
+    def patient_id(self, patient_id: str) -> None:
+        self._patient_id = patient_id
 
     @property
     def study_id(self) -> str:
@@ -250,6 +182,7 @@ class DICOMStudy():
         self._dicom_series = dicom_series
 
     def __reset(self):
+        self._patient_id = None
         self._study_id = None
         self._study_date = None
         self._study_description = None
@@ -266,9 +199,13 @@ class DICOMStudy():
         if self.study_acquisition_date is None and series.get_metadata_value('0008|0022') is not None:
             self.study_acquisition_date = series.get_metadata_value('0008|0022')
 
+        if self.patient_id is None and series.get_metadata_value('0010|0020') is not None:
+            self.patient_id = series.get_metadata_value('0010|0020')
+
 
 class DICOMSeries():
     _series_id = None
+    _series_description = None
 
     def __init__(self, sitk_reader):
         self.__reset()
@@ -281,6 +218,7 @@ class DICOMSeries():
 
         self._series_id = self.get_metadata_value('0020|000e')
         self.series_number = self.get_metadata_value('0020|0011')
+        self._series_description = self.dicom_tags['0008|103e'].strip() if '0008|103e' in list(self.dicom_tags.keys()) else ""
         self.series_date = self.get_metadata_value('0008|0021')
         self.series_time = self.get_metadata_value('0008|0031')
         self.volume_size = [self.get_metadata_value('0028|0010'), self.get_metadata_value('0028|0011'),
@@ -289,6 +227,10 @@ class DICOMSeries():
     @property
     def series_id(self) -> str:
         return self._series_id
+
+    @property
+    def series_description(self) -> str:
+        return self._series_description
 
     def __reset(self):
         self._series_id = None
@@ -326,8 +268,8 @@ class DICOMSeries():
     def get_unique_readable_name(self):
         name = self.get_patient_id()
         name = name + '_' + str(self.series_number)
-        desc = self.get_series_description()
-        if desc != "" and desc != None:
+        desc = self.series_description
+        if desc != "" and desc is not None:
             name = name + '_' + desc
 
         return name

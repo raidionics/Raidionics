@@ -540,6 +540,9 @@ class RaidionicsMainWindow(QMainWindow):
             self.batch_mode_widget.standardOutputWritten(text)
 
     def on_clear_scene(self):
+        """
+
+        """
         logging.info("[RaidionicsMainWindow] Interface clean-up. Removing all loaded patients and studies.")
         self.batch_study_widget.on_clear_scene()
         self.single_patient_widget.on_clear_scene()

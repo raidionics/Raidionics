@@ -65,53 +65,8 @@ def window():
 # * Deleting an annotation
 """
 
-def test_patient_loading_from_files(qtbot, test_location, test_data_folder, window):
-    """
 
-    """
-    qtbot.addWidget(window)
-    # Entering the single patient widget view
-    qtbot.mouseClick(window.welcome_widget.left_panel_single_patient_pushbutton, Qt.MouseButton.LeftButton)
-
-    # Importing MRI files from Import patient > Other data type (*.nii)
-    # window.single_patient_widget.results_panel.add_other_data_action.trigger() <= Cannot use the actual pushbutton action as it would open the QDialog...
-    window.single_patient_widget.results_panel.on_add_new_empty_patient()
-    t1_sample_mri_filename = os.path.join(test_data_folder, 'Raw', 'Case27-T1.nii.gz')
-    flair_sample_mri_filename = os.path.join(test_data_folder, 'Raw', 'Case27-FLAIR.nii.gz')
-    window.single_patient_widget.import_data_dialog.setup_interface_from_files([t1_sample_mri_filename, flair_sample_mri_filename])
-    window.single_patient_widget.import_data_dialog.__on_exit_accept_clicked()
-    assert len(list(SoftwareConfigResources.getInstance().get_active_patient().mri_volumes.keys())) == 2
-
-    # Saving the latest modifications to the patient on disk by pressing the disk icon
-    qtbot.mouseClick(window.single_patient_widget.results_panel.get_patient_results_widget_by_index(0).save_patient_pushbutton, Qt.MouseButton.LeftButton)
-
-def test_patient_loading_from_folder(qtbot, test_location, test_data_folder, window):
-    """
-
-    """
-    qtbot.addWidget(window)
-    # Entering the single patient widget view
-    qtbot.mouseClick(window.welcome_widget.left_panel_single_patient_pushbutton, Qt.MouseButton.LeftButton)
-
-    # Importing MRI files from Import patient > Other data type (*.nii)
-    # window.single_patient_widget.results_panel.add_folder_data_action.trigger() <= Cannot use the actual pushbutton action as it would open the QDialog...
-    window.single_patient_widget.results_panel.on_add_new_empty_patient()
-    sample_folder = os.path.join(test_data_folder, 'Raw')
-
-    window.single_patient_widget.import_folder_dialog.reset()
-    window.single_patient_widget.import_folder_dialog.set_parsing_mode("single")
-    window.single_patient_widget.import_folder_dialog.set_target_type("regular")
-    wid = ImportFolderLineWidget()
-    wid.filepath_lineedit.setText(sample_folder)
-    window.single_patient_widget.import_folder_dialog.import_scrollarea_layout.insertWidget(window.single_patient_widget.import_folder_dialog.import_scrollarea_layout.count() - 1, wid)
-    window.single_patient_widget.import_folder_dialog.__on_exit_accept_clicked()
-    assert len(list(SoftwareConfigResources.getInstance().get_patient_by_display_name("Raw").mri_volumes.keys())) == 2
-
-    # Saving the latest modifications to the patient on disk by pressing the disk icon
-    qtbot.mouseClick(window.single_patient_widget.results_panel.get_patient_results_widget_by_index(0).save_patient_pushbutton, Qt.MouseButton.LeftButton)
-
-
-def test_patient_loading_from_raidionics(qtbot, test_location, test_data_folder, window):
+def test_patient_reloading_from_raidionics(qtbot, test_location, test_data_folder, window):
     """
 
     """

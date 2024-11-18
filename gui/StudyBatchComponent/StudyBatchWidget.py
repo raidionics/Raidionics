@@ -201,6 +201,8 @@ class StudyBatchWidget(QWidget):
         self.patient_refreshed.emit(patient_uid)
 
     def on_clear_scene(self):
-        # @TODO. Not enough, the graphical display for the center and right panels should also be cleared and updated.
+        """
+        @TODO. Should clear the DICOM loader QDialog
+        """
         for w in list(self.studies_panel.single_study_widgets.keys()):
             self.studies_panel.single_study_widgets[w].study_closed.emit(w)

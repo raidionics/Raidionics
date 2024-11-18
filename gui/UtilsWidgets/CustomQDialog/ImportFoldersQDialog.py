@@ -138,6 +138,20 @@ class ImportFoldersQDialog(QDialog):
             except Exception as e:
                 pass
 
+    def setup_interface_from_selection(self, directory: str) -> None:
+        """
+
+        """
+        if directory == "":
+            return
+
+        if len(directory) != 0 and directory[0] != "":
+            self.current_folder = os.path.dirname(directory[0])
+
+        wid = ImportFolderLineWidget(self)
+        self.import_scrollarea_layout.insertWidget(self.import_scrollarea_layout.count() - 1, wid)
+        wid.filepath_lineedit.setText(directory)
+
     def __on_import_directory_clicked(self):
         input_image_filedialog = QFileDialog(self)
         input_image_filedialog.setWindowFlags(Qt.WindowStaysOnTopHint)
@@ -154,16 +168,7 @@ class ImportFoldersQDialog(QDialog):
                                                                           dir=self.tr(self.current_folder),
                                                                           options=QFileDialog.ShowDirsOnly |
                                                                                   QFileDialog.DontResolveSymlinks)
-        found_files = []
-        if input_directory == "":
-            return
-
-        if len(input_directory) != 0 and input_directory[0] != "":
-            self.current_folder = os.path.dirname(input_directory[0])
-
-        wid = ImportFolderLineWidget(self)
-        self.import_scrollarea_layout.insertWidget(self.import_scrollarea_layout.count() - 1, wid)
-        wid.filepath_lineedit.setText(input_directory)
+        self.setup_interface_from_selection(directory=input_directory)
 
     def __on_exit_accept_clicked(self) -> None:
         """

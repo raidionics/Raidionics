@@ -149,6 +149,15 @@ class StudyPatientListingWidget(QWidget):
         # logging.debug("Study patient listing scroll area size set to {}.\n".format(QSize(self.size().width(),
         #                                                                                  actual_height)))
 
+    def get_study_patient_widget_length(self) -> int:
+        return len(self.study_patient_widgetitems)
+
+    def get_study_patient_widget_by_index(self, index: int) -> PatientListingWidgetItem:
+        if index >= len(self.study_patient_widgetitems):
+            raise ValueError(
+                "[StudyPatientListingWidget] Trying to retrieve a patient listing widget with an out-of-bound index value.")
+        return self.study_patient_widgetitems[list(self.study_patient_widgetitems.keys())[index]]
+
     def on_reset_interface(self) -> None:
         for wid in reversed(list(self.study_patient_widgetitems.keys())):
             self.patients_list_scrollarea_layout.removeWidget(self.study_patient_widgetitems[wid])

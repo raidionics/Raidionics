@@ -38,3 +38,5 @@ quickpkg/
 *.tar.gz
 assets/Raidionics_ubuntu/usr/local/bin
 .coverage
+*.raidionics
+integrationtests/

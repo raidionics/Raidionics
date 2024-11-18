@@ -164,6 +164,9 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         self.patient_list_scrollarea_dummy_widget.setFixedSize(QSize(self.size().width(), actual_height))
         self.repaint()
 
+    def get_patient_results_widget_size(self) -> int:
+        return len(self.patient_results_widgets)
+
     def get_patient_results_widget_by_index(self, index: int) -> SinglePatientResultsWidget:
         if index >= len(self.patient_results_widgets):
             raise ValueError(
