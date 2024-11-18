@@ -103,18 +103,18 @@ def test_creation_dicom_import(qtbot, test_location, test_data_folder, dicom_res
     window.single_patient_widget.import_dicom_dialog.__on_exit_accept_clicked()
 
     ts_uids = SoftwareConfigResources.getInstance().get_active_patient().get_all_timestamps_uids()
-    assert len(ts_uids) == 1
-    assert SoftwareConfigResources.getInstance().get_active_patient().get_timestamp_by_uid(ts_uids[0]).display_name == "_coffee break exam - t+0 mins"
+    assert len(ts_uids) == 1, "Only one timestamp should exist"
+    assert SoftwareConfigResources.getInstance().get_active_patient().get_timestamp_by_uid(ts_uids[0]).display_name == "_coffee break exam - t+0 mins", "The first timestamp name does not match"
     ts_volumes_uids = SoftwareConfigResources.getInstance().get_active_patient().get_all_mri_volumes_for_timestamp(ts_uids[0])
-    assert len(ts_volumes_uids) == 1
-    assert "RIDER-1125105682_11_B800" in SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_uid(ts_volumes_uids[0]).display_name
+    assert len(ts_volumes_uids) == 1, "Only one radiological volume should exist for the given timestamp"
+    assert "RIDER-1125105682_11_B800" in SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_uid(ts_volumes_uids[0]).display_name, "The radiological volume display name does not match"
 
     # Saving the latest modifications to the patient on disk by pressing the disk icon
     qtbot.mouseClick(window.single_patient_widget.results_panel.get_patient_results_widget_by_index(0).save_patient_pushbutton, Qt.MouseButton.LeftButton)
 
     window.on_clear_scene()
-    assert SoftwareConfigResources.getInstance().is_patient_list_empty()
-    assert window.single_patient_widget.results_panel.get_patient_results_widget_size() == 0
+    assert SoftwareConfigResources.getInstance().is_patient_list_empty(), "The patient list should be empty"
+    assert window.single_patient_widget.results_panel.get_patient_results_widget_size() == 0, "The patient display panel should be empty"
 
 
 def test_cleanup(window):
