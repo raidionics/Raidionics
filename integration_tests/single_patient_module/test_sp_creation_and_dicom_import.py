@@ -1,5 +1,6 @@
 import os
 import shutil
+import logging
 from time import sleep
 
 import requests
