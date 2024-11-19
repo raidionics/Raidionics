@@ -102,7 +102,14 @@ def test_creation_dicom_import(qtbot, test_location, test_data_folder, dicom_res
 
     window.single_patient_widget.import_dicom_dialog.reset_interface()
     window.single_patient_widget.import_dicom_dialog.setup_interface_from_selection(directory=sample_folder)
-    window.single_patient_widget.import_dicom_dialog.__on_series_selected(row=1, column=0)
+
+    # Finding on which line of the table should the mimicked click occur (to select the correct series), the order seems
+    # to be different if performed locally or in GitHub Actions.
+    selected_row_index = 0
+    for r in range(window.single_patient_widget.import_dicom_dialog.content_series_tablewidget.rowCount()):
+        if "B800" in window.single_patient_widget.import_dicom_dialog.content_series_tablewidget.item(r, 2).text():
+            selected_row_index = r
+    window.single_patient_widget.import_dicom_dialog.__on_series_selected(row=selected_row_index, column=2)
     window.single_patient_widget.import_dicom_dialog.__on_exit_accept_clicked()
 
     ts_uids = SoftwareConfigResources.getInstance().get_active_patient().get_all_timestamps_uids()
