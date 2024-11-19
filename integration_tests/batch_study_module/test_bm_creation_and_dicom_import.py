@@ -52,7 +52,7 @@ def dicom_resources_folder():
     if os.path.exists(dicom_resources_dir) and len(os.listdir(dicom_resources_dir)) > 0:
         return dicom_resources_dir
 
-    archive_dl_dest = os.path.join(test_dir, 'raidionics_resources.zip')
+    archive_dl_dest = os.path.join(test_dir, 'raidionics_dicom_resources.zip')
     headers = {}
     response = requests.get(test_data_url, headers=headers, stream=True)
     response.raise_for_status()
