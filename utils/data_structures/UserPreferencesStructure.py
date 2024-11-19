@@ -35,6 +35,7 @@ class UserPreferencesStructure:
     _compute_braingrid_structures = False  # True to include braingrid features computation in the standardized reporting
     _braingrid_structures_list = ["Voxels"]  # List of BrainGrid features to include
     _use_dark_mode = False  # True for dark mode and False for regular mode
+    _disable_modal_warnings = False  # True to disable opening QDialogs with error or warning messages (for integration tests)
 
     @staticmethod
     def getInstance():
@@ -83,6 +84,7 @@ class UserPreferencesStructure:
         self.compute_braingrid_structures = False
         self.braingrid_structures_list = ["Voxels"]
         self.use_dark_mode = False
+        self.disable_modal_warnings = False
         self.save_preferences()
 
     @property
@@ -277,6 +279,16 @@ class UserPreferencesStructure:
         self._braingrid_structures_list = structures
         self.save_preferences()
 
+    @property
+    def disable_modal_warnings(self) -> bool:
+        return self._disable_modal_warnings
+
+    @disable_modal_warnings.setter
+    def disable_modal_warnings(self, state: bool) -> None:
+        logging.info("Disable modal warnings set to {}.\n".format(state))
+        self._disable_modal_warnings = state
+        self.save_preferences()
+
     def __parse_preferences(self) -> None:
         """
         Loads the saved user preferences from disk (located in raidionics_preferences.json) and updates all internal
@@ -328,7 +340,9 @@ class UserPreferencesStructure:
                     self.braingrid_structures_list = preferences['Processing']['Reporting']['braingrid_structures_list']
         if 'Appearance' in preferences.keys():
             if 'dark_mode' in preferences['Appearance'].keys():
-                self._use_dark_mode = preferences['Appearance']['dark_mode']
+                self.use_dark_mode = preferences['Appearance']['dark_mode']
+            if 'disable_modal_warnings' in preferences['Appearance'].keys():
+                self.disable_modal_warnings = preferences['Appearance']['disable_modal_warnings']
 
     def save_preferences(self) -> None:
         """
@@ -336,31 +350,32 @@ class UserPreferencesStructure:
         """
         preferences = {}
         preferences['System'] = {}
-        preferences['System']['user_home_location'] = self._user_home_location
+        preferences['System']['user_home_location'] = self.user_home_location
         preferences['Models'] = {}
         preferences['Models']['active_update'] = self._active_model_update
         preferences['Display'] = {}
         preferences['Display']['display_space'] = self.display_space
         preferences['Processing'] = {}
-        preferences['Processing']['use_manual_sequences'] = self._use_manual_sequences
-        preferences['Processing']['use_manual_annotations'] = self._use_manual_annotations
-        preferences['Processing']['use_stripped_inputs'] = self._use_stripped_inputs
-        preferences['Processing']['use_registered_inputs'] = self._use_registered_inputs
-        preferences['Processing']['export_results_as_rtstruct'] = self._export_results_as_rtstruct
+        preferences['Processing']['use_manual_sequences'] = self.use_manual_sequences
+        preferences['Processing']['use_manual_annotations'] = self.use_manual_annotations
+        preferences['Processing']['use_stripped_inputs'] = self.use_stripped_inputs
+        preferences['Processing']['use_registered_inputs'] = self.use_registered_inputs
+        preferences['Processing']['export_results_as_rtstruct'] = self.export_results_as_rtstruct
         preferences['Processing']['segmentation_tumor_model_type'] = self.segmentation_tumor_model_type
-        preferences['Processing']['perform_segmentation_refinement'] = self._perform_segmentation_refinement
+        preferences['Processing']['perform_segmentation_refinement'] = self.perform_segmentation_refinement
         preferences['Processing']['SegmentationRefinement'] = {}
-        preferences['Processing']['SegmentationRefinement']['type'] = self._segmentation_refinement_type
-        preferences['Processing']['SegmentationRefinement']['dilation_percentage'] = self._segmentation_refinement_dilation_percentage
+        preferences['Processing']['SegmentationRefinement']['type'] = self.segmentation_refinement_type
+        preferences['Processing']['SegmentationRefinement']['dilation_percentage'] = self.segmentation_refinement_dilation_percentage
         preferences['Processing']['Reporting'] = {}
-        preferences['Processing']['Reporting']['compute_cortical_structures'] = self._compute_cortical_structures
-        preferences['Processing']['Reporting']['cortical_structures_list'] = self._cortical_structures_list
-        preferences['Processing']['Reporting']['compute_subcortical_structures'] = self._compute_subcortical_structures
-        preferences['Processing']['Reporting']['subcortical_structures_list'] = self._subcortical_structures_list
-        preferences['Processing']['Reporting']['compute_braingrid_structures'] = self._compute_braingrid_structures
-        preferences['Processing']['Reporting']['braingrid_structures_list'] = self._braingrid_structures_list
+        preferences['Processing']['Reporting']['compute_cortical_structures'] = self.compute_cortical_structures
+        preferences['Processing']['Reporting']['cortical_structures_list'] = self.cortical_structures_list
+        preferences['Processing']['Reporting']['compute_subcortical_structures'] = self.compute_subcortical_structures
+        preferences['Processing']['Reporting']['subcortical_structures_list'] = self.subcortical_structures_list
+        preferences['Processing']['Reporting']['compute_braingrid_structures'] = self.compute_braingrid_structures
+        preferences['Processing']['Reporting']['braingrid_structures_list'] = self.braingrid_structures_list
         preferences['Appearance'] = {}
-        preferences['Appearance']['dark_mode'] = self._use_dark_mode
+        preferences['Appearance']['dark_mode'] = self.use_dark_mode
+        preferences['Appearance']['disable_modal_warnings'] = self.disable_modal_warnings
 
         with open(self._preferences_filename, 'w') as outfile:
             json.dump(preferences, outfile, indent=4, sort_keys=True)

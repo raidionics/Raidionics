@@ -52,6 +52,7 @@ def window():
     """
     window = RaidionicsMainWindow()
     window.on_clear_scene()
+    UserPreferencesStructure.getInstance().disable_modal_warnings = True
     return window
 
 
@@ -74,6 +75,7 @@ def test_cleanup(window):
         window.logs_thread.stop()
         sleep(2)
     UserPreferencesStructure.getInstance().user_home_location = def_loc
+    UserPreferencesStructure.getInstance().disable_modal_warnings = False
     test_loc = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'integrationtests')
     if os.path.exists(test_loc):
         shutil.rmtree(test_loc)

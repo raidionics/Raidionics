@@ -390,8 +390,17 @@ class SoftwareSettingsDialog(QDialog):
         self.color_theme_layout.addWidget(self.dark_mode_header_label)
         self.color_theme_layout.addWidget(self.dark_mode_checkbox)
         self.color_theme_layout.addStretch(1)
+        self.modal_message_prompt_layout = QHBoxLayout()
+        self.modal_message_prompt_header_label = QLabel("Disable modal messages ")
+        self.modal_message_prompt_header_label.setToolTip("Click to prevent modal messages from being prompted (i.e., warning and error messages as feedback). NOT RECOMMENDED TO PREVENT THE DISPLAY.")
+        self.modal_message_prompt_checkbox = QCheckBox()
+        self.modal_message_prompt_checkbox.setChecked(UserPreferencesStructure.getInstance().use_dark_mode)
+        self.modal_message_prompt_layout.addWidget(self.modal_message_prompt_header_label)
+        self.modal_message_prompt_layout.addWidget(self.modal_message_prompt_checkbox)
+        self.modal_message_prompt_layout.addStretch(1)
         self.appearance_options_base_layout.addLayout(self.display_space_layout)
         self.appearance_options_base_layout.addLayout(self.color_theme_layout)
+        self.appearance_options_base_layout.addLayout(self.modal_message_prompt_layout)
 
         self.appearance_options_base_layout.addStretch(1)
         self.appearance_options_widget.setLayout(self.appearance_options_base_layout)
@@ -456,6 +465,7 @@ class SoftwareSettingsDialog(QDialog):
         self.braingridstructures_voxels_checkbox.stateChanged.connect(self.__on_braingridstructure_voxels_status_changed)
         self.dark_mode_checkbox.stateChanged.connect(self.__on_dark_mode_status_changed)
         self.display_space_combobox.currentTextChanged.connect(self.__on_display_space_changed)
+        self.modal_message_prompt_checkbox.stateChanged.connect(self.__on_modal_message_prompt_status_changed)
         self.exit_accept_pushbutton.clicked.connect(self.__on_exit_accept_clicked)
         self.exit_cancel_pushbutton.clicked.connect(self.__on_exit_cancel_clicked)
 
@@ -1127,6 +1137,14 @@ class SoftwareSettingsDialog(QDialog):
         font-size:14px;
         }""")
 
+        self.modal_message_prompt_header_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        text-align:left;
+        font:semibold;
+        font-size:14px;
+        }""")
+
     def __on_home_dir_changed(self, directory: str) -> None:
         """
         The user manually selected another location for storing patients/studies.
@@ -1301,7 +1319,7 @@ class SoftwareSettingsDialog(QDialog):
             structs.remove("Voxels")
         UserPreferencesStructure.getInstance().braingrid_structures_list = structs
 
-    def __on_dark_mode_status_changed(self, state):
+    def __on_dark_mode_status_changed(self, state: int) -> None:
         # @TODO. Would have to bounce back to the QApplication class, to trigger a global setStyleSheet on-the-fly?
         SoftwareConfigResources.getInstance().set_dark_mode_state(state)
 
@@ -1317,6 +1335,9 @@ class SoftwareSettingsDialog(QDialog):
             String describing which image space must be used for visualization, from [Patient, MNI] at the moment.
         """
         UserPreferencesStructure.getInstance().display_space = space
+
+    def __on_modal_message_prompt_status_changed(self, state: int) -> None:
+        UserPreferencesStructure.getInstance().disable_modal_warnings = True if state == Qt.Checked else False
 
     def __on_exit_accept_clicked(self):
         """
