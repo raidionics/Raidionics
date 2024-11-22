@@ -9,6 +9,7 @@ import logging
 from gui.UtilsWidgets.CustomQGroupBox.QCollapsibleGroupBox import QCollapsibleGroupBox
 from gui.UtilsWidgets.CustomQDialog.ContrastAdjustmentDialog import ContrastAdjustmentDialog
 from gui.UtilsWidgets.CustomQDialog.DisplayDICOMMetadataDialog import DisplayMetadataDICOMDialog
+from utils.data_structures.UserPreferencesStructure import UserPreferencesStructure
 
 from utils.software_config import SoftwareConfigResources
 from utils.data_structures.MRIVolumeStructure import MRISequenceType
@@ -294,7 +295,7 @@ class MRISeriesLayerWidget(QWidget):
         """
         linked_annos = SoftwareConfigResources.getInstance().get_active_patient().get_all_annotations_for_mri(self.uid)
         linked_atlases = SoftwareConfigResources.getInstance().get_active_patient().get_all_atlases_for_mri(self.uid)
-        if (len(linked_annos) + len(linked_atlases)) != 0:
+        if (len(linked_annos) + len(linked_atlases)) != 0 and not UserPreferencesStructure.getInstance().disable_modal_warnings:
             code = QMessageBox.warning(self, "MRI volume layer deletion warning.",
                                        "Deleting an MRI volume will also remove all other files linked to it (e.g., annotations).",
                                        QMessageBox.Ok | QMessageBox.Cancel, QMessageBox.Ok)

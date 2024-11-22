@@ -64,6 +64,7 @@ def window():
 # * Adding extra MRI volume from the same DICOM folder afterwards
 # * Open a new DICOM folder
 # * Delete an image
+# * Trying to rename the two radiological volumes with the same name
 """
 
 def test_patient_renaming(qtbot, test_location, window):

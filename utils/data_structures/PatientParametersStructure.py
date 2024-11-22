@@ -911,6 +911,25 @@ class PatientParameters:
                 res.append(im)
         return res
 
+    def get_all_annotation_uids_for_radiological_volume(self, radiological_uid: str) -> List[str]:
+        """
+        Convenience method for collecting all annotations for a specific input radiological volume.
+
+        Parameters
+        ----------
+        radiological_uid: str
+            Internal unique ID of the radiological volume.
+        Returns
+        -------
+        List[str]
+            A list of unique identifiers for each annotation object associated with the given input parameters.
+        """
+        res = []
+        for im in list(self._annotation_volumes.keys()):
+            if self._annotation_volumes[im].get_parent_mri_uid() == radiological_uid:
+                res.append(im)
+        return res
+
     def get_all_atlases_for_mri(self, mri_volume_uid: str) -> List[str]:
         """
         Convenience method for collecting all atlas objects linked to a specific MRI volume.

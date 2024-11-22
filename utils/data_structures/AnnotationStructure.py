@@ -341,6 +341,7 @@ class AnnotationVolume:
     def get_display_volume(self) -> np.ndarray:
         return self._display_volume
 
+    # @TODO. Has to be updated to match the @getter @setter pattern.
     def get_parent_mri_uid(self) -> str:
         return self._parent_mri_uid
 

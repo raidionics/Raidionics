@@ -91,6 +91,10 @@ class AtlasesLayersInteractor(QCollapsibleWidget):
             self.volumes_widget.pop(w)
         self.header.collapse()
 
+
+    def get_layer_widget_length(self) -> int:
+        return len(self.volumes_widget)
+
     def get_layer_widget_by_index(self, index: int) -> AtlasSingleLayerWidget:
         if index >= len(self.volumes_widget):
             raise ValueError("[AtlasesLayerInteractor] Trying to retrieve an Atlas layer widget with an out-of-bound index value.")
@@ -98,7 +102,7 @@ class AtlasesLayersInteractor(QCollapsibleWidget):
 
     def get_layer_widget_by_visible_name(self, name: str) -> AtlasSingleLayerWidget:
         for w in list(self.volumes_widget.keys()):
-            if self.volumes_widget[w].visible_name == name:
+            if self.volumes_widget[w].display_name_lineedit.text() == name:
                 return self.volumes_widget[w]
         raise ValueError("[AtlasesLayerInteractor] Trying to retrieve a non-existing Atlas layer widget by visible name with: {}.".format(name))
 

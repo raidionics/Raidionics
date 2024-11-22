@@ -7,9 +7,6 @@ from PySide6.QtGui import QColor
 import logging
 
 from gui.SinglePatientComponent.LayersInteractorSidePanel.TimestampsInteractor.TimestampsLayerInteractor import TimestampsLayerInteractor
-from gui.SinglePatientComponent.LayersInteractorSidePanel.MRIVolumesInteractor.MRIVolumesLayerInteractor import MRIVolumesLayerInteractor
-from gui.SinglePatientComponent.LayersInteractorSidePanel.AnnotationLayersInteractor.AnnotationsLayersInteractor import AnnotationsLayersInteractor
-from gui.SinglePatientComponent.LayersInteractorSidePanel.AtlasLayersInteractor.AtlasesLayersInteractor import AtlasesLayersInteractor
 from gui.SinglePatientComponent.LayersInteractorSidePanel.ActionsInteractor.ActionsInteractorWidget import ActionsInteractorWidget
 from utils.software_config import SoftwareConfigResources
 
@@ -78,10 +75,6 @@ class SinglePatientLayersWidget(QWidget):
         self.main_tabwidget.addTab(self.execution_actions_widget, "Actions")
         self.overall_scrollarea_layout.addWidget(self.main_tabwidget)
 
-        self.volumes_collapsiblegroupbox = MRIVolumesLayerInteractor(self)
-        self.annotations_collapsiblegroupbox = AnnotationsLayersInteractor(self)
-        self.atlases_collapsiblegroupbox = AtlasesLayersInteractor(self)
-
         self.overall_scrollarea_layout.addStretch(1)
         self.overall_scrollarea_dummy_widget.setLayout(self.overall_scrollarea_layout)
         self.overall_scrollarea.setWidget(self.overall_scrollarea_dummy_widget)
@@ -112,10 +105,6 @@ class SinglePatientLayersWidget(QWidget):
         self.mri_volume_imported.connect(self.execution_actions_widget.on_enable_actions)
         self.execution_actions_widget.pipeline_execution_requested.connect(self.pipeline_execution_requested)
         self.main_tabwidget.currentChanged.connect(self.__on_main_tab_changed)
-
-        # @TODO. Can be removed, deprecated?
-        self.import_data_triggered.connect(self.volumes_collapsiblegroupbox.on_import_data)
-        self.import_data_triggered.connect(self.annotations_collapsiblegroupbox.on_import_data)
 
     def __set_stylesheets(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
@@ -186,8 +175,6 @@ class SinglePatientLayersWidget(QWidget):
         objects_uids, error_msg = SoftwareConfigResources.getInstance().get_active_patient().remove_mri_volume(volume_uid=uid)
         if SoftwareConfigResources.getInstance().get_active_patient().get_patient_mri_volumes_number() == 0:
             self.volume_view_toggled.emit(uid, False)
-            self.annotations_collapsiblegroupbox.reset()
-            self.atlases_collapsiblegroupbox.reset()
         # logging.info("[SinglePatientLayersWidget] on_mri_volume_removed took {} seconds.".format(time.time() - start))
 
     def on_annotation_volume_import(self, uid):
@@ -210,9 +197,6 @@ class SinglePatientLayersWidget(QWidget):
         patient_uid : str
             The unique identifier of the newly selected active patient.
         """
-        # self.volumes_collapsiblegroupbox.reset()
-        # self.annotations_collapsiblegroupbox.reset()
-        # self.atlases_collapsiblegroupbox.reset()
         self.patient_view_toggled.emit(patient_uid)
 
     def on_import_patient(self, patient_uid: str) -> None:
@@ -237,9 +221,6 @@ class SinglePatientLayersWidget(QWidget):
         Sets all inner widgets to their default states.
         """
         self.timestamp_layer_widget.reset()
-        self.volumes_collapsiblegroupbox.reset()
-        self.annotations_collapsiblegroupbox.reset()
-        self.atlases_collapsiblegroupbox.reset()
         self.execution_actions_widget.reset()
 
     def on_batch_process_started(self) -> None:

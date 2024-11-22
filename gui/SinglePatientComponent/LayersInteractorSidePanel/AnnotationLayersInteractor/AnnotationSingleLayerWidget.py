@@ -7,6 +7,7 @@ import logging
 from gui.UtilsWidgets.CustomQGroupBox.QCollapsibleGroupBox import QCollapsibleGroupBox
 
 from utils.software_config import SoftwareConfigResources
+from utils.data_structures.UserPreferencesStructure import UserPreferencesStructure
 
 
 class AnnotationSingleLayerWidget(QWidget):
@@ -534,16 +535,18 @@ class AnnotationSingleLayerWidget(QWidget):
         params.set_annotation_class_type(self.annotation_type_combobox.currentText())
 
     def __on_parent_mri_changed(self, index: int) -> None:
-        code = QMessageBox.warning(self, "Parent MRI change warning.",
+
+        if not UserPreferencesStructure.getInstance().disable_modal_warnings:
+            code = QMessageBox.warning(self, "Parent MRI change warning.",
                                    "Are you sure you want to proceed with the change of parent MRI?",
                                    QMessageBox.Ok | QMessageBox.Cancel, QMessageBox.Ok)
-        if code == QMessageBox.StandardButton.Cancel:  # Change canceled
-            self.parent_image_combobox.blockSignals(True)
-            parent_mri_display_name = SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_uid(
-                SoftwareConfigResources.getInstance().get_active_patient().get_annotation_by_uid(self.uid).get_parent_mri_uid()).display_name
-            self.parent_image_combobox.setCurrentText(parent_mri_display_name)
-            self.parent_image_combobox.blockSignals(False)
-            return
+            if code == QMessageBox.StandardButton.Cancel:  # Change canceled
+                self.parent_image_combobox.blockSignals(True)
+                parent_mri_display_name = SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_uid(
+                    SoftwareConfigResources.getInstance().get_active_patient().get_annotation_by_uid(self.uid).get_parent_mri_uid()).display_name
+                self.parent_image_combobox.setCurrentText(parent_mri_display_name)
+                self.parent_image_combobox.blockSignals(False)
+                return
 
         params = SoftwareConfigResources.getInstance().get_active_patient().get_annotation_by_uid(self.uid)
         old_mri_parent = params.get_parent_mri_uid()

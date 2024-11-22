@@ -62,8 +62,6 @@ def window():
 
 """ Remaining tests to add:
 # * Changing display space from Patient to MNI and back
-# * Changing the parent MRI for annotation files
-# * Deleting an annotation
 """
 
 
@@ -83,10 +81,71 @@ def test_patient_reloading_from_raidionics(qtbot, test_location, test_data_folde
     window.single_patient_widget.import_data_dialog.setup_interface_from_files([raidionics_filename])
     window.single_patient_widget.import_data_dialog.__on_exit_accept_clicked()
     sleep(5)
-    assert len(list(SoftwareConfigResources.getInstance().get_active_patient().mri_volumes.keys())) == 2
+
+    assert len(list(SoftwareConfigResources.getInstance().get_active_patient().mri_volumes.keys())) == 2, "Both radiological volumes were not properly loaded internally"
+    assert window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_visible_name(
+        "T0").volumes_collapsiblegroupbox.get_layer_widget_length() == 2, "Both radiological volumes were not properly loaded graphically"
 
     # Saving the latest modifications to the patient on disk by pressing the disk icon
     qtbot.mouseClick(window.single_patient_widget.results_panel.get_patient_results_widget_by_index(0).save_patient_pushbutton, Qt.MouseButton.LeftButton)
+
+def test_patient_raidionics_annotation_edit(qtbot, test_location, test_data_folder, window):
+    """
+    Simply reloading a patient saved as a .raidionics scene.
+    """
+    qtbot.addWidget(window)
+    # Entering the single patient widget view
+    qtbot.mouseClick(window.welcome_widget.left_panel_single_patient_pushbutton, Qt.MouseButton.LeftButton)
+
+    # Importing MRI files from Import patient > Other data type (*.nii)
+    # window.single_patient_widget.results_panel.add_raidionics_patient_action.trigger() <= Cannot use the actual pushbutton action as it would open the QDialog...
+    raidionics_filename = os.path.join(test_data_folder, 'Raidionics', "patients", "patient1", "patient1_scene.raidionics")
+    window.single_patient_widget.import_data_dialog.reset()
+    window.single_patient_widget.import_data_dialog.set_parsing_filter("patient")
+    window.single_patient_widget.import_data_dialog.setup_interface_from_files([raidionics_filename])
+    window.single_patient_widget.import_data_dialog.__on_exit_accept_clicked()
+    sleep(5)
+
+    # Changing the parent MRI for the brain annotation
+    parent_name = window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_visible_name("T0").annotations_collapsiblegroupbox.get_layer_widget_by_visible_name("1319_Case27-T1_annotation-Brain").parent_image_combobox.currentText()
+    window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_visible_name("T0").annotations_collapsiblegroupbox.get_layer_widget_by_visible_name("1319_Case27-T1_annotation-Brain").parent_image_combobox.setCurrentIndex(1)
+    radiological_uid = SoftwareConfigResources.getInstance().get_active_patient().get_mri_volume_by_display_name(parent_name).unique_id
+    assert len(SoftwareConfigResources.getInstance().get_active_patient().get_all_annotation_uids_for_radiological_volume(radiological_uid)) == 1, "The brain annotation has not been successfully transferred to the FLAIR input"
+    assert window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_visible_name("T0").annotations_collapsiblegroupbox.get_layer_widget_length() == 1, "The brain annotation has not been graphically removed from the T1-CE input"
+
+    # Swapping to FLAIR display and deleting the brain annotation
+    qtbot.mouseClick(window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_index(
+        0).volumes_collapsiblegroupbox.get_layer_widget_by_index(1).display_toggle_radiobutton, Qt.MouseButton.LeftButton)
+    assert window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_visible_name(
+        "T0").annotations_collapsiblegroupbox.get_layer_widget_length() == 1, "The brain annotation has not been graphically transferred to the FLAIR input"
+    window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_visible_name("T0").annotations_collapsiblegroupbox.get_layer_widget_by_visible_name(
+        "1319_Case27-T1_annotation-Brain").remove_contextual_action.trigger()
+    assert len(SoftwareConfigResources.getInstance().get_active_patient().get_all_annotation_volumes_uids()) == 1, "The brain annotation has not been successfully deleted"
+    assert window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_visible_name(
+        "T0").annotations_collapsiblegroupbox.get_layer_widget_length() == 0, "The brain annotation has not been graphically deleted from the FLAIR input"
+
+    # Swapping back to the T1-CE image and triggering deletion (should delete all associated content)
+    qtbot.mouseClick(window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_index(
+        0).volumes_collapsiblegroupbox.get_layer_widget_by_index(0).display_toggle_radiobutton, Qt.MouseButton.LeftButton)
+    window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_visible_name("T0").volumes_collapsiblegroupbox.get_layer_widget_by_index(0).delete_layer_action.trigger()
+    assert window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_visible_name(
+        "T0").volumes_collapsiblegroupbox.get_layer_widget_length() == 1, "Not just the FLAIR radiological volume remains graphically after T1-CE input deletion"
+    assert window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_visible_name(
+        "T0").annotations_collapsiblegroupbox.get_layer_widget_length() == 0, "Not all annotations were removed graphically after T1-CE input deletion"
+    assert window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_visible_name(
+        "T0").atlases_collapsiblegroupbox.get_layer_widget_length() == 0, "Not all atlases were removed graphically after T1-CE input deletion"
+    assert len(
+        SoftwareConfigResources.getInstance().get_active_patient().get_all_mri_volumes_uids()) == 1, "Not just the FLAIR radiological volume remains internally after T1-CE input deletion"
+    assert len(
+        SoftwareConfigResources.getInstance().get_active_patient().get_all_annotation_volumes()) == 0, "Not all annotation volumes were removed internally after T1-CE input deletion"
+    assert len(
+        SoftwareConfigResources.getInstance().get_active_patient().get_all_annotation_volumes()) == 0, "Not all annotation volumes were removed internally after T1-CE input deletion"
+    assert len(
+        SoftwareConfigResources.getInstance().get_active_patient().get_all_atlas_volumes_uids()) == 0, "Not all atlas volumes were removed internally after T1-CE input deletion"
+
+    # Saving the latest modifications to the patient on disk by pressing the disk icon
+    qtbot.mouseClick(window.single_patient_widget.results_panel.get_patient_results_widget_by_index(0).save_patient_pushbutton, Qt.MouseButton.LeftButton)
+
 
 def test_cleanup(window):
     if window.logs_thread.isRunning():

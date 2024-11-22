@@ -90,6 +90,9 @@ class MRIVolumesLayerInteractor(QCollapsibleWidget):
             self.volumes_widget.pop(w)
         self.header.collapse()
 
+    def get_layer_widget_length(self) -> int:
+        return len(self.volumes_widget)
+
     def get_layer_widget_by_index(self, index: int) -> MRISeriesLayerWidget:
         if index >= len(self.volumes_widget):
             raise ValueError("[MRIVolumeLayerInteractor] Trying to retrieve an MRI Layer widget with an out-of-bound index value.")
@@ -97,7 +100,7 @@ class MRIVolumesLayerInteractor(QCollapsibleWidget):
 
     def get_layer_widget_by_visible_name(self, name: str) -> MRISeriesLayerWidget:
         for w in list(self.volumes_widget.keys()):
-            if self.volumes_widget[w].visible_name == name:
+            if self.volumes_widget[w].display_name_lineedit.text() == name:
                 return self.volumes_widget[w]
         raise ValueError("[TimestampsLayerInteractor] Trying to retrieve a non-existing MRI layer widget by visible name with: {}.".format(name))
 
