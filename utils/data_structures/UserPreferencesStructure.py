@@ -20,9 +20,9 @@ class UserPreferencesStructure:
     _active_model_update = False  # True for regularly checking if new models are available, False otherwise
     _use_manual_sequences = True  # True for using the manually set sequences, False to run classification on-the-fly
     _use_manual_annotations = False  # True to use annotation files provided by the user, False to recompute
-    _export_results_as_rtstruct = False  # True to export all masks as DICOM RTStruct in addition
     _use_stripped_inputs = False  # True to use inputs already stripped (e.g., skull-stripped or lungs-stripped)
     _use_registered_inputs = False  # True to use inputs already registered (e.g., altas-registered, multi-sequences co-registered)
+    _export_results_as_rtstruct = False  # True to export all masks as DICOM RTStruct in addition
     _display_space = 'Patient'  # Space to use for displaying the results
     _segmentation_tumor_model_type = "Tumor"  # Type of output to expect from the tumor segmentation model (i.e., indicating if a BraTS model should be used)
     _perform_segmentation_refinement = False  # True to enable any kind of segmentation refinement
@@ -69,9 +69,9 @@ class UserPreferencesStructure:
         self.active_model_update = False
         self.use_manual_sequences = True
         self.use_manual_annotations = False
-        self.export_results_as_rtstruct = False
         self.use_stripped_inputs = False
         self.use_registered_inputs = False
+        self.export_results_as_rtstruct = False
         self.display_space = 'Patient'
         self.segmentation_tumor_model_type = "Tumor"
         self.perform_segmentation_refinement = False

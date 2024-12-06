@@ -101,6 +101,17 @@ class SoftwareSettingsDialog(QDialog):
         self.model_purge_layout.addStretch(1)
         self.default_options_base_layout.addLayout(self.model_purge_layout)
 
+        self.reset_settings_layout = QHBoxLayout()
+        self.reset_settings_header_label = QLabel("Reset settings ")
+        self.reset_settings_header_label.setToolTip("Reset the settings to their default values.")
+        self.reset_settings_pushbutton = QPushButton()
+        self.reset_settings_pushbutton.setIcon(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                               '../../Images/restart_counterclockwise_icon.png')))
+        self.reset_settings_layout.addWidget(self.reset_settings_header_label)
+        self.reset_settings_layout.addWidget(self.reset_settings_pushbutton)
+        self.reset_settings_layout.addStretch(1)
+        self.default_options_base_layout.addLayout(self.reset_settings_layout)
+
         self.default_options_base_layout.addStretch(1)
         self.default_options_widget.setLayout(self.default_options_base_layout)
         self.options_stackedwidget.addWidget(self.default_options_widget)
@@ -212,7 +223,7 @@ class SoftwareSettingsDialog(QDialog):
         self.processing_options_segmentation_refinement_selector_label = QLabel("Refinement")
         self.processing_options_segmentation_refinement_selector_combobox = QComboBox()
         self.processing_options_segmentation_refinement_selector_combobox.addItems(["Dilation"])
-        self.processing_options_segmentation_refinement_selector_combobox.setEnabled(UserPreferencesStructure.getInstance().perform_segmentation_refinement)
+        self.processing_options_segmentation_refinement_selector_combobox.setCurrentText(UserPreferencesStructure.getInstance().segmentation_refinement_type)
         self.processing_options_segmentation_refinement_layout.addWidget(self.processing_options_segmentation_refinement_selector_label)
         self.processing_options_segmentation_refinement_layout.addWidget(self.processing_options_segmentation_refinement_selector_combobox)
         self.processing_options_segmentation_refinement_layout.addStretch(1)
@@ -445,6 +456,7 @@ class SoftwareSettingsDialog(QDialog):
         self.home_directory_lineedit.textChanged.connect(self.__on_home_dir_changed)
         self.model_update_checkbox.stateChanged.connect(self.__on_active_model_status_changed)
         self.model_purge_pushbutton.clicked.connect(self.__on_model_purge_clicked)
+        self.reset_settings_pushbutton.clicked.connect(self.__on_reset_settings_clicked)
         self.processing_options_use_sequences_checkbox.stateChanged.connect(self.__on_use_sequences_status_changed)
         self.processing_options_use_annotations_checkbox.stateChanged.connect(self.__on_use_manual_annotations_status_changed)
         self.processing_options_use_stripped_inputs_checkbox.stateChanged.connect(self.__on_use_stripped_inputs_status_changed)
@@ -615,6 +627,31 @@ class SoftwareSettingsDialog(QDialog):
         }""")
 
         self.model_purge_pushbutton.setStyleSheet("""
+        QPushButton{
+        background-color: """ + pressed_background_color + """;
+        color: """ + font_color + """;
+        font: 12px;
+        border-style: none;
+        }
+        QPushButton::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        }
+        QPushButton:pressed{
+        border-style:inset;
+        background-color: """ + pressed_background_color + """;
+        }""")
+
+        self.reset_settings_header_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        text-align:left;
+        font:semibold;
+        font-size:14px;
+        }""")
+
+        self.reset_settings_pushbutton.setStyleSheet("""
         QPushButton{
         background-color: """ + pressed_background_color + """;
         color: """ + font_color + """;
@@ -1168,6 +1205,83 @@ class SoftwareSettingsDialog(QDialog):
             if os.path.exists(SoftwareConfigResources.getInstance().models_path):
                 shutil.rmtree(SoftwareConfigResources.getInstance().models_path)
                 os.makedirs(SoftwareConfigResources.getInstance().models_path)
+
+    def __on_reset_settings_clicked(self) -> None:
+        """
+        Settings all parameters to their default values and updating visually the widget
+        @TODO. Should ask the user for confirmation before doing it?
+        """
+        UserPreferencesStructure.getInstance().reset()
+        self.home_directory_lineedit.setText(os.path.join(os.path.expanduser('~'), '.raidionics'))
+        self.model_update_checkbox.blockSignals(True)
+        self.model_update_checkbox.setChecked(UserPreferencesStructure.getInstance().active_model_update)
+        self.model_update_checkbox.blockSignals(False)
+        self.processing_options_use_sequences_checkbox.blockSignals(True)
+        self.processing_options_use_sequences_checkbox.setChecked(UserPreferencesStructure.getInstance().use_manual_sequences)
+        self.processing_options_use_sequences_checkbox.blockSignals(False)
+        self.processing_options_use_annotations_checkbox.blockSignals(True)
+        self.processing_options_use_annotations_checkbox.setChecked(UserPreferencesStructure.getInstance().use_manual_annotations)
+        self.processing_options_use_annotations_checkbox.blockSignals(False)
+        self.processing_options_use_stripped_inputs_checkbox.blockSignals(True)
+        self.processing_options_use_stripped_inputs_checkbox.setChecked(UserPreferencesStructure.getInstance().use_stripped_inputs)
+        self.processing_options_use_stripped_inputs_checkbox.blockSignals(False)
+        self.processing_options_use_registered_inputs_checkbox.blockSignals(True)
+        self.processing_options_use_registered_inputs_checkbox.setChecked(UserPreferencesStructure.getInstance().use_registered_inputs)
+        self.processing_options_use_registered_inputs_checkbox.blockSignals(False)
+        self.processing_options_export_results_rtstruct_checkbox.blockSignals(True)
+        self.processing_options_export_results_rtstruct_checkbox.setChecked(UserPreferencesStructure.getInstance().export_results_as_rtstruct)
+        self.processing_options_export_results_rtstruct_checkbox.blockSignals(False)
+        self.processing_options_segmentation_models_selector_combobox.blockSignals(True)
+        self.processing_options_segmentation_models_selector_combobox.setCurrentText(UserPreferencesStructure.getInstance().segmentation_tumor_model_type)
+        self.processing_options_segmentation_models_selector_combobox.blockSignals(False)
+        self.processing_options_segmentation_refinement_checkbox.blockSignals(True)
+        self.processing_options_segmentation_refinement_checkbox.setChecked(UserPreferencesStructure.getInstance().perform_segmentation_refinement)
+        self.processing_options_segmentation_refinement_checkbox.blockSignals(False)
+        self.processing_options_segmentation_refinement_selector_combobox.blockSignals(True)
+        self.processing_options_segmentation_refinement_selector_combobox.setCurrentText(UserPreferencesStructure.getInstance().segmentation_refinement_type)
+        self.processing_options_segmentation_refinement_selector_combobox.blockSignals(False)
+        self.processing_options_segmentation_refinement_dilation_threshold_spinbox.blockSignals(True)
+        self.processing_options_segmentation_refinement_dilation_threshold_spinbox.setValue(UserPreferencesStructure.getInstance().segmentation_refinement_dilation_percentage)
+        self.processing_options_segmentation_refinement_dilation_threshold_spinbox.blockSignals(False)
+        self.processing_options_compute_corticalstructures_checkbox.blockSignals(True)
+        self.processing_options_compute_corticalstructures_checkbox.setChecked(UserPreferencesStructure.getInstance().compute_cortical_structures)
+        self.processing_options_compute_corticalstructures_checkbox.blockSignals(False)
+        self.corticalstructures_mni_checkbox.blockSignals(True)
+        self.corticalstructures_mni_checkbox.setChecked(True if "MNI" in UserPreferencesStructure.getInstance().cortical_structures_list else False)
+        self.corticalstructures_mni_checkbox.blockSignals(False)
+        self.corticalstructures_schaefer7_checkbox.blockSignals(True)
+        self.corticalstructures_schaefer7_checkbox.setChecked(True if "Schaefer7" in UserPreferencesStructure.getInstance().cortical_structures_list else False)
+        self.corticalstructures_schaefer7_checkbox.blockSignals(False)
+        self.corticalstructures_schaefer17_checkbox.blockSignals(True)
+        self.corticalstructures_schaefer17_checkbox.setChecked(True if "Schaefer17" in UserPreferencesStructure.getInstance().cortical_structures_list else False)
+        self.corticalstructures_schaefer17_checkbox.blockSignals(False)
+        self.corticalstructures_harvardoxford_checkbox.blockSignals(True)
+        self.corticalstructures_harvardoxford_checkbox.setChecked(True if "Harvard-Oxford" in UserPreferencesStructure.getInstance().cortical_structures_list else False)
+        self.corticalstructures_harvardoxford_checkbox.blockSignals(False)
+        self.processing_options_compute_subcorticalstructures_checkbox.blockSignals(True)
+        self.processing_options_compute_subcorticalstructures_checkbox.setChecked(UserPreferencesStructure.getInstance().compute_subcortical_structures)
+        self.processing_options_compute_subcorticalstructures_checkbox.blockSignals(False)
+        self.subcorticalstructures_bcb_checkbox.blockSignals(True)
+        self.subcorticalstructures_bcb_checkbox.setChecked(True if "BCB" in UserPreferencesStructure.getInstance().subcortical_structures_list else False)
+        self.subcorticalstructures_bcb_checkbox.blockSignals(False)
+        self.subcorticalstructures_braingrid_checkbox.blockSignals(True)
+        self.subcorticalstructures_braingrid_checkbox.setChecked(True if "BrainGrid" in UserPreferencesStructure.getInstance().subcortical_structures_list else False)
+        self.subcorticalstructures_braingrid_checkbox.blockSignals(False)
+        self.processing_options_compute_braingridstructures_checkbox.setChecked(True)
+        self.processing_options_compute_braingridstructures_checkbox.setChecked(UserPreferencesStructure.getInstance().compute_braingrid_structures)
+        self.processing_options_compute_braingridstructures_checkbox.setChecked(False)
+        self.braingridstructures_voxels_checkbox.blockSignals(True)
+        self.braingridstructures_voxels_checkbox.setChecked(True if "Voxels" in UserPreferencesStructure.getInstance().braingrid_structures_list else False)
+        self.braingridstructures_voxels_checkbox.blockSignals(False)
+        self.display_space_combobox.blockSignals(True)
+        self.display_space_combobox.setCurrentText(UserPreferencesStructure.getInstance().display_space)
+        self.display_space_combobox.blockSignals(False)
+        self.dark_mode_checkbox.blockSignals(True)
+        self.dark_mode_checkbox.setChecked(UserPreferencesStructure.getInstance().use_dark_mode)
+        self.dark_mode_checkbox.blockSignals(False)
+        self.modal_message_prompt_checkbox.blockSignals(True)
+        self.modal_message_prompt_checkbox.setChecked(UserPreferencesStructure.getInstance().disable_modal_warnings)
+        self.modal_message_prompt_checkbox.blockSignals(False)
 
     def __on_use_sequences_status_changed(self, status):
         UserPreferencesStructure.getInstance().use_manual_sequences = self.processing_options_use_sequences_checkbox.isChecked()
