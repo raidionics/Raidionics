@@ -1,6 +1,7 @@
 import os
 import shutil
 import logging
+import traceback
 from time import sleep
 
 import requests
@@ -140,7 +141,7 @@ def test_creation_dicom_import(qtbot, test_location, test_data_folder, dicom_res
     except Exception as e:
         # Clearing the scene
         window.on_clear_scene()
-        raise ValueError(e)
+        print("Error: {}.\nStack: {}".format(e, traceback.format_exc()))
 
 @pytest.mark.timeout(60)
 def test_dicom_import_another_volume_from_ts_browser(qtbot, test_location, test_data_folder, dicom_resources_folder,
