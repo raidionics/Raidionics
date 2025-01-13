@@ -55,7 +55,7 @@ jobs:
       run: |
           cd ${{github.workspace}}
           source tmp/venv/bin/activate
-          pip3 install pytest-qt pytest-cov
+          pip3 install pytest-qt pytest-cov pytest-timeout
           pytest -vvv --cov=gui --cov=utils ${{github.workspace}}/integration_tests --timeout=60 --log-cli-level=DEBUG
           deactivate
 
