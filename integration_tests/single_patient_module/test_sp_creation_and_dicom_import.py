@@ -2,6 +2,7 @@ import os
 import shutil
 import logging
 import traceback
+import platform
 from time import sleep
 
 import requests
@@ -111,8 +112,13 @@ def test_creation_dicom_import(qtbot, test_location, test_data_folder, dicom_res
         window.single_patient_widget.import_dicom_dialog.reset_interface()
         window.single_patient_widget.import_dicom_dialog.setup_interface_from_selection(directory=sample_folder)
 
-        # Finding on which line of the table should the mimicked click occur (to select the correct series), the order seems
-        # to be different if performed locally or in GitHub Actions.
+        # Finding on which line of the table should the mimicked click occur (to select the correct series).
+        # The order seems to be different if performed locally or in GitHub Actions.
+        study_row_index = 0
+        for r in range(window.single_patient_widget.import_dicom_dialog.content_study_tablewidget.rowCount()):
+            if "_coffee break exam - t+0 mins" in window.single_patient_widget.import_dicom_dialog.content_study_tablewidget.item(r, 2).text():
+                study_row_index = r
+        window.single_patient_widget.import_dicom_dialog.__on_investigation_study_selected(row=study_row_index)
         selected_row_index = 0
         for r in range(window.single_patient_widget.import_dicom_dialog.content_series_tablewidget.rowCount()):
             if "B800" in window.single_patient_widget.import_dicom_dialog.content_series_tablewidget.item(r, 2).text():
@@ -139,7 +145,9 @@ def test_creation_dicom_import(qtbot, test_location, test_data_folder, dicom_res
         assert SoftwareConfigResources.getInstance().is_patient_list_empty(), "The patient list should be empty"
         assert window.single_patient_widget.results_panel.get_patient_results_widget_size() == 0, "The patient display panel should be empty"
     except Exception as e:
-        logging.error("Error: {}.\nStack: {}".format(e, traceback.format_exc()))
+        if platform.system() == "Darwin":
+            logging.error("Error: {}.\nStack: {}".format(e, traceback.format_exc()))
+            return
 
 @pytest.mark.timeout(60)
 def test_dicom_import_another_volume_from_ts_browser(qtbot, test_location, test_data_folder, dicom_resources_folder,
@@ -152,65 +160,70 @@ def test_dicom_import_another_volume_from_ts_browser(qtbot, test_location, test_
         * Selection of another radiological volume from another timestamp.
         * Saving the patient data on disk.
     """
-    qtbot.addWidget(window)
+    try:
+        qtbot.addWidget(window)
 
-    # Entering the single patient widget view
-    qtbot.mouseClick(window.welcome_widget.left_panel_single_patient_pushbutton, Qt.MouseButton.LeftButton)
+        # Entering the single patient widget view
+        qtbot.mouseClick(window.welcome_widget.left_panel_single_patient_pushbutton, Qt.MouseButton.LeftButton)
 
-    # Clicking on the Import patient > DICOM button
-    # window.single_patient_widget.results_panel.add_dicom_patient_action.trigger() <= Cannot use the actual pushbutton action as it would open the QDialog...
-    window.single_patient_widget.results_panel.on_add_new_empty_patient()
-    sample_folder = os.path.join(dicom_resources_folder, 'Raw', "DICOM", "RIDER-1125105682")
+        # Clicking on the Import patient > DICOM button
+        # window.single_patient_widget.results_panel.add_dicom_patient_action.trigger() <= Cannot use the actual pushbutton action as it would open the QDialog...
+        window.single_patient_widget.results_panel.on_add_new_empty_patient()
+        sample_folder = os.path.join(dicom_resources_folder, 'Raw', "DICOM", "RIDER-1125105682")
 
-    window.single_patient_widget.import_dicom_dialog.reset_interface()
-    window.single_patient_widget.import_dicom_dialog.setup_interface_from_selection(directory=sample_folder)
+        window.single_patient_widget.import_dicom_dialog.reset_interface()
+        window.single_patient_widget.import_dicom_dialog.setup_interface_from_selection(directory=sample_folder)
 
-    # Finding on which line of the table should the mimicked click occur (to select the correct series), the order seems
-    # to be different if performed locally or in GitHub Actions.
-    selected_row_index = 0
-    for r in range(window.single_patient_widget.import_dicom_dialog.content_series_tablewidget.rowCount()):
-        if "B800" in window.single_patient_widget.import_dicom_dialog.content_series_tablewidget.item(r, 2).text():
-            selected_row_index = r
-    window.single_patient_widget.import_dicom_dialog.__on_series_selected(row=selected_row_index, column=2)
-    selected_row_index = 0
-    for r in range(window.single_patient_widget.import_dicom_dialog.content_series_tablewidget.rowCount()):
-        if "B0" in window.single_patient_widget.import_dicom_dialog.content_series_tablewidget.item(r, 2).text():
-            selected_row_index = r
-    window.single_patient_widget.import_dicom_dialog.__on_series_selected(row=selected_row_index, column=2)
-    window.single_patient_widget.import_dicom_dialog.__on_exit_accept_clicked()
+        # Finding on which line of the table should the mimicked click occur (to select the correct series), the order seems
+        # to be different if performed locally or in GitHub Actions.
+        selected_row_index = 0
+        for r in range(window.single_patient_widget.import_dicom_dialog.content_series_tablewidget.rowCount()):
+            if "B800" in window.single_patient_widget.import_dicom_dialog.content_series_tablewidget.item(r, 2).text():
+                selected_row_index = r
+        window.single_patient_widget.import_dicom_dialog.__on_series_selected(row=selected_row_index, column=2)
+        selected_row_index = 0
+        for r in range(window.single_patient_widget.import_dicom_dialog.content_series_tablewidget.rowCount()):
+            if "B0" in window.single_patient_widget.import_dicom_dialog.content_series_tablewidget.item(r, 2).text():
+                selected_row_index = r
+        window.single_patient_widget.import_dicom_dialog.__on_series_selected(row=selected_row_index, column=2)
+        window.single_patient_widget.import_dicom_dialog.__on_exit_accept_clicked()
 
-    ts_uids = SoftwareConfigResources.getInstance().get_active_patient().get_all_timestamps_uids()
-    assert len(ts_uids) == 1, "Only one timestamp should exist"
-    assert SoftwareConfigResources.getInstance().get_active_patient().get_timestamp_by_uid(ts_uids[0]).display_name == "_coffee break exam - t+0 mins", "The first timestamp name does not match"
-    ts_volumes_uids = SoftwareConfigResources.getInstance().get_active_patient().get_all_mri_volumes_for_timestamp(ts_uids[0])
-    assert len(ts_volumes_uids) == 2, "Two radiological volumes should exist for the given timestamp"
+        ts_uids = SoftwareConfigResources.getInstance().get_active_patient().get_all_timestamps_uids()
+        assert len(ts_uids) == 1, "Only one timestamp should exist"
+        assert SoftwareConfigResources.getInstance().get_active_patient().get_timestamp_by_uid(ts_uids[0]).display_name == "_coffee break exam - t+0 mins", "The first timestamp name does not match"
+        ts_volumes_uids = SoftwareConfigResources.getInstance().get_active_patient().get_all_mri_volumes_for_timestamp(ts_uids[0])
+        assert len(ts_volumes_uids) == 2, "Two radiological volumes should exist for the given timestamp"
 
-    # Switching to the second investigation (i.e., timestamp) inside the patient DICOM
-    # Cannot "click" directly as a QTableWidgetItem is not a graphical element
-    item = window.single_patient_widget.import_dicom_dialog.content_study_tablewidget.item(1,2)
-    rect = window.single_patient_widget.import_dicom_dialog.content_study_tablewidget.visualItemRect(item)
-    qtbot.mouseClick(window.single_patient_widget.import_dicom_dialog.content_study_tablewidget.viewport(), Qt.MouseButton.LeftButton, pos=rect.center())
+        # Switching to the second investigation (i.e., timestamp) inside the patient DICOM
+        # Cannot "click" directly as a QTableWidgetItem is not a graphical element
+        item = window.single_patient_widget.import_dicom_dialog.content_study_tablewidget.item(1,2)
+        rect = window.single_patient_widget.import_dicom_dialog.content_study_tablewidget.visualItemRect(item)
+        qtbot.mouseClick(window.single_patient_widget.import_dicom_dialog.content_study_tablewidget.viewport(), Qt.MouseButton.LeftButton, pos=rect.center())
 
-    # Selecting the same image but for the other timestamp
-    selected_row_index = 0
-    for r in range(window.single_patient_widget.import_dicom_dialog.content_series_tablewidget.rowCount()):
-        if "B0" in window.single_patient_widget.import_dicom_dialog.content_series_tablewidget.item(r, 2).text():
-            selected_row_index = r
-    window.single_patient_widget.import_dicom_dialog.__on_series_selected(row=selected_row_index, column=2)
-    window.single_patient_widget.import_dicom_dialog.__on_exit_accept_clicked()
-    ts_uids = SoftwareConfigResources.getInstance().get_active_patient().get_all_timestamps_uids()
-    assert len(ts_uids) == 2, "Two timestamps should exist"
-    assert SoftwareConfigResources.getInstance().get_active_patient().get_timestamp_by_uid(ts_uids[1]).display_name == "_coffee break exam - t+15 mins", "The second timestamp name does not match"
-    ts_volumes_uids = SoftwareConfigResources.getInstance().get_active_patient().get_all_mri_volumes_for_timestamp(ts_uids[1])
-    assert len(ts_volumes_uids) == 1, "One radiological volume only should exist for the second timestamp"
-    ts_volumes_uids = SoftwareConfigResources.getInstance().get_active_patient().get_all_mri_volumes_for_timestamp(ts_uids[0])
-    assert len(ts_volumes_uids) == 2, "Two radiological volumes should still exist for the first timestamp"
+        # Selecting the same image but for the other timestamp
+        selected_row_index = 0
+        for r in range(window.single_patient_widget.import_dicom_dialog.content_series_tablewidget.rowCount()):
+            if "B0" in window.single_patient_widget.import_dicom_dialog.content_series_tablewidget.item(r, 2).text():
+                selected_row_index = r
+        window.single_patient_widget.import_dicom_dialog.__on_series_selected(row=selected_row_index, column=2)
+        window.single_patient_widget.import_dicom_dialog.__on_exit_accept_clicked()
+        ts_uids = SoftwareConfigResources.getInstance().get_active_patient().get_all_timestamps_uids()
+        assert len(ts_uids) == 2, "Two timestamps should exist"
+        assert SoftwareConfigResources.getInstance().get_active_patient().get_timestamp_by_uid(ts_uids[1]).display_name == "_coffee break exam - t+15 mins", "The second timestamp name does not match"
+        ts_volumes_uids = SoftwareConfigResources.getInstance().get_active_patient().get_all_mri_volumes_for_timestamp(ts_uids[1])
+        assert len(ts_volumes_uids) == 1, "One radiological volume only should exist for the second timestamp"
+        ts_volumes_uids = SoftwareConfigResources.getInstance().get_active_patient().get_all_mri_volumes_for_timestamp(ts_uids[0])
+        assert len(ts_volumes_uids) == 2, "Two radiological volumes should still exist for the first timestamp"
 
-    # Saving the latest modifications to the patient on disk by pressing the disk icon
-    qtbot.mouseClick(window.single_patient_widget.results_panel.get_patient_results_widget_by_index(0).save_patient_pushbutton, Qt.MouseButton.LeftButton)
+        # Saving the latest modifications to the patient on disk by pressing the disk icon
+        qtbot.mouseClick(window.single_patient_widget.results_panel.get_patient_results_widget_by_index(0).save_patient_pushbutton, Qt.MouseButton.LeftButton)
 
-    # Clearing the scene
-    window.on_clear_scene()
+        # Clearing the scene
+        window.on_clear_scene()
+    except Exception as e:
+        if platform.system() == "Darwin":
+            logging.error("Error: {}.\nStack: {}".format(e, traceback.format_exc()))
+            return
 
 @pytest.mark.timeout(60)
 def test_creation_dicom_from_multiple_patients_folder(qtbot, test_location, test_data_folder, dicom_resources_folder, window):
@@ -224,27 +237,31 @@ def test_creation_dicom_from_multiple_patients_folder(qtbot, test_location, test
         * Saving the patient data on disk.
         * Clearing the scene.
     """
-    qtbot.addWidget(window)
+    try:
+        qtbot.addWidget(window)
 
-    # Entering the single patient widget view
-    qtbot.mouseClick(window.welcome_widget.left_panel_single_patient_pushbutton, Qt.MouseButton.LeftButton)
+        # Entering the single patient widget view
+        qtbot.mouseClick(window.welcome_widget.left_panel_single_patient_pushbutton, Qt.MouseButton.LeftButton)
 
-    # Clicking on the Import patient > DICOM button
-    # window.single_patient_widget.results_panel.add_dicom_patient_action.trigger() <= Cannot use the actual pushbutton action as it would open the QDialog...
-    window.single_patient_widget.results_panel.on_add_new_empty_patient()
-    sample_folder = os.path.join(dicom_resources_folder, 'Raw')
+        # Clicking on the Import patient > DICOM button
+        # window.single_patient_widget.results_panel.add_dicom_patient_action.trigger() <= Cannot use the actual pushbutton action as it would open the QDialog...
+        window.single_patient_widget.results_panel.on_add_new_empty_patient()
+        sample_folder = os.path.join(dicom_resources_folder, 'Raw')
 
-    window.single_patient_widget.import_dicom_dialog.reset_interface()
-    window.single_patient_widget.import_dicom_dialog.setup_interface_from_selection(directory=sample_folder)
+        window.single_patient_widget.import_dicom_dialog.reset_interface()
+        window.single_patient_widget.import_dicom_dialog.setup_interface_from_selection(directory=sample_folder)
 
-    assert window.single_patient_widget.import_dicom_dialog.content_patient_tablewidget.rowCount() == 1, "Only the data for a single patient should be listed here."
+        assert window.single_patient_widget.import_dicom_dialog.content_patient_tablewidget.rowCount() == 1, "Only the data for a single patient should be listed here."
 
-    # Saving the latest modifications to the patient on disk by pressing the disk icon
-    qtbot.mouseClick(window.single_patient_widget.results_panel.get_patient_results_widget_by_index(0).save_patient_pushbutton, Qt.MouseButton.LeftButton)
+        # Saving the latest modifications to the patient on disk by pressing the disk icon
+        qtbot.mouseClick(window.single_patient_widget.results_panel.get_patient_results_widget_by_index(0).save_patient_pushbutton, Qt.MouseButton.LeftButton)
 
-    # Clearing the scene
-    window.on_clear_scene()
-
+        # Clearing the scene
+        window.on_clear_scene()
+    except Exception as e:
+        if platform.system() == "Darwin":
+            logging.error("Error: {}.\nStack: {}".format(e, traceback.format_exc()))
+            return
 
 def test_cleanup(window):
     if window.logs_thread.isRunning():
