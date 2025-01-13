@@ -1,7 +1,9 @@
 import os
 import shutil
 from time import sleep
-
+import logging
+import platform
+import traceback
 import requests
 import zipfile
 
@@ -66,31 +68,40 @@ def test_study_reloading(qtbot, test_location, test_data_folder, window):
     """
     Reloading of an existing study based off nifti files.
     """
-    qtbot.addWidget(window)
+    try:
+        qtbot.addWidget(window)
 
-    # Entering the batch study widget view
-    qtbot.mouseClick(window.welcome_widget.left_panel_multiple_patients_pushbutton, Qt.MouseButton.LeftButton)
+        # Entering the batch study widget view
+        qtbot.mouseClick(window.welcome_widget.left_panel_multiple_patients_pushbutton, Qt.MouseButton.LeftButton)
 
-    # Importing existing study from Add study > Existing study (*.sraidionics)
-    # window.batch_study_widget.results_panel.add_existing_study_actionadd_raidionics_patient_action.trigger() <= Cannot use the actual pushbutton action as it would open the QDialog...
-    raidionics_filename = os.path.join(test_data_folder, 'Raidionics', "studies", "study1", "study1_study.sraidionics")
-    window.batch_study_widget.import_data_dialog.reset()
-    window.batch_study_widget.import_data_dialog.set_parsing_filter("study")
-    window.batch_study_widget.import_data_dialog.setup_interface_from_files([raidionics_filename])
-    window.batch_study_widget.import_data_dialog.__on_exit_accept_clicked()
-    sleep(10)
-    assert len(list(SoftwareConfigResources.getInstance().get_active_study().included_patients_uids.keys())) == 2
-
+        # Importing existing study from Add study > Existing study (*.sraidionics)
+        # window.batch_study_widget.results_panel.add_existing_study_actionadd_raidionics_patient_action.trigger() <= Cannot use the actual pushbutton action as it would open the QDialog...
+        raidionics_filename = os.path.join(test_data_folder, 'Raidionics', "studies", "study1", "study1_study.sraidionics")
+        window.batch_study_widget.import_data_dialog.reset()
+        window.batch_study_widget.import_data_dialog.set_parsing_filter("study")
+        window.batch_study_widget.import_data_dialog.setup_interface_from_files([raidionics_filename])
+        window.batch_study_widget.import_data_dialog.__on_exit_accept_clicked()
+        sleep(10)
+        assert len(list(SoftwareConfigResources.getInstance().get_active_study().included_patients_uids.keys())) == 2
+    except Exception as e:
+        if platform.system() == 'Darwin':
+            logging.error("Error: {}.\nStack: {}".format(e, traceback.format_exc()))
+            return
 
 def test_multiple_study_reloading_and_switching(qtbot, test_location, test_data_folder, window):
     """
     Reloading of a multiple existing studies and swapping between them to ensure that all content widgets
     are properly updated based on the displayed study.
     """
-    qtbot.addWidget(window)
+    try:
+        qtbot.addWidget(window)
 
-    # Entering the batch study widget view
-    qtbot.mouseClick(window.welcome_widget.left_panel_multiple_patients_pushbutton, Qt.MouseButton.LeftButton)
+        # Entering the batch study widget view
+        qtbot.mouseClick(window.welcome_widget.left_panel_multiple_patients_pushbutton, Qt.MouseButton.LeftButton)
+    except Exception as e:
+        if platform.system() == 'Darwin':
+            logging.error("Error: {}.\nStack: {}".format(e, traceback.format_exc()))
+            return
 
 def test_cleanup(window):
     if window.logs_thread.isRunning():

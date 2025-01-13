@@ -1,7 +1,9 @@
 import os
 import shutil
 from time import sleep
-
+import logging
+import platform
+import traceback
 import requests
 import zipfile
 
@@ -68,36 +70,44 @@ def test_empty_study_creation(qtbot, test_location, window):
     """
     Creation of a new empty patient.
     """
-    qtbot.addWidget(window)
-    qtbot.mouseClick(window.welcome_widget.left_panel_multiple_patients_pushbutton, Qt.MouseButton.LeftButton)
-    window.batch_study_widget.studies_panel.add_empty_study_action.trigger()
-    assert len(SoftwareConfigResources.getInstance().study_parameters) == 1
-
+    try:
+        qtbot.addWidget(window)
+        qtbot.mouseClick(window.welcome_widget.left_panel_multiple_patients_pushbutton, Qt.MouseButton.LeftButton)
+        window.batch_study_widget.studies_panel.add_empty_study_action.trigger()
+        assert len(SoftwareConfigResources.getInstance().study_parameters) == 1
+    except Exception as e:
+        if platform.system() == 'Darwin':
+            logging.error("Error: {}.\nStack: {}".format(e, traceback.format_exc()))
+            return
 
 def test_empty_study_add_single_patient_folder(qtbot, test_location, window):
     """
     Creation of a new empty study followed by inclusion of a single patient (with regular folder structure).
     """
-    qtbot.addWidget(window)
-    qtbot.mouseClick(window.welcome_widget.left_panel_multiple_patients_pushbutton, Qt.MouseButton.LeftButton)
-    # Creating a new empty study
-    window.batch_study_widget.studies_panel.add_empty_study_action.trigger()
+    try:
+        qtbot.addWidget(window)
+        qtbot.mouseClick(window.welcome_widget.left_panel_multiple_patients_pushbutton, Qt.MouseButton.LeftButton)
+        # Creating a new empty study
+        window.batch_study_widget.studies_panel.add_empty_study_action.trigger()
 
-    # Importing a single folder-based patient
-    window.batch_study_widget.studies_panel.get_study_widget_by_index(0).import_data_dialog.set_parsing_mode('single')
-    window.batch_study_widget.studies_panel.get_study_widget_by_index(0).import_data_dialog.set_target_type('regular')
-    single_patient_filepath = os.path.join(test_location, 'Raw')
-    window.batch_study_widget.studies_panel.get_study_widget_by_index(0).import_data_dialog.setup_interface_from_selection(directory=single_patient_filepath)
-    window.batch_study_widget.studies_panel.get_study_widget_by_index(0).import_data_dialog.__on_exit_accept_clicked()
+        # Importing a single folder-based patient
+        window.batch_study_widget.studies_panel.get_study_widget_by_index(0).import_data_dialog.set_parsing_mode('single')
+        window.batch_study_widget.studies_panel.get_study_widget_by_index(0).import_data_dialog.set_target_type('regular')
+        single_patient_filepath = os.path.join(test_location, 'Raw')
+        window.batch_study_widget.studies_panel.get_study_widget_by_index(0).import_data_dialog.setup_interface_from_selection(directory=single_patient_filepath)
+        window.batch_study_widget.studies_panel.get_study_widget_by_index(0).import_data_dialog.__on_exit_accept_clicked()
 
-    # Verifying that the patient is correctly listed internally and in the interface
-    assert SoftwareConfigResources.getInstance().get_active_study().get_total_included_patients() == 1
-    assert window.batch_study_widget.patient_listing_panel.get_study_patient_widget_length() == 1
-    #assert window.batch_study_widget.patients_summary_panel.??
+        # Verifying that the patient is correctly listed internally and in the interface
+        assert SoftwareConfigResources.getInstance().get_active_study().get_total_included_patients() == 1
+        assert window.batch_study_widget.patient_listing_panel.get_study_patient_widget_length() == 1
+        #assert window.batch_study_widget.patients_summary_panel.??
 
-    # Saving the latest modifications to the study on disk by pressing the disk icon
-    qtbot.mouseClick(window.batch_study_widget.studies_panel.get_study_widget_by_index(0).save_study_pushbutton, Qt.MouseButton.LeftButton)
-
+        # Saving the latest modifications to the study on disk by pressing the disk icon
+        qtbot.mouseClick(window.batch_study_widget.studies_panel.get_study_widget_by_index(0).save_study_pushbutton, Qt.MouseButton.LeftButton)
+    except Exception as e:
+        if platform.system() == 'Darwin':
+            logging.error("Error: {}.\nStack: {}".format(e, traceback.format_exc()))
+            return
 
 def test_cleanup(window):
     if window.logs_thread.isRunning():

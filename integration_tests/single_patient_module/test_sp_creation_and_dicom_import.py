@@ -118,7 +118,7 @@ def test_creation_dicom_import(qtbot, test_location, test_data_folder, dicom_res
         for r in range(window.single_patient_widget.import_dicom_dialog.content_study_tablewidget.rowCount()):
             if "_coffee break exam - t+0 mins" in window.single_patient_widget.import_dicom_dialog.content_study_tablewidget.item(r, 2).text():
                 study_row_index = r
-        window.single_patient_widget.import_dicom_dialog.__on_investigation_study_selected(row=study_row_index)
+        window.single_patient_widget.import_dicom_dialog.__on_investigation_study_selected(row=study_row_index, column=0)
         selected_row_index = 0
         for r in range(window.single_patient_widget.import_dicom_dialog.content_series_tablewidget.rowCount()):
             if "B800" in window.single_patient_widget.import_dicom_dialog.content_series_tablewidget.item(r, 2).text():
@@ -176,6 +176,11 @@ def test_dicom_import_another_volume_from_ts_browser(qtbot, test_location, test_
 
         # Finding on which line of the table should the mimicked click occur (to select the correct series), the order seems
         # to be different if performed locally or in GitHub Actions.
+        study_row_index = 0
+        for r in range(window.single_patient_widget.import_dicom_dialog.content_study_tablewidget.rowCount()):
+            if "_coffee break exam - t+0 mins" in window.single_patient_widget.import_dicom_dialog.content_study_tablewidget.item(r, 2).text():
+                study_row_index = r
+        window.single_patient_widget.import_dicom_dialog.__on_investigation_study_selected(row=study_row_index, column=0)
         selected_row_index = 0
         for r in range(window.single_patient_widget.import_dicom_dialog.content_series_tablewidget.rowCount()):
             if "B800" in window.single_patient_widget.import_dicom_dialog.content_series_tablewidget.item(r, 2).text():
@@ -196,9 +201,10 @@ def test_dicom_import_another_volume_from_ts_browser(qtbot, test_location, test_
 
         # Switching to the second investigation (i.e., timestamp) inside the patient DICOM
         # Cannot "click" directly as a QTableWidgetItem is not a graphical element
-        item = window.single_patient_widget.import_dicom_dialog.content_study_tablewidget.item(1,2)
+        item = window.single_patient_widget.import_dicom_dialog.content_study_tablewidget.item((study_row_index+1)%2, 2)
         rect = window.single_patient_widget.import_dicom_dialog.content_study_tablewidget.visualItemRect(item)
-        qtbot.mouseClick(window.single_patient_widget.import_dicom_dialog.content_study_tablewidget.viewport(), Qt.MouseButton.LeftButton, pos=rect.center())
+        qtbot.mouseClick(window.single_patient_widget.import_dicom_dialog.content_study_tablewidget.viewport(),
+                         Qt.MouseButton.LeftButton, pos=rect.center())
 
         # Selecting the same image but for the other timestamp
         selected_row_index = 0

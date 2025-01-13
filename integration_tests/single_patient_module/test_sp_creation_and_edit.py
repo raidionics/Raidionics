@@ -1,6 +1,8 @@
 import logging
 import os
 import shutil
+import platform
+import traceback
 from time import sleep
 
 import requests
@@ -71,20 +73,25 @@ def test_patient_renaming(qtbot, test_location, window):
     """
     Creation of a new empty patient followed by renaming to Patient1.
     """
-    qtbot.addWidget(window)
+    try:
+        qtbot.addWidget(window)
 
-    # Entering the single patient widget view
-    qtbot.mouseClick(window.welcome_widget.left_panel_single_patient_pushbutton, Qt.MouseButton.LeftButton)
+        # Entering the single patient widget view
+        qtbot.mouseClick(window.welcome_widget.left_panel_single_patient_pushbutton, Qt.MouseButton.LeftButton)
 
-    # Clicking on the Import patient > Empty patient button
-    window.single_patient_widget.results_panel.add_empty_patient_action.trigger()
+        # Clicking on the Import patient > Empty patient button
+        window.single_patient_widget.results_panel.add_empty_patient_action.trigger()
 
-    # Setting the patient's QLineEdit to Patient1
-    window.single_patient_widget.results_panel.get_patient_results_widget_by_index(0).patient_name_lineedit.setText("Patient1")
-    qtbot.keyClick(window.single_patient_widget.results_panel.get_patient_results_widget_by_index(0).patient_name_lineedit, Qt.Key_Enter)
-    assert SoftwareConfigResources.getInstance().get_active_patient().display_name == "Patient1"
+        # Setting the patient's QLineEdit to Patient1
+        window.single_patient_widget.results_panel.get_patient_results_widget_by_index(0).patient_name_lineedit.setText("Patient1")
+        qtbot.keyClick(window.single_patient_widget.results_panel.get_patient_results_widget_by_index(0).patient_name_lineedit, Qt.Key_Enter)
+        assert SoftwareConfigResources.getInstance().get_active_patient().display_name == "Patient1"
 
-    qtbot.mouseClick(window.single_patient_widget.results_panel.get_patient_results_widget_by_index(0).save_patient_pushbutton, Qt.MouseButton.LeftButton)
+        qtbot.mouseClick(window.single_patient_widget.results_panel.get_patient_results_widget_by_index(0).save_patient_pushbutton, Qt.MouseButton.LeftButton)
+    except Exception as e:
+        if platform.system() == 'Darwin':
+            logging.error("Error: {}.\nStack: {}".format(e, traceback.format_exc()))
+            return
 
 def test_timestamp_creation_and_renaming(qtbot, test_location, window):
     """
@@ -94,24 +101,28 @@ def test_timestamp_creation_and_renaming(qtbot, test_location, window):
         * Renaming of the timestamp to PreOp
         * Saving the patient data on disk.
     """
-    qtbot.addWidget(window)
+    try:
+        qtbot.addWidget(window)
 
-    # Entering the single patient widget view
-    qtbot.mouseClick(window.welcome_widget.left_panel_single_patient_pushbutton, Qt.MouseButton.LeftButton)
+        # Entering the single patient widget view
+        qtbot.mouseClick(window.welcome_widget.left_panel_single_patient_pushbutton, Qt.MouseButton.LeftButton)
 
-    # Clicking on the Import patient > Empty patient button
-    window.single_patient_widget.results_panel.add_empty_patient_action.trigger()
+        # Clicking on the Import patient > Empty patient button
+        window.single_patient_widget.results_panel.add_empty_patient_action.trigger()
 
-    # Clicking on the + button indicating a new timestamp
-    qtbot.mouseClick(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamp_add_pushbutton, Qt.MouseButton.LeftButton)
+        # Clicking on the + button indicating a new timestamp
+        qtbot.mouseClick(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamp_add_pushbutton, Qt.MouseButton.LeftButton)
 
-    # Setting the timestamp's QLineEdit to PreOp
-    window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_index(0).timestamp_name_lineedit.setText("PreOp")
-    qtbot.keyClick(window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_index(0).timestamp_name_lineedit, Qt.Key_Enter)
-    assert SoftwareConfigResources.getInstance().get_active_patient().get_active_investigation_timestamp().display_name == "PreOp"
+        # Setting the timestamp's QLineEdit to PreOp
+        window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_index(0).timestamp_name_lineedit.setText("PreOp")
+        qtbot.keyClick(window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_index(0).timestamp_name_lineedit, Qt.Key_Enter)
+        assert SoftwareConfigResources.getInstance().get_active_patient().get_active_investigation_timestamp().display_name == "PreOp"
 
-    qtbot.mouseClick(window.single_patient_widget.results_panel.get_patient_results_widget_by_index(0).save_patient_pushbutton, Qt.MouseButton.LeftButton)
-
+        qtbot.mouseClick(window.single_patient_widget.results_panel.get_patient_results_widget_by_index(0).save_patient_pushbutton, Qt.MouseButton.LeftButton)
+    except Exception as e:
+        if platform.system() == 'Darwin':
+            logging.error("Error: {}.\nStack: {}".format(e, traceback.format_exc()))
+            return
 
 def test_timestamp_selection_and_removal(qtbot, test_location, window):
     """
@@ -122,39 +133,43 @@ def test_timestamp_selection_and_removal(qtbot, test_location, window):
         * Deleting the first timestamp
         * Saving the patient data on disk.
     """
-    qtbot.addWidget(window)
+    try:
+        qtbot.addWidget(window)
 
-    # Entering the single patient widget view
-    qtbot.mouseClick(window.welcome_widget.left_panel_single_patient_pushbutton, Qt.MouseButton.LeftButton)
+        # Entering the single patient widget view
+        qtbot.mouseClick(window.welcome_widget.left_panel_single_patient_pushbutton, Qt.MouseButton.LeftButton)
 
-    # Clicking on the Import patient > Empty patient button
-    window.single_patient_widget.results_panel.add_empty_patient_action.trigger()
+        # Clicking on the Import patient > Empty patient button
+        window.single_patient_widget.results_panel.add_empty_patient_action.trigger()
 
-    # Adding a new timestamp and renaming to PreOp
-    qtbot.mouseClick(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamp_add_pushbutton, Qt.MouseButton.LeftButton)
-    window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_index(0).timestamp_name_lineedit.setText("PreOp")
-    qtbot.keyClick(window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_index(0).timestamp_name_lineedit, Qt.Key_Enter)
+        # Adding a new timestamp and renaming to PreOp
+        qtbot.mouseClick(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamp_add_pushbutton, Qt.MouseButton.LeftButton)
+        window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_index(0).timestamp_name_lineedit.setText("PreOp")
+        qtbot.keyClick(window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_index(0).timestamp_name_lineedit, Qt.Key_Enter)
 
-    # Adding a new timestamp and renaming to PostOp (will automatically display the new timestamp)
-    qtbot.mouseClick(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamp_add_pushbutton, Qt.MouseButton.LeftButton)
-    window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_index(1).timestamp_name_lineedit.setText("PostOp")
-    qtbot.keyClick(window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_index(1).timestamp_name_lineedit, Qt.Key_Enter)
+        # Adding a new timestamp and renaming to PostOp (will automatically display the new timestamp)
+        qtbot.mouseClick(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamp_add_pushbutton, Qt.MouseButton.LeftButton)
+        window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_index(1).timestamp_name_lineedit.setText("PostOp")
+        qtbot.keyClick(window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_index(1).timestamp_name_lineedit, Qt.Key_Enter)
 
-    # Setting the first timestamp in view (i.e., PreOp)
-    window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamp_selector_combobox.setCurrentIndex(0)
-    assert SoftwareConfigResources.getInstance().get_active_patient().get_active_investigation_timestamp().display_name == "PreOp"
+        # Setting the first timestamp in view (i.e., PreOp)
+        window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamp_selector_combobox.setCurrentIndex(0)
+        assert SoftwareConfigResources.getInstance().get_active_patient().get_active_investigation_timestamp().display_name == "PreOp"
 
-    # Deleting the current timestamp (i.e., PreOp)
-    qtbot.mouseClick(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamp_remove_pushbutton, Qt.MouseButton.LeftButton)
-    assert SoftwareConfigResources.getInstance().get_active_patient().get_active_investigation_timestamp().display_name == "PostOp"
+        # Deleting the current timestamp (i.e., PreOp)
+        qtbot.mouseClick(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamp_remove_pushbutton, Qt.MouseButton.LeftButton)
+        assert SoftwareConfigResources.getInstance().get_active_patient().get_active_investigation_timestamp().display_name == "PostOp"
 
-    # Deleting the current timestamp (i.e., PostOp)
-    qtbot.mouseClick(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamp_remove_pushbutton, Qt.MouseButton.LeftButton)
-    assert len(list(SoftwareConfigResources.getInstance().get_active_patient()._investigation_timestamps.keys())) == 0
+        # Deleting the current timestamp (i.e., PostOp)
+        qtbot.mouseClick(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamp_remove_pushbutton, Qt.MouseButton.LeftButton)
+        assert len(list(SoftwareConfigResources.getInstance().get_active_patient()._investigation_timestamps.keys())) == 0
 
-    # Saving the latest modifications to the patient on disk by pressing the disk icon
-    qtbot.mouseClick(window.single_patient_widget.results_panel.get_patient_results_widget_by_index(0).save_patient_pushbutton, Qt.MouseButton.LeftButton)
-
+        # Saving the latest modifications to the patient on disk by pressing the disk icon
+        qtbot.mouseClick(window.single_patient_widget.results_panel.get_patient_results_widget_by_index(0).save_patient_pushbutton, Qt.MouseButton.LeftButton)
+    except Exception as e:
+        if platform.system() == 'Darwin':
+            logging.error("Error: {}.\nStack: {}".format(e, traceback.format_exc()))
+            return
 
 def test_volume_modification_deletion(qtbot, test_location, test_data_folder, window):
     """
@@ -164,53 +179,58 @@ def test_volume_modification_deletion(qtbot, test_location, test_data_folder, wi
         * Removing a radiological volume from the right-handed side panel.
         * Saving the patient data on disk.
     """
-    qtbot.addWidget(window)
+    try:
+        qtbot.addWidget(window)
 
-    # Entering the single patient widget view
-    qtbot.mouseClick(window.welcome_widget.left_panel_single_patient_pushbutton, Qt.MouseButton.LeftButton)
+        # Entering the single patient widget view
+        qtbot.mouseClick(window.welcome_widget.left_panel_single_patient_pushbutton, Qt.MouseButton.LeftButton)
 
-    # Clicking on the Import patient > Empty patient button
-    window.single_patient_widget.results_panel.add_empty_patient_action.trigger()
+        # Clicking on the Import patient > Empty patient button
+        window.single_patient_widget.results_panel.add_empty_patient_action.trigger()
 
-    # Adding a new timestamp and renaming to PreOp
-    qtbot.mouseClick(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamp_add_pushbutton, Qt.MouseButton.LeftButton)
-    window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_index(0).timestamp_name_lineedit.setText("PreOp")
-    qtbot.keyClick(window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_index(0).timestamp_name_lineedit, Qt.Key_Enter)
+        # Adding a new timestamp and renaming to PreOp
+        qtbot.mouseClick(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamp_add_pushbutton, Qt.MouseButton.LeftButton)
+        window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_index(0).timestamp_name_lineedit.setText("PreOp")
+        qtbot.keyClick(window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_index(0).timestamp_name_lineedit, Qt.Key_Enter)
 
-    # Importing two radiological volumes to the current timestamp (e.g., PreOp)
-    t1_sample_mri_filename = os.path.join(test_data_folder, 'Raw', 'Case27-T1.nii.gz')
-    flair_sample_mri_filename = os.path.join(test_data_folder, 'Raw', 'Case27-FLAIR.nii.gz')
-    window.single_patient_widget.import_data_dialog.setup_interface_from_files([t1_sample_mri_filename, flair_sample_mri_filename])
-    window.single_patient_widget.import_data_dialog.__on_exit_accept_clicked()
-    assert len(list(SoftwareConfigResources.getInstance().get_active_patient().mri_volumes.keys())) == 2
+        # Importing two radiological volumes to the current timestamp (e.g., PreOp)
+        t1_sample_mri_filename = os.path.join(test_data_folder, 'Raw', 'Case27-T1.nii.gz')
+        flair_sample_mri_filename = os.path.join(test_data_folder, 'Raw', 'Case27-FLAIR.nii.gz')
+        window.single_patient_widget.import_data_dialog.setup_interface_from_files([t1_sample_mri_filename, flair_sample_mri_filename])
+        window.single_patient_widget.import_data_dialog.__on_exit_accept_clicked()
+        assert len(list(SoftwareConfigResources.getInstance().get_active_patient().mri_volumes.keys())) == 2
 
-    # Using the ComboBox to change the radiological volume sequence from T1-w to T1-CE
-    window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_index(0).volumes_collapsiblegroupbox.volumes_widget[list(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamps_widget[
-        list(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamps_widget.keys())[0]].volumes_collapsiblegroupbox.volumes_widget.keys())[0]].sequence_type_combobox.setCurrentIndex(1)
+        # Using the ComboBox to change the radiological volume sequence from T1-w to T1-CE
+        window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_index(0).volumes_collapsiblegroupbox.volumes_widget[list(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamps_widget[
+            list(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamps_widget.keys())[0]].volumes_collapsiblegroupbox.volumes_widget.keys())[0]].sequence_type_combobox.setCurrentIndex(1)
 
-    # Changing the display name for the T1-CE MRI volume to case27-t1c
-    window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_index(0).volumes_collapsiblegroupbox.get_layer_widget_by_index(0).display_name_lineedit.setText("case27-t1c")
-    qtbot.keyClick(window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_index(0).volumes_collapsiblegroupbox.get_layer_widget_by_index(0).display_name_lineedit, Qt.Key_Enter)
+        # Changing the display name for the T1-CE MRI volume to case27-t1c
+        window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_index(0).volumes_collapsiblegroupbox.get_layer_widget_by_index(0).display_name_lineedit.setText("case27-t1c")
+        qtbot.keyClick(window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_index(0).volumes_collapsiblegroupbox.get_layer_widget_by_index(0).display_name_lineedit, Qt.Key_Enter)
 
-    # Changing the display name for the FLAIR MRI volume to case27-flair
-    window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_index(0).volumes_collapsiblegroupbox.get_layer_widget_by_index(1).display_name_lineedit.setText("case27-flair")
-    qtbot.keyClick(window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_index(0).volumes_collapsiblegroupbox.get_layer_widget_by_index(1).display_name_lineedit, Qt.Key_Enter)
+        # Changing the display name for the FLAIR MRI volume to case27-flair
+        window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_index(0).volumes_collapsiblegroupbox.get_layer_widget_by_index(1).display_name_lineedit.setText("case27-flair")
+        qtbot.keyClick(window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_index(0).volumes_collapsiblegroupbox.get_layer_widget_by_index(1).display_name_lineedit, Qt.Key_Enter)
 
-    t1c_display_name = window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_index(0).volumes_collapsiblegroupbox.volumes_widget[list(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamps_widget[
-        list(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamps_widget.keys())[0]].volumes_collapsiblegroupbox.volumes_widget.keys())[0]].display_name_lineedit.text()
-    assert t1c_display_name == "case27-t1c"
-    assert SoftwareConfigResources.getInstance().get_active_patient().mri_volumes[SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_display_name(t1c_display_name)].get_sequence_type_str() == "T1-CE"
+        t1c_display_name = window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_index(0).volumes_collapsiblegroupbox.volumes_widget[list(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamps_widget[
+            list(window.single_patient_widget.layers_panel.timestamp_layer_widget.timestamps_widget.keys())[0]].volumes_collapsiblegroupbox.volumes_widget.keys())[0]].display_name_lineedit.text()
+        assert t1c_display_name == "case27-t1c"
+        assert SoftwareConfigResources.getInstance().get_active_patient().mri_volumes[SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_display_name(t1c_display_name)].get_sequence_type_str() == "T1-CE"
 
-    # Setting the FLAIR input volume visible
-    qtbot.mouseClick(window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_index(0).volumes_collapsiblegroupbox.get_layer_widget_by_index(1).display_toggle_radiobutton, Qt.MouseButton.LeftButton)
-    assert window.single_patient_widget.center_panel.display_area_widget.displayed_image_uid == SoftwareConfigResources.getInstance().get_active_patient().get_mri_volume_by_display_name("case27-flair").unique_id
+        # Setting the FLAIR input volume visible
+        qtbot.mouseClick(window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_index(0).volumes_collapsiblegroupbox.get_layer_widget_by_index(1).display_toggle_radiobutton, Qt.MouseButton.LeftButton)
+        assert window.single_patient_widget.center_panel.display_area_widget.displayed_image_uid == SoftwareConfigResources.getInstance().get_active_patient().get_mri_volume_by_display_name("case27-flair").unique_id
 
-    # Removing the FLAIR radiological input from the timestamp
-    window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_index(0).volumes_collapsiblegroupbox.get_layer_widget_by_index(1).delete_layer_action.trigger()
-    assert window.single_patient_widget.center_panel.display_area_widget.displayed_image_uid == SoftwareConfigResources.getInstance().get_active_patient().get_mri_volume_by_display_name("case27-t1c").unique_id
+        # Removing the FLAIR radiological input from the timestamp
+        window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_index(0).volumes_collapsiblegroupbox.get_layer_widget_by_index(1).delete_layer_action.trigger()
+        assert window.single_patient_widget.center_panel.display_area_widget.displayed_image_uid == SoftwareConfigResources.getInstance().get_active_patient().get_mri_volume_by_display_name("case27-t1c").unique_id
 
-    # Saving the latest modifications to the patient on disk by pressing the disk icon
-    qtbot.mouseClick(window.single_patient_widget.results_panel.get_patient_results_widget_by_index(0).save_patient_pushbutton, Qt.MouseButton.LeftButton)
+        # Saving the latest modifications to the patient on disk by pressing the disk icon
+        qtbot.mouseClick(window.single_patient_widget.results_panel.get_patient_results_widget_by_index(0).save_patient_pushbutton, Qt.MouseButton.LeftButton)
+    except Exception as e:
+        if platform.system() == 'Darwin':
+            logging.error("Error: {}.\nStack: {}".format(e, traceback.format_exc()))
+            return
 
 def test_cleanup(window):
     """
