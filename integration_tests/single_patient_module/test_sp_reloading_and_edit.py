@@ -85,7 +85,7 @@ def test_patient_reloading_from_raidionics(qtbot, test_location, test_data_folde
         window.single_patient_widget.import_data_dialog.setup_interface_from_files([raidionics_filename])
         window.single_patient_widget.import_data_dialog.__on_exit_accept_clicked()
         if platform.system() == 'Darwin' and platform.processor() != 'arm':
-            sleep(10)
+            sleep(1)
         else:
             sleep(5)
 
@@ -117,7 +117,7 @@ def test_patient_raidionics_annotation_edit(qtbot, test_location, test_data_fold
         window.single_patient_widget.import_data_dialog.setup_interface_from_files([raidionics_filename])
         window.single_patient_widget.import_data_dialog.__on_exit_accept_clicked()
         if platform.system() == 'Darwin' and platform.processor() != 'arm':
-            sleep(10)
+            sleep(1)
         else:
             sleep(5)
 

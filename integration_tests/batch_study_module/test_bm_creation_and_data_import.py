@@ -16,6 +16,7 @@ from utils.software_config import SoftwareConfigResources
 from utils.data_structures.UserPreferencesStructure import UserPreferencesStructure
 
 def_loc = UserPreferencesStructure.getInstance().user_home_location
+_ = SoftwareConfigResources.getInstance().get_session_log_filename()
 
 @pytest.fixture
 def test_location():
@@ -55,7 +56,6 @@ def window():
     window = RaidionicsMainWindow()
     window.on_clear_scene()
     UserPreferencesStructure.getInstance().disable_modal_warnings = True
-    _ = SoftwareConfigResources.getInstance().get_session_log_filename()
     return window
 
 """
