@@ -76,7 +76,7 @@ def test_empty_patient_creation(qtbot, test_location, window):
         assert window.single_patient_widget.results_panel.get_patient_results_widget_size() == 1
         window.on_clear_scene()
     except Exception as e:
-        if platform.system() == "Darwin":
+        if platform.system() == 'Darwin':
             logging.error("Error: {}.\nStack: {}".format(e, traceback.format_exc()))
             return
 
@@ -134,7 +134,7 @@ def test_empty_patient_timestamp_data_inclusion(qtbot, test_location, test_data_
         qtbot.mouseClick(window.single_patient_widget.results_panel.get_patient_results_widget_by_index(0).save_patient_pushbutton, Qt.MouseButton.LeftButton)
         window.on_clear_scene()
     except Exception as e:
-        if platform.system() == "Darwin":
+        if platform.system() == 'Darwin':
             logging.error("Error: {}.\nStack: {}".format(e, traceback.format_exc()))
             return
 
@@ -160,7 +160,7 @@ def test_patient_loading_from_files(qtbot, test_location, test_data_folder, wind
         qtbot.mouseClick(window.single_patient_widget.results_panel.get_patient_results_widget_by_index(0).save_patient_pushbutton, Qt.MouseButton.LeftButton)
         window.on_clear_scene()
     except Exception as e:
-        if platform.system() == "Darwin":
+        if platform.system() == 'Darwin':
             logging.error("Error: {}.\nStack: {}".format(e, traceback.format_exc()))
             return
 
@@ -190,7 +190,7 @@ def test_patient_loading_from_folder(qtbot, test_location, test_data_folder, win
         qtbot.mouseClick(window.single_patient_widget.results_panel.get_patient_results_widget_by_index(0).save_patient_pushbutton, Qt.MouseButton.LeftButton)
         window.on_clear_scene()
     except Exception as e:
-        if platform.system() == "Darwin":
+        if platform.system() == 'Darwin':
             logging.error("Error: {}.\nStack: {}".format(e, traceback.format_exc()))
             return
 
@@ -222,7 +222,7 @@ def test_patient_loading_from_folder_multiple_ts(qtbot, test_location, test_data
         qtbot.mouseClick(window.single_patient_widget.results_panel.get_patient_results_widget_by_index(0).save_patient_pushbutton, Qt.MouseButton.LeftButton)
         window.on_clear_scene()
     except Exception as e:
-        if platform.system() == "Darwin":
+        if platform.system() == 'Darwin':
             logging.error("Error: {}.\nStack: {}".format(e, traceback.format_exc()))
             return
 
