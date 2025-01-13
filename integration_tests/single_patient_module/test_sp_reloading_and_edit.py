@@ -84,7 +84,10 @@ def test_patient_reloading_from_raidionics(qtbot, test_location, test_data_folde
         window.single_patient_widget.import_data_dialog.set_parsing_filter("patient")
         window.single_patient_widget.import_data_dialog.setup_interface_from_files([raidionics_filename])
         window.single_patient_widget.import_data_dialog.__on_exit_accept_clicked()
-        sleep(5)
+        if platform.system() == 'Darwin' and platform.processor() != 'arm':
+            sleep(10)
+        else:
+            sleep(5)
 
         assert len(list(SoftwareConfigResources.getInstance().get_active_patient().mri_volumes.keys())) == 2, "Both radiological volumes were not properly loaded internally"
         assert window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_visible_name(
@@ -113,7 +116,10 @@ def test_patient_raidionics_annotation_edit(qtbot, test_location, test_data_fold
         window.single_patient_widget.import_data_dialog.set_parsing_filter("patient")
         window.single_patient_widget.import_data_dialog.setup_interface_from_files([raidionics_filename])
         window.single_patient_widget.import_data_dialog.__on_exit_accept_clicked()
-        sleep(5)
+        if platform.system() == 'Darwin' and platform.processor() != 'arm':
+            sleep(10)
+        else:
+            sleep(5)
 
         # Changing the parent MRI for the brain annotation
         parent_name = window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_visible_name("T0").annotations_collapsiblegroupbox.get_layer_widget_by_visible_name("1319_Case27-T1_annotation-Brain").parent_image_combobox.currentText()
