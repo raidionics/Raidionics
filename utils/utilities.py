@@ -41,11 +41,14 @@ def input_file_category_disambiguation(input_filename: str) -> str:
         Human-readable category identified for the input.
     """
     category = None
-    reader = sitk.ImageFileReader()
-    reader.SetFileName(input_filename)
-    image = reader.Execute()
-    image_type = image.GetPixelIDTypeAsString()
-    array = sitk.GetArrayFromImage(image)
+    try:
+        reader = sitk.ImageFileReader()
+        reader.SetFileName(input_filename)
+        image = reader.Execute()
+        image_type = image.GetPixelIDTypeAsString()
+        array = sitk.GetArrayFromImage(image)
+    except Exception as e:
+        raise ValueError("Loading the input following input file {} with SimpleITK failed with: \n{}".format(input_filename, e))
 
     if len(np.unique(array)) > 255 or np.max(array) > 255 or np.min(array) < -1:
         category = "MRI"
