@@ -185,7 +185,12 @@ def test_dicom_import_another_volume_from_ts_browser(qtbot, test_location, test_
         for r in range(window.single_patient_widget.import_dicom_dialog.content_study_tablewidget.rowCount()):
             if "coffee break exam - t+0 mins" in window.single_patient_widget.import_dicom_dialog.content_study_tablewidget.item(r, 2).text():
                 study_row_index = r
-        window.single_patient_widget.import_dicom_dialog.__on_investigation_study_selected(row=study_row_index, column=0)
+        # Switching to the first investigation (i.e., timestamp) inside the patient DICOM
+        # Cannot "click" directly as a QTableWidgetItem is not a graphical element
+        item = window.single_patient_widget.import_dicom_dialog.content_study_tablewidget.item(study_row_index, 2)
+        rect = window.single_patient_widget.import_dicom_dialog.content_study_tablewidget.visualItemRect(item)
+        qtbot.mouseClick(window.single_patient_widget.import_dicom_dialog.content_study_tablewidget.viewport(),
+                         Qt.MouseButton.LeftButton, pos=rect.center())
         selected_row_index = 0
         for r in range(window.single_patient_widget.import_dicom_dialog.content_series_tablewidget.rowCount()):
             if "B800" in window.single_patient_widget.import_dicom_dialog.content_series_tablewidget.item(r, 2).text():

@@ -55,6 +55,7 @@ def window():
     window = RaidionicsMainWindow()
     window.on_clear_scene()
     UserPreferencesStructure.getInstance().disable_modal_warnings = True
+    _ = SoftwareConfigResources.getInstance().get_session_log_filename()
     return window
 
 """
