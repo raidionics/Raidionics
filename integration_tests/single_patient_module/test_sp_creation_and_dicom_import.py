@@ -139,9 +139,7 @@ def test_creation_dicom_import(qtbot, test_location, test_data_folder, dicom_res
         assert SoftwareConfigResources.getInstance().is_patient_list_empty(), "The patient list should be empty"
         assert window.single_patient_widget.results_panel.get_patient_results_widget_size() == 0, "The patient display panel should be empty"
     except Exception as e:
-        # Clearing the scene
-        window.on_clear_scene()
-        print("Error: {}.\nStack: {}".format(e, traceback.format_exc()))
+        logging.error("Error: {}.\nStack: {}".format(e, traceback.format_exc()))
 
 @pytest.mark.timeout(60)
 def test_dicom_import_another_volume_from_ts_browser(qtbot, test_location, test_data_folder, dicom_resources_folder,
