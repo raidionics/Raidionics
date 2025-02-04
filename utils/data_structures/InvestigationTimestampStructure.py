@@ -49,7 +49,10 @@ class InvestigationTimestamp:
             self._order = order
             self._output_patient_folder = output_patient_folder
             if inv_time:
-                self._datetime = datetime.datetime.strptime(inv_time, "%Y%m%d").date()
+                try:
+                    self._datetime = datetime.datetime.strptime(inv_time, "%d/%m/%Y, %H:%M:%S").date()
+                except Exception:
+                    logging.warning("[InvestigationTimestampStructure] Could not parse the following date: {}. Does not match the expected format".format(inv_time))
             self._display_name = uid
 
             if reload_params:

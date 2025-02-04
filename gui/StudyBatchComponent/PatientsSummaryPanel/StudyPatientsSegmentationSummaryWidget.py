@@ -92,6 +92,9 @@ class StudyPatientsSegmentationSummaryWidget(QWidget):
         # @TODO. Have to make a custom QTableWidget and make the whole header section fully custom
         self.sorting_options_menu.exec(self.mapToGlobal(pos))
 
+    def on_reset_interface(self) -> None:
+        self.content_table_widget.setRowCount(0)
+
     def on_patients_import(self) -> None:
         """
         @TODO. Should get the list of imported patients to only update those, rather than redo everything

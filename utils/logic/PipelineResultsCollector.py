@@ -9,6 +9,7 @@ import pandas as pd
 from utils.data_structures.UserPreferencesStructure import UserPreferencesStructure
 from utils.data_structures.MRIVolumeStructure import MRISequenceType
 from utils.data_structures.AnnotationStructure import AnnotationClassType, AnnotationGenerationType
+from utils.software_config import SoftwareConfigResources
 from utils.utilities import get_type_from_string
 
 
@@ -39,6 +40,16 @@ def collect_results(patient_parameters, pipeline):
                         logging.warning("Classification results collection failed. Filename {} not matching any patient MRI volume.".format(vn))
                 results['Classification'] = "sequences"
             elif pip_step["task"] == "Segmentation":
+                if UserPreferencesStructure.getInstance().use_stripped_inputs:
+                    # If background-stripped inputs are provided, the background segmentation is skipped but an
+                    # automatic mask is created, which can be included in the patient data again (even if not of much
+                    # interest).
+                    try:
+                        bg_uid = retrieve_automatic_stripped_mask(patient_parameters, pip_step)
+                        if bg_uid is not None:
+                            results['Annotation'].append(bg_uid)
+                    except Exception:
+                        logging.error("Retrieval of the automatic background mask failed when stripped inputs are provided.")
                 seq_type = get_type_from_string(MRISequenceType, pip_step["inputs"]["0"]["sequence"])
                 if seq_type == -1:
                     continue
@@ -122,9 +133,9 @@ def collect_results(patient_parameters, pipeline):
                         else:
                             logging.error("""The registered labels files could not be linked to any existing
                             annotation file, with value: {}""".format(rl))
+                            continue
                         patient_parameters.get_annotation_by_uid(anno_volume_uid).import_registered_volume(filepath=rl,
                                                                                                            registration_space=pip_step["fixed"]["sequence"])
-
                     # Collecting the atlas cortical structures
                     if UserPreferencesStructure.getInstance().compute_cortical_structures:
                         cortical_folder = os.path.join(patient_parameters.output_folder, 'reporting',
@@ -303,3 +314,38 @@ def collect_results(patient_parameters, pipeline):
     # all display volumes for a proper interface update when the processing done signal is emitted afterwards.
     patient_parameters.load_in_memory()
     return results
+
+
+def retrieve_automatic_stripped_mask(patient_parameters, pip_step) -> str:
+    """
+    When already stripped inputs are used, the automatic segmentation of the corresponding foreground (e.g., brain,
+    lungs) is skipped and an automatic mask covering all non-zero voxels is generated (as foreground mask).
+    Since no corresponding step exists in the json file, this method is used to automatically retrieve it and include
+    it inside the patient data (even if there is little to no interest having it).
+    """
+    data_uid = None
+    seq_type = get_type_from_string(MRISequenceType, pip_step["inputs"]["0"]["sequence"])
+    parent_mri_uid = \
+        patient_parameters.get_all_mri_volumes_for_sequence_type_and_timestamp(sequence_type=seq_type,
+                                                                               timestamp_order=
+                                                                               pip_step["inputs"]["0"][
+                                                                                   "timestamp"])[0]
+
+    anno_str = "Brain" if SoftwareConfigResources.getInstance().software_medical_specialty == "neurology" else "Lungs"
+    seg_file = os.path.join(patient_parameters.output_folder, 'reporting',
+                            "T" + str(pip_step["inputs"]["0"]["timestamp"]),
+                            os.path.basename(patient_parameters.get_mri_by_uid(
+                                parent_mri_uid).get_usable_input_filepath()).split('.')[
+                                0] + '_label_' + anno_str + '.nii.gz')
+    if os.path.exists(seg_file):
+        dest_ts = patient_parameters.get_timestamp_by_order(order=pip_step["inputs"]["0"]["timestamp"])
+        dest_file = os.path.join(patient_parameters.output_folder, dest_ts.folder_name, 'raw',
+                                 os.path.basename(seg_file))
+        shutil.move(seg_file, dest_file)
+        data_uid = patient_parameters.import_data(dest_file, investigation_ts=dest_ts.unique_id,
+                                                  investigation_ts_folder_name=dest_ts.folder_name,
+                                                  type='Annotation')
+        patient_parameters.get_annotation_by_uid(data_uid).set_annotation_class_type(anno_str)
+        patient_parameters.get_annotation_by_uid(data_uid).set_generation_type("Automatic")
+        patient_parameters.get_annotation_by_uid(data_uid).set_parent_mri_uid(parent_mri_uid)
+        return data_uid

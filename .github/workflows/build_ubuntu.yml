@@ -81,9 +81,9 @@ jobs:
       env:
         DISPLAY: ':99.0'
       run: |
-          pip install pytest-qt pytest-cov
+          pip install pytest-qt pytest-cov pytest-timeout
           /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1920x1200x24 -ac +extension GLX
-          pytest --cov=gui --cov=utils ${{github.workspace}}/integration_tests --cov-report=xml
+          pytest -vvv --cov=gui --cov=utils ${{github.workspace}}/integration_tests --cov-report=xml --timeout=60 --log-cli-level=DEBUG
 
     - name: Build software
       run: |

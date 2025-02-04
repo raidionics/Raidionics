@@ -191,24 +191,28 @@ class CentralDisplayAreaWidget(QWidget):
         if not self.current_patient_parameters:
             self.current_patient_parameters = SoftwareConfigResources.getInstance().get_active_patient()
 
-        if state:
-            self.reset_overlay()  # Until the time there is a co-registration option between input MRI volumes.
-            self.displayed_image = self.current_patient_parameters.get_mri_by_uid(volume_uid).get_display_volume()
-            self.displayed_image_uid = volume_uid
+        try:
+            if state:
+                self.reset_overlay()  # Until the time there is a co-registration option between input MRI volumes.
+                self.displayed_image = self.current_patient_parameters.get_mri_by_uid(volume_uid).get_display_volume()
+                self.displayed_image_uid = volume_uid
 
-            # Reset to the view-point, until the time there's co-registration or MNI space, where we can keep it.
-            # @FIXME. Is the center of the volume actually correct? Looks fishy
-            self.point_clicker_position = [int(self.displayed_image.shape[0] / 2),
-                                           int(self.displayed_image.shape[1] / 2),
-                                           int(self.displayed_image.shape[2] / 2)]
-            self.update_viewers_image()
-        else:  # If all images have been removed by the user, should display an empty view
-            self.displayed_image = np.zeros(shape=(150, 150, 150), dtype='uint8')
-            self.displayed_image_uid = None
-            self.point_clicker_position = [int(self.displayed_image.shape[0] / 2),
-                                           int(self.displayed_image.shape[1] / 2),
-                                           int(self.displayed_image.shape[2] / 2)]
-            self.update_viewers_image()
+                # Reset to the view-point, until the time there's co-registration or MNI space, where we can keep it.
+                # @FIXME. Is the center of the volume actually correct? Looks fishy
+                self.point_clicker_position = [int(self.displayed_image.shape[0] / 2),
+                                               int(self.displayed_image.shape[1] / 2),
+                                               int(self.displayed_image.shape[2] / 2)]
+                self.update_viewers_image()
+            else:  # If all images have been removed by the user, should display an empty view
+                self.displayed_image = np.zeros(shape=(150, 150, 150), dtype='uint8')
+                self.displayed_image_uid = None
+                self.point_clicker_position = [int(self.displayed_image.shape[0] / 2),
+                                               int(self.displayed_image.shape[1] / 2),
+                                               int(self.displayed_image.shape[2] / 2)]
+                self.update_viewers_image()
+        except Exception as e:
+            logging.error("[Software error][CentralDisplayAreaWidget] Issue trying to toggle the view for a volume.")
+            logging.info("Collected: {}\n {}".format(e, traceback.format_exc()))
 
     def on_volume_contrast_changed(self, volume_uid):
         # @TODO. Should group the viewer calls into another function somewhere, since all three above methods use it.

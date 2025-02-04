@@ -22,10 +22,12 @@ class AnnotationClassType(Enum):
     _init_ = 'value string'
 
     Brain = 0, 'Brain'
-    Tumor = 1, 'Tumor'
+    Tumor = 1, 'Tumor'  # Corresponds to the tumor core
     Necrosis = 2, 'Necrosis'
     Edema = 3, 'Edema'
     Cavity = 4, 'Cavity'
+    TumorCE = 5, 'Contrast-Enhancing Tumor'
+    WT = 6, 'Whole Tumor'  # Corresponds to the sum of the tumor-CE, necrosis, and edema
 
     Lungs = 100, 'Lungs'
     Airways = 101, 'Airways'
@@ -339,6 +341,7 @@ class AnnotationVolume:
     def get_display_volume(self) -> np.ndarray:
         return self._display_volume
 
+    # @TODO. Has to be updated to match the @getter @setter pattern.
     def get_parent_mri_uid(self) -> str:
         return self._parent_mri_uid
 
@@ -376,6 +379,16 @@ class AnnotationVolume:
             logging.debug("Unsaved changes - Annotation volume generation type changed to {}.".format(
                 str(self._generation_type)))
             self._unsaved_changes = True
+
+    def set_usable_filepath_as_raw(self) -> None:
+        """
+        @TODO. Should make it so that we also save the dicom metadata in that case.
+        In case of DICOM MRI Series loading, the raw input filepath is a temporary conversion as nifti format of
+        the raw DICOM content, which is deleted upon creation completion, and as such the filepath should be adjusted.
+        The display volume needs also to be created as it is a first time use.
+        """
+        self._raw_input_filepath = self._usable_input_filepath
+        self.__generate_display_volume()
 
     def save(self) -> dict:
         """

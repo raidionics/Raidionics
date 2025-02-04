@@ -160,6 +160,7 @@ class SinglePatientWidget(QWidget):
         self.import_folder_dialog.patient_imported.connect(self.layers_panel.on_import_patient)
         self.import_dicom_dialog.patient_imported.connect(self.results_panel.on_import_patient)
         self.import_dicom_dialog.mri_volume_imported.connect(self.layers_panel.on_mri_volume_import)
+        self.import_dicom_dialog.annotation_volume_imported.connect(self.layers_panel.on_annotation_volume_import)
         self.layers_panel.import_data_requested.connect(self.__on_import_file_clicked)
         self.layers_panel.import_dicom_requested.connect(self.__on_import_dicom_clicked)
 
@@ -338,3 +339,4 @@ class SinglePatientWidget(QWidget):
     def on_clear_scene(self):
         for w in list(self.results_panel.patient_results_widgets.keys()):
             self.results_panel.patient_results_widgets[w].patient_closed.emit(w)
+        self.import_dicom_dialog.reset_interface()

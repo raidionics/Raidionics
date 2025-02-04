@@ -337,15 +337,30 @@ class AtlasVolume:
         return self._visible_class_labels
 
     def delete(self):
-        if self._raw_input_filepath and os.path.exists(self._raw_input_filepath):
-            os.remove(self._raw_input_filepath)
-        if self._resampled_input_volume_filepath and os.path.exists(self._resampled_input_volume_filepath):
-            os.remove(self._resampled_input_volume_filepath)
-        if self._class_description_filename and os.path.exists(self._class_description_filename):
-            os.remove(self._class_description_filename)
-        if len(self.atlas_space_volumes.keys()) != 0:
-            for k in self.atlas_space_volumes.keys():
-                os.remove(self.atlas_space_volumes[k])
+        try:
+            if self._raw_input_filepath and os.path.exists(self._raw_input_filepath):
+                try:
+                    os.remove(self._raw_input_filepath)
+                except Exception:
+                    raise RuntimeError("Could not remove the following file: {}".format(self._raw_input_filepath))
+            if self._resampled_input_volume_filepath and os.path.exists(self._resampled_input_volume_filepath):
+                try:
+                    os.remove(self._resampled_input_volume_filepath)
+                except Exception:
+                    raise RuntimeError("Could not remove the following file: {}".format(self._resampled_input_volume_filepath))
+            if self._class_description_filename and os.path.exists(self._class_description_filename):
+                try:
+                    os.remove(self._class_description_filename)
+                except Exception:
+                    raise RuntimeError("Could not remove the following file: {}".format(self._class_description_filename))
+            if len(self.atlas_space_filepaths.keys()) != 0:
+                for k in self.atlas_space_filepaths.keys():
+                    try:
+                        os.remove(self.atlas_space_filepaths[k])
+                    except Exception:
+                        raise RuntimeError("Could not remove the following file: {}".format(self.atlas_space_filepaths[k]))
+        except Exception as e:
+            raise RuntimeError("Atlas structure deletion failed with: {}".format(e))
 
     def import_atlas_in_registration_space(self, filepath: str, registration_space: str) -> None:
         """

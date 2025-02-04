@@ -465,7 +465,7 @@ class PatientParameters:
         logging.debug("Unsaved changes - Patient object expanded with new volumes.")
         return data_uid
 
-    def import_dicom_data(self, dicom_series: DICOMSeries, inv_ts: str = None) -> str:
+    def import_dicom_data(self, dicom_series: DICOMSeries, inv_ts: str = None) -> Tuple[str, str]:
         """
         Half the content should be deported within the MRI structure, so that the DICOM metadata can be properly
         saved.
@@ -495,7 +495,7 @@ class PatientParameters:
 
             sitk.WriteImage(dicom_series.volume, ori_filename)
             logging.info("Converted DICOM import to {}".format(ori_filename))
-            investigation_dicom_id = dicom_series.get_study_id()
+            investigation_dicom_id = dicom_series.get_study_unique_name()
             inv_ts_object = self.get_timestamp_by_dicom_study_id(investigation_dicom_id)
             if not inv_ts_object:
                 investigation_ts = investigation_dicom_id
@@ -507,15 +507,20 @@ class PatientParameters:
                 inv_ts_uid = curr_ts.unique_id
             else:
                 inv_ts_uid = inv_ts_object.unique_id
-            uid, error_msg = self.import_data(ori_filename, investigation_ts=inv_ts_uid,  type="MRI")
-            self.mri_volumes[uid].set_dicom_metadata(dicom_series.dicom_tags)
+            input_type = input_file_category_disambiguation(ori_filename)
+            uid = self.import_data(ori_filename, investigation_ts=inv_ts_uid, type=input_type)
+            if uid in list(self.mri_volumes.keys()):
+                self.mri_volumes[uid].set_dicom_metadata(dicom_series.dicom_tags)
 
             # Removing the temporary MRI Series placeholder.
-            self.mri_volumes[uid].set_usable_filepath_as_raw()
+            if uid in list(self.mri_volumes.keys()):
+                self.mri_volumes[uid].set_usable_filepath_as_raw()
+            elif uid in list(self.annotation_volumes.keys()):
+                self.annotation_volumes[uid].set_usable_filepath_as_raw()
             if ori_filename and os.path.exists(ori_filename):
                 os.remove(ori_filename)
             self._unsaved_changes = True
-            return uid
+            return uid, input_type
         except Exception as e:
             if ori_filename and os.path.exists(ori_filename):
                 os.remove(ori_filename)
@@ -676,6 +681,14 @@ class PatientParameters:
         for im in self.mri_volumes:
             if self.mri_volumes[im].raw_input_filepath == volume_filepath:
                 return True
+        return state
+
+    def is_dicom_series_already_loaded(self, series_id: str) -> bool:
+        state = False
+        for im in self.mri_volumes:
+            if self.mri_volumes[im].get_dicom_metadata() and '0020|000e' in self.mri_volumes[im].get_dicom_metadata().keys():
+                if self.mri_volumes[im].get_dicom_metadata()['0020|000e'] == series_id:
+                    return True
         return state
 
     def get_all_mri_volumes_uids(self) -> List[str]:
@@ -895,6 +908,25 @@ class PatientParameters:
 
         for im in list(self._annotation_volumes.keys()):
             if self._annotation_volumes[im].timestamp_uid == timestamp_uid:
+                res.append(im)
+        return res
+
+    def get_all_annotation_uids_for_radiological_volume(self, radiological_uid: str) -> List[str]:
+        """
+        Convenience method for collecting all annotations for a specific input radiological volume.
+
+        Parameters
+        ----------
+        radiological_uid: str
+            Internal unique ID of the radiological volume.
+        Returns
+        -------
+        List[str]
+            A list of unique identifiers for each annotation object associated with the given input parameters.
+        """
+        res = []
+        for im in list(self._annotation_volumes.keys()):
+            if self._annotation_volumes[im].get_parent_mri_uid() == radiological_uid:
                 res.append(im)
         return res
 
