@@ -10,7 +10,7 @@ from copy import deepcopy
 import os
 from pathlib import PurePath
 
-from utils.utilities import get_type_from_string, input_file_type_conversion
+from utils.utilities import get_type_from_string, get_type_from_name, input_file_type_conversion
 from utils.data_structures.UserPreferencesStructure import UserPreferencesStructure
 
 @unique
@@ -24,7 +24,7 @@ class AnnotationClassType(Enum):
     Brain = 0, 'Brain'
     Tumor = 1, 'Tumor'  # Corresponds to the tumor core
     Necrosis = 2, 'Necrosis'
-    Edema = 3, 'Edema'
+    FLAIRChanges = 3, 'FLAIR/T2 Changes'  # Nonenhancing progression
     Cavity = 4, 'Cavity'
     TumorCE = 5, 'Contrast-Enhancing Tumor'
     WT = 6, 'Whole Tumor'  # Corresponds to the sum of the tumor-CE, necrosis, and edema
@@ -180,6 +180,9 @@ class AnnotationVolume:
     def get_annotation_class_str(self) -> str:
         return str(self._annotation_class)
 
+    def get_annotation_class_name(self) -> str:
+        return self._annotation_class.name
+
     def set_annotation_class_type(self, anno_type: Union[str, Enum], manual: bool = True) -> None:
         """
         Update the annotation class type.
@@ -193,7 +196,7 @@ class AnnotationVolume:
             False for internal calls linked to loading/reloading of the instance.
         """
         if isinstance(anno_type, str):
-            ctype = get_type_from_string(AnnotationClassType, anno_type)
+            ctype = get_type_from_name(AnnotationClassType, anno_type)
             if ctype != -1:
                 self._annotation_class = ctype
         elif isinstance(anno_type, AnnotationClassType):

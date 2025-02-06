@@ -55,13 +55,11 @@ def create_pipeline(model_name: str, patient_parameters, task: str) -> dict:
     dict
         A dictionary containing the Pipeline structure, which will be saved on disk as json.
     """
-    # The model(s) must be downloaded first, since the pipeline.json file(s) must be used later for assembling
-    # the backend pipeline... Have to organize it better, and prepare reporting pipelines for download?
     if 'postop_reporting' in task and "GBM" not in model_name:
         logging.warning(
             "[Software warning] There is currently no postoperative reporting for the requested type, only GBM is supported.")
         return {}
-    download_model(model_name)
+    # download_model(model_name)
 
     if task == 'folders_classification':
         return __create_folders_classification_pipeline()
@@ -73,9 +71,10 @@ def create_pipeline(model_name: str, patient_parameters, task: str) -> dict:
             return {}
         return __create_segmentation_pipeline(model_name, patient_parameters)
     elif 'postop_segmentation' in task:
-        if "GBM" in task:
-            model_name = select_appropriate_postop_model(patient_parameters)
-        download_model(model_name=model_name)
+        # @TODO. Will have to download the whole GBM_Postop package
+        # if "GBM" in task:
+        #     model_name = select_appropriate_postop_model(patient_parameters)
+        # download_model(model_name=model_name)
         return __create_postop_segmentation_pipeline(model_name, patient_parameters)
     elif task == 'other_segmentation':
         return __create_other_segmentation_pipeline(model_name, patient_parameters)
@@ -95,15 +94,22 @@ def create_pipeline(model_name: str, patient_parameters, task: str) -> dict:
 
 
 def __create_folders_classification_pipeline():
+    """
+
+    """
     pip = {}
-    pip_num_int = 1
-    pip_num = str(pip_num_int)
-    pip[pip_num] = {}
-    pip[pip_num]["task"] = 'Classification'
-    pip[pip_num]["inputs"] = {}
-    pip[pip_num]["model"] = 'MRI_Sequence_Classifier'
-    pip[pip_num]["description"] = "Classification of the MRI sequence type for all input scans"
-    download_model(model_name='MRI_Sequence_Classifier')
+    if SoftwareConfigResources.getInstance().software_medical_specialty == "neurology":
+        pip_num_int = 1
+        pip_num = str(pip_num_int)
+        pip[pip_num] = {}
+        pip[pip_num]["task"] = 'Classification'
+        pip[pip_num]["inputs"] = {}
+        pip[pip_num]["target"] = ["MRSequence"]
+        pip[pip_num]["model"] = 'MRI_SequenceClassifier'
+        pip[pip_num]["description"] = "Classification of the MRI sequence type for all input scans"
+        download_model(model_name='MRI_SequenceClassifier')
+    else:
+        raise ValueError(f"No input classification for {SoftwareConfigResources.getInstance().software_medical_specialty} yet.")
 
     return pip
 
@@ -197,9 +203,6 @@ def __create_postop_segmentation_pipeline(model_name, patient_parameters):
     The default postop segmentation model is the one with four inputs, but based on the loaded images another fitting
     model could be used.
     """
-    infile = open(os.path.join(SoftwareConfigResources.getInstance().models_path, model_name, 'pipeline.json'), 'rb')
-    raw_pip = json.load(infile)
-
     pip = {}
     pip_num_int = 0
     if not UserPreferencesStructure.getInstance().use_manual_sequences:
@@ -208,18 +211,31 @@ def __create_postop_segmentation_pipeline(model_name, patient_parameters):
         pip[pip_num] = {}
         pip[pip_num]["task"] = 'Classification'
         pip[pip_num]["inputs"] = {}
-        pip[pip_num]["model"] = 'MRI_Sequence_Classifier'
+        pip[pip_num]["target"] = ["MRSequence"]
+        pip[pip_num]["model"] = 'MRI_SequenceClassifier'
         pip[pip_num]["description"] = "Classification of the MRI sequence type for all input scans"
-        download_model(model_name='MRI_Sequence_Classifier')
+        download_model(model_name='MRI_SequenceClassifier')
 
-    for steps in list(raw_pip.keys()):
-        # Excluding brain segmentation step if the inputs are already skull-stripped
-        if (UserPreferencesStructure.getInstance().use_stripped_inputs and
-                (raw_pip[steps]["task"] == "Segmentation" and raw_pip[steps]["model"] == "MRI_Brain")):
-            continue
-        pip_num_int = pip_num_int + 1
-        pip_num = str(pip_num_int)
-        pip[pip_num] = raw_pip[steps]
+    # @TODO. Should link to a user config parameter, if willing to take whichever model fits, or a specific set of inputs
+    # even if more are available.
+    pip_num_int = pip_num_int + 1
+    pip_num = str(pip_num_int)
+    pip[pip_num] = {}
+    pip[pip_num]["task"] = 'Model selection'
+    pip[pip_num]["model"] = model_name
+    pip[pip_num]["timestamp"] = 1
+    pip[pip_num]["description"] = "Identifying the best segmentation model for existing inputs"
+
+    # infile = open(os.path.join(SoftwareConfigResources.getInstance().models_path, model_name, 'pipeline.json'), 'rb')
+    # raw_pip = json.load(infile)
+    # for steps in list(raw_pip.keys()):
+    #     # Excluding brain segmentation step if the inputs are already skull-stripped
+    #     if (UserPreferencesStructure.getInstance().use_stripped_inputs and
+    #             (raw_pip[steps]["task"] == "Segmentation" and raw_pip[steps]["model"] == "MRI_Brain")):
+    #         continue
+    #     pip_num_int = pip_num_int + 1
+    #     pip_num = str(pip_num_int)
+    #     pip[pip_num] = raw_pip[steps]
 
     return pip
 
@@ -229,6 +245,8 @@ def __create_preop_reporting_pipeline(model_name, patient_parameters):
     @TODO. The pipeline should be more generic or adjustable to the required inputs. Could have a collection of
     pipelines in .raidionics/resources/pipelines?
     Hard-coded for now, so that in v1.2 reporting works for LGGs.
+
+    @TODO. Should the timestamp be forwarded here also, to feed the ModelSelection (working whether preop or postop)
     """
     infile = open(os.path.join(SoftwareConfigResources.getInstance().models_path, model_name, 'pipeline.json'), 'rb')
     raw_pip = json.load(infile)
@@ -241,75 +259,26 @@ def __create_preop_reporting_pipeline(model_name, patient_parameters):
         pip[pip_num] = {}
         pip[pip_num]["task"] = 'Classification'
         pip[pip_num]["inputs"] = {}
-        pip[pip_num]["model"] = 'MRI_Sequence_Classifier'
+        pip[pip_num]["target"] = ["MRSequence"]
+        pip[pip_num]["model"] = 'MRI_SequenceClassifier'
         pip[pip_num]["description"] = "Classification of the MRI sequence type for all input scans"
-        download_model(model_name='MRI_Sequence_Classifier')
-
-    for steps in list(raw_pip.keys()):
-        # Excluding brain segmentation step if the inputs are already skull-stripped
-        if (UserPreferencesStructure.getInstance().use_stripped_inputs and
-                (raw_pip[steps]["task"] == "Segmentation" and raw_pip[steps]["model"] == "MRI_Brain")):
-            continue
-        pip_num_int = pip_num_int + 1
-        pip_num = str(pip_num_int)
-        pip[pip_num] = raw_pip[steps]
-
-    # @TODO. Hard-coded, to remove/improve
-    if "Meningioma" in model_name and not UserPreferencesStructure.getInstance().use_stripped_inputs:
-        pip_num_int = pip_num_int + 1
-        pip_num = str(pip_num_int)
-        pip[pip_num] = {}
-        pip[pip_num]["task"] = 'Segmentation'
-        pip[pip_num]["inputs"] = {}
-        pip[pip_num]["inputs"]["0"] = {}
-        pip[pip_num]["inputs"]["0"]["timestamp"] = 0
-        pip[pip_num]["inputs"]["0"]["sequence"] = "T1-CE"
-        pip[pip_num]["inputs"]["0"]["labels"] = None
-        pip[pip_num]["inputs"]["0"]["space"] = {}
-        pip[pip_num]["inputs"]["0"]["space"]["timestamp"] = 0
-        pip[pip_num]["inputs"]["0"]["space"]["sequence"] = "T1-CE"
-        pip[pip_num]["target"] = ["Brain"]
-        pip[pip_num]["model"] = "MRI_Brain"
-        pip[pip_num]["description"] = "Brain segmentation in T1CE (T0)"
-        download_model("MRI_Brain")
+        download_model(model_name='MRI_SequenceClassifier')
 
     pip_num_int = pip_num_int + 1
     pip_num = str(pip_num_int)
     pip[pip_num] = {}
-    pip[pip_num]["task"] = 'Registration'
-    pip[pip_num]["moving"] = {}
-    pip[pip_num]["moving"]["timestamp"] = 0
-    pip[pip_num]["moving"]["sequence"] = "T1-CE" if "LGG" not in model_name else "FLAIR"
-    pip[pip_num]["fixed"] = {}
-    pip[pip_num]["fixed"]["timestamp"] = -1
-    pip[pip_num]["fixed"]["sequence"] = "MNI"
-    pip[pip_num]["description"] = "Registration from T1CE (T0) to MNI space" if "LGG" not in model_name else "Registration from FLAIR (T0) to MNI space"
+    pip[pip_num]["task"] = 'Model selection'
+    pip[pip_num]["model"] = model_name  # @TODO. Has to be seen how
+    pip[pip_num]["timestamp"] = 0
+    pip[pip_num]["description"] = f"Identifying the best {model_name} segmentation model for existing inputs"
 
     pip_num_int = pip_num_int + 1
     pip_num = str(pip_num_int)
     pip[pip_num] = {}
-    pip[pip_num]["task"] = 'Apply registration'
-    pip[pip_num]["moving"] = {}
-    pip[pip_num]["moving"]["timestamp"] = 0
-    pip[pip_num]["moving"]["sequence"] = "T1-CE" if "LGG" not in model_name else "FLAIR"
-    pip[pip_num]["fixed"] = {}
-    pip[pip_num]["fixed"]["timestamp"] = -1
-    pip[pip_num]["fixed"]["sequence"] = "MNI"
-    pip[pip_num]["direction"] = "forward"
-    pip[pip_num]["description"] = "Apply registration from T1CE (T0) to MNI space" if "LGG" not in model_name else "Apply registration from FLAIR (T0) to MNI space"
-
-    pip_num_int = pip_num_int + 1
-    pip_num = str(pip_num_int)
-    pip[pip_num] = {}
-    pip[pip_num]["task"] = 'Apply registration'
-    pip[pip_num]["moving"] = {}
-    pip[pip_num]["moving"]["timestamp"] = 0
-    pip[pip_num]["moving"]["sequence"] = "T1-CE" if "LGG" not in model_name else "FLAIR"
-    pip[pip_num]["fixed"] = {}
-    pip[pip_num]["fixed"]["timestamp"] = -1
-    pip[pip_num]["fixed"]["sequence"] = "MNI"
-    pip[pip_num]["direction"] = "inverse"
-    pip[pip_num]["description"] = "Apply inverse registration from MNI space to T1CE (T0)" if "LGG" not in model_name else "Apply inverse registration from MNI space to FLAIR (T0)"
+    pip[pip_num]["task"] = 'Model selection'
+    pip[pip_num]["model"] = "MRI_FLAIRChanges"
+    pip[pip_num]["timestamp"] = 0
+    pip[pip_num]["description"] = f"Identifying the best MRI_FLAIRChanges segmentation model for existing inputs"
 
     pip_num_int = pip_num_int + 1
     pip_num = str(pip_num_int)
@@ -321,6 +290,83 @@ def __create_preop_reporting_pipeline(model_name, patient_parameters):
     pip[pip_num]["target"] = "Tumor"
     pip[pip_num]["space"] = "MNI"
     pip[pip_num]["description"] = "Tumor features computation from T1CE (T0) in MNI space" if "LGG" not in model_name else "Tumor features computation from FLAIR (T0) in MNI space"
+
+    # for steps in list(raw_pip.keys()):
+    #     # Excluding brain segmentation step if the inputs are already skull-stripped
+    #     if (UserPreferencesStructure.getInstance().use_stripped_inputs and
+    #             (raw_pip[steps]["task"] == "Segmentation" and raw_pip[steps]["model"] == "MRI_Brain")):
+    #         continue
+    #     pip_num_int = pip_num_int + 1
+    #     pip_num = str(pip_num_int)
+    #     pip[pip_num] = raw_pip[steps]
+    #
+    # # @TODO. Hard-coded, to remove/improve
+    # if "Meningioma" in model_name and not UserPreferencesStructure.getInstance().use_stripped_inputs:
+    #     pip_num_int = pip_num_int + 1
+    #     pip_num = str(pip_num_int)
+    #     pip[pip_num] = {}
+    #     pip[pip_num]["task"] = 'Segmentation'
+    #     pip[pip_num]["inputs"] = {}
+    #     pip[pip_num]["inputs"]["0"] = {}
+    #     pip[pip_num]["inputs"]["0"]["timestamp"] = 0
+    #     pip[pip_num]["inputs"]["0"]["sequence"] = "T1-CE"
+    #     pip[pip_num]["inputs"]["0"]["labels"] = None
+    #     pip[pip_num]["inputs"]["0"]["space"] = {}
+    #     pip[pip_num]["inputs"]["0"]["space"]["timestamp"] = 0
+    #     pip[pip_num]["inputs"]["0"]["space"]["sequence"] = "T1-CE"
+    #     pip[pip_num]["target"] = ["Brain"]
+    #     pip[pip_num]["model"] = "MRI_Brain"
+    #     pip[pip_num]["description"] = "Brain segmentation in T1CE (T0)"
+    #     download_model("MRI_Brain")
+    #
+    # pip_num_int = pip_num_int + 1
+    # pip_num = str(pip_num_int)
+    # pip[pip_num] = {}
+    # pip[pip_num]["task"] = 'Registration'
+    # pip[pip_num]["moving"] = {}
+    # pip[pip_num]["moving"]["timestamp"] = 0
+    # pip[pip_num]["moving"]["sequence"] = "T1-CE" if "LGG" not in model_name else "FLAIR"
+    # pip[pip_num]["fixed"] = {}
+    # pip[pip_num]["fixed"]["timestamp"] = -1
+    # pip[pip_num]["fixed"]["sequence"] = "MNI"
+    # pip[pip_num]["description"] = "Registration from T1CE (T0) to MNI space" if "LGG" not in model_name else "Registration from FLAIR (T0) to MNI space"
+    #
+    # pip_num_int = pip_num_int + 1
+    # pip_num = str(pip_num_int)
+    # pip[pip_num] = {}
+    # pip[pip_num]["task"] = 'Apply registration'
+    # pip[pip_num]["moving"] = {}
+    # pip[pip_num]["moving"]["timestamp"] = 0
+    # pip[pip_num]["moving"]["sequence"] = "T1-CE" if "LGG" not in model_name else "FLAIR"
+    # pip[pip_num]["fixed"] = {}
+    # pip[pip_num]["fixed"]["timestamp"] = -1
+    # pip[pip_num]["fixed"]["sequence"] = "MNI"
+    # pip[pip_num]["direction"] = "forward"
+    # pip[pip_num]["description"] = "Apply registration from T1CE (T0) to MNI space" if "LGG" not in model_name else "Apply registration from FLAIR (T0) to MNI space"
+    #
+    # pip_num_int = pip_num_int + 1
+    # pip_num = str(pip_num_int)
+    # pip[pip_num] = {}
+    # pip[pip_num]["task"] = 'Apply registration'
+    # pip[pip_num]["moving"] = {}
+    # pip[pip_num]["moving"]["timestamp"] = 0
+    # pip[pip_num]["moving"]["sequence"] = "T1-CE" if "LGG" not in model_name else "FLAIR"
+    # pip[pip_num]["fixed"] = {}
+    # pip[pip_num]["fixed"]["timestamp"] = -1
+    # pip[pip_num]["fixed"]["sequence"] = "MNI"
+    # pip[pip_num]["direction"] = "inverse"
+    # pip[pip_num]["description"] = "Apply inverse registration from MNI space to T1CE (T0)" if "LGG" not in model_name else "Apply inverse registration from MNI space to FLAIR (T0)"
+    #
+    # pip_num_int = pip_num_int + 1
+    # pip_num = str(pip_num_int)
+    # pip[pip_num] = {}
+    # pip[pip_num]["task"] = 'Features computation'
+    # pip[pip_num]["input"] = {}
+    # pip[pip_num]["input"]["timestamp"] = 0
+    # pip[pip_num]["input"]["sequence"] = "T1-CE" if "LGG" not in model_name else "FLAIR"
+    # pip[pip_num]["target"] = "Tumor"
+    # pip[pip_num]["space"] = "MNI"
+    # pip[pip_num]["description"] = "Tumor features computation from T1CE (T0) in MNI space" if "LGG" not in model_name else "Tumor features computation from FLAIR (T0) in MNI space"
 
     return pip
 
@@ -340,9 +386,10 @@ def __create_postop_reporting_pipeline(model_name, patient_parameters):
         pip[pip_num] = {}
         pip[pip_num]["task"] = 'Classification'
         pip[pip_num]["inputs"] = {}
-        pip[pip_num]["model"] = 'MRI_Sequence_Classifier'
+        pip[pip_num]["target"] = ["MRSequence"]
+        pip[pip_num]["model"] = 'MRI_SequenceClassifier'
         pip[pip_num]["description"] = "Classification of the MRI sequence type for all input scans"
-        download_model(model_name='MRI_Sequence_Classifier')
+        download_model(model_name='MRI_SequenceClassifier')
 
     for steps in list(raw_pip.keys()):
         # Excluding brain segmentation step if the inputs are already skull-stripped
@@ -373,9 +420,10 @@ def __create_custom_pipeline(task, tumor_type, patient_parameters):
         pip[pip_num] = {}
         pip[pip_num]["task"] = 'Classification'
         pip[pip_num]["inputs"] = {}
-        pip[pip_num]["model"] = 'MRI_Sequence_Classifier'
+        pip[pip_num]["target"] = ["MRSequence"]
+        pip[pip_num]["model"] = 'MRI_SequenceClassifier'
         pip[pip_num]["description"] = "Classification of the MRI sequence type for all input scans"
-        download_model(model_name='MRI_Sequence_Classifier')
+        download_model(model_name='MRI_SequenceClassifier')
     elif split_task[0] == "Segmentation":
         if not UserPreferencesStructure.getInstance().use_manual_sequences:
             pip_num_int = pip_num_int + 1
@@ -383,9 +431,10 @@ def __create_custom_pipeline(task, tumor_type, patient_parameters):
             pip[pip_num] = {}
             pip[pip_num]["task"] = 'Classification'
             pip[pip_num]["inputs"] = {}
-            pip[pip_num]["model"] = 'MRI_Sequence_Classifier'
+            pip[pip_num]["target"] = ["MRSequence"]
+            pip[pip_num]["model"] = 'MRI_SequenceClassifier'
             pip[pip_num]["description"] = "Classification of the MRI sequence type for all input scans"
-            download_model(model_name='MRI_Sequence_Classifier')
+            download_model(model_name='MRI_SequenceClassifier')
 
         base_model_name = "MRI_" if SoftwareConfigResources.getInstance().software_medical_specialty == "neurology" else "CT_"
         timestamp_order = int(split_task[2][1:])
@@ -407,15 +456,14 @@ def __create_custom_pipeline(task, tumor_type, patient_parameters):
             pip[pip_num]["description"] = "Lungs segmentation in T1CE (T{})".format(str(timestamp_order))
             download_model(model_name="CT_Lungs")
 
-        if split_task[1] == 'Tumor' or split_task[1] == 'Edema' or split_task[1] == 'Cavity':
-            infile = open(os.path.join(SoftwareConfigResources.getInstance().models_path, tumor_type, 'pipeline.json'),
-                          'rb')
-            raw_pip = json.load(infile)
-
-            for steps in list(raw_pip.keys()):
-                pip_num_int = pip_num_int + 1
-                pip_num = str(pip_num_int)
-                pip[pip_num] = raw_pip[steps]
+        if split_task[1] == 'FLAIRChanges' or split_task[1] == 'Cavity':
+            pip_num_int = pip_num_int + 1
+            pip_num = str(pip_num_int)
+            pip[pip_num] = {}
+            pip[pip_num]["task"] = 'Model selection'
+            pip[pip_num]["model"] = tumor_type
+            pip[pip_num]["timestamp"] = int(split_task[2][1])  # Grabbing the number inside T0/T1/etc...
+            pip[pip_num]["description"] = "Identifying the best segmentation model for existing inputs"
         elif split_task[1] == 'Brain':
             infile = open(os.path.join(SoftwareConfigResources.getInstance().models_path, tumor_type, 'pipeline.json'),
                           'rb')

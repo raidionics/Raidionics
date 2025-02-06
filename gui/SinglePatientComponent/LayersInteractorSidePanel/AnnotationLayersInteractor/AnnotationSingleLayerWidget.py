@@ -136,8 +136,9 @@ class AnnotationSingleLayerWidget(QWidget):
         self.parent_image_combobox.setFixedHeight(20)
         self.annotation_type_label.setFixedHeight(20)
         self.annotation_type_combobox.setFixedHeight(20)
-        self.annotation_type_combobox.setFixedWidth(60)
+        self.annotation_type_combobox.setFixedWidth(70)
         self.generation_type_label.setFixedHeight(20)
+        self.generation_type_label.setFixedWidth(55)
         self.generation_type_combobox.setFixedHeight(20)
         self.generation_type_combobox.setFixedWidth(85)
 
@@ -445,7 +446,7 @@ class AnnotationSingleLayerWidget(QWidget):
         self.parent_image_combobox.blockSignals(False)
 
         self.annotation_type_combobox.blockSignals(True)
-        self.annotation_type_combobox.setCurrentText(params.get_annotation_class_str())
+        self.annotation_type_combobox.setCurrentText(params.get_annotation_class_name())
         self.annotation_type_combobox.blockSignals(False)
 
         self.generation_type_combobox.blockSignals(True)

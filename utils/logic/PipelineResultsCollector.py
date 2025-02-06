@@ -3,7 +3,7 @@ import os
 import shutil
 import time
 import traceback
-
+import json
 import pandas as pd
 
 from utils.data_structures.UserPreferencesStructure import UserPreferencesStructure
@@ -24,21 +24,36 @@ def collect_results(patient_parameters, pipeline):
     results['Atlas'] = []
     results['Report'] = []
 
+    # Collecting the actual executed pipeline from the RADS backend (mandatory if generic models were used)
+    # @TODO. The MRI sequence classification is missing now because removed from the below file
+    # otherwise it would be executed twice in the RADS backend. Would have to find a way to have it in the file and
+    # being executed only once...
+    executed_pipeline_fn = os.path.join(patient_parameters.output_folder, 'reporting', 'executed_pipeline.json')
+    if not os.path.exists(executed_pipeline_fn):
+        raise ValueError("No executed pipeline found at {}".format(executed_pipeline_fn))
+    with open(executed_pipeline_fn, 'r', newline='\n') as infile:
+        pipeline = json.load(infile)
+
     for step in list(pipeline.keys()):
         try:
             pip_step = pipeline[step]
             if pip_step["task"] == "Classification":
                 # @TODO. Will have to be more generic when more than one classification model exists.
-                classification_results_filename = os.path.join(patient_parameters.output_folder, 'reporting', 'mri_sequences.csv')
+                classification_results_filename = os.path.join(patient_parameters.output_folder, 'reporting',
+                                                               pip_step["target"][0] + '_classification_results.csv')
                 df = pd.read_csv(classification_results_filename)
-                volume_basenames = list(df['File'].values)
-                for vn in volume_basenames:
-                    volume_object = patient_parameters.get_mri_volume_by_base_filename(vn)
-                    if volume_object:
-                        volume_object.set_sequence_type(df.loc[df['File'] == vn]['MRI sequence'].values[0], manual=True)
-                    else:
-                        logging.warning("Classification results collection failed. Filename {} not matching any patient MRI volume.".format(vn))
-                results['Classification'] = "sequences"
+                if pip_step["target"][0] == "MRSequence":
+                    volume_basenames = list(df['File'].values)
+                    for vn in volume_basenames:
+                        volume_object = patient_parameters.get_mri_volume_by_base_filename(vn)
+                        if volume_object:
+                            volume_object.set_sequence_type(df.loc[df['File'] == vn]['MRI sequence'].values[0], manual=True)
+                        else:
+                            logging.warning(f"Classification results collection failed. "
+                                            f"Filename {vn} not matching any patient MRI volume.")
+                    results['Classification'].append(pip_step["target"][0])
+                else:
+                    raise ValueError("Handling of classification results not handled yet for {}".format(pip_step["target"][0]))
             elif pip_step["task"] == "Segmentation":
                 if UserPreferencesStructure.getInstance().use_stripped_inputs:
                     # If background-stripped inputs are provided, the background segmentation is skipped but an

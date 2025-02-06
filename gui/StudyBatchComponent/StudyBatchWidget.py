@@ -184,9 +184,11 @@ class StudyBatchWidget(QWidget):
                 study.include_reporting_statistics(patient_uid=u, reporting_uids=results["Report"],
                                                    patient_parameters=SoftwareConfigResources.getInstance().patients_parameters[u])
             if 'Classification' in list(results.keys()):
-                # @TODO. Will have to be more generic when more than one classifier.
                 # @TODO2. Not connected all the way.
-                self.patient_radiological_sequences_imported.emit(u)
+                if "MRSequence" in results["Classification"]:
+                    self.patient_radiological_sequences_imported.emit(u)
+                else:
+                    raise ValueError(f"Other classification use-cases not handled yet.")
             if 'Annotation' in list(results.keys()):
                 study.include_segmentation_statistics(patient_uid=u, annotation_uids=results["Annotation"],
                                                       patient_parameters=SoftwareConfigResources.getInstance().patients_parameters[u])

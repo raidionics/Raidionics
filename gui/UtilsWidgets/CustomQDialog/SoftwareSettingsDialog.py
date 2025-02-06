@@ -191,20 +191,61 @@ class SoftwareSettingsDialog(QDialog):
         self.processing_segmentation_options_base_layout = QVBoxLayout()
         self.processing_segmentation_options_label = QLabel("Processing - Segmentation")
         self.processing_segmentation_options_base_layout.addWidget(self.processing_segmentation_options_label)
+
+        self.processing_segmentation_models_inputs_groupbox = QGroupBox()
+        self.processing_segmentation_models_inputs_groupbox.setTitle("Segmentation models inputs")
+        self.processing_segmentation_models_inputs_groupboxlayout = QVBoxLayout()
+        self.processing_segmentation_models_inputs_groupbox.setLayout(self.processing_segmentation_models_inputs_groupboxlayout)
+        self.processing_segmentation_options_base_layout.addWidget(self.processing_segmentation_models_inputs_groupbox)
+
         self.processing_segmentation_models_groupbox = QGroupBox()
-        self.processing_segmentation_models_groupbox.setTitle("Segmentation models")
+        self.processing_segmentation_models_groupbox.setTitle("Segmentation models runtime")
         self.processing_segmentation_models_groupboxlayout = QVBoxLayout()
 
-        self.processing_options_segmentation_models_layout = QHBoxLayout()
-        self.processing_options_segmentation_models_label = QLabel("Output classes")
-        self.processing_options_segmentation_models_label.setToolTip("Select the segmented output classes desired in the drop-down menu. N-B: all four MR sequences (i.e., T1-CE, T1-w, FLAIR, and T2) are required as input for the second choice.\n")
-        self.processing_options_segmentation_models_selector_combobox = QComboBox()
-        self.processing_options_segmentation_models_selector_combobox.addItems(["Tumor", "Tumor, Necrosis, Edema"])
-        self.processing_options_segmentation_models_selector_combobox.setCurrentText(UserPreferencesStructure.getInstance().segmentation_tumor_model_type)
-        self.processing_options_segmentation_models_layout.addWidget(self.processing_options_segmentation_models_label)
-        self.processing_options_segmentation_models_layout.addWidget(self.processing_options_segmentation_models_selector_combobox)
-        self.processing_options_segmentation_models_layout.addStretch(1)
-        self.processing_segmentation_models_groupboxlayout.addLayout(self.processing_options_segmentation_models_layout)
+        # self.processing_options_segmentation_models_layout = QHBoxLayout()
+        # self.processing_options_segmentation_models_label = QLabel("Output classes")
+        # self.processing_options_segmentation_models_label.setToolTip("Select the segmented output classes desired in the drop-down menu. N-B: all four MR sequences (i.e., T1-CE, T1-w, FLAIR, and T2) are required as input for the second choice.\n")
+        # self.processing_options_segmentation_models_selector_combobox = QComboBox()
+        # self.processing_options_segmentation_models_selector_combobox.addItems(["Tumor", "Tumor, Necrosis, Edema"])
+        # self.processing_options_segmentation_models_selector_combobox.setCurrentText(UserPreferencesStructure.getInstance().segmentation_tumor_model_type)
+        # self.processing_options_segmentation_models_layout.addWidget(self.processing_options_segmentation_models_label)
+        # self.processing_options_segmentation_models_layout.addWidget(self.processing_options_segmentation_models_selector_combobox)
+        # self.processing_options_segmentation_models_layout.addStretch(1)
+        # self.processing_segmentation_models_groupboxlayout.addLayout(self.processing_options_segmentation_models_layout)
+        self.processing_options_segmentation_models_tta_layout = QHBoxLayout()
+        self.processing_options_segmentation_models_tta_label = QLabel("Test-time data augmentation: ")
+        self.processing_options_segmentation_models_tta_label.setToolTip("")
+        self.processing_options_segmentation_models_tta_checkbox = QCheckBox()
+        self.processing_options_segmentation_models_tta_selector_label = QLabel("Nb iterations: ")
+        self.processing_options_segmentation_models_tta_selector_spinbox = QSpinBox()
+        self.processing_options_segmentation_models_tta_selector_spinbox.setMinimum(1)
+        self.processing_options_segmentation_models_tta_selector_spinbox.setMaximum(5)
+        self.processing_options_segmentation_models_tta_combination_label = QLabel("Strategy:")
+        self.processing_options_segmentation_models_tta_combination_combobox = QComboBox()
+        self.processing_options_segmentation_models_tta_combination_combobox.addItems(["average", "maximum"])
+        self.processing_options_segmentation_models_tta_combination_combobox.setCurrentText("average")
+        self.processing_options_segmentation_models_tta_layout.addWidget(self.processing_options_segmentation_models_tta_checkbox)
+        self.processing_options_segmentation_models_tta_layout.addWidget(self.processing_options_segmentation_models_tta_label)
+        self.processing_options_segmentation_models_tta_layout.addWidget(self.processing_options_segmentation_models_tta_selector_label)
+        self.processing_options_segmentation_models_tta_layout.addWidget(self.processing_options_segmentation_models_tta_selector_spinbox)
+        self.processing_options_segmentation_models_tta_layout.addWidget(self.processing_options_segmentation_models_tta_combination_label)
+        self.processing_options_segmentation_models_tta_layout.addWidget(self.processing_options_segmentation_models_tta_combination_combobox)
+        self.processing_options_segmentation_models_tta_layout.addStretch(1)
+        self.processing_segmentation_models_groupboxlayout.addLayout(self.processing_options_segmentation_models_tta_layout)
+        self.processing_options_segmentation_models_ensembling_layout = QHBoxLayout()
+        self.processing_options_segmentation_models_ensembling_label = QLabel("Model ensembling")
+        self.processing_options_segmentation_models_ensembling_label.setToolTip("")
+        self.processing_options_segmentation_models_ensembling_checkbox = QCheckBox()
+        self.processing_options_segmentation_models_ensembling_combination_label = QLabel("Strategy:")
+        self.processing_options_segmentation_models_ensembling_combination_combobox = QComboBox()
+        self.processing_options_segmentation_models_ensembling_combination_combobox.addItems(["average", "maximum"])
+        self.processing_options_segmentation_models_ensembling_combination_combobox.setCurrentText("average")
+        self.processing_options_segmentation_models_ensembling_layout.addWidget(self.processing_options_segmentation_models_ensembling_checkbox)
+        self.processing_options_segmentation_models_ensembling_layout.addWidget(self.processing_options_segmentation_models_ensembling_label)
+        self.processing_options_segmentation_models_ensembling_layout.addWidget(self.processing_options_segmentation_models_ensembling_combination_label)
+        self.processing_options_segmentation_models_ensembling_layout.addWidget(self.processing_options_segmentation_models_ensembling_combination_combobox)
+        self.processing_options_segmentation_models_ensembling_layout.addStretch(1)
+        self.processing_segmentation_models_groupboxlayout.addLayout(self.processing_options_segmentation_models_ensembling_layout)
         self.processing_segmentation_models_groupbox.setLayout(self.processing_segmentation_models_groupboxlayout)
         self.processing_segmentation_options_base_layout.addWidget(self.processing_segmentation_models_groupbox)
 
@@ -426,7 +467,6 @@ class SoftwareSettingsDialog(QDialog):
         self.default_options_label.setFixedHeight(40)
         self.model_purge_pushbutton.setFixedSize(QSize(20, 20))
         self.model_purge_pushbutton.setIconSize(QSize(20, 20))
-        self.processing_options_segmentation_models_selector_combobox.setFixedSize(QSize(120, 20))
         self.processing_options_segmentation_refinement_selector_combobox.setFixedSize(QSize(90, 20))
         self.processing_options_pushbutton.setFixedHeight(30)
         self.processing_options_label.setFixedHeight(40)
@@ -462,7 +502,6 @@ class SoftwareSettingsDialog(QDialog):
         self.processing_options_use_stripped_inputs_checkbox.stateChanged.connect(self.__on_use_stripped_inputs_status_changed)
         self.processing_options_use_registered_inputs_checkbox.stateChanged.connect(self.__on_use_registered_inputs_status_changed)
         self.processing_options_export_results_rtstruct_checkbox.stateChanged.connect(self.__on_export_results_rtstruct_status_changed)
-        self.processing_options_segmentation_models_selector_combobox.currentTextChanged.connect(self.__on_segmentation_model_type_changed)
         self.processing_options_segmentation_refinement_checkbox.stateChanged.connect(self.__on_perform_segmentation_refinement_status_changed)
         self.processing_options_segmentation_refinement_dilation_threshold_spinbox.valueChanged.connect(self.__on_perform_segmentation_refinement_dilation_value_changed)
         self.processing_options_compute_corticalstructures_checkbox.stateChanged.connect(self.__on_compute_corticalstructures_status_changed)
@@ -788,7 +827,7 @@ class SoftwareSettingsDialog(QDialog):
         }
         """)
 
-        self.processing_options_segmentation_models_label.setStyleSheet("""
+        self.processing_options_segmentation_models_tta_label.setStyleSheet("""
         QLabel{
         color: """ + font_color + """;
         text-align:left;
@@ -797,7 +836,7 @@ class SoftwareSettingsDialog(QDialog):
         }""")
 
         if os.name == 'nt':
-            self.processing_options_segmentation_models_selector_combobox.setStyleSheet("""
+            self.processing_options_segmentation_models_tta_combination_combobox.setStyleSheet("""
             QComboBox{
             color: """ + font_color + """;
             background-color: """ + background_color + """;
@@ -817,7 +856,7 @@ class SoftwareSettingsDialog(QDialog):
             }
             """)
         else:
-            self.processing_options_segmentation_models_selector_combobox.setStyleSheet("""
+            self.processing_options_segmentation_models_tta_combination_combobox.setStyleSheet("""
             QComboBox{
             color: """ + font_color + """;
             background-color: """ + background_color + """;
@@ -1297,9 +1336,6 @@ class SoftwareSettingsDialog(QDialog):
 
     def __on_export_results_rtstruct_status_changed(self, status):
         UserPreferencesStructure.getInstance().export_results_as_rtstruct = self.processing_options_export_results_rtstruct_checkbox.isChecked()
-
-    def __on_segmentation_model_type_changed(self, text):
-        UserPreferencesStructure.getInstance().segmentation_tumor_model_type = text
 
     def __on_perform_segmentation_refinement_status_changed(self, status):
         UserPreferencesStructure.getInstance().perform_segmentation_refinement = status

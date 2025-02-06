@@ -24,7 +24,11 @@ class UserPreferencesStructure:
     _use_registered_inputs = False  # True to use inputs already registered (e.g., altas-registered, multi-sequences co-registered)
     _export_results_as_rtstruct = False  # True to export all masks as DICOM RTStruct in addition
     _display_space = 'Patient'  # Space to use for displaying the results
-    _segmentation_tumor_model_type = "Tumor"  # Type of output to expect from the tumor segmentation model (i.e., indicating if a BraTS model should be used)
+    _segmentation_runtime_tta = False  # Boolean to indicate if test-time augmentation should be performed
+    _segmentation_runtime_tta_iterations = 1  # Number of additional iterations with test-time augmentation
+    _segmentation_runtime_tta_strategy = "average"  # Strategy to fuse the test-time augmentation predictions, to select from ["average", "maximum"]
+    _segmentation_runtime_ensembling = False  # Boolean to indicate if model ensembling should be performed (when available)
+    _segmentation_runtime_ensembling_strategy = "average" # Strategy to fuse the predictions for the different models to ensemble, to select from ["average", "maximum"]
     _perform_segmentation_refinement = False  # True to enable any kind of segmentation refinement
     _segmentation_refinement_type = "dilation"  # String indicating the type of refinement to perform, to select from ["dilation"]
     _segmentation_refinement_dilation_percentage = 0  # Integer indicating the volume percentage increase to reach after dilation
@@ -73,7 +77,11 @@ class UserPreferencesStructure:
         self.use_registered_inputs = False
         self.export_results_as_rtstruct = False
         self.display_space = 'Patient'
-        self.segmentation_tumor_model_type = "Tumor"
+        self.segmentation_runtime_tta = False
+        self.segmentation_runtime_tta_iterations = 1
+        self.segmentation_runtime_tta_strategy = "average"
+        self.segmentation_runtime_ensembling = False
+        self.segmentation_runtime_ensembling_strategy = "average"
         self.perform_segmentation_refinement = False
         self.segmentation_refinement_type = "dilation"
         self.segmentation_refinement_dilation_percentage = 0
@@ -190,12 +198,48 @@ class UserPreferencesStructure:
         self.save_preferences()
 
     @property
-    def segmentation_tumor_model_type(self) -> str:
-        return self._segmentation_tumor_model_type
+    def segmentation_runtime_tta(self) -> bool:
+        return self._segmentation_runtime_tta
 
-    @segmentation_tumor_model_type.setter
-    def segmentation_tumor_model_type(self, model_type: str) -> None:
-        self._segmentation_tumor_model_type = model_type
+    @segmentation_runtime_tta.setter
+    def segmentation_runtime_tta(self, state: bool) -> None:
+        self._segmentation_runtime_tta = state
+        self.save_preferences()
+
+    @property
+    def segmentation_runtime_tta_iterations(self) -> int:
+        return self._segmentation_runtime_tta_iterations
+
+    @segmentation_runtime_tta_iterations.setter
+    def segmentation_runtime_tta_iterations(self, number: int) -> None:
+        self._segmentation_runtime_tta_iterations = number
+        self.save_preferences()
+
+    @property
+    def segmentation_runtime_tta_strategy(self) -> str:
+        return self._segmentation_runtime_tta_strategy
+
+    @segmentation_runtime_tta_strategy.setter
+    def segmentation_runtime_tta_strategy(self, strategy: str) -> None:
+        self._segmentation_runtime_tta_strategy = strategy
+        self.save_preferences()
+
+    @property
+    def segmentation_runtime_ensembling(self) -> bool:
+        return self._segmentation_runtime_ensembling
+
+    @segmentation_runtime_ensembling.setter
+    def segmentation_runtime_ensembling(self, state: bool) -> None:
+        self._segmentation_runtime_ensembling = state
+        self.save_preferences()
+
+    @property
+    def segmentation_runtime_ensembling_strategy(self) -> str:
+        return self._segmentation_runtime_ensembling_strategy
+
+    @segmentation_runtime_ensembling_strategy.setter
+    def segmentation_runtime_ensembling_strategy(self, strategy: str) -> None:
+        self._segmentation_runtime_ensembling_strategy = strategy
         self.save_preferences()
 
     @property
@@ -315,14 +359,22 @@ class UserPreferencesStructure:
                 self.use_registered_inputs = preferences['Processing']['use_registered_inputs']
             if 'export_results_as_rtstruct' in preferences['Processing'].keys():
                 self.export_results_as_rtstruct = preferences['Processing']['export_results_as_rtstruct']
-            if 'segmentation_tumor_model_type' in preferences['Processing'].keys():
-                self.segmentation_tumor_model_type = preferences['Processing']['segmentation_tumor_model_type']
-            if 'perform_segmentation_refinement' in preferences['Processing'].keys():
-                self.perform_segmentation_refinement = preferences['Processing']['perform_segmentation_refinement']
+            if 'Runtime' in preferences['Processing'].keys():
+                if 'segmentation_runtime_tta' in preferences['Processing']['Runtime'].keys():
+                    self.segmentation_runtime_tta = preferences['Processing']['Runtime']['segmentation_runtime_tta']
+                if 'segmentation_runtime_tta_iterations' in preferences['Processing']['Runtime'].keys():
+                    self.segmentation_runtime_tta_iterations = preferences['Processing']['Runtime']['segmentation_runtime_tta_iterations']
+                if 'segmentation_runtime_tta_strategy' in preferences['Processing']['Runtime'].keys():
+                    self.segmentation_runtime_tta_strategy = preferences['Processing']['Runtime']['segmentation_runtime_tta_strategy']
+                if 'segmentation_runtime_ensembling' in preferences['Processing']['Runtime'].keys():
+                    self.segmentation_runtime_ensembling = preferences['Processing']['Runtime']['segmentation_runtime_ensembling']
+                if 'segmentation_runtime_ensembling_strategy' in preferences['Processing']['Runtime'].keys():
+                    self.segmentation_runtime_ensembling_strategy = preferences['Processing']['Runtime']['segmentation_runtime_ensembling_strategy']
+                if 'perform_segmentation_refinement' in preferences['Processing'].keys():
+                    self.perform_segmentation_refinement = preferences['Processing']['perform_segmentation_refinement']
             if 'SegmentationRefinement' in preferences['Processing'].keys():
                 if 'type' in preferences['Processing']['SegmentationRefinement'].keys():
                     self.segmentation_refinement_type = preferences['Processing']['SegmentationRefinement']['type']
-            if 'SegmentationRefinement' in preferences['Processing'].keys():
                 if 'dilation_percentage' in preferences['Processing']['SegmentationRefinement'].keys():
                     self.segmentation_refinement_dilation_percentage = preferences['Processing']['SegmentationRefinement']['dilation_percentage']
             if 'Reporting' in preferences['Processing'].keys():
@@ -361,8 +413,13 @@ class UserPreferencesStructure:
         preferences['Processing']['use_stripped_inputs'] = self.use_stripped_inputs
         preferences['Processing']['use_registered_inputs'] = self.use_registered_inputs
         preferences['Processing']['export_results_as_rtstruct'] = self.export_results_as_rtstruct
-        preferences['Processing']['segmentation_tumor_model_type'] = self.segmentation_tumor_model_type
         preferences['Processing']['perform_segmentation_refinement'] = self.perform_segmentation_refinement
+        preferences['Processing']['Runtime'] = {}
+        preferences['Processing']['Runtime']['segmentation_runtime_tta'] = self.segmentation_runtime_tta
+        preferences['Processing']['Runtime']['segmentation_runtime_tta_iterations'] = self.segmentation_runtime_tta_iterations
+        preferences['Processing']['Runtime']['segmentation_runtime_tta_strategy'] = self.segmentation_runtime_tta_strategy
+        preferences['Processing']['Runtime']['segmentation_runtime_ensembling'] = self.segmentation_runtime_ensembling
+        preferences['Processing']['Runtime']['segmentation_runtime_ensembling_strategy'] = self.segmentation_runtime_ensembling_strategy
         preferences['Processing']['SegmentationRefinement'] = {}
         preferences['Processing']['SegmentationRefinement']['type'] = self.segmentation_refinement_type
         preferences['Processing']['SegmentationRefinement']['dilation_percentage'] = self.segmentation_refinement_dilation_percentage
