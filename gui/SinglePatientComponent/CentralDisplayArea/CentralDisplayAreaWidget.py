@@ -141,7 +141,7 @@ class CentralDisplayAreaWidget(QWidget):
             # @FIXME. Can only be 0 if the active patient is the default (and empty) temp patient created at init...
             # Should not have to make this check, the initial temp patient should be better handled and not dragged along
             if self.current_patient_parameters.get_patient_mri_volumes_number() != 0:
-                self.displayed_image = self.current_patient_parameters.get_mri_by_uid(self.current_patient_parameters.get_all_mri_volumes_uids()[0]).get_display_volume()
+                self.displayed_image = self.current_patient_parameters.get_mri_by_uid(self.current_patient_parameters.get_all_mri_volumes_uids()[0]).display_volume
                 self.point_clicker_position = [int(self.displayed_image.shape[0] / 2), int(self.displayed_image.shape[1] / 2),
                                                int(self.displayed_image.shape[2] / 2)]
                 self.update_viewers_image()
@@ -165,10 +165,10 @@ class CentralDisplayAreaWidget(QWidget):
             # If updating the central panel after selecting a different display space, the same image as currently
             # visible should be updated.
             if self.displayed_image_uid in self.current_patient_parameters.get_all_mri_volumes_uids():
-                self.displayed_image = self.current_patient_parameters.get_mri_by_uid(self.displayed_image_uid).get_display_volume()
+                self.displayed_image = self.current_patient_parameters.get_mri_by_uid(self.displayed_image_uid).display_volume
             else:  # If an actual new patient selected, the first available image is displayed
                 self.displayed_image = self.current_patient_parameters.get_mri_by_uid(
-                    self.current_patient_parameters.get_all_mri_volumes_uids()[0]).get_display_volume()
+                    self.current_patient_parameters.get_all_mri_volumes_uids()[0]).display_volume
                 self.displayed_image_uid = self.current_patient_parameters.get_mri_by_uid(self.current_patient_parameters.get_all_mri_volumes_uids()[0]).unique_id
             self.point_clicker_position = [int(self.displayed_image.shape[0] / 2),
                                            int(self.displayed_image.shape[1] / 2),
@@ -194,7 +194,7 @@ class CentralDisplayAreaWidget(QWidget):
         try:
             if state:
                 self.reset_overlay()  # Until the time there is a co-registration option between input MRI volumes.
-                self.displayed_image = self.current_patient_parameters.get_mri_by_uid(volume_uid).get_display_volume()
+                self.displayed_image = self.current_patient_parameters.get_mri_by_uid(volume_uid).display_volume
                 self.displayed_image_uid = volume_uid
 
                 # Reset to the view-point, until the time there's co-registration or MNI space, where we can keep it.
@@ -216,7 +216,7 @@ class CentralDisplayAreaWidget(QWidget):
 
     def on_volume_contrast_changed(self, volume_uid):
         # @TODO. Should group the viewer calls into another function somewhere, since all three above methods use it.
-        self.displayed_image = self.current_patient_parameters.get_mri_by_uid(volume_uid).get_display_volume()
+        self.displayed_image = self.current_patient_parameters.get_mri_by_uid(volume_uid).display_volume
         self.displayed_image_uid = volume_uid
         self.update_viewers_image()
 
@@ -235,7 +235,7 @@ class CentralDisplayAreaWidget(QWidget):
     def on_annotation_layer_toggled(self, volume_uid, state):
         if state:
             self.current_patient_parameters = SoftwareConfigResources.getInstance().patients_parameters[SoftwareConfigResources.getInstance().active_patient_name]
-            self.overlaid_volumes[volume_uid] = self.current_patient_parameters.get_annotation_by_uid(volume_uid).get_display_volume()
+            self.overlaid_volumes[volume_uid] = self.current_patient_parameters.get_annotation_by_uid(volume_uid).display_volume
             self.axial_viewer.update_annotation_view(volume_uid, self.overlaid_volumes[volume_uid][:, :, self.point_clicker_position[2]])
             self.coronal_viewer.update_annotation_view(volume_uid, self.overlaid_volumes[volume_uid][:, self.point_clicker_position[1], :])
             self.sagittal_viewer.update_annotation_view(volume_uid, self.overlaid_volumes[volume_uid][self.point_clicker_position[0], :, :])
@@ -296,7 +296,7 @@ class CentralDisplayAreaWidget(QWidget):
         try:
             if state:
                 self.current_patient_parameters = SoftwareConfigResources.getInstance().patients_parameters[SoftwareConfigResources.getInstance().active_patient_name]
-                self.overlaid_volumes[volume_uid] = self.current_patient_parameters.get_atlas_by_uid(volume_uid).get_display_volume()
+                self.overlaid_volumes[volume_uid] = self.current_patient_parameters.get_atlas_by_uid(volume_uid).display_volume
                 # self.axial_viewer.update_atlas_view(volume_uid, self.overlaid_volumes[volume_uid][:, :, self.point_clicker_position[2]])
                 # self.coronal_viewer.update_atlas_view(volume_uid, self.overlaid_volumes[volume_uid][:, self.point_clicker_position[1], :])
                 # self.sagittal_viewer.update_atlas_view(volume_uid, self.overlaid_volumes[volume_uid][self.point_clicker_position[0], :, :])

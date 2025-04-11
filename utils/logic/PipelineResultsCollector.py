@@ -5,6 +5,7 @@ import time
 import traceback
 import json
 import pandas as pd
+import glob
 
 from utils.data_structures.UserPreferencesStructure import UserPreferencesStructure
 from utils.data_structures.MRIVolumeStructure import MRISequenceType
@@ -77,8 +78,8 @@ def collect_results(patient_parameters, pipeline):
                     seg_file = os.path.join(patient_parameters.output_folder, 'reporting',
                                             "T" + str(pip_step["inputs"]["0"]["timestamp"]),
                                             os.path.basename(patient_parameters.get_mri_by_uid(
-                                                parent_mri_uid).get_usable_input_filepath()).split('.')[
-                                                0] + '_annotation-' + anno_str + '.nii.gz')
+                                                parent_mri_uid).usable_input_filepath).split('.')[
+                                                0] + '_annotation-' + anno_str + '_' + pip_step["model"].split('/')[0] +'.nii.gz')
                     if os.path.exists(seg_file):
                         dest_ts = patient_parameters.get_timestamp_by_order(order=pip_step["inputs"]["0"]["timestamp"])
                         dest_file = os.path.join(patient_parameters.output_folder, dest_ts.folder_name, 'raw',
@@ -274,7 +275,49 @@ def collect_results(patient_parameters, pipeline):
                             shutil.copyfile(src=ori_structure_filename, dst=dest_structure_filename)
                             patient_parameters.get_atlas_by_uid(data_uid).import_atlas_in_registration_space(
                                 filepath=dest_structure_filename, registration_space="MNI")
+                elif pip_step["direction"] == "forward":
+                    if pip_step["fixed"]["timestamp"] == -1 or pip_step["moving"]["timestamp"] == -1:
+                        # @TODO. Handle here registration towards an atlas
+                        continue
+                    fixed_mri_uid = patient_parameters.get_all_mri_volumes_for_sequence_type_and_timestamp(
+                        sequence_type=get_type_from_string(MRISequenceType, pip_step["fixed"]["sequence"]),
+                        timestamp_order=pip_step["fixed"]["timestamp"])
+                    moving_mri_uid = patient_parameters.get_all_mri_volumes_for_sequence_type_and_timestamp(
+                        sequence_type=get_type_from_string(MRISequenceType, pip_step["moving"]["sequence"]),
+                        timestamp_order=pip_step["moving"]["timestamp"])
+                    # @TODO. Raise errors if one list is empty.
+                    if len(fixed_mri_uid) == 0:
+                        continue
+                    fixed_mri_uid = fixed_mri_uid[0]
+                    if len(moving_mri_uid) == 0:
+                        continue
+                    moving_mri_uid = moving_mri_uid[0]
 
+                    # Collecting the patient volumes (radiological and annotation) in registered space
+                    registered_folder_base = os.path.join(patient_parameters.output_folder, 'reporting',
+                                                           'T' + str(pip_step["moving"]["timestamp"]))
+                    reg_space_folders = glob.glob(os.path.join(registered_folder_base, '**/'))
+                    step_reg_space_folder = None
+                    for rsf in reg_space_folders:
+                        # The fixed_mri_uid must be adjusted because of how the backend writes it on disk.
+                        if '_'.join(fixed_mri_uid.split('_')[1:]) in rsf:
+                            step_reg_space_folder = rsf
+                    registered_inputs = []
+                    registered_labels = []
+                    for _, _, rfiles in os.walk(step_reg_space_folder):
+                        for rfile in rfiles:
+                            if 'label' not in rfile:
+                                registered_inputs.append(os.path.join(step_reg_space_folder, rfile))
+                            else:
+                                registered_labels.append(os.path.join(step_reg_space_folder, rfile))
+                        break
+                    for ri in registered_inputs:
+                        patient_parameters.get_mri_by_uid(moving_mri_uid).import_registered_volume(filepath=ri,
+                                                                                                   registration_space=fixed_mri_uid)
+                    # for rl in registered_labels:
+                    #     moving_annotation_uid = None # @TODO. Have to retrive anno
+                    #     patient_parameters.get_annotation_by_uid(moving_mri_uid).import_registered_volume(filepath=rl,
+                    #                                                                                registration_space=fixed_mri_uid)
             elif pip_step["task"] == "Features computation":
                 report_filename = os.path.join(patient_parameters.output_folder, 'reporting',
                                                'neuro_clinical_report.json')
@@ -350,7 +393,7 @@ def retrieve_automatic_stripped_mask(patient_parameters, pip_step) -> str:
     seg_file = os.path.join(patient_parameters.output_folder, 'reporting',
                             "T" + str(pip_step["inputs"]["0"]["timestamp"]),
                             os.path.basename(patient_parameters.get_mri_by_uid(
-                                parent_mri_uid).get_usable_input_filepath()).split('.')[
+                                parent_mri_uid).usable_input_filepath).split('.')[
                                 0] + '_label_' + anno_str + '.nii.gz')
     if os.path.exists(seg_file):
         dest_ts = patient_parameters.get_timestamp_by_order(order=pip_step["inputs"]["0"]["timestamp"])

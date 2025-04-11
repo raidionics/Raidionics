@@ -306,7 +306,7 @@ class MRISeriesLayerWidget(QWidget):
             self.remove_volume.emit(self.uid)
 
     def __on_display_dicom_metadata(self):
-        dicom_tags = SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_uid(self.uid).get_dicom_metadata()
+        dicom_tags = SoftwareConfigResources.getInstance().get_active_patient().get_mri_by_uid(self.uid).dicom_metadata
         if dicom_tags is None:
             box = QMessageBox.warning(self, "DICOM metadata", "No metadata is available for the current MRI volume",
                                       QMessageBox.Ok)

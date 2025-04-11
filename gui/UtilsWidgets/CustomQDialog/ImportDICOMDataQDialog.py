@@ -489,8 +489,8 @@ class ImportDICOMDataQDialog(QDialog):
         loaded_mris = SoftwareConfigResources.getInstance().get_active_patient().mri_volumes
         loaded_series_id = []
         for im in list(loaded_mris.keys()):
-            if loaded_mris[im].get_dicom_metadata() and '0020|000e' in loaded_mris[im].get_dicom_metadata().keys():
-                loaded_series_id.append(loaded_mris[im].get_dicom_metadata()['0020|000e'].strip())
+            if loaded_mris[im].dicom_metadata and '0020|000e' in loaded_mris[im].dicom_metadata.keys():
+                loaded_series_id.append(loaded_mris[im].dicom_metadata['0020|000e'].strip())
 
         for r in range(self.content_series_tablewidget.rowCount()):
             if self.content_series_tablewidget.item(r, 0).text() in loaded_series_id:

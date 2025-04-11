@@ -208,7 +208,7 @@ def generate_sequences_file(patient_parameters: PatientParameters, output_folder
     sequences_filename = os.path.join(output_folder, "mri_sequences.csv")
     classes = []
     for volume_uid in patient_parameters.get_all_mri_volumes_uids():
-        classes.append([os.path.basename(patient_parameters.get_mri_by_uid(volume_uid).get_usable_input_filepath()),
+        classes.append([os.path.basename(patient_parameters.get_mri_by_uid(volume_uid).usable_input_filepath).split('.')[0],
                         patient_parameters.get_mri_by_uid(volume_uid).get_sequence_type_str()])
     df = pd.DataFrame(classes, columns=['File', 'MRI sequence'])
     df.to_csv(sequences_filename, index=False)
@@ -245,9 +245,9 @@ def generate_surrogate_folder(patient_parameters: PatientParameters, output_fold
         for im in patient_parameters.get_all_mri_volumes_uids():
             ts = patient_parameters.get_mri_by_uid(im).timestamp_uid
             ts_object = patient_parameters.get_timestamp_by_uid(ts)
-            shutil.copyfile(src=patient_parameters.get_mri_by_uid(im).get_usable_input_filepath(),
+            shutil.copyfile(src=patient_parameters.get_mri_by_uid(im).usable_input_filepath,
                             dst=os.path.join(surrogate_folder, "T" + str(ts_object.order),
-                                             os.path.basename(patient_parameters.get_mri_by_uid(im).get_usable_input_filepath())))
+                                             os.path.basename(patient_parameters.get_mri_by_uid(im).usable_input_filepath)))
             annotation_classes = [c for c in AnnotationClassType]
             for c in annotation_classes:
                 manual_annos = patient_parameters.get_specific_annotations_for_mri(mri_volume_uid=im,
@@ -257,7 +257,7 @@ def generate_surrogate_folder(patient_parameters: PatientParameters, output_fold
                     for anno in manual_annos:
                         shutil.copyfile(src=patient_parameters.get_annotation_by_uid(anno).usable_input_filepath,
                                         dst=os.path.join(surrogate_folder, "T" + str(ts_object.order), os.path.basename(
-                                            patient_parameters.get_mri_by_uid(im).get_usable_input_filepath()[:-7] + '-label_' + str(c) + '.nii.gz')))
+                                            patient_parameters.get_mri_by_uid(im).usable_input_filepath[:-7] + '-label_' + str(c) + '.nii.gz')))
                 else:
                     annos = patient_parameters.get_specific_annotations_for_mri(mri_volume_uid=im,
                                                                                 generation_type=AnnotationGenerationType.Automatic,
@@ -265,7 +265,7 @@ def generate_surrogate_folder(patient_parameters: PatientParameters, output_fold
                     for anno in annos:
                         shutil.copyfile(src=patient_parameters.get_annotation_by_uid(anno).usable_input_filepath,
                                         dst=os.path.join(surrogate_folder, "T" + str(ts_object.order), os.path.basename(
-                                            patient_parameters.get_mri_by_uid(im).get_usable_input_filepath()[:-7] + '-label_' + str(c) + '.nii.gz')))
+                                            patient_parameters.get_mri_by_uid(im).usable_input_filepath[:-7] + '-label_' + str(c) + '.nii.gz')))
 
     except Exception:
         logging.error('Pipeline surrogate folder creation failed with: \n{}'.format(traceback.format_exc()))

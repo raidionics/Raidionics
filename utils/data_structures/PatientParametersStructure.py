@@ -135,13 +135,13 @@ class PatientParameters:
         self._output_directory = directory
         self._output_folder = new_output_folder
         for im in self.mri_volumes:
-            self.mri_volumes[im].set_output_patient_folder(self._output_folder)
+            self.mri_volumes[im].output_patient_folder(self._output_folder)
         for an in self._annotation_volumes:
-            self._annotation_volumes[an].set_output_patient_folder(self._output_folder)
+            self._annotation_volumes[an].output_patient_folder(self._output_folder)
         for at in self._atlas_volumes:
-            self._atlas_volumes[at].set_output_patient_folder(self._output_folder)
+            self._atlas_volumes[at].output_patient_folder(self._output_folder)
         for rp in self._reportings:
-            self._reportings[rp].set_output_patient_folder(self._output_folder)
+            self._reportings[rp].output_patient_folder(self._output_folder)
         logging.info("Renamed current output directory to: {}".format(directory))
 
     def set_active_investigation_timestamp(self, timestamp_uid: str) -> None:
@@ -265,13 +265,13 @@ class PatientParameters:
                     self._investigation_timestamps[disp].output_patient_folder = new_output_folder
 
                 for i, disp in enumerate(list(self.mri_volumes.keys())):
-                    self.mri_volumes[disp].set_output_patient_folder(new_output_folder)
+                    self.mri_volumes[disp].output_patient_folder(new_output_folder)
 
                 for i, disp in enumerate(list(self._annotation_volumes.keys())):
-                    self._annotation_volumes[disp].set_output_patient_folder(new_output_folder)
+                    self._annotation_volumes[disp].output_patient_folder(new_output_folder)
 
                 for i, disp in enumerate(list(self._atlas_volumes.keys())):
-                    self._atlas_volumes[disp].set_output_patient_folder(new_output_folder)
+                    self._atlas_volumes[disp].output_patient_folder(new_output_folder)
 
                 for i, disp in enumerate(list(self._reportings.keys())):
                     self._reportings[disp].output_patient_folder = new_output_folder
@@ -510,7 +510,7 @@ class PatientParameters:
             input_type = input_file_category_disambiguation(ori_filename)
             uid = self.import_data(ori_filename, investigation_ts=inv_ts_uid, type=input_type)
             if uid in list(self.mri_volumes.keys()):
-                self.mri_volumes[uid].set_dicom_metadata(dicom_series.dicom_tags)
+                self.mri_volumes[uid].dicom_metadata = dicom_series.dicom_tags
 
             # Removing the temporary MRI Series placeholder.
             if uid in list(self.mri_volumes.keys()):
@@ -671,8 +671,8 @@ class PatientParameters:
         """
         res = None
         for im in list(self.mri_volumes.keys()):
-            if self.mri_volumes[im].get_dicom_metadata() and '0010|0020' in self.mri_volumes[im].get_dicom_metadata().keys():
-                res = self.mri_volumes[im].get_dicom_metadata()['0010|0020'].strip()
+            if self.mri_volumes[im].dicom_metadata and '0010|0020' in self.mri_volumes[im].dicom_metadata.keys():
+                res = self.mri_volumes[im].dicom_metadata['0010|0020'].strip()
                 return res
         return res
 
@@ -686,8 +686,8 @@ class PatientParameters:
     def is_dicom_series_already_loaded(self, series_id: str) -> bool:
         state = False
         for im in self.mri_volumes:
-            if self.mri_volumes[im].get_dicom_metadata() and '0020|000e' in self.mri_volumes[im].get_dicom_metadata().keys():
-                if self.mri_volumes[im].get_dicom_metadata()['0020|000e'] == series_id:
+            if self.mri_volumes[im].dicom_metadata and '0020|000e' in self.mri_volumes[im].dicom_metadata.keys():
+                if self.mri_volumes[im].dicom_metadata['0020|000e'] == series_id:
                     return True
         return state
 
@@ -735,7 +735,7 @@ class PatientParameters:
     def get_mri_volume_by_base_filename(self, base_fn: str) -> Union[None, MRIVolume]:
         result = None
         for im in self.mri_volumes:
-            if os.path.basename(self.mri_volumes[im].get_usable_input_filepath()) == base_fn:
+            if os.path.basename(self.mri_volumes[im].usable_input_filepath) == base_fn:
                 return self.mri_volumes[im]
         return result
 
@@ -1147,11 +1147,11 @@ class PatientParameters:
                 if existing_annotations:
                     # @TODO. Should the original DICOM files be used, or just convert on the fly with the existing
                     # DICOM tags, already stored in the Image structure?
-                    existing_dicom = image_object.get_dicom_metadata() is not None
-                    dicom_folderpath = os.path.join(os.path.dirname(image_object.get_usable_input_filepath()),
+                    existing_dicom = image_object.dicom_metadata is not None
+                    dicom_folderpath = os.path.join(os.path.dirname(image_object.usable_input_filepath),
                                                     image_object.display_name, 'volume')
                     os.makedirs(dicom_folderpath, exist_ok=True)
-                    original_image_sitk = sitk.ReadImage(image_object.get_usable_input_filepath(),
+                    original_image_sitk = sitk.ReadImage(image_object.usable_input_filepath,
                                                          outputPixelType=sitk.sitkInt16)
                     direction = original_image_sitk.GetDirection()
                     writer = sitk.ImageFileWriter()
@@ -1172,7 +1172,7 @@ class PatientParameters:
                                              ("0008|103e", image_object.display_name + '-' + ts + '-' + image_object.get_sequence_type_str())]  # Series Description
                     else:
                         # @TODO. Bug when using all the existing tags, not properly loadable in 3D Slicer...
-                        original_series_tag_values = image_object.get_dicom_metadata()
+                        original_series_tag_values = image_object.dicom_metadata
                         # original_series_tag_values["0020|0037"] = '\\'.join(map(str, (
                         #                      direction[0], direction[3], direction[6],  # Image Orientation (Patient)
                         #                      direction[1], direction[4], direction[7])))
@@ -1226,7 +1226,7 @@ class PatientParameters:
                     #         except Exception:
                     #             logging.warning("Failure to save {} atlas structure number {} as RTStruct.".format(atlas.display_name, s))
 
-                    dest_rt_struct_filename = os.path.join(os.path.dirname(image_object.get_usable_input_filepath()),
+                    dest_rt_struct_filename = os.path.join(os.path.dirname(image_object.usable_input_filepath),
                                                            image_object.display_name,
                                                            image_object.display_name + '_structures')
                     rt_struct.save(dest_rt_struct_filename)

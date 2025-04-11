@@ -7,6 +7,7 @@ import logging
 import os
 from typing import Union, Any
 import json
+import re
 
 
 @unique
@@ -95,6 +96,10 @@ class InvestigationTimestamp:
     def folder_name(self) -> str:
         return self._folder_name
 
+    @folder_name.setter
+    def folder_name(self, value: str):
+        self._folder_name = value
+
     @property
     def display_name(self) -> str:
         return self._display_name
@@ -106,22 +111,22 @@ class InvestigationTimestamp:
                                                                                                   text))
         try:
             self._display_name = text
-            new_folder_name = self._display_name.strip().replace(" ", "")
+            new_folder_name = re.sub(' +', '_', self._display_name.strip())
             if os.path.exists(os.path.join(self._output_patient_folder, new_folder_name)):
                 msg = 'A timestamp with requested name already exists in the destination folder.<br>' + \
                       'Requested name: {}.<br>'.format(new_folder_name) + \
                       'Destination folder: {}.'.format(os.path.dirname(self._output_patient_folder))
                 raise ValueError(msg)
-            if os.path.exists(os.path.join(self._output_patient_folder, self._folder_name)):
-                shutil.move(src=os.path.join(self._output_patient_folder, self._folder_name),
+            if os.path.exists(os.path.join(self._output_patient_folder, self.folder_name)):
+                shutil.move(src=os.path.join(self._output_patient_folder, self.folder_name),
                             dst=os.path.join(self._output_patient_folder, new_folder_name))
                 logging.debug(
-                    "Unsaved changes - Investigation timestamp folder name changed from {} to {}".format(self._folder_name,
+                    "Unsaved changes - Investigation timestamp folder name changed from {} to {}".format(self.folder_name,
                                                                                                          new_folder_name))
-            self._folder_name = new_folder_name
+            self.folder_name = new_folder_name
             self._unsaved_changes = True
         except Exception as e:
-            raise RuntimeError("Changing Timestamp display name from {} to {} failed with: {}".format(self._folder_name, text, e))
+            raise RuntimeError("Changing Timestamp display name from {} to {} failed with: {}".format(self.folder_name, text, e))
 
     def set_datetime(self, inv_time: str) -> None:
         self._datetime = datetime.datetime.strptime(inv_time, "%d/%m/%Y, %H:%M:%S")
@@ -152,7 +157,7 @@ class InvestigationTimestamp:
         try:
             timestamp_params = {}
             timestamp_params['display_name'] = self._display_name
-            timestamp_params['folder_name'] = self._folder_name
+            timestamp_params['folder_name'] = self.folder_name
             timestamp_params['order'] = self._order
             timestamp_params['datetime'] = self._datetime.strftime("%d/%m/%Y, %H:%M:%S") if self._datetime else None
             self._unsaved_changes = False
@@ -161,12 +166,12 @@ class InvestigationTimestamp:
             raise RuntimeError("InvestigationTimestampStructure saving failed with: {}".format(e))
 
     def delete(self) -> None:
-        if os.path.exists(os.path.join(self._output_patient_folder, self._folder_name)):
-            shutil.rmtree(os.path.join(self._output_patient_folder, self._folder_name))
+        if os.path.exists(os.path.join(self._output_patient_folder, self.folder_name)):
+            shutil.rmtree(os.path.join(self._output_patient_folder, self.folder_name))
 
     def __init_from_scratch(self) -> None:
         try:
-            self._folder_name = self._display_name.strip().replace(" ", "")
+            self.folder_name = re.sub(' +', '_', self._display_name.strip())
         except Exception as e:
             raise RuntimeError("InvestigationTimestampStructure init from scratch failed with: {}".format(e))
 
@@ -176,9 +181,9 @@ class InvestigationTimestamp:
             self._order = int(parameters['order'])
 
             if 'folder_name' in list(parameters.keys()):
-                self._folder_name = parameters['folder_name']
+                self.folder_name = parameters['folder_name']
             else:
-                self._folder_name = self._display_name.strip().replace(" ", "")
+                self.folder_name = re.sub(' +', '_', self._display_name.strip())
             if 'datetime' in list(parameters.keys()) and parameters['datetime']:
                 self._datetime = datetime.datetime.strptime(parameters['datetime'], "%d/%m/%Y, %H:%M:%S")
         except Exception as e:

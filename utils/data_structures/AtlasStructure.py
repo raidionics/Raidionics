@@ -260,7 +260,12 @@ class AtlasVolume:
         self._class_display_opacity[index] = opacity
         self._unsaved_changes = True
 
-    def set_output_patient_folder(self, output_folder: str) -> None:
+    @property
+    def output_patient_folder(self) -> str:
+        return self._output_patient_folder
+
+    @output_patient_folder.setter
+    def output_patient_folder(self, output_folder: str) -> None:
         try:
             if self._raw_input_filepath and self._output_patient_folder in self._raw_input_filepath:
                 self._raw_input_filepath = self._raw_input_filepath.replace(self._output_patient_folder, output_folder)

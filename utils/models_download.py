@@ -37,7 +37,7 @@ def get_available_cloud_models_list():
             print('{}'.format(traceback.format_exc()))
             logging.warning('Impossible to access the cloud models list on Google Drive with: \n {}'.format(traceback.format_exc()))
     elif version.parse(SoftwareConfigResources.getInstance().software_version) >= version.parse("1.2"):
-        cloud_models_list_url = 'https://github.com/raidionics/Raidionics-models/releases/download/1.2.0/raidionics_cloud_models_list_github.csv'
+        cloud_models_list_url = 'https://github.com/raidionics/Raidionics-models/releases/download/v1.3.0-rc/raidionics_cloud_models_list_github.csv'
         try:
             os.makedirs(os.path.dirname(cloud_models_list_filename), exist_ok=True)
             headers = {}

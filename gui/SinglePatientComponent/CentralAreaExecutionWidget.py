@@ -146,42 +146,49 @@ class CentralAreaExecutionWidget(QLabel):
         """
 
         """
-        self.model_name = ""
-        if ("classification" not in pipeline_code) and ("Brain" not in pipeline_code) and ("postop" not in pipeline_code) and ("FLAIRChanges" not in pipeline_code) and ("Cavity" not in pipeline_code):
-            code = self._tumor_type_diag.exec()
-            if code == 0:  # Operation cancelled
-                return
-
-            if self._tumor_type_diag.tumor_type == 'Glioblastoma':
-                self.model_name = "MRI_GBM"
-            elif self._tumor_type_diag.tumor_type == 'Low-Grade Glioma':
-                self.model_name = "MRI_LGGlioma"
-            elif self._tumor_type_diag.tumor_type == 'Metastasis':
-                self.model_name = "MRI_Metastasis"
-            elif self._tumor_type_diag.tumor_type == 'Meningioma':
-                self.model_name = "MRI_Meningioma"
-
-            if UserPreferencesStructure.getInstance().segmentation_tumor_model_type != "Tumor":
-                self.model_name = self.model_name + '_multiclass'
-                if self._tumor_type_diag.tumor_type == 'Low-Grade Glioma':
-                    self.model_name = "MRI_GBM_multiclass"
-        elif "postop" in pipeline_code:
-            code = self._tumor_type_diag.exec()
-            if code == 0:  # Operation cancelled
-                return
-            if self._tumor_type_diag.tumor_type == 'Glioblastoma':
-                self.model_name = "MRI_GBM_Postop"
-                pipeline_code = pipeline_code + '_GBM'
-            elif self._tumor_type_diag.tumor_type == 'Low-Grade Glioma':
-                self.model_name = "MRI_LGGlioma_Postop"
-                pipeline_code = pipeline_code + '_LGGlioma'
-        elif "Brain" in pipeline_code:
+        self.model_name = None
+        if "Brain" in pipeline_code:
             self.model_name = "MRI_Brain"
-        elif "FLAIRChanges" in pipeline_code:
-            self.model_name = "MRI_FLAIRChanges"
-        elif "Cavity" in pipeline_code:
-            self.model_name = "MRI_Cavity"
+        elif "Tumor" in pipeline_code:
+            self.model_name = "MRI_TumorCore"
+        # if ("classification" not in pipeline_code) and ("Brain" not in pipeline_code) and ("postop" not in pipeline_code) and ("FLAIRChanges" not in pipeline_code) and ("Cavity" not in pipeline_code):
+        #     code = self._tumor_type_diag.exec()
+        #     if code == 0:  # Operation cancelled
+        #         return
+        #
+        #     if self._tumor_type_diag.tumor_type == 'Glioblastoma':
+        #         self.model_name = "MRI_GBM"
+        #     elif self._tumor_type_diag.tumor_type == 'Low-Grade Glioma':
+        #         self.model_name = "MRI_LGGlioma"
+        #     elif self._tumor_type_diag.tumor_type == 'Metastasis':
+        #         self.model_name = "MRI_Metastasis"
+        #     elif self._tumor_type_diag.tumor_type == 'Meningioma':
+        #         self.model_name = "MRI_Meningioma"
+        #
+        #     if UserPreferencesStructure.getInstance().segmentation_tumor_model_type != "Tumor":
+        #         self.model_name = self.model_name + '_multiclass'
+        #         if self._tumor_type_diag.tumor_type == 'Low-Grade Glioma':
+        #             self.model_name = "MRI_GBM_multiclass"
+        # elif "postop" in pipeline_code:
+        #     code = self._tumor_type_diag.exec()
+        #     if code == 0:  # Operation cancelled
+        #         return
+        #     if self._tumor_type_diag.tumor_type == 'Glioblastoma':
+        #         self.model_name = "MRI_GBM_Postop"
+        #         pipeline_code = pipeline_code + '_GBM'
+        #     elif self._tumor_type_diag.tumor_type == 'Low-Grade Glioma':
+        #         self.model_name = "MRI_LGGlioma_Postop"
+        #         pipeline_code = pipeline_code + '_LGGlioma'
+        # elif "Brain" in pipeline_code:
+        #     self.model_name = "MRI_Brain"
+        # elif "FLAIRChanges" in pipeline_code:
+        #     self.model_name = "MRI_FLAIRChanges"
+        # elif "Cavity" in pipeline_code:
+        #     self.model_name = "MRI_Cavity"
 
+        if self.model_name is None:
+            # raise ValueError("Pipeline execution could not start with None model_name!")
+            self.model_name = "MRI_TumorCore"
         self.process_started.emit()
         self.pipeline_main_wrapper(pipeline_code)
 
@@ -218,7 +225,7 @@ class CentralAreaExecutionWidget(QLabel):
             if 'Report' in list(results.keys()):
                 for r in results['Report']:
                     self.standardized_report_imported.emit(r)
-            if 'Classification' in list(results.keys()):
+            if 'Classification' in list(results.keys()) and len(results["Classification"]) != 0:
                 if "MRSequence" in results["Classification"]:
                     self.radiological_sequences_imported.emit()
                 else:
