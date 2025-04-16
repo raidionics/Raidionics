@@ -13,7 +13,7 @@ import rtutils
 import numpy as np
 import json
 import logging
-from typing import Union, Any, Tuple, List
+from typing import Union, Any, Tuple, List, Dict
 from utils.patient_dicom import DICOMSeries
 from utils.data_structures.MRIVolumeStructure import MRIVolume, MRISequenceType
 from utils.data_structures.AnnotationStructure import AnnotationVolume, AnnotationClassType, AnnotationGenerationType
@@ -125,6 +125,14 @@ class PatientParameters:
     def output_folder(self) -> str:
         return self._output_folder
 
+    @property
+    def investigation_timestamps(self) -> Dict[str, InvestigationTimestamp]:
+        return self._investigation_timestamps
+
+    @investigation_timestamps.setter
+    def investigation_timestamps(self, value: Dict[str, InvestigationTimestamp]) -> None:
+        self._investigation_timestamps = value
+
     def set_output_directory(self, directory: str) -> None:
         """
         DEPRECATED. The output directory is not allowed to be changed on the fly, newly created patients will have
@@ -151,8 +159,8 @@ class PatientParameters:
         return self._active_investigation_timestamp_uid
 
     def get_active_investigation_timestamp(self) -> InvestigationTimestamp:
-        assert self.get_active_investigation_timestamp_uid() in list(self._investigation_timestamps.keys())
-        return self._investigation_timestamps[self.get_active_investigation_timestamp_uid()]
+        assert self.get_active_investigation_timestamp_uid() in list(self.investigation_timestamps.keys())
+        return self.investigation_timestamps[self.get_active_investigation_timestamp_uid()]
 
     def release_from_memory(self) -> None:
         """
@@ -197,8 +205,8 @@ class PatientParameters:
         modifications are simply related to reading from disk and not real modifications.
         """
         self._unsaved_changes = state
-        for ts in self._investigation_timestamps:
-            self._investigation_timestamps[ts].set_unsaved_changes_state(state)
+        for ts in self.investigation_timestamps:
+            self.investigation_timestamps[ts].set_unsaved_changes_state(state)
         for im in self.mri_volumes:
             self.mri_volumes[im].set_unsaved_changes_state(state)
         for an in self._annotation_volumes:
@@ -208,8 +216,8 @@ class PatientParameters:
 
     def has_unsaved_changes(self) -> bool:
         status = self._unsaved_changes
-        for ts in self._investigation_timestamps:
-            status = status | self._investigation_timestamps[ts].has_unsaved_changes()
+        for ts in self.investigation_timestamps:
+            status = status | self.investigation_timestamps[ts].has_unsaved_changes()
         for im in self.mri_volumes:
             status = status | self.mri_volumes[im].has_unsaved_changes()
         for an in self._annotation_volumes:
@@ -261,8 +269,8 @@ class PatientParameters:
                     os.rename(src=self._patient_parameters_dict_filename, dst=new_patient_parameters_dict_filename)
                 self._patient_parameters_dict_filename = new_patient_parameters_dict_filename
 
-                for i, disp in enumerate(list(self._investigation_timestamps.keys())):
-                    self._investigation_timestamps[disp].output_patient_folder = new_output_folder
+                for i, disp in enumerate(list(self.investigation_timestamps.keys())):
+                    self.investigation_timestamps[disp].output_patient_folder = new_output_folder
 
                 for i, disp in enumerate(list(self.mri_volumes.keys())):
                     self.mri_volumes[disp].output_patient_folder(new_output_folder)
@@ -300,7 +308,8 @@ class PatientParameters:
                 if report_uid not in list(self._reportings.keys()):
                     non_available_uid = False
             report = ReportingStructure(uid=report_uid, report_filename=filename,
-                                        output_patient_folder=self.output_folder, inv_ts_uid=inv_ts_uid)
+                                        output_patient_folder=self.output_folder, inv_ts_uid=inv_ts_uid,
+                                        inv_ts_folder_name=self.investigation_timestamps[inv_ts_uid].folder_name)
             self._reportings[report_uid] = report
         except Exception:
             error_message = "Failed to load report from {} with {}".format(filename, traceback.format_exc())
@@ -333,7 +342,7 @@ class PatientParameters:
                                                    output_patient_folder=self._output_folder,
                                                    inv_time=self._patient_parameters_dict['Timestamps'][ts_id]['datetime'],
                                                    reload_params=self._patient_parameters_dict['Timestamps'][ts_id])
-                self._investigation_timestamps[ts_id] = timestamp
+                self.investigation_timestamps[ts_id] = timestamp
 
             for volume_id in list(self._patient_parameters_dict['Volumes'].keys()):
                 mri_volume = MRIVolume(uid=volume_id,
@@ -415,15 +424,15 @@ class PatientParameters:
 
             # When including data for a patient, creating a Timestamp if none exists, otherwise assign to the first one
             if not investigation_ts:
-                if len(self._investigation_timestamps) == 0:
+                if len(self.investigation_timestamps) == 0:
                     investigation_ts = 'T0'
                     curr_ts = InvestigationTimestamp(investigation_ts, order=0,
                                                      output_patient_folder=self._output_folder)
-                    self._investigation_timestamps[investigation_ts] = curr_ts
+                    self.investigation_timestamps[investigation_ts] = curr_ts
                 elif self._active_investigation_timestamp_uid:
                     investigation_ts = self._active_investigation_timestamp_uid
                 else:
-                    investigation_ts = list(self._investigation_timestamps.keys())[0]
+                    investigation_ts = list(self.investigation_timestamps.keys())[0]
 
             if type == 'MRI':
                 # Generating a unique id for the MRI volume
@@ -499,11 +508,11 @@ class PatientParameters:
             inv_ts_object = self.get_timestamp_by_dicom_study_id(investigation_dicom_id)
             if not inv_ts_object:
                 investigation_ts = investigation_dicom_id
-                curr_ts = InvestigationTimestamp(investigation_ts, order=len(self._investigation_timestamps),
+                curr_ts = InvestigationTimestamp(investigation_ts, order=len(self.investigation_timestamps),
                                                  inv_time=dicom_series.series_date,
                                                  output_patient_folder=self._output_folder)
                 curr_ts.dicom_study_id = investigation_ts
-                self._investigation_timestamps[investigation_ts] = curr_ts
+                self.investigation_timestamps[investigation_ts] = curr_ts
                 inv_ts_uid = curr_ts.unique_id
             else:
                 inv_ts_uid = inv_ts_object.unique_id
@@ -577,8 +586,8 @@ class PatientParameters:
             self._patient_parameters_dict['Reports'] = {}
 
             # @TODO. Should the timestamp folder_name be going down here before saving each element?
-            for i, disp in enumerate(list(self._investigation_timestamps.keys())):
-                self._patient_parameters_dict['Timestamps'][disp] = self._investigation_timestamps[disp].save()
+            for i, disp in enumerate(list(self.investigation_timestamps.keys())):
+                self._patient_parameters_dict['Timestamps'][disp] = self.investigation_timestamps[disp].save()
 
             for i, disp in enumerate(list(self.mri_volumes.keys())):
                 self._patient_parameters_dict['Volumes'][disp] = self.mri_volumes[disp].save()
@@ -611,27 +620,27 @@ class PatientParameters:
         return self._reportings[uid]
 
     def get_all_timestamps_uids(self) -> List[str]:
-        return list(self._investigation_timestamps.keys())
+        return list(self.investigation_timestamps.keys())
 
     def get_timestamp_by_uid(self, uid: str) -> InvestigationTimestamp:
-        return self._investigation_timestamps[uid]
+        return self.investigation_timestamps[uid]
 
     def get_timestamp_by_order(self, order: int) -> Union[None, InvestigationTimestamp]:
-        for ts in self._investigation_timestamps:
-            if self._investigation_timestamps[ts].order == order:
-                return self._investigation_timestamps[ts]
+        for ts in self.investigation_timestamps:
+            if self.investigation_timestamps[ts].order == order:
+                return self.investigation_timestamps[ts]
         return None
 
     def get_timestamp_by_display_name(self, name: str) -> Union[None, InvestigationTimestamp]:
-        for ts in self._investigation_timestamps:
-            if self._investigation_timestamps[ts].display_name == name:
-                return self._investigation_timestamps[ts]
+        for ts in self.investigation_timestamps:
+            if self.investigation_timestamps[ts].display_name == name:
+                return self.investigation_timestamps[ts]
         return None
 
     def get_timestamp_by_dicom_study_id(self, study_id: str) -> Union[None, InvestigationTimestamp]:
-        for ts in self._investigation_timestamps:
-            if self._investigation_timestamps[ts].dicom_study_id == study_id:
-                return self._investigation_timestamps[ts]
+        for ts in self.investigation_timestamps:
+            if self.investigation_timestamps[ts].dicom_study_id == study_id:
+                return self.investigation_timestamps[ts]
         return None
 
     def set_new_timestamp_display_name(self, ts_uid: str, display_name: str) -> None:
@@ -648,15 +657,15 @@ class PatientParameters:
         """
         #@TODO. Should hold the previous name in case something goes wrong in order to "revert" the naming?
         try:
-            self._investigation_timestamps[ts_uid].display_name = display_name
+            self.investigation_timestamps[ts_uid].display_name = display_name
             for im in list(self.get_all_mri_volumes_for_timestamp(timestamp_uid=ts_uid)):
-                self.mri_volumes[im].timestamp_folder_name = self._investigation_timestamps[ts_uid].folder_name
+                self.mri_volumes[im].timestamp_folder_name = self.investigation_timestamps[ts_uid].folder_name
             for im in list(self.get_all_annotation_uids_for_timestamp(timestamp_uid=ts_uid)):
-                self._annotation_volumes[im].timestamp_folder_name = self._investigation_timestamps[ts_uid].folder_name
+                self._annotation_volumes[im].timestamp_folder_name = self.investigation_timestamps[ts_uid].folder_name
             for im in list(self.get_all_atlas_uids_for_timestamp(timestamp_uid=ts_uid)):
-                self._atlas_volumes[im].timestamp_folder_name = self._investigation_timestamps[ts_uid].folder_name
+                self._atlas_volumes[im].timestamp_folder_name = self.investigation_timestamps[ts_uid].folder_name
             for im in list(self.get_all_reporting_uids_for_timestamp(timestamp_uid=ts_uid)):
-                self._reportings[im].timestamp_folder_name = self._investigation_timestamps[ts_uid].folder_name
+                self._reportings[im].timestamp_folder_name = self.investigation_timestamps[ts_uid].folder_name
         except Exception as e:
             logging.error("[Software error] PatientParametersStructure - Changing the timestamp display name to {} failed"
                           " with:\n {}".format(display_name, traceback.format_exc()))
@@ -798,8 +807,8 @@ class PatientParameters:
         """
         res = []
         inv_ts_uid = None
-        for ts in list(self._investigation_timestamps.keys()):
-            if self._investigation_timestamps[ts].order == timestamp_order:
+        for ts in list(self.investigation_timestamps.keys()):
+            if self.investigation_timestamps[ts].order == timestamp_order:
                 inv_ts_uid = ts
         if not inv_ts_uid:
             return res
@@ -1003,21 +1012,21 @@ class PatientParameters:
         results = {}
         error_message = None
         linked_scans = self.get_all_mri_volumes_for_timestamp(timestamp_uid=timestamp_uid)
-        ts_order = self._investigation_timestamps[timestamp_uid].order
+        ts_order = self.investigation_timestamps[timestamp_uid].order
         for scan in linked_scans:
             res, err = self.remove_mri_volume(volume_uid=scan)
         if len(linked_scans) != 0:
             results['MRIs'] = linked_scans
 
-        self._investigation_timestamps[timestamp_uid].delete()
-        del self._investigation_timestamps[timestamp_uid]
+        self.investigation_timestamps[timestamp_uid].delete()
+        del self.investigation_timestamps[timestamp_uid]
         logging.info("Removed timestamp {} for patient {}".format(timestamp_uid, self._unique_id))
 
         # For all existing timestamp with an order higher than the deleted timestamp, an order decrease by one must be
         # performed.
-        for uid in list(self._investigation_timestamps.keys()):
-            if self._investigation_timestamps[uid].order > ts_order:
-                self._investigation_timestamps[uid].order = self._investigation_timestamps[uid].order - 1
+        for uid in list(self.investigation_timestamps.keys()):
+            if self.investigation_timestamps[uid].order > ts_order:
+                self.investigation_timestamps[uid].order = self.investigation_timestamps[uid].order - 1
         self.save_patient()
 
         return results, error_message
@@ -1096,13 +1105,13 @@ class PatientParameters:
         investigation_uid = None
         try:
             investigation_uid = 'T' + str(order)
-            uid_taken = investigation_uid in self._investigation_timestamps.keys()
+            uid_taken = investigation_uid in self.investigation_timestamps.keys()
             while uid_taken:
                 trail = str(np.random.randint(0, 100))
                 investigation_uid = 'T' + str(trail)
-                uid_taken = investigation_uid in self._investigation_timestamps.keys()
+                uid_taken = investigation_uid in self.investigation_timestamps.keys()
             curr_ts = InvestigationTimestamp(investigation_uid, order=order, output_patient_folder=self._output_folder)
-            self._investigation_timestamps[investigation_uid] = curr_ts
+            self.investigation_timestamps[investigation_uid] = curr_ts
             logging.info("New investigation timestamp inserted with uid: {}".format(investigation_uid))
             self._unsaved_changes = True
         except Exception as e:
@@ -1202,7 +1211,7 @@ class PatientParameters:
                         anno = self.get_annotation_by_uid(annotation_uid=anno_uid)
                         anno_sitk = sitk.ReadImage(anno.raw_input_filepath, outputPixelType=sitk.sitkUInt8)
                         anno_roi = sitk.GetArrayFromImage(anno_sitk).transpose((1, 2, 0)).astype('bool')
-                        rt_struct.add_roi(mask=anno_roi, color=anno.get_display_color()[0:3],
+                        rt_struct.add_roi(mask=anno_roi, color=anno.display_color[0:3],
                                           name=anno.get_annotation_class_str())
                     # # The atlas structures inclusion is slow, and heavy on disk, might not do it by default
                     # # @TODO. Maybe add specific export options to convert only upon specific user request.

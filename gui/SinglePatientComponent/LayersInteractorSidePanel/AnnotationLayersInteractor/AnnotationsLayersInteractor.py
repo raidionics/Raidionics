@@ -176,7 +176,7 @@ class AnnotationsLayersInteractor(QCollapsibleWidget):
 
     def on_color_changed(self, uid, color):
         pat_params = SoftwareConfigResources.getInstance().get_active_patient()
-        pat_params.get_annotation_by_uid(uid).set_display_color(color.getRgb())
+        pat_params.get_annotation_by_uid(uid).display_color = list(color.getRgb())
         self.annotation_color_changed.emit(uid, color)
 
     def on_mri_volume_display_name_changed(self, volume_uid: str, new_name: str) -> None:

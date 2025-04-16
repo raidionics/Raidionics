@@ -1,6 +1,8 @@
 import logging
+import math
+from lib2to3.fixes.fix_next import find_assign
 
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QLabel, QHBoxLayout
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QLabel, QHBoxLayout, QScrollArea, QSizePolicy
 from PySide6.QtCore import Qt, QSize, Signal
 from PySide6.QtGui import QIcon, QPixmap
 import os
@@ -39,8 +41,14 @@ class ProcessProgressWidget(QWidget):
         self.overall_progress_layout.addWidget(self.circular_progressbar)
         # self.overall_progress_layout.addWidget(self.progress_label)
         self.overall_progress_layout.addStretch(1)
-        self.detailed_progression_layout = QVBoxLayout()
+        self.overall_progress_scrollarea = QScrollArea()
+        self.overall_progress_scrollarea.setWidgetResizable(True)
+        self.overall_progress_scrollwidget = QWidget()
+        self.detailed_progression_layout = QVBoxLayout(self.overall_progress_scrollwidget)
+        self.overall_progress_scrollwidget.setLayout(self.detailed_progression_layout)
         self.detailed_progression_layout.setSpacing(5)
+        self.detailed_progression_layout.addStretch(1)
+        self.overall_progress_scrollarea.setWidget(self.overall_progress_scrollwidget)
         self.cancel_process_layout = QHBoxLayout()
         self.cancel_process_layout.setContentsMargins(0, 10, 0, 0)
         self.cancel_process_pushbutton = QPushButton('Cancel...')
@@ -51,13 +59,18 @@ class ProcessProgressWidget(QWidget):
         self.cancel_process_layout.addStretch(1)
 
         self.layout.addLayout(self.overall_progress_layout)
-        self.layout.addLayout(self.detailed_progression_layout)
+        # self.layout.addLayout(self.detailed_progression_layout)
+        self.layout.addWidget(self.overall_progress_scrollarea, stretch=0)
         self.layout.addLayout(self.cancel_process_layout)
-        self.layout.addStretch(1)
+        # self.layout.addStretch(1) # Adding the final strecth will prevent the scrollarea to extend all the way down
 
     def __set_layout_dimensions(self):
         self.cancel_process_pushbutton.setFixedSize(QSize(50, 25))
         self.progress_label.setFixedSize(QSize(165, 165))
+        self.overall_progress_scrollarea.setSizePolicy(QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding))
+        self.overall_progress_scrollarea.setMaximumHeight(self.parent.baseSize().height() * 0.7)
+        self.overall_progress_scrollwidget.setSizePolicy(QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum))
+        self.overall_progress_scrollwidget.setMinimumSize(0, 0)
 
     def __set_stylesheets(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
@@ -132,7 +145,8 @@ class ProcessProgressWidget(QWidget):
                     progress_widget = ProgressItemWidget(self)
                     progress_widget.set_progress_text(current_task, status=False)
                     self.progress_widget.append(progress_widget)
-                    self.detailed_progression_layout.insertWidget(self.detailed_progression_layout.count(), progress_widget)
+                    self.detailed_progression_layout.insertWidget(self.detailed_progression_layout.count()-1, progress_widget)
+                    self.overall_progress_scrollarea.verticalScrollBar().setValue(self.overall_progress_scrollarea.verticalScrollBar().maximum())
             elif 'End' in message:
                 # current_task = message.strip().split('-')[1].strip()
                 current_step = int(message.strip().split('(')[-1].split('/')[0])
@@ -169,7 +183,7 @@ class ProgressItemWidget(QWidget):
         self.status_pushbutton.setFixedSize(QSize(20, 20))
         self.status_pushbutton.setIconSize(QSize(20, 20))
         self.status_pushbutton.setIcon(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/radio_round_toggle_off_icon.png')))
-        self.progress_label.setFixedHeight(20)
+        # self.progress_label.setFixedHeight(20)
 
     def __set_stylesheets(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
@@ -207,10 +221,18 @@ class ProgressItemWidget(QWidget):
             self.progress_label.setText(self.progress_label.text()[:-3] + ' (' + text + 's)')
         else:
             new_text = text + ' ...'
-            if len(new_text) > 30:
-                nb_words = len(new_text.split(' '))
-                final_text = ' '.join(new_text.split(' ')[:int(nb_words / 2)]) + '\n' + ' '.join(new_text.split(' ')[int(nb_words / 2):])
-                self.progress_label.setFixedHeight(40)
+            char_limit = 30
+            # @TODO. Should split the words and group them so that it does not exist the char limit
+            if len(new_text) > char_limit:
+                nb_chars = len(new_text)
+                final_text = ''
+                upper_margin = int(math.ceil(nb_chars / char_limit))
+                for l in range(0, upper_margin):
+                    final_text = final_text + new_text[char_limit * l : char_limit * (l+1)]
+                    if l != (upper_margin - 1):
+                        final_text = final_text + '\n'
+                final_height = upper_margin * 20
+                self.progress_label.setMinimumHeight(final_height)
                 self.progress_label.setText(final_text)
             else:
                 self.progress_label.setText(new_text)

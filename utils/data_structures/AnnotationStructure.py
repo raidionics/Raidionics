@@ -2,7 +2,7 @@ import traceback
 import shutil
 from aenum import Enum, unique
 import logging
-from typing import Union, Any, Tuple
+from typing import Union, Any, Tuple, List
 import numpy as np
 import nibabel as nib
 from nibabel.processing import resample_to_output
@@ -339,11 +339,13 @@ class AnnotationVolume:
         self._unsaved_changes = True
         logging.debug("Unsaved changes - Annotation volume opacity edited.")
 
-    def get_display_color(self) -> Tuple[int]:
+    @property
+    def display_color(self) -> List[int]:
         return self._display_color
 
-    def set_display_color(self, color: Tuple[int]) -> None:
-        self._display_color = color
+    @display_color.setter
+    def display_color(self, value: List[int]) -> None:
+        self._display_color = value
         self._unsaved_changes = True
         logging.debug("Unsaved changes - Annotation volume display color edited.")
 
@@ -452,7 +454,7 @@ class AnnotationVolume:
 
     def import_registered_volume(self, filepath: str, registration_space: str) -> None:
         """
-
+        @TODO. Should not be just the registration space but combo space/timestamp...
         """
         try:
             registered_space_folder = os.path.join(self._output_patient_folder,

@@ -467,6 +467,9 @@ class SoftwareSettingsDialog(QDialog):
         self.default_options_label.setFixedHeight(40)
         self.model_purge_pushbutton.setFixedSize(QSize(20, 20))
         self.model_purge_pushbutton.setIconSize(QSize(20, 20))
+        self.processing_options_segmentation_models_tta_selector_spinbox.setFixedSize(QSize(30, 20))
+        self.processing_options_segmentation_models_tta_combination_combobox.setFixedSize(QSize(90, 20))
+        self.processing_options_segmentation_models_ensembling_combination_combobox.setFixedSize(QSize(90, 20))
         self.processing_options_segmentation_refinement_selector_combobox.setFixedSize(QSize(90, 20))
         self.processing_options_pushbutton.setFixedHeight(30)
         self.processing_options_label.setFixedHeight(40)
@@ -819,6 +822,14 @@ class SoftwareSettingsDialog(QDialog):
         border-style: none;
         }""")
 
+        self.processing_segmentation_models_inputs_groupbox.setStyleSheet("""
+        QGroupBox{
+        color: """ + software_ss["Color7"] + """;
+        font:normal;
+        font-size:15px;
+        }
+        """)
+
         self.processing_segmentation_models_groupbox.setStyleSheet("""
         QGroupBox{
         color: """ + software_ss["Color7"] + """;
@@ -826,6 +837,30 @@ class SoftwareSettingsDialog(QDialog):
         font-size:15px;
         }
         """)
+
+        self.processing_options_segmentation_models_tta_combination_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        text-align:left;
+        font:semibold;
+        font-size:14px;
+        }""")
+
+        self.processing_options_segmentation_models_tta_selector_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        text-align:left;
+        font:semibold;
+        font-size:14px;
+        }""")
+
+        self.processing_options_segmentation_models_ensembling_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        text-align:left;
+        font:semibold;
+        font-size:14px;
+        }""")
 
         self.processing_options_segmentation_models_tta_label.setStyleSheet("""
         QLabel{
@@ -857,6 +892,64 @@ class SoftwareSettingsDialog(QDialog):
             """)
         else:
             self.processing_options_segmentation_models_tta_combination_combobox.setStyleSheet("""
+            QComboBox{
+            color: """ + font_color + """;
+            background-color: """ + background_color + """;
+            font: bold;
+            font-size: 12px;
+            border-style:none;
+            }
+            QComboBox::hover{
+            border-style: solid;
+            border-width: 1px;
+            border-color: rgba(196, 196, 196, 1);
+            }
+            QComboBox::drop-down {
+            subcontrol-origin: padding;
+            subcontrol-position: top right;
+            width: 15px;
+            border-left-width: 1px;
+            border-left-color: darkgray;
+            border-left-style: none;
+            border-top-right-radius: 3px; /* same radius as the QComboBox */
+            border-bottom-right-radius: 3px;
+            }
+            QComboBox::down-arrow{
+            image: url(""" + os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                          '../../Images/combobox-arrow-icon-10x7.png') + """)
+            }
+            """)
+
+        self.processing_options_segmentation_models_ensembling_combination_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        text-align:left;
+        font:semibold;
+        font-size:14px;
+        }""")
+
+        if os.name == 'nt':
+            self.processing_options_segmentation_models_ensembling_combination_combobox.setStyleSheet("""
+            QComboBox{
+            color: """ + font_color + """;
+            background-color: """ + background_color + """;
+            font: bold;
+            font-size: 12px;
+            border-style:none;
+            }
+            QComboBox::hover{
+            border-style: solid;
+            border-width: 1px;
+            border-color: rgba(196, 196, 196, 1);
+            }
+            QComboBox::drop-down {
+            subcontrol-origin: padding;
+            subcontrol-position: top right;
+            width: 15px;
+            }
+            """)
+        else:
+            self.processing_options_segmentation_models_ensembling_combination_combobox.setStyleSheet("""
             QComboBox{
             color: """ + font_color + """;
             background-color: """ + background_color + """;

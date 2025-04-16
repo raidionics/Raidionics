@@ -17,16 +17,17 @@ class TumorCharacteristicsWidget(QWidget):
     """
     resizeRequested = Signal()
 
-    def __init__(self, patient_uid, report_uid, parent=None):
+    def __init__(self, patient_uid, report_uid, structure_name, parent=None):
         super(TumorCharacteristicsWidget, self).__init__()
         self.patient_uid = patient_uid
         self.report_uid = report_uid
+        self.structure_name = structure_name
         self.parent = parent
         self.__set_interface()
         self.__set_layout_dimensions()
         self.__set_connections()
         self.set_stylesheets(selected=False)
-        self.populate_from_report()
+        self.populate_from_report(structure_name=structure_name)
 
     def __set_interface(self):
         self.layout = QVBoxLayout(self)
@@ -587,7 +588,7 @@ class TumorCharacteristicsWidget(QWidget):
     def adjustSize(self):
         pass
 
-    def populate_from_report(self) -> None:
+    def populate_from_report(self, structure_name: str) -> None:
         """
 
         """
@@ -597,25 +598,25 @@ class TumorCharacteristicsWidget(QWidget):
             # No report has been generated for the patient, skipping the rest.
             return
 
-        self.original_space_volume_label.setText(str(report_json['Main']['Total']['Volume original (ml)']) + ' ml')
-        self.mni_space_volume_label.setText(str(report_json['Main']['Total']['Volume in MNI (ml)']) + ' ml')
+        self.original_space_volume_label.setText(str(report_json[structure_name]["Patient"]['Volume (ml)']) + ' ml')
+        self.mni_space_volume_label.setText(str(report_json[structure_name]["MNI"]['Volume (ml)']) + ' ml')
 
-        self.laterality_right_label.setText(str(report_json['Main']['Total']['Right laterality (%)']) + ' %')
-        self.laterality_left_label.setText(str(report_json['Main']['Total']['Left laterality (%)']) + ' %')
-        self.laterality_midline_label.setText(str(report_json['Main']['Total']['Midline crossing']))
+        self.laterality_right_label.setText(str(report_json[structure_name]["MNI"]["Location"]['Right laterality (%)']) + ' %')
+        self.laterality_left_label.setText(str(report_json[structure_name]["MNI"]["Location"]['Left laterality (%)']) + ' %')
+        self.laterality_midline_label.setText(str(report_json[structure_name]["MNI"]["Location"]['Midline crossing']))
 
-        self.multifocality_pieces_label.setText(str(report_json['Overall']['Tumor parts nb']))
-        if report_json['Overall']['Tumor parts nb'] > 1:
-            self.multifocality_distance_label.setText(str(report_json['Overall']['Multifocal distance (mm)']) + ' mm')
+        self.multifocality_pieces_label.setText(str(report_json[structure_name]["MNI"]["Multifocality"]['Elements']))
+        if report_json[structure_name]["MNI"]["Multifocality"]["Elements"] > 1:
+            self.multifocality_distance_label.setText(str(report_json[structure_name]["MNI"]["Multifocality"]['Max distance (mm)']) + ' mm')
             self.multifocality_distance_header_label.setVisible(True)
             self.multifocality_distance_label.setVisible(True)
         else:
             self.multifocality_distance_header_label.setVisible(False)
             self.multifocality_distance_label.setVisible(False)
 
-        if 'ResectionIndex' in report_json['Main']['Total'].keys():
-            self.resection_index_label.setText(str(report_json['Main']['Total']['ResectionIndex']))
-            self.expected_residual_volume_label.setText(str(report_json['Main']['Total']['ExpectedResidualVolume (ml)']) + ' ml')
+        if 'Index' in report_json[structure_name]["MNI"]["Resectability"].keys():
+            self.resection_index_label.setText(str(report_json[structure_name]["MNI"]["Resectability"]['Index']))
+            self.expected_residual_volume_label.setText(str(report_json[structure_name]["MNI"]["Resectability"]['Expected residual volume (ml)']) + ' ml')
             self.resectability_collapsiblegroupbox.setVisible(True)
         else:
             self.resection_index_label.setText(' - ')
@@ -625,8 +626,9 @@ class TumorCharacteristicsWidget(QWidget):
         # Cortical structures
         self.corticalstructures_collapsiblegroupbox.clear_content_layout()
 
-        for atlas in report_json['Main']['Total']['CorticalStructures']:
-            sorted_overlaps = dict(sorted(report_json['Main']['Total']['CorticalStructures'][atlas].items(), key=lambda item: item[1], reverse=True))
+        for atlas in report_json[structure_name]["MNI"]['Cortical Profile']:
+            sorted_overlaps = dict(sorted(report_json[structure_name]["MNI"]['Cortical Profile'][atlas]["Overlap"].items(),
+                                          key=lambda item: item[1], reverse=True))
 
             # If there is no overlap with any structure of the atlas, hence nothing to display, we skip to the next.
             visible_elements = dict((k, v) for k, v in sorted_overlaps.items() if v >= 1.0)
@@ -645,7 +647,7 @@ class TumorCharacteristicsWidget(QWidget):
             line_label = QLabel()
             line_label.setFixedHeight(3)
             line_label.setStyleSheet("QLabel{background-color: rgb(214, 214, 214);}")
-            if list(report_json['Main']['Total']['CorticalStructures'].keys()).index(atlas) != 0:
+            if list(report_json[structure_name]["MNI"]['Cortical Profile'].keys()).index(atlas) != 0:
                 upper_line_label = QLabel()
                 upper_line_label.setFixedHeight(3)
                 upper_line_label.setStyleSheet("QLabel{background-color: rgb(214, 214, 214);}")
@@ -689,8 +691,9 @@ class TumorCharacteristicsWidget(QWidget):
         # Subcortical structures
         self.subcorticalstructures_collapsiblegroupbox.clear_content_layout()
 
-        for atlas in report_json['Main']['Total']['SubcorticalStructures']:
-            sorted_overlaps = dict(sorted(report_json['Main']['Total']['SubcorticalStructures'][atlas]['Overlap'].items(), key=lambda item: item[1], reverse=True))
+        for atlas in report_json[structure_name]["MNI"]['Subcortical Profile']:
+            sorted_overlaps = dict(sorted(report_json[structure_name]["MNI"]['Subcortical Profile'][atlas]['Overlap'].items(),
+                                          key=lambda item: item[1], reverse=True))
             label = QLabel("{} atlas".format(atlas))
             label.setFixedHeight(20)
             label.setStyleSheet("""
@@ -703,7 +706,7 @@ class TumorCharacteristicsWidget(QWidget):
             line_label = QLabel()
             line_label.setFixedHeight(3)
             line_label.setStyleSheet("QLabel{background-color: rgb(214, 214, 214);}")
-            if list(report_json['Main']['Total']['SubcorticalStructures'].keys()).index(atlas) != 0:
+            if list(report_json[structure_name]["MNI"]['Subcortical Profile'].keys()).index(atlas) != 0:
                 upper_line_label = QLabel()
                 upper_line_label.setFixedHeight(3)
                 upper_line_label.setStyleSheet("QLabel{background-color: rgb(214, 214, 214);}")
@@ -743,7 +746,8 @@ class TumorCharacteristicsWidget(QWidget):
                     lay.addStretch(1)
                     self.subcorticalstructures_collapsiblegroupbox.content_layout.addLayout(lay)
 
-            sorted_distances = dict(sorted(report_json['Main']['Total']['SubcorticalStructures'][atlas]['Distance'].items(), key=lambda item: item[1], reverse=False))
+            sorted_distances = dict(sorted(report_json[structure_name]["MNI"]['Subcortical Profile'][atlas]['Distance'].items(),
+                                           key=lambda item: item[1], reverse=False))
             label = QLabel("{} atlas".format(atlas))
             label.setFixedHeight(20)
             label.setStyleSheet("""
@@ -793,7 +797,7 @@ class TumorCharacteristicsWidget(QWidget):
 
         # BrainGrid structures
         self.braingridstructures_collapsiblegroupbox.clear_content_layout()
-        if 'BrainGrid' in list(report_json['Main']['Total'].keys()): #UserPreferencesStructure.getInstance().compute_braingrid_structures:
+        if 'Infiltration' in list(report_json[structure_name]["MNI"].keys()): #UserPreferencesStructure.getInstance().compute_braingrid_structures:
             lay = QHBoxLayout()
             label_header = QLabel("Infiltration count:")
             label_header.setStyleSheet("""
@@ -802,7 +806,7 @@ class TumorCharacteristicsWidget(QWidget):
             color: rgba(67, 88, 90, 1);
             border-style: none;
             }""")
-            label = QLabel("{}".format(str(report_json['Main']['Total']['BrainGrid']["Infiltration count"])))
+            label = QLabel("{}".format(str(report_json[structure_name]["MNI"]['Infiltration']["Count"])))
             label_header.setFixedHeight(20)
             label_header.setFixedWidth(190)
             label.setFixedHeight(20)
@@ -819,8 +823,9 @@ class TumorCharacteristicsWidget(QWidget):
             lay.addWidget(label)
             lay.addStretch(1)
             self.braingridstructures_collapsiblegroupbox.content_layout.addLayout(lay)
-            for atlas in UserPreferencesStructure.getInstance().braingrid_structures_list:  # report_json['Main']['Total']['BrainGrid']
-                sorted_overlaps = dict(sorted(report_json['Main']['Total']['BrainGrid'][atlas].items(), key=lambda item: item[1], reverse=True))
+            for atlas in UserPreferencesStructure.getInstance().braingrid_structures_list:
+                sorted_overlaps = dict(sorted(report_json[structure_name]["MNI"]['Infiltration'][atlas].items(),
+                                              key=lambda item: item[1], reverse=True))
                 label = QLabel("{} atlas".format(atlas))
                 label.setFixedHeight(20)
                 label.setStyleSheet("""
@@ -833,7 +838,7 @@ class TumorCharacteristicsWidget(QWidget):
                 line_label = QLabel()
                 line_label.setFixedHeight(3)
                 line_label.setStyleSheet("QLabel{background-color: rgb(214, 214, 214);}")
-                if list(report_json['Main']['Total']['BrainGrid'].keys()).index(atlas) != 0:
+                if list(report_json[structure_name]["MNI"]['Infiltration'].keys()).index(atlas) != 0:
                     upper_line_label = QLabel()
                     upper_line_label.setFixedHeight(3)
                     upper_line_label.setStyleSheet("QLabel{background-color: rgb(214, 214, 214);}")

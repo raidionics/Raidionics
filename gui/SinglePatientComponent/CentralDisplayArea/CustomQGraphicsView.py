@@ -192,7 +192,7 @@ class CustomQGraphicsView(QGraphicsView):
             self.overlaid_items[annotation_uid] = QGraphicsPixmapItem()
             self.scene.addItem(self.overlaid_items[annotation_uid])
         if not annotation_uid in self.overlaid_items_display_parameters.keys():
-            annotation_color = SoftwareConfigResources.getInstance().get_active_patient().get_annotation_by_uid(annotation_uid).get_display_color()
+            annotation_color = SoftwareConfigResources.getInstance().get_active_patient().get_annotation_by_uid(annotation_uid).display_color
             self.overlaid_items_display_parameters[annotation_uid] = {"color": QColor.fromRgb(annotation_color[0],
                                                                                               annotation_color[1],
                                                                                               annotation_color[2],

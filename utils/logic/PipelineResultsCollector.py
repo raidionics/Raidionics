@@ -11,7 +11,7 @@ from utils.data_structures.UserPreferencesStructure import UserPreferencesStruct
 from utils.data_structures.MRIVolumeStructure import MRISequenceType
 from utils.data_structures.AnnotationStructure import AnnotationClassType, AnnotationGenerationType
 from utils.software_config import SoftwareConfigResources
-from utils.utilities import get_type_from_string
+from utils.utilities import get_type_from_string, get_type_from_name
 
 
 def collect_results(patient_parameters, pipeline):
@@ -97,184 +97,235 @@ def collect_results(patient_parameters, pipeline):
                         logging.info("Not collecting annotation results for step {}.".format(pip_step))
             elif pip_step["task"] == "Apply registration":
                 if pip_step["direction"] == "inverse":
-                    seq_type = get_type_from_string(MRISequenceType, pip_step["moving"]["sequence"])
-                    if seq_type == -1:
-                        continue
-                    parent_mri_uid = patient_parameters.get_all_mri_volumes_for_sequence_type_and_timestamp(sequence_type=seq_type,
-                                                                                                            timestamp_order=pip_step["moving"]["timestamp"])
-                    dest_ts_object = patient_parameters.get_timestamp_by_order(order=pip_step["moving"]["timestamp"])
-                    if len(parent_mri_uid) == 0:
-                        continue
-                    parent_mri_uid = parent_mri_uid[0]
+                    fixed_sequence = pip_step["fixed"]["sequence"]
+                    if fixed_sequence == "MNI":
+                        seq_type = get_type_from_string(MRISequenceType, pip_step["moving"]["sequence"])
+                        if seq_type == -1:
+                            continue
+                        parent_mri_uid = patient_parameters.get_all_mri_volumes_for_sequence_type_and_timestamp(
+                            sequence_type=seq_type,
+                            timestamp_order=pip_step["moving"]["timestamp"])
+                        dest_ts_object = patient_parameters.get_timestamp_by_order(
+                            order=pip_step["moving"]["timestamp"])
+                        if len(parent_mri_uid) == 0:
+                            continue
+                        parent_mri_uid = parent_mri_uid[0]
+                        # Collecting the patient volumes (radiological and annotation) in registered space
+                        # @TODO. Only MNI for now, but should be made generic in the future if more atlas spaces used
+                        atlas_registered_folder = os.path.join(patient_parameters.output_folder, 'reporting',
+                                                           'T' + str(pip_step["moving"]["timestamp"]), 'MNI_space')
+                        registered_inputs = []
+                        registered_labels = []
+                        for _, _, rfiles in os.walk(atlas_registered_folder):
+                            for rfile in rfiles:
+                                if 'label' not in rfile:
+                                    registered_inputs.append(os.path.join(atlas_registered_folder, rfile))
+                                else:
+                                    registered_labels.append(os.path.join(atlas_registered_folder, rfile))
+                            break
 
-                    # Collecting the patient volumes (radiological and annotation) in registered space
-                    # @TODO. Only MNI for now, but should be made generic in the future if more atlas spaces used
-                    atlas_registered_folder = os.path.join(patient_parameters.output_folder, 'reporting',
-                                                       'T' + str(pip_step["moving"]["timestamp"]), 'MNI_space')
-                    registered_inputs = []
-                    registered_labels = []
-                    for _, _, rfiles in os.walk(atlas_registered_folder):
-                        for rfile in rfiles:
-                            if 'label' not in rfile:
-                                registered_inputs.append(os.path.join(atlas_registered_folder, rfile))
-                            else:
-                                registered_labels.append(os.path.join(atlas_registered_folder, rfile))
-                        break
+                        # @TODO. Have to match each registered file with the corresponding radiological volume.
+                        # Technically, only the volumes used as inference inputs are registered, should all be registered?
+                        for ri in registered_inputs:
+                            patient_parameters.get_mri_by_uid(parent_mri_uid).import_registered_volume(filepath=ri,
+                                                                                                       registration_space=pip_step["fixed"]["sequence"])
 
-                    # @TODO. Have to match each registered file with the corresponding radiological volume.
-                    # Technically, only the volumes used as inference inputs are registered, should all be registered?
-                    for ri in registered_inputs:
-                        patient_parameters.get_mri_by_uid(parent_mri_uid).import_registered_volume(filepath=ri,
-                                                                                                   registration_space=pip_step["fixed"]["sequence"])
-
-                    for rl in registered_labels:
-                        generation_type = AnnotationGenerationType.Automatic
-                        if UserPreferencesStructure.getInstance().use_manual_annotations:
-                            generation_type = AnnotationGenerationType.Manual
-                        label_type = rl.split('_label_')[-1].split('_')[0]
-                        anno_volume_uid = patient_parameters.get_specific_annotations_for_mri(mri_volume_uid=parent_mri_uid,
-                                                                                          annotation_class=get_type_from_string(AnnotationClassType, label_type))
-                        if len(anno_volume_uid) > 1:
-                            anno_volume_uid = patient_parameters.get_specific_annotations_for_mri(
-                                mri_volume_uid=parent_mri_uid,
-                                annotation_class=get_type_from_string(AnnotationClassType, label_type),
-                                generation_type=generation_type)
-                            if len(anno_volume_uid) == 1:
+                        for rl in registered_labels:
+                            generation_type = AnnotationGenerationType.Automatic
+                            if UserPreferencesStructure.getInstance().use_manual_annotations:
+                                generation_type = AnnotationGenerationType.Manual
+                            label_type = rl.split('_label_')[-1].split('_')[0]
+                            anno_volume_uid = patient_parameters.get_specific_annotations_for_mri(mri_volume_uid=parent_mri_uid,
+                                                                                              annotation_class=get_type_from_string(AnnotationClassType, label_type))
+                            if len(anno_volume_uid) > 1:
+                                anno_volume_uid = patient_parameters.get_specific_annotations_for_mri(
+                                    mri_volume_uid=parent_mri_uid,
+                                    annotation_class=get_type_from_string(AnnotationClassType, label_type),
+                                    generation_type=generation_type)
+                                if len(anno_volume_uid) == 1:
+                                    anno_volume_uid = anno_volume_uid[0]
+                                else:
+                                    logging.error("""The registered labels files could not be linked to any existing
+                                        annotation file, with value: {}""".format(rl))
+                            elif len(anno_volume_uid) == 1:
                                 anno_volume_uid = anno_volume_uid[0]
                             else:
                                 logging.error("""The registered labels files could not be linked to any existing
-                                    annotation file, with value: {}""".format(rl))
-                        elif len(anno_volume_uid) == 1:
-                            anno_volume_uid = anno_volume_uid[0]
-                        else:
-                            logging.error("""The registered labels files could not be linked to any existing
-                            annotation file, with value: {}""".format(rl))
-                            continue
-                        patient_parameters.get_annotation_by_uid(anno_volume_uid).import_registered_volume(filepath=rl,
-                                                                                                           registration_space=pip_step["fixed"]["sequence"])
-                    # Collecting the atlas cortical structures
-                    if UserPreferencesStructure.getInstance().compute_cortical_structures:
-                        cortical_folder = os.path.join(patient_parameters.output_folder, 'reporting',
-                                                       'T' + str(pip_step["moving"]["timestamp"]), 'Cortical-structures')
-                        cortical_masks = []
-                        for _, _, files in os.walk(cortical_folder):
-                            for f in files:
-                                cortical_masks.append(f)
-                            break
+                                annotation file, with value: {}""".format(rl))
+                                continue
+                            patient_parameters.get_annotation_by_uid(anno_volume_uid).import_registered_volume(filepath=rl,
+                                                                                                               registration_space=pip_step["fixed"]["sequence"])
+                        # Collecting the atlas cortical structures
+                        if UserPreferencesStructure.getInstance().compute_cortical_structures:
+                            cortical_folder = os.path.join(patient_parameters.output_folder, 'reporting',
+                                                           'T' + str(pip_step["moving"]["timestamp"]), 'Cortical-structures')
+                            cortical_masks = []
+                            for _, _, files in os.walk(cortical_folder):
+                                for f in files:
+                                    cortical_masks.append(f)
+                                break
 
-                        for m in cortical_masks:
-                            atlas_filename = os.path.join(cortical_folder, m)
-                            dest_atlas_filename = os.path.join(patient_parameters.output_folder, dest_ts_object.folder_name,
-                                                               'raw', m)
-                            shutil.move(atlas_filename, dest_atlas_filename)
-                            description_filename = os.path.join(patient_parameters.output_folder, 'reporting',
-                                                                'atlas_descriptions', m.split('_')[1] + '_description.csv')
-                            dest_desc_filename = os.path.join(patient_parameters.output_folder, 'atlas_descriptions',
-                                                               m.split('_')[1] + '_description.csv')
-                            os.makedirs(os.path.dirname(dest_desc_filename), exist_ok=True)
-                            if not os.path.exists(dest_desc_filename):
-                                shutil.move(description_filename, dest_desc_filename)
-                            data_uid = patient_parameters.import_atlas_structures(dest_atlas_filename,
-                                                                                  parent_mri_uid=parent_mri_uid,
-                                                                                  investigation_ts_folder_name=dest_ts_object.folder_name,
-                                                                                  description=dest_desc_filename,
-                                                                                  reference='Patient')
+                            for m in cortical_masks:
+                                atlas_filename = os.path.join(cortical_folder, m)
+                                dest_atlas_filename = os.path.join(patient_parameters.output_folder, dest_ts_object.folder_name,
+                                                                   'raw', m)
+                                shutil.move(atlas_filename, dest_atlas_filename)
+                                description_filename = os.path.join(patient_parameters.output_folder, 'reporting',
+                                                                    'atlas_descriptions', m.split('_')[1] + '_description.csv')
+                                dest_desc_filename = os.path.join(patient_parameters.output_folder, 'atlas_descriptions',
+                                                                   m.split('_')[1] + '_description.csv')
+                                os.makedirs(os.path.dirname(dest_desc_filename), exist_ok=True)
+                                if not os.path.exists(dest_desc_filename):
+                                    shutil.move(description_filename, dest_desc_filename)
+                                data_uid = patient_parameters.import_atlas_structures(dest_atlas_filename,
+                                                                                      parent_mri_uid=parent_mri_uid,
+                                                                                      investigation_ts_folder_name=dest_ts_object.folder_name,
+                                                                                      description=dest_desc_filename,
+                                                                                      reference='Patient')
 
-                            results['Atlas'].append(data_uid)
-                            # @TODO. Hard-coded MNI space for now as it is the only atlas space in use
-                            ori_structure_filename = os.path.join(patient_parameters.output_folder, 'reporting',
-                                                                  'atlas_descriptions',
-                                                                  'MNI_' + m.split('_')[1] + '_structures.nii.gz')
-                            dest_structure_filename = os.path.join(patient_parameters.output_folder,
-                                                                   'atlas_descriptions',
-                                                                   'MNI_' + m.split('_')[1] + '_structures.nii.gz')
-                            shutil.copyfile(src=ori_structure_filename, dst=dest_structure_filename)
-                            patient_parameters.get_atlas_by_uid(data_uid).import_atlas_in_registration_space(
-                                filepath=dest_structure_filename, registration_space="MNI")
+                                results['Atlas'].append(data_uid)
+                                # @TODO. Hard-coded MNI space for now as it is the only atlas space in use
+                                ori_structure_filename = os.path.join(patient_parameters.output_folder, 'reporting',
+                                                                      'atlas_descriptions',
+                                                                      'MNI_' + m.split('_')[1] + '_structures.nii.gz')
+                                dest_structure_filename = os.path.join(patient_parameters.output_folder,
+                                                                       'atlas_descriptions',
+                                                                       'MNI_' + m.split('_')[1] + '_structures.nii.gz')
+                                shutil.copyfile(src=ori_structure_filename, dst=dest_structure_filename)
+                                patient_parameters.get_atlas_by_uid(data_uid).import_atlas_in_registration_space(
+                                    filepath=dest_structure_filename, registration_space="MNI")
 
-                    # Collecting the atlas subcortical structures
-                    if UserPreferencesStructure.getInstance().compute_subcortical_structures:
-                        subcortical_folder = os.path.join(patient_parameters.output_folder, 'reporting',
-                                                       'T' + str(pip_step["moving"]["timestamp"]), 'Subcortical-structures')
+                        # Collecting the atlas subcortical structures
+                        if UserPreferencesStructure.getInstance().compute_subcortical_structures:
+                            subcortical_folder = os.path.join(patient_parameters.output_folder, 'reporting',
+                                                           'T' + str(pip_step["moving"]["timestamp"]), 'Subcortical-structures')
 
-                        # @TODO. Hardcoded for now, have to improve the RADS backend here if we are to support more atlases.
-                        # subcortical_masks = ['MNI_BCB_atlas.nii.gz']
-                        subcortical_masks = []
-                        for _, _, files in os.walk(subcortical_folder):
-                            for f in files:
-                                if '_overall_mask' in f:
-                                    subcortical_masks.append(f)
-                            break
+                            # @TODO. Hardcoded for now, have to improve the RADS backend here if we are to support more atlases.
+                            # subcortical_masks = ['MNI_BCB_atlas.nii.gz']
+                            subcortical_masks = []
+                            for _, _, files in os.walk(subcortical_folder):
+                                for f in files:
+                                    if '_overall_mask' in f:
+                                        subcortical_masks.append(f)
+                                break
 
-                        for m in subcortical_masks:
-                            atlas_filename = os.path.join(subcortical_folder, m)
-                            dest_atlas_filename = os.path.join(patient_parameters.output_folder, dest_ts_object.folder_name,
-                                                               'raw', m)
-                            shutil.move(atlas_filename, dest_atlas_filename)
-                            description_filename = os.path.join(patient_parameters.output_folder, 'reporting',
-                                                                'atlas_descriptions', m.split('_')[1] + '_description.csv')
-                            dest_desc_filename = os.path.join(patient_parameters.output_folder, 'atlas_descriptions',
-                                                               m.split('_')[1] + '_description.csv')
-                            os.makedirs(os.path.dirname(dest_desc_filename), exist_ok=True)
-                            if not os.path.exists(dest_desc_filename):
-                                shutil.move(description_filename, dest_desc_filename)
-                            data_uid = patient_parameters.import_atlas_structures(dest_atlas_filename,
-                                                                                  parent_mri_uid=parent_mri_uid,
-                                                                                  investigation_ts_folder_name=dest_ts_object.folder_name,
-                                                                                  description=dest_desc_filename,
-                                                                                  reference='Patient')
+                            for m in subcortical_masks:
+                                atlas_filename = os.path.join(subcortical_folder, m)
+                                dest_atlas_filename = os.path.join(patient_parameters.output_folder, dest_ts_object.folder_name,
+                                                                   'raw', m)
+                                shutil.move(atlas_filename, dest_atlas_filename)
+                                description_filename = os.path.join(patient_parameters.output_folder, 'reporting',
+                                                                    'atlas_descriptions', m.split('_')[1] + '_description.csv')
+                                dest_desc_filename = os.path.join(patient_parameters.output_folder, 'atlas_descriptions',
+                                                                   m.split('_')[1] + '_description.csv')
+                                os.makedirs(os.path.dirname(dest_desc_filename), exist_ok=True)
+                                if not os.path.exists(dest_desc_filename):
+                                    shutil.move(description_filename, dest_desc_filename)
+                                data_uid = patient_parameters.import_atlas_structures(dest_atlas_filename,
+                                                                                      parent_mri_uid=parent_mri_uid,
+                                                                                      investigation_ts_folder_name=dest_ts_object.folder_name,
+                                                                                      description=dest_desc_filename,
+                                                                                      reference='Patient')
 
-                            results['Atlas'].append(data_uid)
-                            # @TODO. Hard-coded MNI space for now as it is the only atlas space in use
-                            ori_structure_filename = os.path.join(patient_parameters.output_folder, 'reporting',
-                                                                  'atlas_descriptions',
-                                                                  'MNI_' + m.split('_')[1] + '_structures.nii.gz')
-                            dest_structure_filename = os.path.join(patient_parameters.output_folder,
-                                                                   'atlas_descriptions',
-                                                                   'MNI_' + m.split('_')[1] + '_structures.nii.gz')
-                            shutil.copyfile(src=ori_structure_filename, dst=dest_structure_filename)
-                            patient_parameters.get_atlas_by_uid(data_uid).import_atlas_in_registration_space(
-                                filepath=dest_structure_filename, registration_space="MNI")
+                                results['Atlas'].append(data_uid)
+                                # @TODO. Hard-coded MNI space for now as it is the only atlas space in use
+                                ori_structure_filename = os.path.join(patient_parameters.output_folder, 'reporting',
+                                                                      'atlas_descriptions',
+                                                                      'MNI_' + m.split('_')[1] + '_structures.nii.gz')
+                                dest_structure_filename = os.path.join(patient_parameters.output_folder,
+                                                                       'atlas_descriptions',
+                                                                       'MNI_' + m.split('_')[1] + '_structures.nii.gz')
+                                shutil.copyfile(src=ori_structure_filename, dst=dest_structure_filename)
+                                patient_parameters.get_atlas_by_uid(data_uid).import_atlas_in_registration_space(
+                                    filepath=dest_structure_filename, registration_space="MNI")
 
-                    # Collecting the atlas BrainGrid structures
-                    if UserPreferencesStructure.getInstance().compute_braingrid_structures:
-                        braingrid_folder = os.path.join(patient_parameters.output_folder, 'reporting',
-                                                        'T' + str(pip_step["moving"]["timestamp"]), 'Braingrid-structures')
-                        braingrid_masks = []
-                        for _, _, files in os.walk(braingrid_folder):
-                            for f in files:
-                                braingrid_masks.append(f)
-                            break
+                        # Collecting the atlas BrainGrid structures
+                        if UserPreferencesStructure.getInstance().compute_braingrid_structures:
+                            braingrid_folder = os.path.join(patient_parameters.output_folder, 'reporting',
+                                                            'T' + str(pip_step["moving"]["timestamp"]), 'Braingrid-structures')
+                            braingrid_masks = []
+                            for _, _, files in os.walk(braingrid_folder):
+                                for f in files:
+                                    braingrid_masks.append(f)
+                                break
 
-                        for m in braingrid_masks:
-                            atlas_filename = os.path.join(braingrid_folder, m)
-                            dest_atlas_filename = os.path.join(patient_parameters.output_folder, dest_ts_object.folder_name,
-                                                               'raw', m)
-                            shutil.move(atlas_filename, dest_atlas_filename)
-                            description_filename = os.path.join(patient_parameters.output_folder, 'reporting',
-                                                                'atlas_descriptions', m.split('_')[1] + '_description.csv')
-                            dest_desc_filename = os.path.join(patient_parameters.output_folder, 'atlas_descriptions',
-                                                               m.split('_')[1] + '_description.csv')
-                            os.makedirs(os.path.dirname(dest_desc_filename), exist_ok=True)
-                            if not os.path.exists(dest_desc_filename):
-                                shutil.move(description_filename, dest_desc_filename)
-                            data_uid = patient_parameters.import_atlas_structures(dest_atlas_filename,
-                                                                                  parent_mri_uid=parent_mri_uid,
-                                                                                  investigation_ts_folder_name=dest_ts_object.folder_name,
-                                                                                  description=dest_desc_filename,
-                                                                                  reference='Patient')
+                            for m in braingrid_masks:
+                                atlas_filename = os.path.join(braingrid_folder, m)
+                                dest_atlas_filename = os.path.join(patient_parameters.output_folder, dest_ts_object.folder_name,
+                                                                   'raw', m)
+                                shutil.move(atlas_filename, dest_atlas_filename)
+                                description_filename = os.path.join(patient_parameters.output_folder, 'reporting',
+                                                                    'atlas_descriptions', m.split('_')[1] + '_description.csv')
+                                dest_desc_filename = os.path.join(patient_parameters.output_folder, 'atlas_descriptions',
+                                                                   m.split('_')[1] + '_description.csv')
+                                os.makedirs(os.path.dirname(dest_desc_filename), exist_ok=True)
+                                if not os.path.exists(dest_desc_filename):
+                                    shutil.move(description_filename, dest_desc_filename)
+                                data_uid = patient_parameters.import_atlas_structures(dest_atlas_filename,
+                                                                                      parent_mri_uid=parent_mri_uid,
+                                                                                      investigation_ts_folder_name=dest_ts_object.folder_name,
+                                                                                      description=dest_desc_filename,
+                                                                                      reference='Patient')
 
-                            results['Atlas'].append(data_uid)
-                            # @TODO. Hard-coded MNI space for now as it is the only atlas space in use
-                            ori_structure_filename = os.path.join(patient_parameters.output_folder, 'reporting',
-                                                                  'atlas_descriptions',
-                                                                  'MNI_' + m.split('_')[1] + '_structures.nii.gz')
-                            dest_structure_filename = os.path.join(patient_parameters.output_folder,
-                                                                   'atlas_descriptions',
-                                                                   'MNI_' + m.split('_')[1] + '_structures.nii.gz')
-                            shutil.copyfile(src=ori_structure_filename, dst=dest_structure_filename)
-                            patient_parameters.get_atlas_by_uid(data_uid).import_atlas_in_registration_space(
-                                filepath=dest_structure_filename, registration_space="MNI")
+                                results['Atlas'].append(data_uid)
+                                # @TODO. Hard-coded MNI space for now as it is the only atlas space in use
+                                ori_structure_filename = os.path.join(patient_parameters.output_folder, 'reporting',
+                                                                      'atlas_descriptions',
+                                                                      'MNI_' + m.split('_')[1] + '_structures.nii.gz')
+                                dest_structure_filename = os.path.join(patient_parameters.output_folder,
+                                                                       'atlas_descriptions',
+                                                                       'MNI_' + m.split('_')[1] + '_structures.nii.gz')
+                                shutil.copyfile(src=ori_structure_filename, dst=dest_structure_filename)
+                                patient_parameters.get_atlas_by_uid(data_uid).import_atlas_in_registration_space(
+                                    filepath=dest_structure_filename, registration_space="MNI")
+                    else:
+                        # @TODO. What is the use-case here?
+                        pass
+                        # moving_uid = patient_parameters.get_all_mri_volumes_for_sequence_type_and_timestamp(
+                        #     sequence_type=get_type_from_string(MRISequenceType, pip_step["moving"]["sequence"]),
+                        #     timestamp_order=pip_step["moving"]["timestamp"])[0]
+                        # fixed_uid = patient_parameters.get_all_mri_volumes_for_sequence_type_and_timestamp(
+                        #     sequence_type=get_type_from_string(MRISequenceType, pip_step["fixed"]["sequence"]),
+                        #     timestamp_order=pip_step["fixed"]["timestamp"])[0]
+                        # reg_folder = "T" + str(pip_step["fixed"]["timestamp"]) + "_" + get_type_from_string(MRISequenceType,
+                        #                                                                                     pip_step[
+                        #                                                                                         "fixed"][
+                        #                                                                                         "sequence"]).name + '_space'
+                        # registered_labels = []
+                        # for _, _, rfiles in os.walk(reg_folder):
+                        #     for rfile in rfiles:
+                        #         if 'label' not in rfile:
+                        #             registered_labels.append(os.path.join(reg_folder, rfile))
+                        #     break
+                        #
+                        # for rl in registered_labels:
+                        #     generation_type = AnnotationGenerationType.Automatic
+                        #     label_type = rl.split('_label_')[-1].split('_')[0]
+                        #     anno_volume_uid = patient_parameters.get_specific_annotations_for_mri(mri_volume_uid=moving_uid,
+                        #                                                                           annotation_class=get_type_from_string(
+                        #                                                                               AnnotationClassType,
+                        #                                                                               label_type))
+                        #     if len(anno_volume_uid) > 1:
+                        #         anno_volume_uid = patient_parameters.get_specific_annotations_for_mri(
+                        #             mri_volume_uid=parent_mri_uid,
+                        #             annotation_class=get_type_from_string(AnnotationClassType, label_type),
+                        #             generation_type=generation_type)
+                        #         if len(anno_volume_uid) == 1:
+                        #             anno_volume_uid = anno_volume_uid[0]
+                        #         else:
+                        #             logging.error("""The registered labels files could not be linked to any existing
+                        #                 annotation file, with value: {}""".format(rl))
+                        #     elif len(anno_volume_uid) == 1:
+                        #         anno_volume_uid = anno_volume_uid[0]
+                        #     else:
+                        #         logging.error("""The registered labels files could not be linked to any existing
+                        #         annotation file, with value: {}""".format(rl))
+                        #         continue
+                        #     patient_parameters.get_annotation_by_uid(anno_volume_uid).import_registered_volume(filepath=rl,
+                        #                                                                                        registration_space=
+                        #                                                                                        pip_step[
+                        #                                                                                            "fixed"][
+                        #                                                                                            "sequence"])
                 elif pip_step["direction"] == "forward":
                     if pip_step["fixed"]["timestamp"] == -1 or pip_step["moving"]["timestamp"] == -1:
                         # @TODO. Handle here registration towards an atlas
@@ -297,66 +348,99 @@ def collect_results(patient_parameters, pipeline):
                     registered_folder_base = os.path.join(patient_parameters.output_folder, 'reporting',
                                                            'T' + str(pip_step["moving"]["timestamp"]))
                     reg_space_folders = glob.glob(os.path.join(registered_folder_base, '**/'))
-                    step_reg_space_folder = None
-                    for rsf in reg_space_folders:
-                        # The fixed_mri_uid must be adjusted because of how the backend writes it on disk.
-                        if '_'.join(fixed_mri_uid.split('_')[1:]) in rsf:
-                            step_reg_space_folder = rsf
+                    step_reg_space_folder = os.path.join(registered_folder_base, "T" + str(pip_step["moving"]["timestamp"]) + "_" + get_type_from_string(MRISequenceType, pip_step["fixed"]["sequence"]).name + "_space")
+                    if step_reg_space_folder not in [x[:-1] for x in reg_space_folders]:
+                        continue
                     registered_inputs = []
                     registered_labels = []
                     for _, _, rfiles in os.walk(step_reg_space_folder):
                         for rfile in rfiles:
-                            if 'label' not in rfile:
-                                registered_inputs.append(os.path.join(step_reg_space_folder, rfile))
-                            else:
+                            if '_label_' in rfile:
                                 registered_labels.append(os.path.join(step_reg_space_folder, rfile))
+                            elif "_Seq-" in rfile:
+                                registered_inputs.append(os.path.join(step_reg_space_folder, rfile))
                         break
                     for ri in registered_inputs:
                         patient_parameters.get_mri_by_uid(moving_mri_uid).import_registered_volume(filepath=ri,
                                                                                                    registration_space=fixed_mri_uid)
-                    # for rl in registered_labels:
-                    #     moving_annotation_uid = None # @TODO. Have to retrive anno
-                    #     patient_parameters.get_annotation_by_uid(moving_mri_uid).import_registered_volume(filepath=rl,
-                    #                                                                                registration_space=fixed_mri_uid)
-            elif pip_step["task"] == "Features computation":
-                report_filename = os.path.join(patient_parameters.output_folder, 'reporting',
-                                               'neuro_clinical_report.json')
+                    for rl in registered_labels:
+                        # @TODO. Not handled in the best way, the registered annotation is saved in two places,
+                        # in the raw folder for the timestamp but also inside the sub-folder for the fixed_uid_space...
+                        label_type = rl.split('_label_')[-1].split('_')[0]
+                        anno_volume_uid = patient_parameters.get_specific_annotations_for_mri(mri_volume_uid=moving_mri_uid,
+                                                                                              annotation_class=get_type_from_name(AnnotationClassType, label_type))
+                        if len(anno_volume_uid) == 0:
+                            continue
+                        anno_volume_uid = anno_volume_uid[0]
+                        # If the fixed volume already has a corresponding segmentation (e.g., brain), then just
+                        # skipping the registered annotation.
+                        annos_fixed_uid = patient_parameters.get_specific_annotations_for_mri(mri_volume_uid=fixed_mri_uid,
+                                                                                             annotation_class=get_type_from_name(AnnotationClassType, label_type))
+                        if len(annos_fixed_uid) == 0:
+                            # Adding the info about registered annotation
+                            patient_parameters.get_annotation_by_uid(anno_volume_uid).import_registered_volume(filepath=rl,
+                                                                                                       registration_space=fixed_mri_uid)
+                            # Must add the annotation as a standalone object for the fixed_uid so that it will be
+                            # available for display...
+                            dest_ts = patient_parameters.get_timestamp_by_order(order=pip_step["fixed"]["timestamp"])
+                            dest_file = os.path.join(patient_parameters.output_folder, dest_ts.folder_name, 'raw',
+                                                     os.path.basename(rl))
+                            shutil.move(rl, dest_file)
+                            data_uid = patient_parameters.import_data(dest_file,
+                                                                      investigation_ts=dest_ts.unique_id,
+                                                                      investigation_ts_folder_name=dest_ts.folder_name,
+                                                                      type='Annotation')
+                            patient_parameters.get_annotation_by_uid(data_uid).set_annotation_class_type(
+                                get_type_from_name(AnnotationClassType, label_type))
+                            patient_parameters.get_annotation_by_uid(data_uid).set_generation_type("Automatic")
+                            patient_parameters.get_annotation_by_uid(data_uid).set_parent_mri_uid(fixed_mri_uid)
+                            results['Annotation'].append(data_uid)
+                        else:
+                            logging.warning("[PipelineResultsCollector] Use-case not handled for updating a registered"
+                                            " annotation into the fixed uid object.")
+                            pass
 
-                seq_type = get_type_from_string(MRISequenceType, pip_step["input"]["sequence"])
-                if seq_type == -1:
-                    continue
-                parent_mri_uid = patient_parameters.get_all_mri_volumes_for_sequence_type_and_timestamp(
-                    sequence_type=seq_type,
-                    timestamp_order=pip_step["input"]["timestamp"])
+            elif pip_step["task"] == "Features computation":
+                timestamp = pip_step["timestamp"]
+                report_filename = os.path.join(patient_parameters.output_folder, 'reporting', 'reporting',
+                                               "T" + str(timestamp), 'neuro_clinical_report.json')
+
+                # @TODO. Hard-coded for contrast-enhanced, will have to make it adjustable (should the base image be
+                # returned from the backend?
+                # parent_mri_uid = patient_parameters.get_all_mri_volumes_for_timestamp(timestamp_uid=patient_parameters.get_timestamp_by_order(order=timestamp).unique_id)
+                parent_mri_uid = patient_parameters.get_all_mri_volumes_for_sequence_type_and_timestamp(sequence_type=MRISequenceType.T1c,
+                    timestamp_order=timestamp)
                 if len(parent_mri_uid) == 0:
                     continue
                 parent_mri_uid = parent_mri_uid[0]
-                dest_ts_object = patient_parameters.get_timestamp_by_order(order=pip_step["input"]["timestamp"])
+                dest_ts_object = patient_parameters.get_timestamp_by_order(order=timestamp)
                 dest_file = os.path.join(patient_parameters.output_folder, dest_ts_object.folder_name,
                                          os.path.basename(report_filename))
                 shutil.move(report_filename, dest_file)
 
-                report_filename_csv = os.path.join(patient_parameters.output_folder, 'reporting',
-                                                   'neuro_clinical_report.csv')
+                report_filename_csv = os.path.join(patient_parameters.output_folder, 'reporting', 'reporting',
+                                                   "T" + str(timestamp),  'neuro_clinical_report.csv')
                 dest_file_csv = os.path.join(patient_parameters.output_folder, dest_ts_object.folder_name,
                                              os.path.basename(report_filename_csv))
                 # Also moving the csv version, for the statistics part.
                 shutil.move(report_filename_csv, dest_file_csv)
 
                 # Necessary to keep the text version in addition?
-                report_filename_txt = os.path.join(patient_parameters.output_folder, 'reporting',
-                                                   'neuro_clinical_report.txt')
+                report_filename_txt = os.path.join(patient_parameters.output_folder, 'reporting', 'reporting',
+                                                   "T" + str(timestamp), 'neuro_clinical_report.txt')
                 dest_file_txt = os.path.join(patient_parameters.output_folder, dest_ts_object.folder_name,
                                              os.path.basename(report_filename_txt))
                 shutil.move(report_filename_txt, dest_file_txt)
 
                 if os.path.exists(dest_file):  # Should always exist
                     report_uid, error_msg = patient_parameters.import_report(dest_file, dest_ts_object.unique_id)
+                    #@TODO. Maybe the reporting type could be named differently?
                     patient_parameters.reportings[report_uid].set_reporting_type("Tumor characteristics")
                     patient_parameters.reportings[report_uid].parent_mri_uid = parent_mri_uid
                     results['Report'].append(report_uid)
             elif pip_step["task"] == "Surgical reporting":
-                report_filename = os.path.join(patient_parameters.output_folder, 'reporting', 'neuro_surgical_report.json')
+                report_filename = os.path.join(patient_parameters.output_folder, 'reporting',
+                                               'neuro_surgical_report.json')
                 dest_file = os.path.join(patient_parameters.output_folder, os.path.basename(report_filename))
                 shutil.move(report_filename, dest_file)
 

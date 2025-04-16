@@ -457,7 +457,7 @@ class AnnotationSingleLayerWidget(QWidget):
         self.opacity_slider.blockSignals(True)
         self.opacity_slider.setSliderPosition(params.get_display_opacity())
         self.opacity_slider.blockSignals(False)
-        pcol = params.get_display_color()
+        pcol = params.display_color
         self.color_dialog.setCurrentColor(QColor.fromRgb(pcol[0], pcol[1], pcol[2], pcol[3]))
         custom_color_str = "background-color:rgba({}, {}, {}, {})".format(pcol[0], pcol[1], pcol[2], pcol[3])
         custom_ss = "QPushButton{" + custom_color_str + ";}"
