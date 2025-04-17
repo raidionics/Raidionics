@@ -88,6 +88,65 @@ class CustomQGraphicsView(QGraphicsView):
     def __set_stylesheets(self):
         self.setStyleSheet("QGraphicsView{background-color:rgb(0,0,0);}")
 
+        self.setStyleSheet("""
+            QGraphicsView {
+            border: none;
+            background-color: black;
+                }
+        
+            QScrollBar:vertical {
+                background: transparent;
+                width: 8px;
+                margin: 0px;
+            }
+        
+            QScrollBar::handle:vertical {
+                background: #666;
+                border-radius: 4px;
+                min-height: 20px;
+            }
+        
+            QScrollBar::handle:vertical:hover {
+                background: #aaa;
+            }
+        
+            QScrollBar::add-line:vertical,
+            QScrollBar::sub-line:vertical {
+                height: 0px;
+            }
+        
+            QScrollBar::add-page:vertical,
+            QScrollBar::sub-page:vertical {
+                background: none;
+            }
+        
+            QScrollBar:horizontal {
+                background: transparent;
+                height: 8px;
+                margin: 0px;
+            }
+        
+            QScrollBar::handle:horizontal {
+                background: #666;
+                border-radius: 4px;
+                min-width: 20px;
+            }
+        
+            QScrollBar::handle:horizontal:hover {
+                background: #aaa;
+            }
+        
+            QScrollBar::add-line:horizontal,
+            QScrollBar::sub-line:horizontal {
+                width: 0px;
+            }
+        
+            QScrollBar::add-page:horizontal,
+            QScrollBar::sub-page:horizontal {
+                background: none;
+            }
+        """)
+
     def keyPressEvent(self, event) -> None:
         """
         Shortcuts for displaying or hiding elements, only if there is an active patient.

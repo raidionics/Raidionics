@@ -1,5 +1,6 @@
 import logging
 import os
+import math
 from PySide6.QtWidgets import QLabel, QHBoxLayout, QVBoxLayout, QLineEdit, QListWidget, QListWidgetItem, QErrorMessage,\
     QPushButton, QFileDialog, QSpacerItem, QComboBox, QStackedWidget, QWidget
 from PySide6.QtCore import Qt, QSize, Signal
@@ -607,7 +608,7 @@ class TumorCharacteristicsWidget(QWidget):
 
         self.multifocality_pieces_label.setText(str(report_json[structure_name]["MNI"]["Multifocality"]['Elements']))
         if report_json[structure_name]["MNI"]["Multifocality"]["Elements"] > 1:
-            self.multifocality_distance_label.setText(str(report_json[structure_name]["MNI"]["Multifocality"]['Max distance (mm)']) + ' mm')
+            self.multifocality_distance_label.setText(str(round(report_json[structure_name]["MNI"]["Multifocality"]['Max distance (mm)'], 3)) + ' mm')
             self.multifocality_distance_header_label.setVisible(True)
             self.multifocality_distance_label.setVisible(True)
         else:
@@ -798,33 +799,33 @@ class TumorCharacteristicsWidget(QWidget):
         # BrainGrid structures
         self.braingridstructures_collapsiblegroupbox.clear_content_layout()
         if 'Infiltration' in list(report_json[structure_name]["MNI"].keys()): #UserPreferencesStructure.getInstance().compute_braingrid_structures:
-            lay = QHBoxLayout()
-            label_header = QLabel("Infiltration count:")
-            label_header.setStyleSheet("""
-            QLabel{
-            font-size:13px;
-            color: rgba(67, 88, 90, 1);
-            border-style: none;
-            }""")
-            label = QLabel("{}".format(str(report_json[structure_name]["MNI"]['Infiltration']["Count"])))
-            label_header.setFixedHeight(20)
-            label_header.setFixedWidth(190)
-            label.setFixedHeight(20)
-            label.setFixedWidth(80)
-            label.setAlignment(Qt.AlignRight)
-            label.setStyleSheet("""
-            QLabel{
-            color: rgba(67, 88, 90, 1);
-            text-align:right;
-            font:semibold;
-            font-size:13px;
-            }""")
-            lay.addWidget(label_header)
-            lay.addWidget(label)
-            lay.addStretch(1)
-            self.braingridstructures_collapsiblegroupbox.content_layout.addLayout(lay)
             for atlas in UserPreferencesStructure.getInstance().braingrid_structures_list:
-                sorted_overlaps = dict(sorted(report_json[structure_name]["MNI"]['Infiltration'][atlas].items(),
+                lay = QHBoxLayout()
+                label_header = QLabel("Infiltration count:")
+                label_header.setStyleSheet("""
+                QLabel{
+                font-size:13px;
+                color: rgba(67, 88, 90, 1);
+                border-style: none;
+                }""")
+                label = QLabel("{}".format(str(report_json[structure_name]["MNI"]['Infiltration'][atlas]["Count"])))
+                label_header.setFixedHeight(20)
+                label_header.setFixedWidth(190)
+                label.setFixedHeight(20)
+                label.setFixedWidth(80)
+                label.setAlignment(Qt.AlignRight)
+                label.setStyleSheet("""
+                QLabel{
+                color: rgba(67, 88, 90, 1);
+                text-align:right;
+                font:semibold;
+                font-size:13px;
+                }""")
+                lay.addWidget(label_header)
+                lay.addWidget(label)
+                lay.addStretch(1)
+                self.braingridstructures_collapsiblegroupbox.content_layout.addLayout(lay)
+                sorted_overlaps = dict(sorted(report_json[structure_name]["MNI"]['Infiltration'][atlas]['Overlap'].items(),
                                               key=lambda item: item[1], reverse=True))
                 label = QLabel("{} atlas".format(atlas))
                 label.setFixedHeight(20)

@@ -9,7 +9,7 @@ from utils.data_structures.PatientParametersStructure import PatientParameters
 from utils.models_download import download_model
 from utils.software_config import SoftwareConfigResources
 from utils.data_structures.UserPreferencesStructure import UserPreferencesStructure
-from utils.utilities import get_type_from_name
+from utils.utilities import get_type_from_name, get_type_from_string
 
 
 @unique
@@ -114,7 +114,7 @@ def __create_preop_segmentation_pipeline(tumor_type: str) -> dict:
     if not UserPreferencesStructure.getInstance().use_manual_sequences:
         pip, pip_num_int = include_radiological_volume_classifier(pip=pip, pip_num_start=pip_num_int)
 
-    if get_type_from_name(TumorType, tumor_type) == TumorType.CE:
+    if get_type_from_string(TumorType, tumor_type) == TumorType.CE:
         pip_num_int = pip_num_int + 1
         pip_num = str(pip_num_int)
         pip[pip_num] = {}
@@ -200,7 +200,7 @@ def __create_postop_segmentation_pipeline(tumor_type: str) -> dict:
     if len(SoftwareConfigResources.getInstance().get_active_patient().investigation_timestamps) == 1:
         postop_ts = 0
 
-    if get_type_from_name(TumorType, tumor_type) == TumorType.CE:
+    if get_type_from_string(TumorType, tumor_type) == TumorType.CE:
         pip_num_int = pip_num_int + 1
         pip_num = str(pip_num_int)
         pip[pip_num] = {}
@@ -247,7 +247,7 @@ def __create_preop_reporting_pipeline(tumor_type: str) -> dict:
     if not UserPreferencesStructure.getInstance().use_manual_sequences:
         pip, pip_num_int = include_radiological_volume_classifier(pip=pip, pip_num_start=pip_num_int)
 
-    if get_type_from_name(TumorType, tumor_type) == TumorType.CE:
+    if get_type_from_string(TumorType, tumor_type) == TumorType.CE:
         pip_num_int = pip_num_int + 1
         pip_num = str(pip_num_int)
         pip[pip_num] = {}
@@ -297,7 +297,7 @@ def __create_postop_reporting_pipeline(tumor_type: str) -> dict:
     if len(SoftwareConfigResources.getInstance().get_active_patient().investigation_timestamps) == 1:
         postop_ts = 0
 
-    if get_type_from_name(TumorType, tumor_type) == TumorType.CE:
+    if get_type_from_string(TumorType, tumor_type) == TumorType.CE:
         pip_num_int = pip_num_int + 1
         pip_num = str(pip_num_int)
         pip[pip_num] = {}
@@ -353,7 +353,7 @@ def __create_surgical_reporting_pipeline(tumor_type: str) -> dict:
     if len(SoftwareConfigResources.getInstance().get_active_patient().investigation_timestamps) < 2:
         raise ValueError("[Software error] Computing a surgical report requires data from at least two timepoints (i.e., preop and postop)")
 
-    if get_type_from_name(TumorType, tumor_type) == TumorType.CE:
+    if get_type_from_string(TumorType, tumor_type) == TumorType.CE:
         pip_num_int = pip_num_int + 1
         pip_num = str(pip_num_int)
         pip[pip_num] = {}
@@ -393,7 +393,7 @@ def __create_surgical_reporting_pipeline(tumor_type: str) -> dict:
     pip[pip_num]["timestamps"] = [0]
     pip[pip_num]["description"] = f"Setting up the reporting steps for features computation in T{1}"
 
-    if get_type_from_name(TumorType, tumor_type) == TumorType.CE:
+    if get_type_from_string(TumorType, tumor_type) == TumorType.CE:
         pip_num_int = pip_num_int + 1
         pip_num = str(pip_num_int)
         pip[pip_num] = {}

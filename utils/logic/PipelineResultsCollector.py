@@ -439,7 +439,7 @@ def collect_results(patient_parameters, pipeline):
                     patient_parameters.reportings[report_uid].parent_mri_uid = parent_mri_uid
                     results['Report'].append(report_uid)
             elif pip_step["task"] == "Surgical reporting":
-                report_filename = os.path.join(patient_parameters.output_folder, 'reporting',
+                report_filename = os.path.join(patient_parameters.output_folder, 'reporting', 'reporting',
                                                'neuro_surgical_report.json')
                 dest_file = os.path.join(patient_parameters.output_folder, os.path.basename(report_filename))
                 shutil.move(report_filename, dest_file)

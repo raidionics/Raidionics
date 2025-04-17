@@ -102,6 +102,8 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
 
     def __set_stylesheets(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
+        background_color = software_ss["Color2"]
+        pressed_background_color = software_ss["Color6"]
 
         self.patient_list_scrollarea.setStyleSheet("""
         QScrollArea{
@@ -135,6 +137,80 @@ class PatientResultsSinglePatientSidePanelWidget(QWidget):
         background-color: rgba(56, 69, 105, 1);
         border-style:inset;
         }""")
+
+        self.patient_list_scrollarea.setStyleSheet("""
+            QScrollArea {
+                border: none;
+                background-color: transparent;
+            }
+
+            QScrollArea > QWidget > QWidget {
+                background-color: transparent;
+            }
+
+            QScrollArea > QWidget {
+                background-color: transparent;
+            }
+
+            QScrollArea QWidget {
+                background-color: transparent;
+            }
+            QScrollBar:vertical {
+                background: transparent;
+                width: 8px;
+                margin: 0px 0px 0px 0px;
+            }
+
+            QScrollBar::handle:vertical {
+                background: #888;
+                background-color:""" + background_color + """;
+                border-radius: 4px;
+                min-height: 20px;
+            }
+
+            QScrollBar::handle:vertical:hover {
+                background: #555;
+                background-color:""" + pressed_background_color + """;
+            }
+
+            QScrollBar::add-line:vertical,
+            QScrollBar::sub-line:vertical {
+                height: 0px;
+            }
+
+            QScrollBar::add-page:vertical,
+            QScrollBar::sub-page:vertical {
+                background: none;
+            }
+
+            QScrollBar:horizontal {
+                background: transparent;
+                height: 8px;
+                margin: 0px 0px 0px 0px;
+            }
+
+            QScrollBar::handle:horizontal {
+                background: #888;
+                background-color:""" + background_color + """;
+                border-radius: 4px;
+                min-width: 20px;
+            }
+
+            QScrollBar::handle:horizontal:hover {
+                background: #555;
+                background-color:""" + pressed_background_color + """;
+            }
+
+            QScrollBar::add-line:horizontal,
+            QScrollBar::sub-line:horizontal {
+                width: 0px;
+            }
+
+            QScrollBar::add-page:horizontal,
+            QScrollBar::sub-page:horizontal {
+                background: none;
+            }
+        """)
 
     def adjustSize(self) -> None:
         """

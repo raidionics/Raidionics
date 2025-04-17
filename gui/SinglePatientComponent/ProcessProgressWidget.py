@@ -75,6 +75,8 @@ class ProcessProgressWidget(QWidget):
     def __set_stylesheets(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
         font_color = software_ss["Color7"]
+        background_color = software_ss["Color2"]
+        pressed_background_color = software_ss["Color6"]
 
         self.cancel_process_pushbutton.setStyleSheet("""QPushButton{background-color:rgb(255, 0, 0);}""")
 
@@ -87,6 +89,80 @@ class ProcessProgressWidget(QWidget):
         padding-left: 9px;
         border-image: url(""" + os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/progress_icon_empty.png') + """)
         }""")
+
+        self.overall_progress_scrollarea.setStyleSheet("""
+            QScrollArea {
+                border: none;
+                background-color: transparent;
+            }
+        
+            QScrollArea > QWidget > QWidget {
+                background-color: transparent;
+            }
+        
+            QScrollArea > QWidget {
+                background-color: transparent;
+            }
+        
+            QScrollArea QWidget {
+                background-color: transparent;
+            }
+            QScrollBar:vertical {
+                background: transparent;
+                width: 8px;
+                margin: 0px 0px 0px 0px;
+            }
+
+            QScrollBar::handle:vertical {
+                background: #888;
+                background-color:""" + background_color + """;
+                border-radius: 4px;
+                min-height: 20px;
+            }
+
+            QScrollBar::handle:vertical:hover {
+                background: #555;
+                background-color:""" + pressed_background_color + """;
+            }
+
+            QScrollBar::add-line:vertical,
+            QScrollBar::sub-line:vertical {
+                height: 0px;
+            }
+
+            QScrollBar::add-page:vertical,
+            QScrollBar::sub-page:vertical {
+                background: none;
+            }
+
+            QScrollBar:horizontal {
+                background: transparent;
+                height: 8px;
+                margin: 0px 0px 0px 0px;
+            }
+
+            QScrollBar::handle:horizontal {
+                background: #888;
+                background-color:""" + background_color + """;
+                border-radius: 4px;
+                min-width: 20px;
+            }
+
+            QScrollBar::handle:horizontal:hover {
+                background: #555;
+                background-color:""" + pressed_background_color + """;
+            }
+
+            QScrollBar::add-line:horizontal,
+            QScrollBar::sub-line:horizontal {
+                width: 0px;
+            }
+
+            QScrollBar::add-page:horizontal,
+            QScrollBar::sub-page:horizontal {
+                background: none;
+            }
+        """)
 
     def __set_connections(self):
         self.process_monitoring_thread.message.connect(self.on_process_message)
@@ -224,14 +300,25 @@ class ProgressItemWidget(QWidget):
             char_limit = 30
             # @TODO. Should split the words and group them so that it does not exist the char limit
             if len(new_text) > char_limit:
-                nb_chars = len(new_text)
+                to_write_words = new_text.split(' ')
+                used_words = []
                 final_text = ''
-                upper_margin = int(math.ceil(nb_chars / char_limit))
-                for l in range(0, upper_margin):
-                    final_text = final_text + new_text[char_limit * l : char_limit * (l+1)]
-                    if l != (upper_margin - 1):
-                        final_text = final_text + '\n'
-                final_height = upper_margin * 20
+                word_index = 0
+                nb_sentences = 0
+                while len(to_write_words) > len(used_words):
+                    curr_sentence = ""
+                    while len(curr_sentence) < char_limit:
+                        if word_index >= len(to_write_words):
+                            break
+                        curr_sentence = curr_sentence + " " + to_write_words[word_index]
+                        used_words.append(to_write_words[word_index])
+                        word_index = word_index + 1
+
+                    final_text = final_text + curr_sentence + '\n'
+                    nb_sentences = nb_sentences + 1
+
+                final_text = final_text[:-2]
+                final_height = nb_sentences * 20
                 self.progress_label.setMinimumHeight(final_height)
                 self.progress_label.setText(final_text)
             else:
