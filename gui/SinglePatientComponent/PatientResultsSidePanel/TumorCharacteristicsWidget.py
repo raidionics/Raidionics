@@ -616,8 +616,8 @@ class TumorCharacteristicsWidget(QWidget):
             self.multifocality_distance_label.setVisible(False)
 
         if 'Index' in report_json[structure_name]["MNI"]["Resectability"].keys():
-            self.resection_index_label.setText(str(report_json[structure_name]["MNI"]["Resectability"]['Index']))
-            self.expected_residual_volume_label.setText(str(report_json[structure_name]["MNI"]["Resectability"]['Expected residual volume (ml)']) + ' ml')
+            self.resection_index_label.setText(str(round(report_json[structure_name]["MNI"]["Resectability"]['Index'], 4)))
+            self.expected_residual_volume_label.setText(str(round(report_json[structure_name]["MNI"]["Resectability"]['Expected residual volume (ml)'], 3)) + ' ml')
             self.resectability_collapsiblegroupbox.setVisible(True)
         else:
             self.resection_index_label.setText(' - ')

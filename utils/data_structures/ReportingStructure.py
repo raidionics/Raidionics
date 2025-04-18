@@ -97,32 +97,32 @@ class ReportingStructure:
         if self._report_filename is not None:
             if os.name == 'nt':
                 path_parts = list(PurePath(os.path.relpath(self._report_filename,
-                                                           self._output_patient_folder)).parts[1:])
+                                                           self.output_patient_folder)).parts[1:])
                 rel_path = PurePath()
-                rel_path = rel_path.joinpath(self._output_patient_folder)
+                rel_path = rel_path.joinpath(self.output_patient_folder)
                 rel_path = rel_path.joinpath(self._timestamp_folder_name)
                 for x in path_parts:
                     rel_path = rel_path.joinpath(x)
                 self._report_filename = os.fspath(rel_path)
             else:
                 rel_path = '/'.join(os.path.relpath(self._report_filename,
-                                                    self._output_patient_folder).split('/')[1:])
-                self._report_filename = os.path.join(self._output_patient_folder, self._timestamp_folder_name, rel_path)
+                                                    self.output_patient_folder).split('/')[1:])
+                self._report_filename = os.path.join(self.output_patient_folder, self._timestamp_folder_name, rel_path)
 
         if self._report_filename_csv is not None:
             if os.name == 'nt':
                 path_parts = list(PurePath(os.path.relpath(self._report_filename_csv,
-                                                           self._output_patient_folder)).parts[1:])
+                                                           self.output_patient_folder)).parts[1:])
                 rel_path = PurePath()
-                rel_path = rel_path.joinpath(self._output_patient_folder)
+                rel_path = rel_path.joinpath(self.output_patient_folder)
                 rel_path = rel_path.joinpath(self._timestamp_folder_name)
                 for x in path_parts:
                     rel_path = rel_path.joinpath(x)
                 self._report_filename_csv = os.fspath(rel_path)
             else:
                 rel_path = '/'.join(os.path.relpath(self._report_filename_csv,
-                                                    self._output_patient_folder).split('/')[1:])
-                self._report_filename_csv = os.path.join(self._output_patient_folder, self._timestamp_folder_name,
+                                                    self.output_patient_folder).split('/')[1:])
+                self._report_filename_csv = os.path.join(self.output_patient_folder, self._timestamp_folder_name,
                                                          rel_path)
 
     @property
@@ -206,7 +206,7 @@ class ReportingStructure:
                 self.set_reporting_type(params['task'])
 
             if 'report_filename_csv' in list(params.keys()):
-                self._report_filename_csv = os.path.join(self._output_patient_folder, params["report_filename_csv"])
+                self._report_filename_csv = os.path.join(self.output_patient_folder, params["report_filename_csv"])
         except Exception as e:
             raise RuntimeError("""Reloading the reporting structure from disk failed for {} with {}.""".format(self.report_filename, e))
 
@@ -222,9 +222,9 @@ class ReportingStructure:
             report_params['task'] = str(self._report_task)
             report_params['investigation_timestamp_uid'] = self._timestamp_uid
 
-            base_patient_folder = '/'.join(self._output_patient_folder.split('/'))
+            base_patient_folder = '/'.join(self.output_patient_folder.split('/'))
             if os.name == 'nt':
-                base_patient_folder_parts = list(PurePath(os.path.realpath(self._output_patient_folder)).parts)
+                base_patient_folder_parts = list(PurePath(os.path.realpath(self.output_patient_folder)).parts)
                 base_patient_folder = PurePath()
                 for x in base_patient_folder_parts:
                     base_patient_folder = base_patient_folder.joinpath(x)

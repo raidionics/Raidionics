@@ -166,8 +166,8 @@ class InvestigationTimestamp:
             raise RuntimeError("InvestigationTimestampStructure saving failed with: {}".format(e))
 
     def delete(self) -> None:
-        if os.path.exists(os.path.join(self._output_patient_folder, self.folder_name)):
-            shutil.rmtree(os.path.join(self._output_patient_folder, self.folder_name))
+        if os.path.exists(os.path.join(self.output_patient_folder, self.folder_name)):
+            shutil.rmtree(os.path.join(self.output_patient_folder, self.folder_name))
 
     def __init_from_scratch(self) -> None:
         try:

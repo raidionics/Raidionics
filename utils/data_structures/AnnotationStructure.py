@@ -156,10 +156,10 @@ class AnnotationVolume:
 
             # In case the annotation was automatically generated, its raw version lies inside the patient folder,
             # and can be safely erased
-            if self._raw_input_filepath and self._output_patient_folder in self._raw_input_filepath\
+            if self._raw_input_filepath and self.output_patient_folder in self._raw_input_filepath\
                     and os.path.exists(self._raw_input_filepath):
                 os.remove(self._raw_input_filepath)
-            if self.usable_input_filepath and self._output_patient_folder in self.usable_input_filepath\
+            if self.usable_input_filepath and self.output_patient_folder in self.usable_input_filepath\
                     and os.path.exists(self.usable_input_filepath):
                 os.remove(self.usable_input_filepath)
 
@@ -282,51 +282,51 @@ class AnnotationVolume:
             for i, fn in enumerate(self.registered_volume_filepaths.keys()):
                 self.registered_volume_filepaths[fn] = self.registered_volume_filepaths[fn].replace(self._timestamp_folder_name, folder_name)
             self._timestamp_folder_name = folder_name
-            if self._output_patient_folder in self._raw_input_filepath:
+            if self.output_patient_folder in self._raw_input_filepath:
                 if os.name == 'nt':
                     path_parts = list(PurePath(os.path.relpath(self._raw_input_filepath,
-                                                               self._output_patient_folder)).parts[1:])
+                                                               self.output_patient_folder)).parts[1:])
                     rel_path = PurePath()
-                    rel_path = rel_path.joinpath(self._output_patient_folder)
+                    rel_path = rel_path.joinpath(self.output_patient_folder)
                     rel_path = rel_path.joinpath(self._timestamp_folder_name)
                     for x in path_parts:
                         rel_path = rel_path.joinpath(x)
                     self._raw_input_filepath = os.fspath(rel_path)
                 else:
                     rel_path = '/'.join(os.path.relpath(self._raw_input_filepath,
-                                                        self._output_patient_folder).split('/')[1:])
-                    self._raw_input_filepath = os.path.join(self._output_patient_folder, self._timestamp_folder_name,
+                                                        self.output_patient_folder).split('/')[1:])
+                    self._raw_input_filepath = os.path.join(self.output_patient_folder, self._timestamp_folder_name,
                                                             rel_path)
-            if self._output_patient_folder in self.usable_input_filepath:
+            if self.output_patient_folder in self.usable_input_filepath:
                 if os.name == 'nt':
                     path_parts = list(PurePath(os.path.relpath(self.usable_input_filepath,
-                                                               self._output_patient_folder)).parts[1:])
+                                                               self.output_patient_folder)).parts[1:])
                     rel_path = PurePath()
-                    rel_path = rel_path.joinpath(self._output_patient_folder)
+                    rel_path = rel_path.joinpath(self.output_patient_folder)
                     rel_path = rel_path.joinpath(self._timestamp_folder_name)
                     for x in path_parts:
                         rel_path = rel_path.joinpath(x)
                     self.usable_input_filepath = os.fspath(rel_path)
                 else:
                     rel_path = '/'.join(os.path.relpath(self.usable_input_filepath,
-                                                        self._output_patient_folder).split('/')[1:])
-                    self.usable_input_filepath = os.path.join(self._output_patient_folder, self._timestamp_folder_name,
+                                                        self.output_patient_folder).split('/')[1:])
+                    self.usable_input_filepath = os.path.join(self.output_patient_folder, self._timestamp_folder_name,
                                                                rel_path)
             if self._resampled_input_volume_filepath and \
-                    self._output_patient_folder in self._resampled_input_volume_filepath:
+                    self.output_patient_folder in self._resampled_input_volume_filepath:
                 if os.name == 'nt':
                     path_parts = list(PurePath(os.path.relpath(self._resampled_input_volume_filepath,
-                                                               self._output_patient_folder)).parts[1:])
+                                                               self.output_patient_folder)).parts[1:])
                     rel_path = PurePath()
-                    rel_path = rel_path.joinpath(self._output_patient_folder)
+                    rel_path = rel_path.joinpath(self.output_patient_folder)
                     rel_path = rel_path.joinpath(self._timestamp_folder_name)
                     for x in path_parts:
                         rel_path = rel_path.joinpath(x)
                     self._resampled_input_volume_filepath = os.fspath(rel_path)
                 else:
                     rel_path = '/'.join(os.path.relpath(self._resampled_input_volume_filepath,
-                                                        self._output_patient_folder).split('/')[1:])
-                    self._resampled_input_volume_filepath = os.path.join(self._output_patient_folder,
+                                                        self.output_patient_folder).split('/')[1:])
+                    self._resampled_input_volume_filepath = os.path.join(self.output_patient_folder,
                                                                          self._timestamp_folder_name, rel_path)
         except Exception as e:
             raise ValueError("Changing the timestamp folder name for the AnnotationStructure failed with: {}".format(e))
@@ -409,7 +409,7 @@ class AnnotationVolume:
         try:
             # Disk operations
             if not self._resampled_input_volume is None:
-                self._resampled_input_volume_filepath = os.path.join(self._output_patient_folder,
+                self._resampled_input_volume_filepath = os.path.join(self.output_patient_folder,
                                                                      self._timestamp_folder_name, 'display',
                                                                      self._unique_id + '_resampled.nii.gz')
                 if not os.path.exists(self._resampled_input_volume_filepath):
@@ -418,14 +418,14 @@ class AnnotationVolume:
 
             # Parameters-filling operations
             volume_params = {}
-            base_patient_folder = self._output_patient_folder
+            base_patient_folder = self.output_patient_folder
             volume_params['display_name'] = self._display_name
-            if self._output_patient_folder in self._raw_input_filepath:
+            if self.output_patient_folder in self._raw_input_filepath:
                 volume_params['raw_input_filepath'] = os.path.relpath(self._raw_input_filepath, base_patient_folder)
             else:
                 volume_params['raw_input_filepath'] = self._raw_input_filepath
 
-            if self._output_patient_folder in self.usable_input_filepath:
+            if self.output_patient_folder in self.usable_input_filepath:
                 volume_params['usable_input_filepath'] = os.path.relpath(self.usable_input_filepath,
                                                                          base_patient_folder)
             else:
@@ -440,7 +440,7 @@ class AnnotationVolume:
                     reg_volumes[k] = os.path.relpath(self.registered_volume_filepaths[k], base_patient_folder)
                 volume_params['registered_volume_filepaths'] = reg_volumes
 
-            volume_params['annotation_class'] = str(self._annotation_class)
+            volume_params['annotation_class'] = self._annotation_class.name
             volume_params['generation_type'] = str(self._generation_type)
             volume_params['parent_mri_uid'] = self._parent_mri_uid
             volume_params['investigation_timestamp_uid'] = self._timestamp_uid
@@ -457,7 +457,7 @@ class AnnotationVolume:
         @TODO. Should not be just the registration space but combo space/timestamp...
         """
         try:
-            registered_space_folder = os.path.join(self._output_patient_folder,
+            registered_space_folder = os.path.join(self.output_patient_folder,
                                                    self._timestamp_folder_name, 'raw', registration_space)
             os.makedirs(registered_space_folder, exist_ok=True)
             dest_path = os.path.join(registered_space_folder, os.path.basename(filepath))
@@ -478,11 +478,11 @@ class AnnotationVolume:
             os.makedirs(os.path.join(self.output_patient_folder, self._timestamp_folder_name, 'display'), exist_ok=True)
 
             self.usable_input_filepath = input_file_type_conversion(input_filename=self._raw_input_filepath,
-                                                                     output_folder=os.path.join(self._output_patient_folder,
+                                                                     output_folder=os.path.join(self.output_patient_folder,
                                                                                                 self._timestamp_folder_name,
                                                                                                 'raw'))
             self.__generate_standardized_input_volume()
-            if self._output_patient_folder not in self.raw_input_filepath:
+            if self.output_patient_folder not in self.raw_input_filepath:
                 self.__generate_display_volume()
         except Exception as e:
             raise RuntimeError("""Initializing annotation structure from scratch failed  for: {} 
@@ -502,18 +502,18 @@ class AnnotationVolume:
             if os.path.exists(parameters['raw_input_filepath']):
                 self._raw_input_filepath = parameters['raw_input_filepath']
             else:
-                self._raw_input_filepath = os.path.join(self._output_patient_folder, parameters['raw_input_filepath'])
+                self._raw_input_filepath = os.path.join(self.output_patient_folder, parameters['raw_input_filepath'])
 
             # To check whether the usable filepath has been provided by the user (hence lies somewhere on the machine)
             # or was generated by the software and lies within the patient folder.
             if os.path.exists(parameters['usable_input_filepath']):
                 self.usable_input_filepath = parameters['usable_input_filepath']
             else:
-                self.usable_input_filepath = os.path.join(self._output_patient_folder, parameters['usable_input_filepath'])
+                self.usable_input_filepath = os.path.join(self.output_patient_folder, parameters['usable_input_filepath'])
 
             # The resampled volume can only be inside the output patient folder as it is internally computed and cannot be
             # manually imported into the software.
-            self._resampled_input_volume_filepath = os.path.join(self._output_patient_folder,
+            self._resampled_input_volume_filepath = os.path.join(self.output_patient_folder,
                                                                  parameters['resample_input_filepath'])
             if os.path.exists(self._resampled_input_volume_filepath):
                 self._resampled_input_volume = nib.load(self._resampled_input_volume_filepath).get_fdata()[:]
@@ -523,7 +523,7 @@ class AnnotationVolume:
 
             if 'registered_volume_filepaths' in parameters.keys():
                 for k in list(parameters['registered_volume_filepaths'].keys()):
-                    self.registered_volume_filepaths[k] = os.path.join(self._output_patient_folder,
+                    self.registered_volume_filepaths[k] = os.path.join(self.output_patient_folder,
                                                                        parameters['registered_volume_filepaths'][k])
                     self.registered_volumes[k] = nib.load(self.registered_volume_filepaths[k]).get_fdata()[:]
 

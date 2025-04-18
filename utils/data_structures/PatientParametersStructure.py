@@ -267,19 +267,22 @@ class PatientParameters:
                                                                     + '_scene.raidionics')
                 if os.path.exists(self._patient_parameters_dict_filename):
                     os.rename(src=self._patient_parameters_dict_filename, dst=new_patient_parameters_dict_filename)
-                self._patient_parameters_dict_filename = new_patient_parameters_dict_filename
+                self._patient_parameters_dict_filename = os.path.join(os.path.dirname(self._output_folder),
+                                                                      self._display_name.strip().lower().replace(" ", "_"),
+                                                                      self._display_name.strip().lower().replace(" ", "_")
+                                                                      + '_scene.raidionics')
 
                 for i, disp in enumerate(list(self.investigation_timestamps.keys())):
                     self.investigation_timestamps[disp].output_patient_folder = new_output_folder
 
                 for i, disp in enumerate(list(self.mri_volumes.keys())):
-                    self.mri_volumes[disp].output_patient_folder(new_output_folder)
+                    self.mri_volumes[disp].output_patient_folder = new_output_folder
 
                 for i, disp in enumerate(list(self._annotation_volumes.keys())):
-                    self._annotation_volumes[disp].output_patient_folder(new_output_folder)
+                    self._annotation_volumes[disp].output_patient_folder = new_output_folder
 
                 for i, disp in enumerate(list(self._atlas_volumes.keys())):
-                    self._atlas_volumes[disp].output_patient_folder(new_output_folder)
+                    self._atlas_volumes[disp].output_patient_folder = new_output_folder
 
                 for i, disp in enumerate(list(self._reportings.keys())):
                     self._reportings[disp].output_patient_folder = new_output_folder
@@ -291,7 +294,8 @@ class PatientParameters:
                     self._unsaved_changes = True
                     logging.debug("Unsaved changes - Patient object display name edited to {}.".format(new_name))
             except Exception as e:
-                raise RuntimeError("Attempting to change the patient display name failed with: {}".format(e))
+                raise RuntimeError(f"Attempting to change the patient display name failed with: {e}.\n "
+                                   f"Traceback: {traceback.format_exc()}")
 
     def import_report(self, filename: str, inv_ts_uid: str) -> Tuple[str, Union[None, str]]:
         """

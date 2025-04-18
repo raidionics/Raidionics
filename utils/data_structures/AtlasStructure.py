@@ -286,10 +286,6 @@ class AtlasVolume:
         return self._timestamp_uid
 
     @property
-    def output_patient_folder(self) -> str:
-        return self._output_patient_folder
-
-    @property
     def timestamp_folder_name(self) -> str:
         return self._timestamp_folder_name
 
