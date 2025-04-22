@@ -28,7 +28,7 @@ jobs:
         python3 -m pip install --upgrade pip
         pip3 install ffmpeg
         pip3 install matplotlib
-        pip install git+https://github.com/dbouget/raidionics_rads_lib.git@master
+        pip install git+https://github.com/dbouget/raidionics_rads_lib.git@postop_package
         pip3 install -r assets/requirements.txt
         pip install --force-reinstall --no-cache-dir pyside6
         pip install urllib3==1.26.6
@@ -77,8 +77,8 @@ jobs:
     - name: Make installer
       run: |
         git clone https://github.com/dbouget/quickpkg.git
-        quickpkg/quickpkg dist/Raidionics.app --output Raidionics-1.3.0-macOS.pkg
-        cp -r Raidionics-1.3.0-macOS.pkg dist/Raidionics-1.3.0-macOS-arm64.pkg
+        quickpkg/quickpkg dist/Raidionics.app --output Raidionics-1.3.1-macOS.pkg
+        cp -r Raidionics-1.3.1-macOS.pkg dist/Raidionics-1.3.1-macOS-arm64.pkg
 
     - name: Upload package
       uses: actions/upload-artifact@v4

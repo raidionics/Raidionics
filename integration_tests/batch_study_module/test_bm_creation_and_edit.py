@@ -28,7 +28,7 @@ def test_location():
 
 @pytest.fixture
 def test_data_folder():
-    test_data_url = 'https://github.com/raidionics/Raidionics-models/releases/download/v1.3.0-rc/Samples-Raidionics-ApprovedExample-v1.3.zip'
+    test_data_url = 'https://github.com/raidionics/Raidionics-models/releases/download/v1.3.0-rc/Samples-Raidionics-ApprovedExample-v1.3.1.zip'
     test_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'integrationtests')
     test_data_dir = os.path.join(test_dir, 'ApprovedExample')
     if os.path.exists(test_data_dir) and len(os.listdir(test_data_dir)) > 0:
