@@ -29,7 +29,7 @@ jobs:
         python-version: "3.8"
 
     - name: Setup OpenGL
-      run: brew install mesa-glu libxrender libxi libxkbcommon
+      run: brew install mesa-glu libxi libxkbcommon
 
     - name: Download ANTs
       uses: robinraju/release-downloader@main
@@ -65,7 +65,7 @@ jobs:
       run: |
         pip install pyinstaller==5.13.2
         mkdir tmp_dependencies
-        pyinstaller --log-level INFO --noconfirm --clean assets/main.spec
+        pyinstaller --log-level INFO --noconfirm --clean assets/main_arm.spec
 
     - name: Test executable
       env:
