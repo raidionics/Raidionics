@@ -122,8 +122,8 @@ def test_patient_raidionics_annotation_edit(qtbot, test_location, test_data_fold
             sleep(5)
 
         # Changing the parent MRI for the brain annotation
-        parent_name = window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_visible_name("T0").annotations_collapsiblegroupbox.get_layer_widget_by_visible_name("1319_Case27-T1_annotation-Brain").parent_image_combobox.currentText()
-        window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_visible_name("T0").annotations_collapsiblegroupbox.get_layer_widget_by_visible_name("1319_Case27-T1_annotation-Brain").parent_image_combobox.setCurrentIndex(1)
+        parent_name = window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_visible_name("T0").annotations_collapsiblegroupbox.get_layer_widget_by_visible_name("7281_Case27-T1_annotation-Brain").parent_image_combobox.currentText()
+        window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_visible_name("T0").annotations_collapsiblegroupbox.get_layer_widget_by_visible_name("7281_Case27-T1_annotation-Brain").parent_image_combobox.setCurrentIndex(1)
         radiological_uid = SoftwareConfigResources.getInstance().get_active_patient().get_mri_volume_by_display_name(parent_name).unique_id
         assert len(SoftwareConfigResources.getInstance().get_active_patient().get_all_annotation_uids_for_radiological_volume(radiological_uid)) == 1, "The brain annotation has not been successfully transferred to the FLAIR input"
         assert window.single_patient_widget.layers_panel.timestamp_layer_widget.get_timestamp_widget_by_visible_name("T0").annotations_collapsiblegroupbox.get_layer_widget_length() == 1, "The brain annotation has not been graphically removed from the T1-CE input"
