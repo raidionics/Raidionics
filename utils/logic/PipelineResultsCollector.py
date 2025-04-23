@@ -327,10 +327,10 @@ def collect_results(patient_parameters, pipeline):
                         #                                                                                            "fixed"][
                         #                                                                                            "sequence"])
                 elif pip_step["direction"] == "forward":
-                    if pip_step["fixed"]["timestamp"] == -1 or pip_step["moving"]["timestamp"] == -1:
-                        # @TODO. Handle here registration towards an atlas
+                    if pip_step["moving"]["timestamp"] == -1:
+                        # Handle here registration towards an atlas
                         continue
-                    fixed_mri_uid = patient_parameters.get_all_mri_volumes_for_sequence_type_and_timestamp(
+                    fixed_mri_uid = ["MNI"] if pip_step["fixed"]["timestamp"] == -1 else patient_parameters.get_all_mri_volumes_for_sequence_type_and_timestamp(
                         sequence_type=get_type_from_string(MRISequenceType, pip_step["fixed"]["sequence"]),
                         timestamp_order=pip_step["fixed"]["timestamp"])
                     moving_mri_uid = patient_parameters.get_all_mri_volumes_for_sequence_type_and_timestamp(
@@ -347,9 +347,9 @@ def collect_results(patient_parameters, pipeline):
                     # Collecting the patient volumes (radiological and annotation) in registered space
                     registered_folder_base = os.path.join(patient_parameters.output_folder, 'reporting',
                                                            'T' + str(pip_step["moving"]["timestamp"]))
-                    reg_space_folders = glob.glob(os.path.join(registered_folder_base, '**/'))
-                    step_reg_space_folder = os.path.join(registered_folder_base, "T" + str(pip_step["moving"]["timestamp"]) + "_" + get_type_from_string(MRISequenceType, pip_step["fixed"]["sequence"]).name + "_space")
-                    if step_reg_space_folder not in [x[:-1] for x in reg_space_folders]:
+                    reg_space_folders = [os.path.join(registered_folder_base, d) for d in os.listdir(registered_folder_base) if os.path.isdir(os.path.join(registered_folder_base, d))]
+                    step_reg_space_folder = os.path.join(registered_folder_base, pip_step["fixed"]["sequence"] + "_space") if fixed_mri_uid == "MNI" else os.path.join(registered_folder_base, "T" + str(pip_step["moving"]["timestamp"]) + "_" + get_type_from_string(MRISequenceType, pip_step["fixed"]["sequence"]).name + "_space")
+                    if step_reg_space_folder not in [x for x in reg_space_folders]:
                         continue
                     registered_inputs = []
                     registered_labels = []
@@ -366,6 +366,7 @@ def collect_results(patient_parameters, pipeline):
                     for rl in registered_labels:
                         # @TODO. Not handled in the best way, the registered annotation is saved in two places,
                         # in the raw folder for the timestamp but also inside the sub-folder for the fixed_uid_space...
+                        # Ideally, both should point to the same location on disk...
                         label_type = rl.split('_label_')[-1].split('_')[0]
                         anno_volume_uid = patient_parameters.get_specific_annotations_for_mri(mri_volume_uid=moving_mri_uid,
                                                                                               annotation_class=get_type_from_name(AnnotationClassType, label_type))
@@ -374,27 +375,28 @@ def collect_results(patient_parameters, pipeline):
                         anno_volume_uid = anno_volume_uid[0]
                         # If the fixed volume already has a corresponding segmentation (e.g., brain), then just
                         # skipping the registered annotation.
-                        annos_fixed_uid = patient_parameters.get_specific_annotations_for_mri(mri_volume_uid=fixed_mri_uid,
+                        annos_fixed_uid = [] if fixed_mri_uid == "MNI" else patient_parameters.get_specific_annotations_for_mri(mri_volume_uid=fixed_mri_uid,
                                                                                              annotation_class=get_type_from_name(AnnotationClassType, label_type))
                         if len(annos_fixed_uid) == 0:
                             # Adding the info about registered annotation
                             patient_parameters.get_annotation_by_uid(anno_volume_uid).import_registered_volume(filepath=rl,
                                                                                                        registration_space=fixed_mri_uid)
                             # Must add the annotation as a standalone object for the fixed_uid so that it will be
-                            # available for display...
-                            dest_ts = patient_parameters.get_timestamp_by_order(order=pip_step["fixed"]["timestamp"])
-                            dest_file = os.path.join(patient_parameters.output_folder, dest_ts.folder_name, 'raw',
-                                                     os.path.basename(rl))
-                            shutil.move(rl, dest_file)
-                            data_uid = patient_parameters.import_data(dest_file,
-                                                                      investigation_ts=dest_ts.unique_id,
-                                                                      investigation_ts_folder_name=dest_ts.folder_name,
-                                                                      type='Annotation')
-                            patient_parameters.get_annotation_by_uid(data_uid).set_annotation_class_type(
-                                get_type_from_name(AnnotationClassType, label_type))
-                            patient_parameters.get_annotation_by_uid(data_uid).set_generation_type("Automatic")
-                            patient_parameters.get_annotation_by_uid(data_uid).set_parent_mri_uid(fixed_mri_uid)
-                            results['Annotation'].append(data_uid)
+                            # available for display!
+                            if fixed_mri_uid != "MNI":
+                                dest_ts = patient_parameters.get_timestamp_by_order(order=pip_step["fixed"]["timestamp"])
+                                dest_file = os.path.join(patient_parameters.output_folder, dest_ts.folder_name, 'raw',
+                                                         os.path.basename(rl))
+                                shutil.move(rl, dest_file)
+                                data_uid = patient_parameters.import_data(dest_file,
+                                                                          investigation_ts=dest_ts.unique_id,
+                                                                          investigation_ts_folder_name=dest_ts.folder_name,
+                                                                          type='Annotation')
+                                patient_parameters.get_annotation_by_uid(data_uid).set_annotation_class_type(
+                                    get_type_from_name(AnnotationClassType, label_type))
+                                patient_parameters.get_annotation_by_uid(data_uid).set_generation_type("Automatic")
+                                patient_parameters.get_annotation_by_uid(data_uid).set_parent_mri_uid(fixed_mri_uid)
+                                results['Annotation'].append(data_uid)
                         else:
                             logging.warning("[PipelineResultsCollector] Use-case not handled for updating a registered"
                                             " annotation into the fixed uid object.")
