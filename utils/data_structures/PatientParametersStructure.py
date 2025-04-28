@@ -20,7 +20,7 @@ from utils.data_structures.AnnotationStructure import AnnotationVolume, Annotati
 from utils.data_structures.AtlasStructure import AtlasVolume
 from utils.data_structures.InvestigationTimestampStructure import InvestigationTimestamp, InvestigationType
 from utils.data_structures.ReportingStructure import ReportingStructure
-from utils.utilities import input_file_category_disambiguation, dicom_write_slice
+from utils.utilities import input_file_category_disambiguation, dicom_write_slice, sanitize_filename
 from utils.data_structures.UserPreferencesStructure import UserPreferencesStructure
 
 
@@ -506,6 +506,7 @@ class PatientParameters:
                                             str(trail) + '.nii.gz')
                 filename_taken = os.path.exists(ori_filename)
 
+            ori_filename = sanitize_filename(ori_filename)
             sitk.WriteImage(dicom_series.volume, ori_filename)
             logging.info("Converted DICOM import to {}".format(ori_filename))
             investigation_dicom_id = dicom_series.get_study_unique_name()

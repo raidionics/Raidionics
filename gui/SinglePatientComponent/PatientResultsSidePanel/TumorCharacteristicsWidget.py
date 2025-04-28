@@ -34,6 +34,7 @@ class TumorCharacteristicsWidget(QWidget):
         self.layout = QVBoxLayout(self)
         self.__set_multifocality_part()
         self.__set_volumes_part()
+        self.__set_shape_part()
         self.__set_laterality_part()
         self.__set_resectability_part()
         self.__set_cortical_structures_part()
@@ -67,6 +68,51 @@ class TumorCharacteristicsWidget(QWidget):
         self.mni_space_volume_layout.addWidget(self.mni_space_volume_label)
         self.volumes_collapsiblegroupbox.content_layout.addLayout(self.mni_space_volume_layout)
         self.volumes_collapsiblegroupbox.content_layout.setContentsMargins(20, 0, 20, 0)
+
+    def __set_shape_part(self):
+        self.shape_collapsiblegroupbox = QCollapsibleWidget("Shape")
+        self.shape_collapsiblegroupbox.set_icon_filenames(expand_fn=os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                                                   '../../Images/collapsed_icon.png'),
+                                                            collapse_fn=os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                                                     '../../Images/uncollapsed_icon.png'))
+        self.layout.addWidget(self.shape_collapsiblegroupbox)
+
+        self.shape_longaxis_header_label = QLabel("Long-axis diameter: ")
+        self.shape_longaxis_label = QLabel(" - mm ")
+        self.shape_longaxis_label.setStyleSheet("QLabel{text-align:right;}")
+        self.shape_longaxis_layout = QHBoxLayout()
+        self.shape_longaxis_layout.addWidget(self.shape_longaxis_header_label)
+        self.shape_longaxis_layout.addStretch(1)
+        self.shape_longaxis_layout.addWidget(self.shape_longaxis_label)
+        self.shape_collapsiblegroupbox.content_layout.addLayout(self.shape_longaxis_layout)
+
+        self.shape_shortaxis_header_label = QLabel("Short-axis diameter: ")
+        self.shape_shortaxis_label = QLabel(" - mm ")
+        self.shape_shortaxis_label.setStyleSheet("QLabel{text-align:right;}")
+        self.shape_shortaxis_layout = QHBoxLayout()
+        self.shape_shortaxis_layout.addWidget(self.shape_shortaxis_header_label)
+        self.shape_shortaxis_layout.addStretch(1)
+        self.shape_shortaxis_layout.addWidget(self.shape_shortaxis_label)
+        self.shape_collapsiblegroupbox.content_layout.addLayout(self.shape_shortaxis_layout)
+
+        self.shape_feret_header_label = QLabel("Feret diameter max: ")
+        self.shape_feret_label = QLabel(" - mm ")
+        self.shape_feret_label.setStyleSheet("QLabel{text-align:right;}")
+        self.shape_feret_layout = QHBoxLayout()
+        self.shape_feret_layout.addWidget(self.shape_feret_header_label)
+        self.shape_feret_layout.addStretch(1)
+        self.shape_feret_layout.addWidget(self.shape_feret_label)
+        self.shape_collapsiblegroupbox.content_layout.addLayout(self.shape_feret_layout)
+
+        self.shape_equivalentarea_header_label = QLabel("Equivalent diameter area: ")
+        self.shape_equivalentarea_label = QLabel(" - mm ")
+        self.shape_equivalentarea_label.setStyleSheet("QLabel{text-align:right;}")
+        self.shape_equivalentarea_layout = QHBoxLayout()
+        self.shape_equivalentarea_layout.addWidget(self.shape_equivalentarea_header_label)
+        self.shape_equivalentarea_layout.addStretch(1)
+        self.shape_equivalentarea_layout.addWidget(self.shape_equivalentarea_label)
+        self.shape_collapsiblegroupbox.content_layout.addLayout(self.shape_equivalentarea_layout)
+        self.shape_collapsiblegroupbox.content_layout.setContentsMargins(20, 0, 20, 0)
 
     def __set_laterality_part(self):
         self.laterality_collapsiblegroupbox = QCollapsibleWidget("Laterality")
@@ -204,6 +250,20 @@ class TumorCharacteristicsWidget(QWidget):
         self.volumes_collapsiblegroupbox.header.title_label.setFixedHeight(35)
         self.volumes_collapsiblegroupbox.header.background_label.setFixedHeight(40)
 
+        self.shape_longaxis_header_label.setFixedHeight(20)
+        self.shape_longaxis_label.setFixedHeight(20)
+        self.shape_shortaxis_header_label.setFixedHeight(20)
+        self.shape_shortaxis_label.setFixedHeight(20)
+        self.shape_feret_header_label.setFixedHeight(20)
+        self.shape_feret_label.setFixedHeight(20)
+        self.shape_equivalentarea_header_label.setFixedHeight(20)
+        self.shape_equivalentarea_label.setFixedHeight(20)
+        self.shape_collapsiblegroupbox.header.setFixedHeight(40)
+        self.shape_collapsiblegroupbox.content_widget.setFixedHeight(70)
+        self.shape_collapsiblegroupbox.header.set_icon_size(QSize(35, 35))
+        self.shape_collapsiblegroupbox.header.title_label.setFixedHeight(35)
+        self.shape_collapsiblegroupbox.header.background_label.setFixedHeight(40)
+
         self.laterality_right_header_label.setFixedHeight(20)
         self.laterality_right_label.setFixedHeight(20)
         self.laterality_left_header_label.setFixedHeight(20)
@@ -253,6 +313,7 @@ class TumorCharacteristicsWidget(QWidget):
 
     def __set_connections(self):
         self.volumes_collapsiblegroupbox.toggled.connect(self.on_size_request)
+        self.shape_collapsiblegroupbox.toggled.connect(self.on_size_request)
         self.laterality_collapsiblegroupbox.toggled.connect(self.on_size_request)
         self.resectability_collapsiblegroupbox.toggled.connect(self.on_size_request)
         self.multifocality_collapsiblegroupbox.toggled.connect(self.on_size_request)
@@ -271,7 +332,90 @@ class TumorCharacteristicsWidget(QWidget):
             pressed_background_color = software_ss["Color4"]
             font_style = 'bold'
 
-        #################################### TUMOR/MULTIFOCALITY GROUPBOX #########################################
+        #################################### SHAPE CHARACTERISTICS GROUPBOX #########################################
+        self.shape_longaxis_header_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        text-align:left;
+        font:semibold;
+        font-size:14px;
+        }""")
+        self.shape_longaxis_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        text-align:right;
+        font:semibold;
+        font-size:14px;
+        }""")
+        self.shape_shortaxis_header_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        text-align:left;
+        font:semibold;
+        font-size:14px;
+        }""")
+        self.shape_shortaxis_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        text-align:right;
+        font:semibold;
+        font-size:14px;
+        }""")
+        self.shape_feret_header_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        text-align:left;
+        font:semibold;
+        font-size:14px;
+        }""")
+        self.shape_feret_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        text-align:right;
+        font:semibold;
+        font-size:14px;
+        }""")
+        self.shape_equivalentarea_header_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        text-align:left;
+        font:semibold;
+        font-size:14px;
+        }""")
+        self.shape_equivalentarea_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        text-align:right;
+        font:semibold;
+        font-size:14px;
+        }""")
+        self.shape_collapsiblegroupbox.header.background_label.setStyleSheet("""
+        QLabel{
+        background-color:rgb(248, 248, 248);
+        border-width: 1px;
+        border-style: solid;
+        border-color: black rgb(248, 248, 248) black rgb(248, 248, 248);
+        border-radius: 2px;
+        }""")
+        self.shape_collapsiblegroupbox.header.title_label.setStyleSheet("""
+        QLabel{
+        background-color:rgb(248, 248, 248);
+        color: """ + font_color + """;
+        text-align:left;
+        font:bold;
+        font-size:14px;
+        padding-left:20px;
+        padding-right:20px;
+        border: none;
+        }""")
+        self.shape_collapsiblegroupbox.header.icon_label.setStyleSheet("""
+        QLabel{
+        border: none;
+        padding-left:20px;
+        }""")
+        self.shape_collapsiblegroupbox.content_widget.setStyleSheet("QWidget{background-color:rgb(254,254,254);}")
+
+        #################################### MULTIFOCALITY CHARACTERISTICS GROUPBOX #########################################
         self.multifocality_pieces_header_label.setStyleSheet("""
         QLabel{
         color: """ + font_color + """;
@@ -325,7 +469,8 @@ class TumorCharacteristicsWidget(QWidget):
         padding-left:20px;
         }""")
         self.multifocality_collapsiblegroupbox.content_widget.setStyleSheet("QWidget{background-color:rgb(254,254,254);}")
-        ######################################### VOLUME GROUPBOX ################################################
+
+        ######################################### VOLUME CHARACTERISTICS GROUPBOX ################################################
         self.volumes_collapsiblegroupbox.header.background_label.setStyleSheet("""
         QLabel{
         background-color:rgb(248, 248, 248);
@@ -380,7 +525,7 @@ class TumorCharacteristicsWidget(QWidget):
         font-size:14px;
         }""")
 
-        ######################################### LATERALITY GROUPBOX ################################################
+        ######################################### LATERALITY CHARACTERISTICS GROUPBOX ################################################
         self.laterality_collapsiblegroupbox.header.background_label.setStyleSheet("""
         QLabel{
         background-color:rgb(248, 248, 248);
@@ -605,6 +750,11 @@ class TumorCharacteristicsWidget(QWidget):
         self.laterality_right_label.setText(str(report_json[structure_name]["MNI"]["Location"]['Right laterality (%)']) + ' %')
         self.laterality_left_label.setText(str(report_json[structure_name]["MNI"]["Location"]['Left laterality (%)']) + ' %')
         self.laterality_midline_label.setText(str(report_json[structure_name]["MNI"]["Location"]['Midline crossing']))
+
+        self.shape_longaxis_label.setText(str(round(report_json[structure_name]["MNI"]["Shape"]['Long-axis diameter (mm)']), 2) + ' mm')
+        self.shape_shortaxis_label.setText(str(round(report_json[structure_name]["MNI"]["Shape"]['Short-axis diameter (mm)']), 2) + ' mm')
+        self.shape_feret_label.setText(str(round(report_json[structure_name]["MNI"]["Shape"]['Feret diameter (mm)']), 2) + ' mm')
+        self.shape_equivalentarea_label.setText(str(round(report_json[structure_name]["MNI"]["Shape"]['Equivalent diameter area (mm)']), 2) + ' mm')
 
         self.multifocality_pieces_label.setText(str(report_json[structure_name]["MNI"]["Multifocality"]['Elements']))
         if report_json[structure_name]["MNI"]["Multifocality"]["Elements"] > 1:
