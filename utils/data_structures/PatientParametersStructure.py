@@ -311,9 +311,13 @@ class PatientParameters:
                 report_uid = str(np.random.randint(0, 10000)) + '_' + base_report_uid
                 if report_uid not in list(self._reportings.keys()):
                     non_available_uid = False
+            if inv_ts_uid is None: # Indicating a report not linked to a specific timestamp
+                inv_ts_folder_name = None
+            else:
+                inv_ts_folder_name = self.investigation_timestamps[inv_ts_uid].folder_name
             report = ReportingStructure(uid=report_uid, report_filename=filename,
                                         output_patient_folder=self.output_folder, inv_ts_uid=inv_ts_uid,
-                                        inv_ts_folder_name=self.investigation_timestamps[inv_ts_uid].folder_name)
+                                        inv_ts_folder_name=inv_ts_folder_name)
             self._reportings[report_uid] = report
         except Exception:
             error_message = "Failed to load report from {} with {}".format(filename, traceback.format_exc())

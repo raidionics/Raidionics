@@ -747,23 +747,26 @@ class TumorCharacteristicsWidget(QWidget):
         self.original_space_volume_label.setText(str(report_json[structure_name]["Patient"]['Volume (ml)']) + ' ml')
         self.mni_space_volume_label.setText(str(report_json[structure_name]["MNI"]['Volume (ml)']) + ' ml')
 
-        self.laterality_right_label.setText(str(report_json[structure_name]["MNI"]["Location"]['Right laterality (%)']) + ' %')
-        self.laterality_left_label.setText(str(report_json[structure_name]["MNI"]["Location"]['Left laterality (%)']) + ' %')
-        self.laterality_midline_label.setText(str(report_json[structure_name]["MNI"]["Location"]['Midline crossing']))
+        if "Location" in list(report_json[structure_name]["MNI"].keys()):
+            self.laterality_right_label.setText(str(report_json[structure_name]["MNI"]["Location"]['Right laterality (%)']) + ' %')
+            self.laterality_left_label.setText(str(report_json[structure_name]["MNI"]["Location"]['Left laterality (%)']) + ' %')
+            self.laterality_midline_label.setText(str(report_json[structure_name]["MNI"]["Location"]['Midline crossing']))
 
-        self.shape_longaxis_label.setText(str(round(report_json[structure_name]["MNI"]["Shape"]['Long-axis diameter (mm)']), 2) + ' mm')
-        self.shape_shortaxis_label.setText(str(round(report_json[structure_name]["MNI"]["Shape"]['Short-axis diameter (mm)']), 2) + ' mm')
-        self.shape_feret_label.setText(str(round(report_json[structure_name]["MNI"]["Shape"]['Feret diameter (mm)']), 2) + ' mm')
-        self.shape_equivalentarea_label.setText(str(round(report_json[structure_name]["MNI"]["Shape"]['Equivalent diameter area (mm)']), 2) + ' mm')
+        if "Shape" in list(report_json[structure_name]["MNI"].keys()):
+            self.shape_longaxis_label.setText(str(round(report_json[structure_name]["MNI"]["Shape"]['Long-axis diameter (mm)'], 2)) + ' mm')
+            self.shape_shortaxis_label.setText(str(round(report_json[structure_name]["MNI"]["Shape"]['Short-axis diameter (mm)'], 2)) + ' mm')
+            self.shape_feret_label.setText(str(round(report_json[structure_name]["MNI"]["Shape"]['Feret diameter (mm)'], 2)) + ' mm')
+            self.shape_equivalentarea_label.setText(str(round(report_json[structure_name]["MNI"]["Shape"]['Equivalent diameter area (mm)'], 2)) + ' mm')
 
-        self.multifocality_pieces_label.setText(str(report_json[structure_name]["MNI"]["Multifocality"]['Elements']))
-        if report_json[structure_name]["MNI"]["Multifocality"]["Elements"] > 1:
-            self.multifocality_distance_label.setText(str(round(report_json[structure_name]["MNI"]["Multifocality"]['Max distance (mm)'], 3)) + ' mm')
-            self.multifocality_distance_header_label.setVisible(True)
-            self.multifocality_distance_label.setVisible(True)
-        else:
-            self.multifocality_distance_header_label.setVisible(False)
-            self.multifocality_distance_label.setVisible(False)
+        if "Multifocality" in list(report_json[structure_name]["MNI"].keys()):
+            self.multifocality_pieces_label.setText(str(report_json[structure_name]["MNI"]["Multifocality"]['Elements']))
+            if report_json[structure_name]["MNI"]["Multifocality"]["Elements"] > 1:
+                self.multifocality_distance_label.setText(str(round(report_json[structure_name]["MNI"]["Multifocality"]['Max distance (mm)'], 3)) + ' mm')
+                self.multifocality_distance_header_label.setVisible(True)
+                self.multifocality_distance_label.setVisible(True)
+            else:
+                self.multifocality_distance_header_label.setVisible(False)
+                self.multifocality_distance_label.setVisible(False)
 
         if 'Index' in report_json[structure_name]["MNI"]["Resectability"].keys():
             self.resection_index_label.setText(str(round(report_json[structure_name]["MNI"]["Resectability"]['Index'], 4)))

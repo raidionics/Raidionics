@@ -566,6 +566,7 @@ class AnnotationVolume:
         A display copy of the annotation volume is set up, allowing for on-the-fly modifications.
 
         @TODO. Check if more than one label in the file?
+        @TODO. Warning is triggered for a double registered annotation (FLAIR > T1 > MNI)...
         """
         base_volume = self._resampled_input_volume
 

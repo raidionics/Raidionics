@@ -448,6 +448,9 @@ def collect_results(patient_parameters, pipeline):
 
                 if os.path.exists(dest_file):  # Should always exist
                     report_uid, error_msg = patient_parameters.import_report(dest_file, None)
+                    if error_msg is not None:
+                        logging.error(error_msg)
+                        continue
                     patient_parameters.reportings[report_uid].set_reporting_type("Surgical")
                     results['Report'].append(report_uid)
         except Exception:
