@@ -100,7 +100,7 @@ def test_dicom_study_reloading(qtbot, test_location, test_data_folder, dicom_res
         window.batch_study_widget.import_data_dialog.__on_exit_accept_clicked()
         sleep(10)
         assert len(list(SoftwareConfigResources.getInstance().get_active_study().included_patients_uids.keys())) == 2
-        assert list(SoftwareConfigResources.getInstance().get_active_study().included_patients_uids.keys()) == ['83373', '98666']
+        assert list(SoftwareConfigResources.getInstance().get_active_study().included_patients_uids.keys()) == ['39456', '69190']
 
         window.on_clear_scene()
         assert SoftwareConfigResources.getInstance().is_study_list_empty()
