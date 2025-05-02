@@ -414,12 +414,19 @@ class TimestampsLayerInteractor(QWidget):
             self.timestamps_widget[i].on_radiological_sequences_imported()
 
     def on_process_started(self) -> None:
-        self.timestamps_widget[list(self.timestamps_widget.keys())[self.timestamp_selector_combobox.currentIndex()]].on_process_started()
-        self.timestamp_add_pushbutton.setEnabled(False)
-        self.timestamp_remove_pushbutton.setEnabled(False)
+        """
+        When a process is starting, some options have to be disabled if viewing in single mode. Unsure what happens
+        when switching from study to patient mode while a batch process is ongoing...
+        While in study mode, the timestamp widgets are not created.
+        """
+        if len(self.timestamps_widget) != 0:
+            self.timestamps_widget[list(self.timestamps_widget.keys())[self.timestamp_selector_combobox.currentIndex()]].on_process_started()
+            self.timestamp_add_pushbutton.setEnabled(False)
+            self.timestamp_remove_pushbutton.setEnabled(False)
 
     def on_process_finished(self) -> None:
-        self.timestamps_widget[list(self.timestamps_widget.keys())[self.timestamp_selector_combobox.currentIndex()]].on_process_finished()
-        self.timestamp_add_pushbutton.setEnabled(True)
-        self.timestamp_remove_pushbutton.setEnabled(True)
-        self.timestamp_selector_combobox.setCurrentIndex(0)
+        if len(self.timestamps_widget) != 0:
+            self.timestamps_widget[list(self.timestamps_widget.keys())[self.timestamp_selector_combobox.currentIndex()]].on_process_finished()
+            self.timestamp_add_pushbutton.setEnabled(True)
+            self.timestamp_remove_pushbutton.setEnabled(True)
+            self.timestamp_selector_combobox.setCurrentIndex(0)

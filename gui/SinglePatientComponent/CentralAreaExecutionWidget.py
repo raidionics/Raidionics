@@ -216,38 +216,3 @@ class CentralAreaExecutionWidget(QLabel):
 
     def on_process_message(self, mess):
         print("Collected message: {}.\n".format(mess))
-
-    def assertion_input_compatible(self, tumor_type: str) -> bool:
-        # Making sure an MRI series with the proper sequence type has been loaded and tagged.
-        if tumor_type != 'Low-Grade Glioma':
-            valid_ids = SoftwareConfigResources.getInstance().get_active_patient().get_all_mri_volumes_for_sequence_type(MRISequenceType.T1c)
-            if len(valid_ids) == 0:
-                box = QMessageBox(self)
-                box.setWindowTitle("Missing contrast-enhanced MRI scan")
-                box.setText("Please make sure to load a contrast-enhanced MRI scan for running this task.\n"
-                            "Also make sure to properly fill in the sequence type attribute for the loaded "
-                            "MRI Series in the right-hand panel!")
-                box.setIcon(QMessageBox.Warning)
-                box.setStyleSheet("""QLabel{
-                color: rgba(0, 0, 0, 1);
-                background-color: rgba(255, 255, 255, 1);
-                }""")
-                box.exec()
-                return False
-        else:
-            valid_ids = SoftwareConfigResources.getInstance().get_active_patient().get_all_mri_volumes_for_sequence_type(MRISequenceType.FLAIR)
-            if len(valid_ids) == 0:
-                box = QMessageBox(self)
-                box.setWindowTitle("Missing FLAIR MRI scan")
-                box.setText("Please make sure to load a contrast-enhanced MRI scan for running this task.\n"
-                            "Also make sure to properly fill in the sequence type attribute for the loaded "
-                            "MRI Series in the right-hand panel!")
-                box.setIcon(QMessageBox.Warning)
-                box.setStyleSheet("""QLabel{
-                color: rgba(0, 0, 0, 1);
-                background-color: rgba(255, 255, 255, 1);
-                }""")
-                box.exec()
-                return False
-
-        return True

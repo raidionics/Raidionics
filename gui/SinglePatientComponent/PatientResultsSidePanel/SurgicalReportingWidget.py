@@ -69,6 +69,26 @@ class SurgicalReportingWidget(QWidget):
         self.resection_category_layout.addWidget(self.resection_category_label)
         self.layout.addLayout(self.resection_category_layout)
 
+        self.postoperative_flairchanges_volume_layout = QHBoxLayout()
+        self.postoperative_flairchanges_volume_layout.setSpacing(0)
+        self.postoperative_flairchanges_volume_layout.setContentsMargins(0, 0, 0, 0)
+        self.postoperative_flairchanges_volume_header_label = QLabel("Postoperative FLAIR changes volume: ")
+        self.postoperative_flairchanges_volume_label = QLabel(" - ml")
+        self.postoperative_flairchanges_volume_layout.addWidget(self.postoperative_flairchanges_volume_header_label)
+        self.postoperative_flairchanges_volume_layout.addStretch(1)
+        self.postoperative_flairchanges_volume_layout.addWidget(self.postoperative_flairchanges_volume_label)
+        self.layout.addLayout(self.postoperative_flairchanges_volume_layout)
+
+        self.postoperative_cavity_volume_layout = QHBoxLayout()
+        self.postoperative_cavity_volume_layout.setSpacing(0)
+        self.postoperative_cavity_volume_layout.setContentsMargins(0, 0, 0, 0)
+        self.postoperative_cavity_volume_header_label = QLabel("Postoperative cavity volume: ")
+        self.postoperative_cavity_volume_label = QLabel(" - ml")
+        self.postoperative_cavity_volume_layout.addWidget(self.postoperative_cavity_volume_header_label)
+        self.postoperative_cavity_volume_layout.addStretch(1)
+        self.postoperative_cavity_volume_layout.addWidget(self.postoperative_cavity_volume_label)
+        self.layout.addLayout(self.postoperative_cavity_volume_layout)
+
         self.layout.addStretch(1)
 
     def __set_layout_dimensions(self):
@@ -83,6 +103,12 @@ class SurgicalReportingWidget(QWidget):
 
         self.resection_category_header_label.setFixedHeight(20)
         self.resection_category_label.setFixedHeight(20)
+
+        self.postoperative_flairchanges_volume_header_label.setFixedHeight(20)
+        self.postoperative_flairchanges_volume_label.setFixedHeight(20)
+
+        self.postoperative_cavity_volume_header_label.setFixedHeight(20)
+        self.postoperative_cavity_volume_label.setFixedHeight(20)
 
     def __set_connections(self):
         pass
@@ -159,6 +185,38 @@ class SurgicalReportingWidget(QWidget):
         font-size:13px;
         }""")
 
+        self.postoperative_flairchanges_volume_header_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        text-align:left;
+        font:semibold;
+        font-size:14px;
+        }""")
+
+        self.postoperative_flairchanges_volume_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        text-align:right;
+        font:semibold;
+        font-size:14px;
+        }""")
+
+        self.postoperative_cavity_volume_header_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        text-align:left;
+        font:semibold;
+        font-size:14px;
+        }""")
+
+        self.postoperative_cavity_volume_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        text-align:right;
+        font:semibold;
+        font-size:14px;
+        }""")
+
     def adjustSize(self):
         pass
 
@@ -172,10 +230,14 @@ class SurgicalReportingWidget(QWidget):
             # No report has been generated for the patient, skipping the rest.
             return
 
-        self.preoperative_tumor_volume_label.setText(str(report_json['preop_volume']) + ' ml')
-        self.postoperative_tumor_volume_label.setText(str(report_json['postop_volume']) + ' ml')
-        self.extent_resection_label.setText(str(np.round(report_json['eor'], 2)) + ' %')
+        self.preoperative_tumor_volume_label.setText(str(round(report_json['preop_volume'], 3)) + ' ml')
+        self.postoperative_tumor_volume_label.setText(str(round(report_json['postop_volume'], 3)) + ' ml')
+        self.extent_resection_label.setText(str(round(report_json['eor'], 2)) + ' %')
         self.resection_category_label.setText(report_json['resection_category'])
+        if report_json['flairchanges_postop_volume'] is not None:
+            self.postoperative_flairchanges_volume_label.setText(str(round(report_json['flairchanges_postop_volume'], 3)) + ' ml')
+        if report_json['cavity_postop_volume'] is not None:
+            self.postoperative_cavity_volume_label.setText(str(round(report_json['cavity_postop_volume'], 3)) + ' ml')
 
     def on_size_request(self):
         self.resizeRequested.emit()

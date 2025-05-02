@@ -117,7 +117,7 @@ class ActionsInteractorWidget(QWidget):
         self.advanced_actions_groupbox_layout.addLayout(self.timestamp_target_layout)
         self.advanced_actions_groupbox_layout.addLayout(self.segmentation_class_layout)
         self.advanced_actions_groupbox_layout.addWidget(self.run_action_pushbutton)
-        self.layout.addWidget(self.advanced_actions_groupbox)
+        # self.layout.addWidget(self.advanced_actions_groupbox)  # Disabling for now, not sure how to have it.
 
     def __set_connections(self):
         self.run_folder_classification.clicked.connect(self.on_execute_folders_classification)
@@ -454,6 +454,7 @@ class ActionsInteractorWidget(QWidget):
         self.run_segmentation_postop.setEnabled(False)
         self.run_rads_preop.setEnabled(False)
         self.run_rads_postop.setEnabled(False)
+        self.run_rads_surgical.setStyleSheet(False)
         self.action_type_combobox.setEnabled(False)
         self.action_type_combobox.setCurrentIndex(0)
         self.timestamp_target_combobox.setEnabled(False)
@@ -478,11 +479,16 @@ class ActionsInteractorWidget(QWidget):
         self.timestamp_target_combobox.addItems(items)
 
     def on_enable_actions(self):
+        """
+        @TODO. Should be triggered also when changing the active patient, if it has image content (right now if the
+        patient is loaded from the batch mode, it is not triggered).
+        """
         self.run_folder_classification.setEnabled(True)
         self.run_segmentation_preop.setEnabled(True)
         self.run_segmentation_postop.setEnabled(True)
         self.run_rads_preop.setEnabled(True)
         self.run_rads_postop.setEnabled(True)
+        self.run_rads_surgical.setEnabled(True)
         self.action_type_combobox.setEnabled(True)
         self.timestamp_target_combobox.setEnabled(True)
         self.segmentation_class_combobox.setEnabled(True)

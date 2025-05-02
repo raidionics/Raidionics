@@ -196,7 +196,7 @@ class SoftwareSettingsDialog(QDialog):
         self.processing_segmentation_models_inputs_groupbox.setTitle("Segmentation models inputs")
         self.processing_segmentation_models_inputs_groupboxlayout = QVBoxLayout()
         self.processing_segmentation_models_inputs_groupbox.setLayout(self.processing_segmentation_models_inputs_groupboxlayout)
-        self.processing_segmentation_options_base_layout.addWidget(self.processing_segmentation_models_inputs_groupbox)
+        # self.processing_segmentation_options_base_layout.addWidget(self.processing_segmentation_models_inputs_groupbox)
 
         self.processing_segmentation_models_groupbox = QGroupBox()
         self.processing_segmentation_models_groupbox.setTitle("Segmentation models runtime")

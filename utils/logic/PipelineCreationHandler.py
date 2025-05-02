@@ -444,32 +444,16 @@ def __create_surgical_reporting_pipeline(tumor_type: str) -> dict:
 
     return pip
 
-def __create_custom_pipeline(task, tumor_type, patient_parameters):
+def __create_custom_pipeline(task: str, tumor_type: str, patient_parameters: PatientParameters) -> dict:
     split_task = task.split('_')
     pip = {}
     pip_num_int = 0
 
     if split_task[0] == "Classification":
-        pip_num_int = pip_num_int + 1
-        pip_num = str(pip_num_int)
-        pip[pip_num] = {}
-        pip[pip_num]["task"] = 'Classification'
-        pip[pip_num]["inputs"] = {}
-        pip[pip_num]["target"] = ["MRSequence"]
-        pip[pip_num]["model"] = 'MRI_SequenceClassifier'
-        pip[pip_num]["description"] = "Classification of the MRI sequence type for all input scans"
-        download_model(model_name='MRI_SequenceClassifier')
+        include_radiological_volume_classifier(pip=pip, pip_num_start=pip_num_int)
     elif split_task[0] == "Segmentation":
         if not UserPreferencesStructure.getInstance().use_manual_sequences:
-            pip_num_int = pip_num_int + 1
-            pip_num = str(pip_num_int)
-            pip[pip_num] = {}
-            pip[pip_num]["task"] = 'Classification'
-            pip[pip_num]["inputs"] = {}
-            pip[pip_num]["target"] = ["MRSequence"]
-            pip[pip_num]["model"] = 'MRI_SequenceClassifier'
-            pip[pip_num]["description"] = "Classification of the MRI sequence type for all input scans"
-            download_model(model_name='MRI_SequenceClassifier')
+            include_radiological_volume_classifier(pip=pip, pip_num_start=pip_num_int)
 
         base_model_name = "MRI_" if SoftwareConfigResources.getInstance().software_medical_specialty == "neurology" else "CT_"
         timestamp_order = int(split_task[2][1:])

@@ -298,9 +298,9 @@ class StudiesSidePanelWidget(QWidget):
             self.single_study_widgets[study_uid].manual_header_pushbutton_clicked(True)
             self.__on_study_selection(True, study_uid)
 
-    def on_batch_pipeline_execution_requested(self, study_id, pipeline_task, model_name):
+    def on_batch_pipeline_execution_requested(self, study_id, pipeline_task, tumor_type):
         self.bottom_add_study_pushbutton.setEnabled(False)
-        self.batch_pipeline_execution_requested.emit(study_id, pipeline_task, model_name)
+        self.batch_pipeline_execution_requested.emit(study_id, pipeline_task, tumor_type)
 
     def on_processing_advanced(self):
         self.single_study_widgets[SoftwareConfigResources.getInstance().active_study_name].on_processing_advanced()
