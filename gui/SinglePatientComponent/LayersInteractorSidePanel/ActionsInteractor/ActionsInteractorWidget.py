@@ -454,7 +454,7 @@ class ActionsInteractorWidget(QWidget):
         self.run_segmentation_postop.setEnabled(False)
         self.run_rads_preop.setEnabled(False)
         self.run_rads_postop.setEnabled(False)
-        self.run_rads_surgical.setStyleSheet(False)
+        self.run_rads_surgical.setEnabled(False)
         self.action_type_combobox.setEnabled(False)
         self.action_type_combobox.setCurrentIndex(0)
         self.timestamp_target_combobox.setEnabled(False)
