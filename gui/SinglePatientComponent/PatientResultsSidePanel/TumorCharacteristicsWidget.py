@@ -32,9 +32,9 @@ class TumorCharacteristicsWidget(QWidget):
 
     def __set_interface(self):
         self.layout = QVBoxLayout(self)
-        self.__set_multifocality_part()
         self.__set_volumes_part()
         self.__set_shape_part()
+        self.__set_multifocality_part()
         self.__set_laterality_part()
         self.__set_resectability_part()
         self.__set_cortical_structures_part()
@@ -70,7 +70,7 @@ class TumorCharacteristicsWidget(QWidget):
         self.volumes_collapsiblegroupbox.content_layout.setContentsMargins(20, 0, 20, 0)
 
     def __set_shape_part(self):
-        self.shape_collapsiblegroupbox = QCollapsibleWidget("Shape")
+        self.shape_collapsiblegroupbox = QCollapsibleWidget("Diameters")
         self.shape_collapsiblegroupbox.set_icon_filenames(expand_fn=os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                                                    '../../Images/collapsed_icon.png'),
                                                             collapse_fn=os.path.join(os.path.dirname(os.path.realpath(__file__)),
@@ -180,7 +180,7 @@ class TumorCharacteristicsWidget(QWidget):
         self.resectability_collapsiblegroupbox.content_layout.setContentsMargins(20, 0, 20, 0)
 
     def __set_multifocality_part(self):
-        self.multifocality_collapsiblegroupbox = QCollapsibleWidget("Tumor")
+        self.multifocality_collapsiblegroupbox = QCollapsibleWidget("Multifocality")
         self.multifocality_collapsiblegroupbox.set_icon_filenames(expand_fn=os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                                                          '../../Images/collapsed_icon.png'),
                                                                   collapse_fn=os.path.join(os.path.dirname(os.path.realpath(__file__)),
@@ -752,11 +752,11 @@ class TumorCharacteristicsWidget(QWidget):
             self.laterality_left_label.setText(str(report_json[structure_name]["MNI"]["Location"]['Left laterality (%)']) + ' %')
             self.laterality_midline_label.setText(str(report_json[structure_name]["MNI"]["Location"]['Midline crossing']))
 
-        if "Shape" in list(report_json[structure_name]["MNI"].keys()):
-            self.shape_longaxis_label.setText(str(round(report_json[structure_name]["MNI"]["Shape"]['Long-axis diameter (mm)'], 2)) + ' mm')
-            self.shape_shortaxis_label.setText(str(round(report_json[structure_name]["MNI"]["Shape"]['Short-axis diameter (mm)'], 2)) + ' mm')
-            self.shape_feret_label.setText(str(round(report_json[structure_name]["MNI"]["Shape"]['Feret diameter (mm)'], 2)) + ' mm')
-            self.shape_equivalentarea_label.setText(str(round(report_json[structure_name]["MNI"]["Shape"]['Equivalent diameter area (mm)'], 2)) + ' mm')
+        if "Diameters" in list(report_json[structure_name]["MNI"].keys()):
+            self.shape_longaxis_label.setText(str(round(report_json[structure_name]["MNI"]["Diameters"]['Long-axis diameter (mm)'], 1)) + ' mm')
+            self.shape_shortaxis_label.setText(str(round(report_json[structure_name]["MNI"]["Diameters"]['Short-axis diameter (mm)'], 1)) + ' mm')
+            self.shape_feret_label.setText(str(round(report_json[structure_name]["MNI"]["Diameters"]['Feret diameter (mm)'], 1)) + ' mm')
+            self.shape_equivalentarea_label.setText(str(round(report_json[structure_name]["MNI"]["Diameters"]['Equivalent diameter area (mm)'], 1)) + ' mm')
 
         if "Multifocality" in list(report_json[structure_name]["MNI"].keys()):
             self.multifocality_pieces_label.setText(str(report_json[structure_name]["MNI"]["Multifocality"]['Elements']))

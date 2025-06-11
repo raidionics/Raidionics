@@ -64,6 +64,7 @@ def window():
     return window
 
 """ Remaining tests to add:
+* Should add a patient with two proper timestamps and all atlases/reports/etc...
 # * Changing display space from Patient to MNI and back
 """
 

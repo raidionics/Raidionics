@@ -135,7 +135,7 @@ class AtlasVolume:
             self._timestamp_uid = parameters['investigation_timestamp_uid']
             self._timestamp_folder_name = parameters['raw_input_filepath'].split('/')[0]
             if os.name == 'nt':
-                self._timestamp_folder_name = list(PurePath(parameters['raw_input_filepath|']).parts)[0]
+                self._timestamp_folder_name = list(PurePath(parameters['raw_input_filepath']).parts)[0]
 
             self._raw_input_filepath = os.path.join(self._output_patient_folder, parameters['raw_input_filepath'])
             self._class_description = pd.read_csv(self._class_description_filename)
