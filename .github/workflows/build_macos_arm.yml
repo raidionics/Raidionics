@@ -23,10 +23,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: Set up Python 3.8
+    - name: Set up Python 3.9
       uses: actions/setup-python@v5
       with:
-        python-version: "3.8"
+        python-version: "3.9"
 
     - name: Setup OpenGL
       run: brew install mesa-glu libxi libxkbcommon
@@ -51,7 +51,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install git+https://github.com/dbouget/raidionics_rads_lib.git@postop_package
         pip install -r assets/requirements.txt
-        pip install matplotlib==3.3.4
+        pip install matplotlib
         pip install --force-reinstall --no-cache-dir pyside6
 
     - name: Integration tests
