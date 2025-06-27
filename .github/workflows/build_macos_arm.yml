@@ -55,11 +55,12 @@ jobs:
         pip install --force-reinstall --no-cache-dir pyside6
 
     - name: Integration tests
+      timeout-minutes: 10
       env:
         DISPLAY: ':99.0'
       run: |
           pip install pytest-qt pytest-cov pytest-timeout
-          pytest -vvv --cov=gui --cov=utils ${{github.workspace}}/integration_tests --timeout=60 --log-cli-level=DEBUG
+          pytest -vvv --cov=gui --cov=utils ${{github.workspace}}/integration_tests --timeout=60 --timeout-method=thread --log-cli-level=DEBUG
 
     - name: Build software
       run: |
