@@ -125,6 +125,16 @@ def __create_preop_segmentation_pipeline(tumor_type: str) -> dict:
         pip[pip_num]["description"] = "Identifying the best tumor core segmentation model for existing inputs"
         download_model(model_name='MRI_TumorCore')
 
+        pip_num_int = pip_num_int + 1
+        pip_num = str(pip_num_int)
+        pip[pip_num] = {}
+        pip[pip_num]["task"] = 'Model selection'
+        pip[pip_num]["model"] = 'MRI_Necrosis'
+        pip[pip_num]["timestamp"] = 0
+        pip[pip_num]["format"] = "thresholding"
+        pip[pip_num]["description"] = "Identifying the best necrosis segmentation model for existing inputs"
+        download_model(model_name='MRI_Necrosis')
+
     pip_num_int = pip_num_int + 1
     pip_num = str(pip_num_int)
     pip[pip_num] = {}
@@ -136,6 +146,23 @@ def __create_preop_segmentation_pipeline(tumor_type: str) -> dict:
     download_model(model_name='MRI_FLAIRChanges')
 
     # @TODO. Might add other models here, such as the cavity model (even preop) for re-operation cases
+
+    pip_num_int = pip_num_int + 1
+    pip_num = str(pip_num_int)
+    pip[pip_num] = {}
+    pip[pip_num]["task"] = "Segmentation refinement"
+    pip[pip_num]["inputs"] = {}
+    pip[pip_num]["inputs"]['0'] = {}
+    pip[pip_num]["inputs"]['0']["timestamp"] = 0
+    pip[pip_num]["inputs"]['0']["sequence"] = "T1-CE" if get_type_from_string(TumorType, tumor_type) == TumorType.CE else "FLAIR"
+    pip[pip_num]["inputs"]['0']['labels'] = "Tumor"
+    pip[pip_num]["inputs"]['0']['space'] = {}
+    pip[pip_num]["inputs"]['0']['space']["timestamp"] = 0
+    pip[pip_num]["inputs"]['0']['space']["sequence"] = "T1-CE" if get_type_from_string(TumorType, tumor_type) == TumorType.CE else "FLAIR"
+    pip[pip_num]["operation"] = "global_context"
+    pip[pip_num]["args"] = []
+    pip[pip_num]["description"] = "Global segmented structures context refinement"
+
     return pip
 
 
@@ -258,6 +285,16 @@ def __create_preop_reporting_pipeline(tumor_type: str) -> dict:
         pip[pip_num]["description"] = "Identifying the best tumor core segmentation model for existing inputs"
         download_model(model_name='MRI_TumorCore')
 
+        pip_num_int = pip_num_int + 1
+        pip_num = str(pip_num_int)
+        pip[pip_num] = {}
+        pip[pip_num]["task"] = 'Model selection'
+        pip[pip_num]["model"] = 'MRI_Necrosis'
+        pip[pip_num]["timestamp"] = 0
+        pip[pip_num]["format"] = "thresholding"
+        pip[pip_num]["description"] = "Identifying the best necrosis segmentation model for existing inputs"
+        download_model(model_name='MRI_Necrosis')
+
     pip_num_int = pip_num_int + 1
     pip_num = str(pip_num_int)
     pip[pip_num] = {}
@@ -363,6 +400,16 @@ def __create_surgical_reporting_pipeline(tumor_type: str) -> dict:
         pip[pip_num]["format"] = "thresholding"
         pip[pip_num]["description"] = "Identifying the best tumor core segmentation model for existing inputs"
         download_model(model_name='MRI_TumorCore')
+
+        pip_num_int = pip_num_int + 1
+        pip_num = str(pip_num_int)
+        pip[pip_num] = {}
+        pip[pip_num]["task"] = 'Model selection'
+        pip[pip_num]["model"] = 'MRI_Necrosis'
+        pip[pip_num]["timestamp"] = 0
+        pip[pip_num]["format"] = "thresholding"
+        pip[pip_num]["description"] = "Identifying the best necrosis segmentation model for existing inputs"
+        download_model(model_name='MRI_Necrosis')
 
     pip_num_int = pip_num_int + 1
     pip_num = str(pip_num_int)

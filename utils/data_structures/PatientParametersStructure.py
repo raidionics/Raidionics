@@ -453,7 +453,8 @@ class PatientParameters:
 
                 self.mri_volumes[data_uid] = MRIVolume(uid=data_uid, inv_ts_uid=investigation_ts,
                                                         input_filename=filename,
-                                                        output_patient_folder=self._output_folder)
+                                                        output_patient_folder=self._output_folder,
+                                                       ts_folder_name=self.investigation_timestamps[investigation_ts].folder_name)
             else:
                 if len(self.mri_volumes) != 0:
                     # @TODO. Not optimal to set a default parent MRI, forces a manual update after, must be improved.
