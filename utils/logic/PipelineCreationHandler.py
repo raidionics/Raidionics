@@ -278,6 +278,23 @@ def __create_preop_reporting_pipeline(tumor_type: str) -> dict:
         pip_num_int = pip_num_int + 1
         pip_num = str(pip_num_int)
         pip[pip_num] = {}
+        pip[pip_num]["task"] = "Classification"
+        pip[pip_num]["inputs"] = {}
+        pip[pip_num]["inputs"]['0'] = {}
+        pip[pip_num]["inputs"]['0']["timestamp"] = 0
+        pip[pip_num]["inputs"]['0']["sequence"] = "T1-CE"
+        pip[pip_num]["inputs"]['0']['labels'] = None
+        pip[pip_num]["inputs"]['0']['space'] = {}
+        pip[pip_num]["inputs"]['0']['space']["timestamp"] = 0
+        pip[pip_num]["inputs"]['0']['space']["sequence"] = "T1-CE"
+        pip[pip_num]["target"] = ["BrainTumorType"]
+        pip[pip_num]["model"] = "MRI_TumorTypeClassifier"
+        pip[pip_num]["description"] = "Classification of the contrast-enhancing tumor type in T1CE"
+        download_model(model_name='MRI_TumorTypeClassifier')
+
+        pip_num_int = pip_num_int + 1
+        pip_num = str(pip_num_int)
+        pip[pip_num] = {}
         pip[pip_num]["task"] = 'Model selection'
         pip[pip_num]["model"] = 'MRI_TumorCore'
         pip[pip_num]["timestamp"] = 0
@@ -394,6 +411,23 @@ def __create_surgical_reporting_pipeline(tumor_type: str) -> dict:
         pip_num_int = pip_num_int + 1
         pip_num = str(pip_num_int)
         pip[pip_num] = {}
+        pip[pip_num]["task"] = "Classification"
+        pip[pip_num]["inputs"] = {}
+        pip[pip_num]["inputs"]['0'] = {}
+        pip[pip_num]["inputs"]['0']["timestamp"] = 0
+        pip[pip_num]["inputs"]['0']["sequence"] = "T1-CE"
+        pip[pip_num]["inputs"]['0']['labels'] = None
+        pip[pip_num]["inputs"]['0']['space'] = {}
+        pip[pip_num]["inputs"]['0']['space']["timestamp"] = 0
+        pip[pip_num]["inputs"]['0']['space']["sequence"] = "T1-CE"
+        pip[pip_num]["target"] = ["BrainTumorType"]
+        pip[pip_num]["model"] = "MRI_TumorTypeClassifier"
+        pip[pip_num]["description"] = "Classification of the contrast-enhancing tumor type in T1CE"
+        download_model(model_name='MRI_TumorTypeClassifier')
+
+        pip_num_int = pip_num_int + 1
+        pip_num = str(pip_num_int)
+        pip[pip_num] = {}
         pip[pip_num]["task"] = 'Model selection'
         pip[pip_num]["model"] = 'MRI_TumorCore'
         pip[pip_num]["timestamp"] = 0
@@ -421,15 +455,15 @@ def __create_surgical_reporting_pipeline(tumor_type: str) -> dict:
     pip[pip_num]["description"] = "Identifying the best FLAIR changes segmentation model for existing inputs"
     download_model(model_name='MRI_FLAIRChanges')
 
-    pip_num_int = pip_num_int + 1
-    pip_num = str(pip_num_int)
-    pip[pip_num] = {}
-    pip[pip_num]["task"] = 'Model selection'
-    pip[pip_num]["model"] = 'MRI_Cavity'
-    pip[pip_num]["timestamp"] = 0
-    pip[pip_num]["format"] = "thresholding"
-    pip[pip_num]["description"] = "Identifying the best resection cavity segmentation model for existing inputs"
-    download_model(model_name='MRI_Cavity')
+    # pip_num_int = pip_num_int + 1
+    # pip_num = str(pip_num_int)
+    # pip[pip_num] = {}
+    # pip[pip_num]["task"] = 'Model selection'
+    # pip[pip_num]["model"] = 'MRI_Cavity'
+    # pip[pip_num]["timestamp"] = 0
+    # pip[pip_num]["format"] = "thresholding"
+    # pip[pip_num]["description"] = "Identifying the best resection cavity segmentation model for existing inputs"
+    # download_model(model_name='MRI_Cavity')
 
     pip_num_int = pip_num_int + 1
     pip_num = str(pip_num_int)

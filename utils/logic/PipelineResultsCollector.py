@@ -40,10 +40,11 @@ def collect_results(patient_parameters, pipeline):
             pip_step = pipeline[step]
             if pip_step["task"] == "Classification":
                 # @TODO. Will have to be more generic when more than one classification model exists.
-                classification_results_filename = os.path.join(patient_parameters.output_folder, 'reporting',
-                                                               pip_step["target"][0] + '_classification_results.csv')
-                df = pd.read_csv(classification_results_filename)
                 if pip_step["target"][0] == "MRSequence":
+                    classification_results_filename = os.path.join(patient_parameters.output_folder, 'reporting',
+                                                                   pip_step["target"][
+                                                                       0] + '_classification_results.csv')
+                    df = pd.read_csv(classification_results_filename)
                     volume_basenames = list(df['File'].values)
                     for vn in volume_basenames:
                         volume_object = patient_parameters.get_mri_volume_by_base_filename(vn)
@@ -53,6 +54,12 @@ def collect_results(patient_parameters, pipeline):
                             logging.warning(f"Classification results collection failed. "
                                             f"Filename {vn} not matching any patient MRI volume.")
                     results['Classification'].append(pip_step["target"][0])
+                elif pip_step["target"][0] == "BrainTumorType":
+                    classification_results_filename = os.path.join(patient_parameters.output_folder, 'reporting',
+                                                                   pip_step["target"][
+                                                                       0] + '_classification_results_raw.csv')
+                    # For now it is not necessary to read this file, as the info is featured inside the reporting file.
+                    # @TODO. Open this file to get the probability of the classification?
                 else:
                     raise ValueError("Handling of classification results not handled yet for {}".format(pip_step["target"][0]))
             elif pip_step["task"] == "Segmentation":

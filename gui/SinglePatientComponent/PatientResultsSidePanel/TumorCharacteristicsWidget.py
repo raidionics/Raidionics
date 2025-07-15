@@ -43,12 +43,21 @@ class TumorCharacteristicsWidget(QWidget):
         self.layout.addStretch(1)
 
     def __set_volumes_part(self):
-        self.volumes_collapsiblegroupbox = QCollapsibleWidget("Volumes")
+        self.volumes_collapsiblegroupbox = QCollapsibleWidget("Type and Volumes")
         self.volumes_collapsiblegroupbox.set_icon_filenames(expand_fn=os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                                                    '../../Images/collapsed_icon.png'),
                                                             collapse_fn=os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                                                      '../../Images/uncollapsed_icon.png'))
         self.layout.addWidget(self.volumes_collapsiblegroupbox)
+
+        self.tumor_type_header_label = QLabel("Tumor type:")
+        self.tumor_type_label = QLabel(" - ")
+        self.tumor_type_label.setStyleSheet("QLabel{text-align:right;}")
+        self.tumor_type_layout = QHBoxLayout()
+        self.tumor_type_layout.addWidget(self.tumor_type_header_label)
+        self.tumor_type_layout.addStretch(1)
+        self.tumor_type_layout.addWidget(self.tumor_type_label)
+        self.volumes_collapsiblegroupbox.content_layout.addLayout(self.tumor_type_layout)
 
         self.original_space_volume_header_label = QLabel("Original space:")
         self.original_space_volume_label = QLabel(" - (ml) ")
@@ -240,12 +249,14 @@ class TumorCharacteristicsWidget(QWidget):
         self.layout.addWidget(self.braingridstructures_collapsiblegroupbox)
 
     def __set_layout_dimensions(self):
+        self.tumor_type_header_label.setFixedHeight(20)
+        self.tumor_type_label.setFixedHeight(20)
         self.original_space_volume_header_label.setFixedHeight(20)
         self.original_space_volume_label.setFixedHeight(20)
         self.mni_space_volume_header_label.setFixedHeight(20)
         self.mni_space_volume_label.setFixedHeight(20)
         self.volumes_collapsiblegroupbox.header.setFixedHeight(40)
-        self.volumes_collapsiblegroupbox.content_widget.setFixedHeight(50)
+        self.volumes_collapsiblegroupbox.content_widget.setFixedHeight(70)
         self.volumes_collapsiblegroupbox.header.set_icon_size(QSize(35, 35))
         self.volumes_collapsiblegroupbox.header.title_label.setFixedHeight(35)
         self.volumes_collapsiblegroupbox.header.background_label.setFixedHeight(40)
@@ -259,7 +270,7 @@ class TumorCharacteristicsWidget(QWidget):
         self.shape_equivalentarea_header_label.setFixedHeight(20)
         self.shape_equivalentarea_label.setFixedHeight(20)
         self.shape_collapsiblegroupbox.header.setFixedHeight(40)
-        self.shape_collapsiblegroupbox.content_widget.setFixedHeight(70)
+        self.shape_collapsiblegroupbox.content_widget.setFixedHeight(100)
         self.shape_collapsiblegroupbox.header.set_icon_size(QSize(35, 35))
         self.shape_collapsiblegroupbox.header.title_label.setFixedHeight(35)
         self.shape_collapsiblegroupbox.header.background_label.setFixedHeight(40)
@@ -331,6 +342,21 @@ class TumorCharacteristicsWidget(QWidget):
             background_color = software_ss["Color3"]
             pressed_background_color = software_ss["Color4"]
             font_style = 'bold'
+
+        self.tumor_type_header_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        text-align:left;
+        font:semibold;
+        font-size:14px;
+        }""")
+        self.tumor_type_label.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        text-align:right;
+        font:semibold;
+        font-size:14px;
+        }""")
 
         #################################### SHAPE CHARACTERISTICS GROUPBOX #########################################
         self.shape_longaxis_header_label.setStyleSheet("""
@@ -744,6 +770,8 @@ class TumorCharacteristicsWidget(QWidget):
             # No report has been generated for the patient, skipping the rest.
             return
 
+        if "Type" in list(report_json[structure_name]["Patient"].keys()):
+            self.tumor_type_label.setText(report_json[structure_name]["Patient"]['Type'])
         self.original_space_volume_label.setText(str(report_json[structure_name]["Patient"]['Volume (ml)']) + ' ml')
         self.mni_space_volume_label.setText(str(report_json[structure_name]["MNI"]['Volume (ml)']) + ' ml')
 
