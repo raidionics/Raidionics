@@ -1,6 +1,5 @@
 import logging
 import math
-from lib2to3.fixes.fix_next import find_assign
 
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QLabel, QHBoxLayout, QScrollArea, QSizePolicy
 from PySide6.QtCore import Qt, QSize, Signal
