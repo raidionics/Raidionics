@@ -76,6 +76,7 @@ jobs:
         pip install -r assets/requirements.txt
 
     - name: Integration tests
+      timeout-minutes: 10
       env:
         DISPLAY: ':99.0'
       run: |

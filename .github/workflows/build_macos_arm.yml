@@ -62,6 +62,10 @@ jobs:
           pip install pytest-qt pytest-cov pytest-timeout
           pytest -vvv --cov=gui --cov=utils ${{github.workspace}}/integration_tests --timeout=120 --timeout-method=thread --log-cli-level=DEBUG
 
+    - name: Clean build artifacts
+      run: |
+        rm -rf build dist __pycache__
+
     - name: Build software
       run: |
         pip install pyinstaller

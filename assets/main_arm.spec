@@ -16,6 +16,15 @@ cwd = os.path.abspath(os.getcwd())
 print("CWD:", cwd)
 print("PLATFORM:", sys.platform)
 
+def safe_symlink(src, dst):
+    try:
+        os.symlink(src, dst)
+    except FileExistsError:
+        os.remove(dst)
+        os.symlink(src, dst)
+
+os.symlink = safe_symlink
+
 # fix hidden imports
 hidden_imports = ["names", "plotly", "sklearn", "scikit-learn", "statsmodels", "gevent", "distutils",
  "PySide6", "raidionicsrads", "raidionicsseg", "rtutils"]
