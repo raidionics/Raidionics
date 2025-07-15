@@ -74,8 +74,6 @@ jobs:
         python -m pip install --upgrade pip
         pip install raidionicsrads
         pip install -r assets/requirements.txt
-#        pip uninstall -y PySide6 PySide6-Addons PySide6-Essentials
-#        pip install --force-reinstall --no-cache-dir pyside6==6.2.4
 
     - name: Integration tests
       env:
@@ -87,7 +85,6 @@ jobs:
 
     - name: Build software
       run: |
-#        pip install pyinstaller==5.13.2
         pip install pyinstaller
         mkdir tmp_dependencies
         pyinstaller --log-level INFO --noconfirm --clean assets/main.spec
