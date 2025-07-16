@@ -1,4 +1,3 @@
-gdown
 names
 PySide6
 plotly
