@@ -18,7 +18,7 @@ print("CWD:", cwd)
 print("PLATFORM:", sys.platform)
 
 # fix hidden imports
-hidden_imports = ["names", "plotly", "ants", "sklearn", "statsmodels", "gevent", "distutils",
+hidden_imports = ["names", "plotly", "gdown", ""ants", "sklearn", "statsmodels", "gevent", "distutils",
  "PySide6.QtCore", "PySide6.QtGui", "PySide6.QtWidgets", "PySide6.QtWebEngineWidgets", "raidionicsrads",
  "raidionicsseg", "rtutils"]
 

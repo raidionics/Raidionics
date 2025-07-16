@@ -24,7 +24,7 @@ print("PLATFORM:", sys.platform)
 # os.symlink = safe_symlink
 
 # fix hidden imports
-hidden_imports = ["names", "plotly", "sklearn", "statsmodels", "gevent", "distutils", "PySide6.QtGui",
+hidden_imports = ["names", "plotly", "gdown", "sklearn", "statsmodels", "gevent", "distutils", "PySide6.QtGui",
 "PySide6.QtCore", "PySide6.QtWidgets", "PySide6.QtWebEngineWidgets", "raidionicsrads", "raidionicsseg", "rtutils"]
 
 # copy dependencies and images, remove if folder already exists
