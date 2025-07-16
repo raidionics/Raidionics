@@ -1,3 +1,7 @@
+import sys
+sys.setrecursionlimit(5000)
+print("/n/nRecursion limit set to:", sys.getrecursionlimit())
+
 import getopt
 import traceback
 import os
