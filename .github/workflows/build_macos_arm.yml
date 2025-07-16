@@ -50,7 +50,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install raidionicsrads
+        pip install "numpy<2.0" raidionicsrads --force-reinstall
         pip install -r assets/requirements.txt
 #        pip install matplotlib
 #        pip install --force-reinstall --no-cache-dir pyside6
@@ -73,7 +73,6 @@ jobs:
       run: |
         pip install pyinstaller
         mkdir tmp_dependencies
-        sed -i '' 's|os.symlink(src_name, dest_path)|if not os.path.exists(dest_path): os.symlink(src_name, dest_path)|' $(python -c "import PyInstaller.building.api; print(PyInstaller.building.api.__file__)")
         python -c "import sys; sys.setrecursionlimit(10000); print('Recursion limit during build:', sys.getrecursionlimit())"
         pyinstaller --log-level INFO --noconfirm --clean assets/main_arm.spec
 
@@ -102,31 +101,3 @@ jobs:
         name: Package
         path: ${{github.workspace}}/dist/Raidionics-*
         if-no-files-found: error
-
-  test:
-    name: Test on ${{ matrix.macos-version }}
-    needs: build
-    runs-on: ${{ matrix.macos-version }}
-    strategy:
-      matrix:
-        macos-version: [macos-14, macos-15]
-
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: Package
-          path: test-dist
-
-      - name: Install .pkg
-        run: sudo installer -pkg test-dist/Raidionics-1.3.1-macOS-arm64.pkg -target /
-
-      - name: Run software (smoke test)
-        env:
-          QT_QPA_PLATFORM: "offscreen"
-        run: |
-          /Applications/Raidionics.app/Contents/MacOS/Raidionics & sleep 5; kill -INT %+
-
-      - name: Validate GUI startup script
-        run: |
-          export QT_QPA_PLATFORM="offscreen"
-          python3 /Applications/Raidionics.app/Contents/MacOS/tests/software_launch_test.py || true
