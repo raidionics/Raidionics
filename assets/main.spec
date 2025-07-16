@@ -19,7 +19,8 @@ print("PLATFORM:", sys.platform)
 
 # fix hidden imports
 hidden_imports = ["names", "plotly", "ants", "sklearn", "statsmodels", "gevent", "distutils",
- "PySide6.QtCore", "PySide6.QtGui", "PySide6.QtWidgets", "raidionicsrads", "raidionicsseg", "rtutils"]
+ "PySide6.QtCore", "PySide6.QtGui", "PySide6.QtWidgets", "PySide6.QtWebEngineWidgets", "raidionicsrads",
+ "raidionicsseg", "rtutils"]
 
 # copy dependencies and images, remove if folder already exists
 if os.path.exists(cwd + "/tmp_dependencies/"):

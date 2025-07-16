@@ -1,5 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
-import sys
+import sys; sys.setrecursionlimit(sys.getrecursionlimit() * 5)
 import os
 import shutil
 from PyInstaller.utils.hooks import collect_data_files
@@ -9,9 +9,6 @@ from numpy import loadtxt
 # necessary for MacOS
 os.environ['LC_CTYPE'] = "en_US.UTF-8"
 os.environ['LANG'] = "en_US.UTF-8"
-
-# Increase recursion limit to prevent RecursionError from PyInstaller
-sys.setrecursionlimit(sys.getrecursionlimit() * 5)
 
 block_cipher = None
 cwd = os.path.abspath(os.getcwd())
@@ -30,7 +27,7 @@ os.symlink = safe_symlink
 
 # fix hidden imports
 hidden_imports = ["names", "plotly", "sklearn", "statsmodels", "gevent", "distutils", "PySide6.QtGui",
-"PySide6.QtCore", "PySide6.QtWidgets", "raidionicsrads", "raidionicsseg", "rtutils"]
+"PySide6.QtCore", "PySide6.QtWidgets", "PySide6.QtWebEngineWidgets", "raidionicsrads", "raidionicsseg", "rtutils"]
 
 # copy dependencies and images, remove if folder already exists
 if os.path.exists(cwd + "/tmp_dependencies/"):
@@ -46,7 +43,7 @@ a = Analysis([cwd + '/main.py'],
              datas=[],
              hiddenimports=hidden_imports,
              hookspath=[os.path.join(cwd, "assets", "hooks")],
-             runtime_hooks=[],
+             runtime_hooks=[os.path.join(cwd, "assets", "hooks", "set_recursion_limit.py")],
              excludes=['PySide6.QtQml'],
              win_no_prefer_redirects=False,
              win_private_assemblies=False,
