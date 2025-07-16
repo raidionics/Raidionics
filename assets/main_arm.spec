@@ -10,6 +10,9 @@ from numpy import loadtxt
 os.environ['LC_CTYPE'] = "en_US.UTF-8"
 os.environ['LANG'] = "en_US.UTF-8"
 
+# Increase recursion limit to prevent RecursionError from PyInstaller
+sys.setrecursionlimit(sys.getrecursionlimit() * 5)
+
 block_cipher = None
 cwd = os.path.abspath(os.getcwd())
 
@@ -26,9 +29,8 @@ def safe_symlink(src, dst):
 os.symlink = safe_symlink
 
 # fix hidden imports
-hidden_imports = ["names", "plotly", "sklearn", "scikit-learn", "statsmodels", "gevent", "distutils",
- "PySide6", "raidionicsrads", "raidionicsseg", "rtutils"]
-hidden_imports = [x.lower() for x in hidden_imports]
+hidden_imports = ["names", "plotly", "sklearn", "statsmodels", "gevent", "distutils", "PySide6.QtGui",
+"PySide6.QtCore", "PySide6.QtWidgets", "raidionicsrads", "raidionicsseg", "rtutils"]
 
 # copy dependencies and images, remove if folder already exists
 if os.path.exists(cwd + "/tmp_dependencies/"):
@@ -43,7 +45,7 @@ a = Analysis([cwd + '/main.py'],
              binaries=[],
              datas=[],
              hiddenimports=hidden_imports,
-             hookspath=[cwd + "/assets/hooks/"],
+             hookspath=[os.path.join(cwd, "assets", "hooks")],
              runtime_hooks=[],
              excludes=['PySide6.QtQml'],
              win_no_prefer_redirects=False,

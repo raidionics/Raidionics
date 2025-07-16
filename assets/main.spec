@@ -18,9 +18,8 @@ print("CWD:", cwd)
 print("PLATFORM:", sys.platform)
 
 # fix hidden imports
-hidden_imports = ["names", "plotly", "ants", "sklearn", "scikit-learn", "statsmodels", "gevent", "distutils",
- "PySide6", "raidionicsrads", "raidionicsseg", "rtutils"]
-hidden_imports = [x.lower() for x in hidden_imports]
+hidden_imports = ["names", "plotly", "ants", "sklearn", "statsmodels", "gevent", "distutils",
+ "PySide6.QtCore", "PySide6.QtGui", "PySide6.QtWidgets", "raidionicsrads", "raidionicsseg", "rtutils"]
 
 # copy dependencies and images, remove if folder already exists
 if os.path.exists(cwd + "/tmp_dependencies/"):
@@ -35,7 +34,7 @@ a = Analysis([cwd + '/main.py'],
              binaries=[],
              datas=[],
              hiddenimports=hidden_imports,
-             hookspath=[cwd + "/assets/hooks/"],
+             hookspath=[os.path.join(cwd, "assets", "hooks")],
              runtime_hooks=[],
              excludes=['PySide6.QtQml'],
              win_no_prefer_redirects=False,
