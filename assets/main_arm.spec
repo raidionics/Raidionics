@@ -1,9 +1,10 @@
 # -*- mode: python ; coding: utf-8 -*-
-import sys; sys.setrecursionlimit(sys.getrecursionlimit() * 5)
 import os
 import shutil
 from PyInstaller.utils.hooks import collect_data_files
 from numpy import loadtxt
+import sys
+sys.setrecursionlimit(5000)
 
 
 # necessary for MacOS

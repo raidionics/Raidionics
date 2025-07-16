@@ -1,3 +1,3 @@
 import sys
-sys.setrecursionlimit(sys.getrecursionlimit() * 5)
-print("/n/nHook active/n/n")
+sys.setrecursionlimit(5000)
+print("Recursion limit hook active")

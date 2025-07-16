@@ -70,6 +70,7 @@ jobs:
       run: |
         pip install pyinstaller
         mkdir tmp_dependencies
+        python -c "import sys; sys.setrecursionlimit(5000); print('Recursion limit during build:', sys.getrecursionlimit())"
         pyinstaller --log-level INFO --noconfirm --clean assets/main_arm.spec
 
 #    - name: Test executable
