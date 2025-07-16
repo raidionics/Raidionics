@@ -65,7 +65,7 @@ jobs:
 
     - name: Clean build artifacts
       run: |
-        rm -rf build dist __pycache__
+        rm -rf build dist __pycache__ tmp_dependencies
 
     - name: Build software
       env:
@@ -73,6 +73,7 @@ jobs:
       run: |
         pip install pyinstaller
         mkdir tmp_dependencies
+        sed -i '' 's|os.symlink(src_name, dest_path)|if not os.path.exists(dest_path): os.symlink(src_name, dest_path)|' $(python -c "import PyInstaller.building.api; print(PyInstaller.building.api.__file__)")
         python -c "import sys; sys.setrecursionlimit(10000); print('Recursion limit during build:', sys.getrecursionlimit())"
         python build_launcher.py
 #        pyinstaller --log-level INFO --noconfirm --clean assets/main_arm.spec
