@@ -1,3 +1,4 @@
+requests
 names
 PySide6
 plotly
