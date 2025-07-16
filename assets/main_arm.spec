@@ -15,14 +15,13 @@ cwd = os.path.abspath(os.getcwd())
 print("CWD:", cwd)
 print("PLATFORM:", sys.platform)
 
-def safe_symlink(src, dst):
-    try:
-        os.symlink(src, dst)
-    except FileExistsError:
-        os.remove(dst)
-        os.symlink(src, dst)
-
-os.symlink = safe_symlink
+#def safe_symlink(src, dst):
+#    try:
+#        os.symlink(src, dst)
+#    except FileExistsError:
+#        os.remove(dst)
+#        os.symlink(src, dst)
+# os.symlink = safe_symlink
 
 # fix hidden imports
 hidden_imports = ["names", "plotly", "sklearn", "statsmodels", "gevent", "distutils", "PySide6.QtGui",
@@ -31,20 +30,20 @@ hidden_imports = ["names", "plotly", "sklearn", "statsmodels", "gevent", "distut
 # copy dependencies and images, remove if folder already exists
 if os.path.exists(cwd + "/tmp_dependencies/"):
     shutil.rmtree(cwd + "/tmp_dependencies/")
-shutil.copytree(cwd + "/assets/images/", cwd + "/tmp_dependencies/assets/images/")
-shutil.copytree(cwd + "/utils/", cwd + "/tmp_dependencies/utils/")
-shutil.copytree(cwd + "/gui/", cwd + "/tmp_dependencies/gui/")
-shutil.copytree(cwd + "/ANTs/install/", cwd + "/tmp_dependencies/ANTs/")
+shutil.copytree(cwd + "/assets/images/", cwd + "/tmp_dependencies/assets/images/", symlinks=False)
+shutil.copytree(cwd + "/utils/", cwd + "/tmp_dependencies/utils/", symlinks=False)
+shutil.copytree(cwd + "/gui/", cwd + "/tmp_dependencies/gui/", symlinks=False)
+shutil.copytree(cwd + "/ANTs/install/", cwd + "/tmp_dependencies/ANTs/", symlinks=False)
 
 a = Analysis([cwd + '/main.py'],
              pathex=[cwd],
              binaries=[],
-             datas=[
-        (cwd + "/tmp_dependencies/assets/images/", "assets/images"),
-        (cwd + "/tmp_dependencies/gui/", "gui"),
-        (cwd + "/tmp_dependencies/utils/", "utils"),
-        (cwd + "/tmp_dependencies/ANTs/", "ANTs")
-        ],
+             datas = (
+    collect_data_files("gui", includes=["*.py", "*.png", "*.jpg", "*.svg"], subdir="gui") +
+    collect_data_files("utils", includes=["*.py"], subdir="utils") +
+    collect_data_files("assets.images", includes=["*.png", "*.ico", "*.icns"], subdir="assets/images") +
+    collect_data_files("ANTs", subdir="ANTs")
+),
              hiddenimports=hidden_imports,
              hookspath=[os.path.join(cwd, "assets", "hooks")],
              runtime_hooks=[os.path.join(cwd, "assets", "hooks", "set_recursion_limit.py")],
@@ -82,4 +81,21 @@ coll = COLLECT(exe,
                name='Raidionics'
 )
 
-
+# to compile everything into a macOS Bundle (.APP)
+if sys.platform == "darwin":
+    app = BUNDLE(coll,
+                 name='Raidionics.app',
+                 icon=cwd + "/tmp_dependencies/assets/images/raidionics-logo.icns",
+                 bundle_identifier=None,
+                 info_plist={
+                    'NSRequiresAquaSystemAppearance': 'true',
+                    'CFBundleDisplayName': 'Raidionics',
+                    'CFBundleExecutable': 'Raidionics',
+                    'CFBundleIdentifier': 'Raidionics',
+                    'CFBundleInfoDictionaryVersion': '6.0',
+                    'CFBundleName': 'Raidionics',
+                    'CFBundleVersion': '1.3.1',
+                    'CFBundlePackageType': 'APPL',
+                    'LSBackgroundOnly': 'false',
+                },
+    )
