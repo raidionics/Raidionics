@@ -39,7 +39,7 @@ shutil.copytree(cwd + "/ANTs/install/", cwd + "/tmp_dependencies/ANTs/")
 a = Analysis([cwd + '/main.py'],
              pathex=[cwd],
              binaries=[],
-             datas=datas=[
+             datas=[
         (cwd + "/tmp_dependencies/assets/images/", "assets/images"),
         (cwd + "/tmp_dependencies/gui/", "gui"),
         (cwd + "/tmp_dependencies/utils/", "utils"),
