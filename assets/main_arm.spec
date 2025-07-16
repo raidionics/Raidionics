@@ -1,11 +1,9 @@
 # -*- mode: python ; coding: utf-8 -*-
+import sys ; sys.setrecursionlimit(sys.getrecursionlimit() * 5)
 import os
 import shutil
 from PyInstaller.utils.hooks import collect_data_files
 from numpy import loadtxt
-import sys
-sys.setrecursionlimit(5000)
-
 
 # necessary for MacOS
 os.environ['LC_CTYPE'] = "en_US.UTF-8"
@@ -41,7 +39,12 @@ shutil.copytree(cwd + "/ANTs/install/", cwd + "/tmp_dependencies/ANTs/")
 a = Analysis([cwd + '/main.py'],
              pathex=[cwd],
              binaries=[],
-             datas=[],
+             datas=datas=[
+        (cwd + "/tmp_dependencies/assets/images/", "assets/images"),
+        (cwd + "/tmp_dependencies/gui/", "gui"),
+        (cwd + "/tmp_dependencies/utils/", "utils"),
+        (cwd + "/tmp_dependencies/ANTs/", "ANTs")
+        ],
              hiddenimports=hidden_imports,
              hookspath=[os.path.join(cwd, "assets", "hooks")],
              runtime_hooks=[os.path.join(cwd, "assets", "hooks", "set_recursion_limit.py")],
@@ -70,7 +73,7 @@ exe = EXE(pyz,
 )
 coll = COLLECT(exe,
                a.binaries,
-               Tree(cwd + "/tmp_dependencies/"),
+               #Tree(cwd + "/tmp_dependencies/"),
                a.zipfiles,
                a.datas,
                strip=False,
