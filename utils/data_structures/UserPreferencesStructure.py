@@ -18,7 +18,7 @@ class UserPreferencesStructure:
     _preferences_filename = ""
     _user_home_location = None  # Main dump location for patients/studies on disk.
     _active_model_update = False  # True for regularly checking if new models are available, False otherwise
-    _use_manual_sequences = True  # True for using the manually set sequences, False to run classification on-the-fly
+    _use_manual_sequences = False  # True for using the manually set sequences, False to run classification on-the-fly
     _use_manual_annotations = False  # True to use annotation files provided by the user, False to recompute
     _use_stripped_inputs = False  # True to use inputs already stripped (e.g., skull-stripped or lungs-stripped)
     _use_registered_inputs = False  # True to use inputs already registered (e.g., altas-registered, multi-sequences co-registered)
