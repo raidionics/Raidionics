@@ -38,16 +38,11 @@ shutil.copytree(cwd + "/ANTs/install/", cwd + "/tmp_dependencies/ANTs/", symlink
 a = Analysis([cwd + '/main.py'],
              pathex=[cwd],
              binaries=[],
-             datas = (
-    collect_data_files("gui", includes=["*.py", "*.png", "*.jpg", "*.svg"], subdir="gui") +
-    collect_data_files("utils", includes=["*.py"], subdir="utils") +
-    collect_data_files("assets.images", includes=["*.png", "*.ico", "*.icns"], subdir="assets/images") +
-    collect_data_files("ANTs", subdir="ANTs")
-),
+             datas = [],
              hiddenimports=hidden_imports,
              hookspath=[os.path.join(cwd, "assets", "hooks")],
              runtime_hooks=[os.path.join(cwd, "assets", "hooks", "set_recursion_limit.py")],
-             excludes=['PySide6.QtQml'],
+             excludes=['PySide6.QtQml', "PySide6.Qt3DAnimation"],
              win_no_prefer_redirects=False,
              win_private_assemblies=False,
              cipher=block_cipher,
@@ -72,7 +67,7 @@ exe = EXE(pyz,
 )
 coll = COLLECT(exe,
                a.binaries,
-               #Tree(cwd + "/tmp_dependencies/"),
+               Tree(cwd + "/tmp_dependencies/"),
                a.zipfiles,
                a.datas,
                strip=False,
