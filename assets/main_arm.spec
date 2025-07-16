@@ -82,21 +82,4 @@ coll = COLLECT(exe,
                name='Raidionics'
 )
 
-# to compile everything into a macOS Bundle (.APP)
-if sys.platform == "darwin":
-    app = BUNDLE(coll,
-                 name='Raidionics.app',
-                 icon=cwd + "/tmp_dependencies/assets/images/raidionics-logo.icns",
-                 bundle_identifier=None,
-                 info_plist={
-                    'NSRequiresAquaSystemAppearance': 'true',
-                    'CFBundleDisplayName': 'Raidionics',
-                    'CFBundleExecutable': 'Raidionics',
-                    'CFBundleIdentifier': 'Raidionics',
-                    'CFBundleInfoDictionaryVersion': '6.0',
-                    'CFBundleName': 'Raidionics',
-                    'CFBundleVersion': '1.3.1',
-                    'CFBundlePackageType': 'APPL',
-                    'LSBackgroundOnly': 'false',
-                },
-    )
+
