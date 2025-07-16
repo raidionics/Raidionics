@@ -28,8 +28,8 @@ jobs:
       with:
         python-version: "3.10"
 
-#    - name: Setup OpenGL
-#      run: brew install mesa-glu libxi libxkbcommon
+    - name: Setup OpenGL
+      run: brew install mesa-glu libxi libxkbcommon
 
     - name: Download ANTs
       uses: robinraju/release-downloader@main
@@ -55,13 +55,13 @@ jobs:
 #        pip install matplotlib
 #        pip install --force-reinstall --no-cache-dir pyside6
 
-#    - name: Integration tests
-#      timeout-minutes: 10
-#      env:
-#        DISPLAY: ':99.0'
-#      run: |
-#          pip install pytest-qt pytest-cov pytest-timeout
-#          pytest -vvv --cov=gui --cov=utils ${{github.workspace}}/integration_tests --timeout=120 --timeout-method=thread --log-cli-level=DEBUG
+    - name: Integration tests
+      timeout-minutes: 10
+      env:
+        DISPLAY: ':99.0'
+      run: |
+          pip install pytest-qt pytest-cov pytest-timeout
+          pytest -vvv --cov=gui --cov=utils ${{github.workspace}}/integration_tests --timeout=120 --timeout-method=thread --log-cli-level=DEBUG
 
     - name: Clean build artifacts
       run: |
@@ -73,24 +73,23 @@ jobs:
       run: |
         pip install pyinstaller
         mkdir tmp_dependencies
-        rm -rf $(find $(python3 -c "import PySide6; print(PySide6.__path__[0])") -name "Qt3D*" -type d)
         sed -i '' 's|os.symlink(src_name, dest_path)|if not os.path.exists(dest_path): os.symlink(src_name, dest_path)|' $(python -c "import PyInstaller.building.api; print(PyInstaller.building.api.__file__)")
         python -c "import sys; sys.setrecursionlimit(10000); print('Recursion limit during build:', sys.getrecursionlimit())"
-        python build_launcher.py
-#        pyinstaller --log-level INFO --noconfirm --clean assets/main_arm.spec
+#        python build_launcher.py
+        pyinstaller --log-level INFO --noconfirm --clean assets/main_arm.spec
 
-#    - name: Test executable
-#      env:
-#        DISPLAY: ':1'
-#      run: QT_QPA_PLATFORM="offscreen" ./dist/Raidionics/Raidionics & sleep 5; kill -INT %+
-#      shell: bash
-#
-#    - name: Test GUI startup
-#      env:
-#        DISPLAY: ':1'
-#      run: |
-#          export QT_QPA_PLATFORM="offscreen"
-#          cd ${{github.workspace}}/tests && python software_launch_test.py
+    - name: Test executable
+      env:
+        DISPLAY: ':1'
+      run: QT_QPA_PLATFORM="offscreen" ./dist/Raidionics/Raidionics & sleep 5; kill -INT %+
+      shell: bash
+
+    - name: Test GUI startup
+      env:
+        DISPLAY: ':1'
+      run: |
+          export QT_QPA_PLATFORM="offscreen"
+          cd ${{github.workspace}}/tests && python software_launch_test.py
 
     - name: Make installer
       run: |
