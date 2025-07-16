@@ -47,8 +47,8 @@ jobs:
         python -m pip install --upgrade pip
         pip install raidionicsrads
         pip install -r assets/requirements.txt
-        pip install matplotlib
-        pip install --force-reinstall --no-cache-dir pyside6
+#        pip install matplotlib
+#        pip install --force-reinstall --no-cache-dir pyside6
 
     - name: Integration tests
       timeout-minutes: 10

@@ -1,6 +1,6 @@
 import sys
 sys.setrecursionlimit(10000)
-print("/n/nRecursion limit set to:", sys.getrecursionlimit())
+# print("/n/nRecursion limit set to:", sys.getrecursionlimit())
 
 import getopt
 import traceback

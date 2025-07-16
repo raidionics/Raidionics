@@ -44,13 +44,12 @@ jobs:
         cd ${{github.workspace}}/downloads/
         tar -xzf ANTsX-v2.4.3_macos_arm.tar.gz -C ${{github.workspace}}/downloads/
         mkdir ${{github.workspace}}/ANTs
-        mkdir ${{github.workspace}}/ANTs/install
-#        mv ${{github.workspace}}/downloads/install ${{github.workspace}}/ANTs/
+        mv ${{github.workspace}}/downloads/install ${{github.workspace}}/ANTs/
 
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install "numpy<2.0" raidionicsrads --force-reinstall
+        pip install raidionicsrads
         pip install -r assets/requirements.txt
 #        pip install matplotlib
 #        pip install --force-reinstall --no-cache-dir pyside6
