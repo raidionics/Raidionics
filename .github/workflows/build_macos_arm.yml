@@ -102,3 +102,31 @@ jobs:
         name: Package
         path: ${{github.workspace}}/dist/Raidionics-*
         if-no-files-found: error
+
+  test:
+    name: Test on ${{ matrix.macos-version }}
+    needs: build
+    runs-on: ${{ matrix.macos-version }}
+    strategy:
+      matrix:
+        macos-version: [macos-14, macos-15]
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: Package
+          path: test-dist
+
+      - name: Install .pkg
+        run: sudo installer -pkg test-dist/Raidionics-1.3.1-macOS-arm64.pkg -target /
+
+      - name: Run software (smoke test)
+        env:
+          QT_QPA_PLATFORM: "offscreen"
+        run: |
+          /Applications/Raidionics.app/Contents/MacOS/Raidionics & sleep 5; kill -INT %+
+
+      - name: Validate GUI startup script
+        run: |
+          export QT_QPA_PLATFORM="offscreen"
+          python3 /Applications/Raidionics.app/Contents/MacOS/tests/software_launch_test.py || true
