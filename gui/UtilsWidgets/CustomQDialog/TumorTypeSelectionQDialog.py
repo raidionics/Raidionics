@@ -14,8 +14,9 @@ class TumorTypeSelectionQDialog(QDialog):
         self.select_tumor_type_label.setStyleSheet("""QLabel{background-color: rgba(248, 248, 248, 1);}""")
         self.base_layout.addWidget(self.select_tumor_type_label, 0, 0)
         self.select_tumor_type_combobox = QComboBox()
-        self.select_tumor_type_combobox.addItems(["Glioblastoma", "Low-Grade Glioma", "Meningioma", "Metastasis"])
-        self.tumor_type = "Glioblastoma"
+        # self.select_tumor_type_combobox.addItems(["Glioblastoma", "Low-Grade Glioma", "Meningioma", "Metastasis"])
+        self.select_tumor_type_combobox.addItems(["Contrast-enhancing", "Non contrast-enhancing"])
+        self.tumor_type = "Contrast-enhancing"
 
         self.base_layout.addWidget(self.select_tumor_type_combobox, 0, 1)
         self.exit_accept_pushbutton = QDialogButtonBox(QDialogButtonBox.Ok)
@@ -34,8 +35,8 @@ class TumorTypeSelectionQDialog(QDialog):
     def __set_layout_dimensions(self):
         self.select_tumor_type_label.setFixedHeight(25)
         self.select_tumor_type_combobox.setFixedHeight(25)
-        self.select_tumor_type_combobox.setFixedWidth(135)
-        self.setFixedSize(QSize(250, 70))
+        self.select_tumor_type_combobox.setFixedWidth(155)
+        self.setFixedSize(QSize(270, 70))
 
     def __set_stylesheets(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components

@@ -161,21 +161,21 @@ class StudyBatchWidget(QWidget):
         for pat_uid in SoftwareConfigResources.getInstance().get_study(study_uid).included_patients_uids.keys():
             self.patient_imported.emit(pat_uid)
 
-    def on_batch_pipeline_execution_wrapper(self, study_uid: str, pipeline_task: str, model_name: str) -> None:
+    def on_batch_pipeline_execution_wrapper(self, study_uid: str, pipeline_task: str, tumor_type: str) -> None:
         run_segmentation_thread = threading.Thread(target=self.on_batch_pipeline_execution, args=(study_uid,
                                                                                                   pipeline_task,
-                                                                                                  model_name,))
+                                                                                                  tumor_type,))
         run_segmentation_thread.daemon = True  # using daemon thread the thread is killed gracefully if program is abruptly closed
         run_segmentation_thread.start()
 
-    def on_batch_pipeline_execution(self, study_uid, pipeline_task, model_name):
+    def on_batch_pipeline_execution(self, study_uid, pipeline_task, tumor_type):
         from utils.backend_logic import pipeline_main_wrapper
         self.on_process_started()
         study = SoftwareConfigResources.getInstance().study_parameters[study_uid]
         patients_uid = study.included_patients_uids
         for u in patients_uid:
             code, results = pipeline_main_wrapper(pipeline_task=pipeline_task,
-                                                  model_name=model_name,
+                                                  tumor_type=tumor_type,
                                                   patient_parameters=SoftwareConfigResources.getInstance().patients_parameters[u])
             # Not iterating over the image results as the redrawing will be done when the active patient is changed.
             if 'Report' in list(results.keys()):
@@ -184,9 +184,11 @@ class StudyBatchWidget(QWidget):
                 study.include_reporting_statistics(patient_uid=u, reporting_uids=results["Report"],
                                                    patient_parameters=SoftwareConfigResources.getInstance().patients_parameters[u])
             if 'Classification' in list(results.keys()):
-                # @TODO. Will have to be more generic when more than one classifier.
                 # @TODO2. Not connected all the way.
-                self.patient_radiological_sequences_imported.emit(u)
+                if "MRSequence" in results["Classification"]:
+                    self.patient_radiological_sequences_imported.emit(u)
+                else:
+                    raise ValueError(f"Other classification use-cases not handled yet.")
             if 'Annotation' in list(results.keys()):
                 study.include_segmentation_statistics(patient_uid=u, annotation_uids=results["Annotation"],
                                                       patient_parameters=SoftwareConfigResources.getInstance().patients_parameters[u])

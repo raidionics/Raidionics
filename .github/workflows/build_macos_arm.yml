@@ -1,38 +1,35 @@
 name: Build macOS ARM
 
 on:
+  push:
+    branches:
+      - '*'
+  pull_request:
+    branches:
+      - '*'
   # Allows to run the workflow manually from the Actions tab
   workflow_dispatch:
+
+env:
+  MACOSX_DEPLOYMENT_TARGET: 11.0
 
 jobs:
   build:
     name: Build packages
-    runs-on: self-hosted
+    runs-on: macos-14
+    defaults:
+      run:
+        shell: bash
+
     steps:
     - uses: actions/checkout@v4
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
 
-    - name: Create environment and install python packages
-      run: |
-        cd ${{github.workspace}}
-        mkdir tmp
-        cd tmp
-        python3 -m virtualenv -p python3 venv --clear
-        source venv/bin/activate
-        python3 -m pip install wheel setuptools==69.5.1
-        deactivate
-
-    - name: Install dependencies
-      run: |
-        cd ${{github.workspace}}
-        source tmp/venv/bin/activate
-        python3 -m pip install --upgrade pip
-        pip3 install ffmpeg
-        pip3 install matplotlib
-        pip install git+https://github.com/dbouget/raidionics_rads_lib.git@master
-        pip3 install -r assets/requirements.txt
-        pip install --force-reinstall --no-cache-dir pyside6
-        pip install urllib3==1.26.6
-        deactivate
+    - name: Setup OpenGL
+      run: brew install mesa-glu libxi libxkbcommon
 
     - name: Download ANTs
       uses: robinraju/release-downloader@main
@@ -49,36 +46,53 @@ jobs:
         mkdir ${{github.workspace}}/ANTs
         mv ${{github.workspace}}/downloads/install ${{github.workspace}}/ANTs/
 
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install raidionicsrads
+        pip install -r assets/requirements.txt
+#        pip install matplotlib
+#        pip install --force-reinstall --no-cache-dir pyside6
+
     - name: Integration tests
+      timeout-minutes: 10
       env:
         DISPLAY: ':99.0'
       run: |
-          cd ${{github.workspace}}
-          source tmp/venv/bin/activate
-          pip3 install pytest-qt pytest-cov pytest-timeout
-          pytest -vvv --cov=gui --cov=utils ${{github.workspace}}/integration_tests --timeout=60 --log-cli-level=DEBUG
-          deactivate
+          pip install pytest-qt pytest-cov pytest-timeout
+          pytest -vvv --cov=gui --cov=utils ${{github.workspace}}/integration_tests --timeout=120 --timeout-method=thread --log-cli-level=DEBUG
+
+    - name: Clean build artifacts
+      run: |
+        rm -rf build dist __pycache__ tmp_dependencies
 
     - name: Build software
+      env:
+        PYINSTALLER_LOGLEVEL: DEBUG
       run: |
-        cd ${{github.workspace}}
-        source tmp/venv/bin/activate
-        pip3 install pyinstaller==5.13.2
+        pip install pyinstaller
         mkdir tmp_dependencies
+        python -c "import sys; sys.setrecursionlimit(10000); print('Recursion limit during build:', sys.getrecursionlimit())"
         pyinstaller --log-level INFO --noconfirm --clean assets/main_arm.spec
 
     - name: Test executable
-      run: ./dist/Raidionics/Raidionics & sleep 5; kill -INT %+
+      env:
+        DISPLAY: ':1'
+      run: QT_QPA_PLATFORM="offscreen" ./dist/Raidionics/Raidionics & sleep 5; kill -INT %+
       shell: bash
 
     - name: Test GUI startup
-      run: cd ${{github.workspace}}/tests && python3 software_launch_test.py
+      env:
+        DISPLAY: ':1'
+      run: |
+          export QT_QPA_PLATFORM="offscreen"
+          cd ${{github.workspace}}/tests && python software_launch_test.py
 
     - name: Make installer
       run: |
         git clone https://github.com/dbouget/quickpkg.git
-        quickpkg/quickpkg dist/Raidionics.app --output Raidionics-1.3.0-macOS.pkg
-        cp -r Raidionics-1.3.0-macOS.pkg dist/Raidionics-1.3.0-macOS-arm64.pkg
+        quickpkg/quickpkg dist/Raidionics.app --output Raidionics-1.3.1-macOS.pkg
+        cp -r Raidionics-1.3.1-macOS.pkg dist/Raidionics-1.3.1-macOS-arm64.pkg
 
     - name: Upload package
       uses: actions/upload-artifact@v4
@@ -86,8 +100,3 @@ jobs:
         name: Package
         path: ${{github.workspace}}/dist/Raidionics-*
         if-no-files-found: error
-
-    - name: Cleanup
-      if: always()
-      run: |
-        rm -rf ${{github.workspace}}/tmp/

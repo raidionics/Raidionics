@@ -12,13 +12,13 @@ on:
 jobs:
   build:
     name: Build packages
-    runs-on: windows-2019
+    runs-on: windows-2022
     steps:
     - uses: actions/checkout@v4
-    - name: Set up Python 3.8
+    - name: Set up Python 3.9
       uses: actions/setup-python@v5
       with:
-        python-version: "3.8"
+        python-version: "3.9"
 
     # Not using the ANTs c++ backend on Windows, have to investigate how to execute the bash scripts.
     # But have to download it due to the expected copying of the install folder...
@@ -41,9 +41,9 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         ls
-        pip install git+https://github.com/dbouget/raidionics_rads_lib.git@master
+        pip install raidionicsrads
         pip install -r assets/requirements.txt
-        pip install matplotlib==3.3.4
+        pip install matplotlib
         pip install --force-reinstall --no-cache-dir pyside6
 
 #    - name: Integration tests
@@ -55,7 +55,7 @@ jobs:
 
     - name: Build software
       run: |              
-        pip install pyinstaller==5.13.2
+        pip install pyinstaller
         mkdir tmp_dependencies
         pyinstaller --log-level INFO --noconfirm --clean assets/main.spec
 
@@ -69,7 +69,7 @@ jobs:
     - name: Make installer
       run: |
         makensis.exe assets/Raidionics.nsi
-        cp -r assets/Raidionics-1.3.0-win.exe dist/Raidionics-1.3.0-win.exe
+        cp -r assets/Raidionics-1.3.1-win.exe dist/Raidionics-1.3.1-win.exe
 
     - name: Upload package
       uses: actions/upload-artifact@v4

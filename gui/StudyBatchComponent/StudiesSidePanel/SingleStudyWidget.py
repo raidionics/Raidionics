@@ -152,7 +152,7 @@ class SingleStudyWidget(QCollapsibleWidget):
         self.batch_processing_layout.setContentsMargins(0, 0, 0, 0)
         self.batch_processing_combobox = QComboBox()
         self.batch_processing_combobox.addItems(["folders_classification", "preop_segmentation", "preop_reporting",
-                                                 "postop_segmentation", "postop_reporting"])
+                                                 "postop_segmentation", "postop_reporting", "surgical_reporting"])
         self.batch_processing_run_pushbutton = QPushButton()
         self.batch_processing_run_pushbutton.setToolTip("Execute the selected process.")
         self.batch_processing_run_pushbutton.setIcon(QIcon(QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)),
@@ -593,22 +593,10 @@ class SingleStudyWidget(QCollapsibleWidget):
 
             if code == 0:  # Operation was cancelled by the user
                 return
-
-            if diag.tumor_type == 'Glioblastoma':
-                self.model_name = "MRI_GBM"
-            elif diag.tumor_type == 'Low-Grade Glioma':
-                self.model_name = "MRI_LGGlioma"
-            elif diag.tumor_type == 'Metastasis':
-                self.model_name = "MRI_Metastasis"
-            elif diag.tumor_type == 'Meningioma':
-                self.model_name = "MRI_Meningioma"
-            if UserPreferencesStructure.getInstance().segmentation_tumor_model_type != "Tumor":
-                self.model_name = self.model_name + '_multiclass'
-                if diag.tumor_type == 'Low-Grade Glioma':
-                    self.model_name = "MRI_GBM_multiclass"
+            self.tumor_type = diag.tumor_type
 
         self.on_processing_started()
-        self.batch_pipeline_execution_requested.emit(self.uid, pipeline_task, self.model_name)
+        self.batch_pipeline_execution_requested.emit(self.uid, pipeline_task, self.tumor_type)
 
     def on_patients_loading_started(self):
         self.include_single_patient_folder_pushbutton.setEnabled(False)

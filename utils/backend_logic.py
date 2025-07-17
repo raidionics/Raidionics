@@ -21,7 +21,7 @@ from utils.logic.PipelineCreationHandler import create_pipeline
 from utils.logic.PipelineResultsCollector import collect_results
 
 
-def pipeline_main_wrapper(pipeline_task: str, model_name: str, patient_parameters: PatientParameters) -> Any:
+def pipeline_main_wrapper(pipeline_task: str, tumor_type: str, patient_parameters: PatientParameters) -> Any:
     """
     Wrapper to launch the run_pipeline method inside its own thread, in order to avoid GUI freeze.
 
@@ -30,7 +30,7 @@ def pipeline_main_wrapper(pipeline_task: str, model_name: str, patient_parameter
     pipeline_task: str
         Tag describing the generic purpose of the pipeline, which should match an existing tag inside
          PipelineCreationHandler.py, to generate properly the list of tasks making the pipeline.
-    model_name : str
+    tumor_type : str
         The name of the segmentation model to use.
     patient_parameters: PatientParameters
         Patient instance placeholder.
@@ -40,13 +40,13 @@ def pipeline_main_wrapper(pipeline_task: str, model_name: str, patient_parameter
         Content gathered from the Queue, resulting from running the run_segmentation method.
     """
     q = queue.Queue()  # Using the queue to collect the results from the segmentation method, back to the GUI.
-    run_segmentation_thread = threading.Thread(target=run_pipeline, args=(pipeline_task, model_name, patient_parameters, q,))
+    run_segmentation_thread = threading.Thread(target=run_pipeline, args=(pipeline_task, tumor_type, patient_parameters, q,))
     run_segmentation_thread.daemon = True  # using daemon thread the thread is killed gracefully if program is abruptly closed
     run_segmentation_thread.start()
     return q.get()
 
 
-def run_pipeline(task: str, model_name: str, patient_parameters: PatientParameters, queue: queue.Queue) -> None:
+def run_pipeline(task: str, tumor_type: str, patient_parameters: PatientParameters, queue: queue.Queue) -> None:
     """
     Call to the RADS backend for running the task pipeline. The runtime configuration file is generated
     on-the-fly at each call.\n
@@ -56,8 +56,8 @@ def run_pipeline(task: str, model_name: str, patient_parameters: PatientParamete
 
     Parameters
     ----------
-    model_name : str
-        The name of the segmentation model to use.
+    tumor_type : str
+        The type of tumor to segment, from [Contrast-enhancing, Non contrast-enhancing]
     patient_parameters: PatientParameters
         Patient instance placeholder.
     queue: queue.Queue
@@ -99,7 +99,7 @@ def run_pipeline(task: str, model_name: str, patient_parameters: PatientParamete
         rads_config.set('System', 'input_folder', surrogate_folder_path)
         rads_config.set('System', 'output_folder', reporting_folder)
         rads_config.set('System', 'model_folder', SoftwareConfigResources.getInstance().models_path)
-        pipeline = create_pipeline(model_name, patient_parameters, task)
+        pipeline = create_pipeline(tumor_type, patient_parameters, task)
         if pipeline == {}:
             queue.put((1, results))
 
@@ -208,7 +208,7 @@ def generate_sequences_file(patient_parameters: PatientParameters, output_folder
     sequences_filename = os.path.join(output_folder, "mri_sequences.csv")
     classes = []
     for volume_uid in patient_parameters.get_all_mri_volumes_uids():
-        classes.append([os.path.basename(patient_parameters.get_mri_by_uid(volume_uid).get_usable_input_filepath()),
+        classes.append([os.path.basename(patient_parameters.get_mri_by_uid(volume_uid).usable_input_filepath).split('.')[0],
                         patient_parameters.get_mri_by_uid(volume_uid).get_sequence_type_str()])
     df = pd.DataFrame(classes, columns=['File', 'MRI sequence'])
     df.to_csv(sequences_filename, index=False)
@@ -245,9 +245,9 @@ def generate_surrogate_folder(patient_parameters: PatientParameters, output_fold
         for im in patient_parameters.get_all_mri_volumes_uids():
             ts = patient_parameters.get_mri_by_uid(im).timestamp_uid
             ts_object = patient_parameters.get_timestamp_by_uid(ts)
-            shutil.copyfile(src=patient_parameters.get_mri_by_uid(im).get_usable_input_filepath(),
+            shutil.copyfile(src=patient_parameters.get_mri_by_uid(im).usable_input_filepath,
                             dst=os.path.join(surrogate_folder, "T" + str(ts_object.order),
-                                             os.path.basename(patient_parameters.get_mri_by_uid(im).get_usable_input_filepath())))
+                                             os.path.basename(patient_parameters.get_mri_by_uid(im).usable_input_filepath)))
             annotation_classes = [c for c in AnnotationClassType]
             for c in annotation_classes:
                 manual_annos = patient_parameters.get_specific_annotations_for_mri(mri_volume_uid=im,
@@ -257,7 +257,7 @@ def generate_surrogate_folder(patient_parameters: PatientParameters, output_fold
                     for anno in manual_annos:
                         shutil.copyfile(src=patient_parameters.get_annotation_by_uid(anno).usable_input_filepath,
                                         dst=os.path.join(surrogate_folder, "T" + str(ts_object.order), os.path.basename(
-                                            patient_parameters.get_mri_by_uid(im).get_usable_input_filepath()[:-7] + '-label_' + str(c) + '.nii.gz')))
+                                            patient_parameters.get_mri_by_uid(im).usable_input_filepath[:-7] + '-label_' + str(c) + '.nii.gz')))
                 else:
                     annos = patient_parameters.get_specific_annotations_for_mri(mri_volume_uid=im,
                                                                                 generation_type=AnnotationGenerationType.Automatic,
@@ -265,7 +265,7 @@ def generate_surrogate_folder(patient_parameters: PatientParameters, output_fold
                     for anno in annos:
                         shutil.copyfile(src=patient_parameters.get_annotation_by_uid(anno).usable_input_filepath,
                                         dst=os.path.join(surrogate_folder, "T" + str(ts_object.order), os.path.basename(
-                                            patient_parameters.get_mri_by_uid(im).get_usable_input_filepath()[:-7] + '-label_' + str(c) + '.nii.gz')))
+                                            patient_parameters.get_mri_by_uid(im).usable_input_filepath[:-7] + '-label_' + str(c) + '.nii.gz')))
 
     except Exception:
         logging.error('Pipeline surrogate folder creation failed with: \n{}'.format(traceback.format_exc()))

@@ -47,7 +47,7 @@ class ResearchCommunityDialog(QDialog):
 
         self.st_olavs_widget = HospitalContributorWidget(self)
         self.st_olavs_widget.set_hospital_name("St. Olavs hospital,Trondheim\nUniversity Hospital, Trondheim, Norway")
-        self.st_olavs_widget.set_hospital_participants("Ole Solheim, Lisa M. Sagberg,\nEven H. Fyllingen, Sayed Hoseiney")
+        self.st_olavs_widget.set_hospital_participants("Ole Solheim, Lisa M. Sagberg, Sayed Hoseiney,\nEven H. Fyllingen, Camilla Brattbakk")
         self.st_olavs_widget.set_logo_icon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                         '../../Images/stolavs-logo.png'))
         self.main_scrollarea_layout.addWidget(self.st_olavs_widget, 1, 0, 1, 1)
@@ -156,6 +156,13 @@ class ResearchCommunityDialog(QDialog):
         self.cancer_institute_ams_widget.set_logo_icon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                         '../../Images/cancer-institute-ams-logo.png'))
         self.main_scrollarea_layout.addWidget(self.cancer_institute_ams_widget, 4, 3, 1, 1)
+
+        self.brats_widget = HospitalContributorWidget(self)
+        self.brats_widget.set_hospital_name("The BraTS challenge 2023/2024")
+        self.brats_widget.set_hospital_participants("""<a href=https://www.synapse.org/Synapse:syn64153130/wiki/>Official website</a>""")
+        self.brats_widget.set_logo_icon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                                        '../../Images/brats-challenge-logo.png'))
+        self.main_scrollarea_layout.addWidget(self.brats_widget, 5, 0, 1, 1)
 
         self.main_scrollarea_layout.setRowStretch(self.main_scrollarea_layout.rowCount(), 1)
 

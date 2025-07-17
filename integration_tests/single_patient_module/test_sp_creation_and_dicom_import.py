@@ -31,7 +31,7 @@ def test_location():
 
 @pytest.fixture
 def test_data_folder():
-    test_data_url = 'https://github.com/raidionics/Raidionics-models/releases/download/v1.3.0-rc/Samples-Raidionics-ApprovedExample-v1.3.zip'
+    test_data_url = 'https://github.com/raidionics/Raidionics-models/releases/download/v1.3.0-rc/Samples-Raidionics-ApprovedExample-v1.3.1.zip'
     test_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'integrationtests')
     test_data_dir = os.path.join(test_dir, 'ApprovedExample')
     if os.path.exists(test_data_dir) and len(os.listdir(test_data_dir)) > 0:
@@ -51,7 +51,7 @@ def test_data_folder():
 
 @pytest.fixture
 def dicom_resources_folder():
-    test_data_url = 'https://github.com/raidionics/Raidionics-models/releases/download/v1.3.0-rc/Samples-Raidionics-IntegrationTestDicom.zip'
+    test_data_url = 'https://github.com/raidionics/Raidionics-models/releases/download/v1.3.0-rc/Samples-Raidionics-IntegrationTestDicom-v1.3.1.zip'
     test_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'integrationtests')
     dicom_resources_dir = os.path.join(test_dir, 'IntegrationTest-dicom')
     if os.path.exists(dicom_resources_dir) and len(os.listdir(dicom_resources_dir)) > 0:
@@ -154,7 +154,7 @@ def test_creation_dicom_import(qtbot, test_location, test_data_folder, dicom_res
             logging.error("Error: {}.\nStack: {}".format(e, traceback.format_exc()))
             return
 
-@pytest.mark.timeout(60)
+@pytest.mark.timeout(90)
 def test_dicom_import_another_volume_from_ts_browser(qtbot, test_location, test_data_folder, dicom_resources_folder,
                                                      window):
     """

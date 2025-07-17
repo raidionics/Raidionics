@@ -28,7 +28,7 @@ def test_location():
 
 @pytest.fixture
 def test_data_folder():
-    test_data_url = 'https://github.com/raidionics/Raidionics-models/releases/download/v1.3.0-rc/Samples-Raidionics-ApprovedExample-v1.3.zip'
+    test_data_url = 'https://github.com/raidionics/Raidionics-models/releases/download/v1.3.0-rc/Samples-Raidionics-ApprovedExample-v1.3.1.zip'
     test_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'integrationtests')
     test_data_dir = os.path.join(test_dir, 'ApprovedExample')
     if os.path.exists(test_data_dir) and len(os.listdir(test_data_dir)) > 0:
@@ -48,7 +48,7 @@ def test_data_folder():
 
 @pytest.fixture
 def dicom_resources_folder():
-    test_data_url = 'https://github.com/raidionics/Raidionics-models/releases/download/v1.3.0-rc/Samples-Raidionics-IntegrationTestDicom.zip'
+    test_data_url = 'https://github.com/raidionics/Raidionics-models/releases/download/v1.3.0-rc/Samples-Raidionics-IntegrationTestDicom-v1.3.1.zip'
     test_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'integrationtests')
     dicom_resources_dir = os.path.join(test_dir, 'IntegrationTest-dicom')
     if os.path.exists(dicom_resources_dir) and len(os.listdir(dicom_resources_dir)) > 0:
@@ -100,7 +100,7 @@ def test_dicom_study_reloading(qtbot, test_location, test_data_folder, dicom_res
         window.batch_study_widget.import_data_dialog.__on_exit_accept_clicked()
         sleep(10)
         assert len(list(SoftwareConfigResources.getInstance().get_active_study().included_patients_uids.keys())) == 2
-        assert list(SoftwareConfigResources.getInstance().get_active_study().included_patients_uids.keys()) == ['83373', '98666']
+        assert list(SoftwareConfigResources.getInstance().get_active_study().included_patients_uids.keys()) == ['39456', '69190']
 
         window.on_clear_scene()
         assert SoftwareConfigResources.getInstance().is_study_list_empty()

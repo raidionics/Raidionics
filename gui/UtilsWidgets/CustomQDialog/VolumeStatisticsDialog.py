@@ -436,7 +436,7 @@ class VolumeStatisticsDialog(QDialog):
                 return
 
             image_object = active_patient.get_mri_by_uid(active_patient.get_all_mri_volumes_uids()[index])
-            image_nib = nib.load(image_object.get_usable_input_filepath())
+            image_nib = nib.load(image_object.usable_input_filepath)
             self.volume_dimensions_x_value.setText(str(image_nib.shape[0]))
             self.volume_dimensions_y_value.setText(str(image_nib.shape[1]))
             self.volume_dimensions_z_value.setText(str(image_nib.shape[2]))

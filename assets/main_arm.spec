@@ -1,10 +1,9 @@
 # -*- mode: python ; coding: utf-8 -*-
-import sys
+import sys ; sys.setrecursionlimit(sys.getrecursionlimit() * 5)
 import os
 import shutil
 from PyInstaller.utils.hooks import collect_data_files
 from numpy import loadtxt
-
 
 # necessary for MacOS
 os.environ['LC_CTYPE'] = "en_US.UTF-8"
@@ -16,28 +15,34 @@ cwd = os.path.abspath(os.getcwd())
 print("CWD:", cwd)
 print("PLATFORM:", sys.platform)
 
+#def safe_symlink(src, dst):
+#    try:
+#        os.symlink(src, dst)
+#    except FileExistsError:
+#        os.remove(dst)
+#        os.symlink(src, dst)
+# os.symlink = safe_symlink
+
 # fix hidden imports
-hidden_imports = loadtxt(cwd + "/assets/requirements.txt", comments="#", delimiter=",", unpack=False, dtype=str)
-hidden_imports = [x.split("=")[0] for x in hidden_imports] + ["sklearn", "scikit-learn",
- "statsmodels", "gevent", "distutils", "PySide6", "gdown", "raidionicsrads", "raidionicsseg", "rtutils"]
-hidden_imports = [x.lower() for x in hidden_imports]
+hidden_imports = ["names", "plotly", "gdown", "sklearn", "statsmodels", "gevent", "distutils", "PySide6.QtGui",
+"PySide6.QtCore", "PySide6.QtWidgets", "PySide6.QtWebEngineWidgets", "raidionicsrads", "raidionicsseg", "rtutils"]
 
 # copy dependencies and images, remove if folder already exists
 if os.path.exists(cwd + "/tmp_dependencies/"):
     shutil.rmtree(cwd + "/tmp_dependencies/")
-shutil.copytree(cwd + "/assets/images/", cwd + "/tmp_dependencies/assets/images/")
-shutil.copytree(cwd + "/utils/", cwd + "/tmp_dependencies/utils/")
-shutil.copytree(cwd + "/gui/", cwd + "/tmp_dependencies/gui/")
-shutil.copytree(cwd + "/ANTs/install/", cwd + "/tmp_dependencies/ANTs/")
+shutil.copytree(cwd + "/assets/images/", cwd + "/tmp_dependencies/assets/images/", symlinks=False)
+shutil.copytree(cwd + "/utils/", cwd + "/tmp_dependencies/utils/", symlinks=False)
+shutil.copytree(cwd + "/gui/", cwd + "/tmp_dependencies/gui/", symlinks=False)
+shutil.copytree(cwd + "/ANTs/install/", cwd + "/tmp_dependencies/ANTs/", symlinks=False)
 
 a = Analysis([cwd + '/main.py'],
              pathex=[cwd],
              binaries=[],
-             datas=[],
+             datas = [],
              hiddenimports=hidden_imports,
-             hookspath=[cwd + "/assets/hooks/"],
-             runtime_hooks=[],
-             excludes=['PySide6.QtQml'],
+             hookspath=[os.path.join(cwd, "assets", "hooks")],
+             runtime_hooks=[os.path.join(cwd, "assets", "hooks", "set_recursion_limit.py")],
+             excludes=['PySide6.QtQml', "PySide6.Qt3DAnimation"],
              win_no_prefer_redirects=False,
              win_private_assemblies=False,
              cipher=block_cipher,
@@ -84,7 +89,7 @@ if sys.platform == "darwin":
                     'CFBundleIdentifier': 'Raidionics',
                     'CFBundleInfoDictionaryVersion': '6.0',
                     'CFBundleName': 'Raidionics',
-                    'CFBundleVersion': '1.3.0',
+                    'CFBundleVersion': '1.3.1',
                     'CFBundlePackageType': 'APPL',
                     'LSBackgroundOnly': 'false',
                 },

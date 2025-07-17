@@ -135,7 +135,7 @@ class AtlasVolume:
             self._timestamp_uid = parameters['investigation_timestamp_uid']
             self._timestamp_folder_name = parameters['raw_input_filepath'].split('/')[0]
             if os.name == 'nt':
-                self._timestamp_folder_name = list(PurePath(parameters['raw_input_filepath|']).parts)[0]
+                self._timestamp_folder_name = list(PurePath(parameters['raw_input_filepath']).parts)[0]
 
             self._raw_input_filepath = os.path.join(self._output_patient_folder, parameters['raw_input_filepath'])
             self._class_description = pd.read_csv(self._class_description_filename)
@@ -260,7 +260,12 @@ class AtlasVolume:
         self._class_display_opacity[index] = opacity
         self._unsaved_changes = True
 
-    def set_output_patient_folder(self, output_folder: str) -> None:
+    @property
+    def output_patient_folder(self) -> str:
+        return self._output_patient_folder
+
+    @output_patient_folder.setter
+    def output_patient_folder(self, output_folder: str) -> None:
         try:
             if self._raw_input_filepath and self._output_patient_folder in self._raw_input_filepath:
                 self._raw_input_filepath = self._raw_input_filepath.replace(self._output_patient_folder, output_folder)
@@ -279,10 +284,6 @@ class AtlasVolume:
     @property
     def timestamp_uid(self) -> str:
         return self._timestamp_uid
-
-    @property
-    def output_patient_folder(self) -> str:
-        return self._output_patient_folder
 
     @property
     def timestamp_folder_name(self) -> str:

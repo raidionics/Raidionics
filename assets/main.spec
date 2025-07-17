@@ -18,10 +18,9 @@ print("CWD:", cwd)
 print("PLATFORM:", sys.platform)
 
 # fix hidden imports
-hidden_imports = loadtxt(cwd + "/assets/requirements.txt", comments="#", delimiter=",", unpack=False, dtype=str)
-hidden_imports = [x.split("=")[0] for x in hidden_imports] + ["ants", "sklearn", "scikit-learn",
- "statsmodels", "gevent", "distutils", "PySide6", "gdown", "raidionicsrads", "raidionicsseg", "rtutils"]
-hidden_imports = [x.lower() for x in hidden_imports]
+hidden_imports = ["names", "plotly", "gdown", "ants", "sklearn", "statsmodels", "gevent", "distutils",
+ "PySide6.QtCore", "PySide6.QtGui", "PySide6.QtWidgets", "PySide6.QtWebEngineWidgets", "raidionicsrads",
+ "raidionicsseg", "rtutils"]
 
 # copy dependencies and images, remove if folder already exists
 if os.path.exists(cwd + "/tmp_dependencies/"):
@@ -36,7 +35,7 @@ a = Analysis([cwd + '/main.py'],
              binaries=[],
              datas=[],
              hiddenimports=hidden_imports,
-             hookspath=[cwd + "/assets/hooks/"],
+             hookspath=[os.path.join(cwd, "assets", "hooks")],
              runtime_hooks=[],
              excludes=['PySide6.QtQml'],
              win_no_prefer_redirects=False,
@@ -85,7 +84,7 @@ if sys.platform == "darwin":
                     'CFBundleIdentifier': 'Raidionics',
                     'CFBundleInfoDictionaryVersion': '6.0',
                     'CFBundleName': 'Raidionics',
-                    'CFBundleVersion': '1.3.0',
+                    'CFBundleVersion': '1.3.1',
                     'CFBundlePackageType': 'APPL',
                     'LSBackgroundOnly': 'false',
                 },

@@ -2,15 +2,16 @@ import traceback
 import shutil
 from aenum import Enum, unique
 import logging
-from typing import Union, Any, Tuple
+from typing import Union, Any, Tuple, List
 import numpy as np
 import nibabel as nib
 from nibabel.processing import resample_to_output
 from copy import deepcopy
 import os
 from pathlib import PurePath
+import re
 
-from utils.utilities import get_type_from_string, input_file_type_conversion
+from utils.utilities import get_type_from_string, get_type_from_name, input_file_type_conversion
 from utils.data_structures.UserPreferencesStructure import UserPreferencesStructure
 
 @unique
@@ -24,10 +25,11 @@ class AnnotationClassType(Enum):
     Brain = 0, 'Brain'
     Tumor = 1, 'Tumor'  # Corresponds to the tumor core
     Necrosis = 2, 'Necrosis'
-    Edema = 3, 'Edema'
+    FLAIRChanges = 3, 'FLAIR/T2 Changes'  # Nonenhancing progression
     Cavity = 4, 'Cavity'
     TumorCE = 5, 'Contrast-Enhancing Tumor'
     WT = 6, 'Whole Tumor'  # Corresponds to the sum of the tumor-CE, necrosis, and edema
+    # @TODO. Is FLAIRChanges the whole tumor and should we support an edema category in addition?
 
     Lungs = 100, 'Lungs'
     Airways = 101, 'Airways'
@@ -93,7 +95,7 @@ class AnnotationVolume:
             if inv_ts_folder_name:
                 self._timestamp_folder_name = inv_ts_folder_name
             else:
-                self._timestamp_folder_name = self._timestamp_uid
+                self._timestamp_folder_name = re.sub(' +', '_', self._timestamp_uid.strip())
             self._display_name = uid
             self._parent_mri_uid = parent_mri_uid
 
@@ -155,12 +157,12 @@ class AnnotationVolume:
 
             # In case the annotation was automatically generated, its raw version lies inside the patient folder,
             # and can be safely erased
-            if self._raw_input_filepath and self._output_patient_folder in self._raw_input_filepath\
+            if self._raw_input_filepath and self.output_patient_folder in self._raw_input_filepath\
                     and os.path.exists(self._raw_input_filepath):
                 os.remove(self._raw_input_filepath)
-            if self._usable_input_filepath and self._output_patient_folder in self._usable_input_filepath\
-                    and os.path.exists(self._usable_input_filepath):
-                os.remove(self._usable_input_filepath)
+            if self.usable_input_filepath and self.output_patient_folder in self.usable_input_filepath\
+                    and os.path.exists(self.usable_input_filepath):
+                os.remove(self.usable_input_filepath)
 
             if self.registered_volume_filepaths and len(self.registered_volume_filepaths.keys()) > 0:
                 for k in list(self.registered_volume_filepaths.keys()):
@@ -180,6 +182,9 @@ class AnnotationVolume:
     def get_annotation_class_str(self) -> str:
         return str(self._annotation_class)
 
+    def get_annotation_class_name(self) -> str:
+        return self._annotation_class.name
+
     def set_annotation_class_type(self, anno_type: Union[str, Enum], manual: bool = True) -> None:
         """
         Update the annotation class type.
@@ -193,7 +198,7 @@ class AnnotationVolume:
             False for internal calls linked to loading/reloading of the instance.
         """
         if isinstance(anno_type, str):
-            ctype = get_type_from_string(AnnotationClassType, anno_type)
+            ctype = get_type_from_name(AnnotationClassType, anno_type)
             if ctype != -1:
                 self._annotation_class = ctype
         elif isinstance(anno_type, AnnotationClassType):
@@ -210,6 +215,10 @@ class AnnotationVolume:
     @property
     def usable_input_filepath(self) -> str:
         return self._usable_input_filepath
+
+    @usable_input_filepath.setter
+    def usable_input_filepath(self, filepath: str) -> None:
+        self._usable_input_filepath = filepath
 
     @property
     def registered_volume_filepaths(self) -> dict:
@@ -237,12 +246,17 @@ class AnnotationVolume:
         self._unsaved_changes = True
         logging.debug("Unsaved changes - Annotation volume display name changed to {}.".format(name))
 
-    def set_output_patient_folder(self, output_folder: str) -> None:
+    @property
+    def output_patient_folder(self) -> str:
+        return self._output_patient_folder
+
+    @output_patient_folder.setter
+    def output_patient_folder(self, output_folder: str) -> None:
         try:
             if self._raw_input_filepath and self._output_patient_folder in self._raw_input_filepath:
                 self._raw_input_filepath = self._raw_input_filepath.replace(self._output_patient_folder, output_folder)
-            if self._usable_input_filepath and self._output_patient_folder in self._usable_input_filepath:
-                self._usable_input_filepath = self._usable_input_filepath.replace(self._output_patient_folder,
+            if self.usable_input_filepath and self._output_patient_folder in self.usable_input_filepath:
+                self.usable_input_filepath = self.usable_input_filepath.replace(self._output_patient_folder,
                                                                                   output_folder)
             if self._resampled_input_volume_filepath:
                 self._resampled_input_volume_filepath = self._resampled_input_volume_filepath.replace(
@@ -254,10 +268,6 @@ class AnnotationVolume:
             self._output_patient_folder = output_folder
         except Exception as e:
             raise ValueError("Changing the output patient folder name for the AnnotationStructure failed with: {}".format(e))
-
-    @property
-    def output_patient_folder(self) -> str:
-        return self._output_patient_folder
 
     @property
     def timestamp_uid(self) -> str:
@@ -273,51 +283,51 @@ class AnnotationVolume:
             for i, fn in enumerate(self.registered_volume_filepaths.keys()):
                 self.registered_volume_filepaths[fn] = self.registered_volume_filepaths[fn].replace(self._timestamp_folder_name, folder_name)
             self._timestamp_folder_name = folder_name
-            if self._output_patient_folder in self._raw_input_filepath:
+            if self.output_patient_folder in self._raw_input_filepath:
                 if os.name == 'nt':
                     path_parts = list(PurePath(os.path.relpath(self._raw_input_filepath,
-                                                               self._output_patient_folder)).parts[1:])
+                                                               self.output_patient_folder)).parts[1:])
                     rel_path = PurePath()
-                    rel_path = rel_path.joinpath(self._output_patient_folder)
+                    rel_path = rel_path.joinpath(self.output_patient_folder)
                     rel_path = rel_path.joinpath(self._timestamp_folder_name)
                     for x in path_parts:
                         rel_path = rel_path.joinpath(x)
                     self._raw_input_filepath = os.fspath(rel_path)
                 else:
                     rel_path = '/'.join(os.path.relpath(self._raw_input_filepath,
-                                                        self._output_patient_folder).split('/')[1:])
-                    self._raw_input_filepath = os.path.join(self._output_patient_folder, self._timestamp_folder_name,
+                                                        self.output_patient_folder).split('/')[1:])
+                    self._raw_input_filepath = os.path.join(self.output_patient_folder, self._timestamp_folder_name,
                                                             rel_path)
-            if self._output_patient_folder in self._usable_input_filepath:
+            if self.output_patient_folder in self.usable_input_filepath:
                 if os.name == 'nt':
-                    path_parts = list(PurePath(os.path.relpath(self._usable_input_filepath,
-                                                               self._output_patient_folder)).parts[1:])
+                    path_parts = list(PurePath(os.path.relpath(self.usable_input_filepath,
+                                                               self.output_patient_folder)).parts[1:])
                     rel_path = PurePath()
-                    rel_path = rel_path.joinpath(self._output_patient_folder)
+                    rel_path = rel_path.joinpath(self.output_patient_folder)
                     rel_path = rel_path.joinpath(self._timestamp_folder_name)
                     for x in path_parts:
                         rel_path = rel_path.joinpath(x)
-                    self._usable_input_filepath = os.fspath(rel_path)
+                    self.usable_input_filepath = os.fspath(rel_path)
                 else:
-                    rel_path = '/'.join(os.path.relpath(self._usable_input_filepath,
-                                                        self._output_patient_folder).split('/')[1:])
-                    self._usable_input_filepath = os.path.join(self._output_patient_folder, self._timestamp_folder_name,
+                    rel_path = '/'.join(os.path.relpath(self.usable_input_filepath,
+                                                        self.output_patient_folder).split('/')[1:])
+                    self.usable_input_filepath = os.path.join(self.output_patient_folder, self._timestamp_folder_name,
                                                                rel_path)
             if self._resampled_input_volume_filepath and \
-                    self._output_patient_folder in self._resampled_input_volume_filepath:
+                    self.output_patient_folder in self._resampled_input_volume_filepath:
                 if os.name == 'nt':
                     path_parts = list(PurePath(os.path.relpath(self._resampled_input_volume_filepath,
-                                                               self._output_patient_folder)).parts[1:])
+                                                               self.output_patient_folder)).parts[1:])
                     rel_path = PurePath()
-                    rel_path = rel_path.joinpath(self._output_patient_folder)
+                    rel_path = rel_path.joinpath(self.output_patient_folder)
                     rel_path = rel_path.joinpath(self._timestamp_folder_name)
                     for x in path_parts:
                         rel_path = rel_path.joinpath(x)
                     self._resampled_input_volume_filepath = os.fspath(rel_path)
                 else:
                     rel_path = '/'.join(os.path.relpath(self._resampled_input_volume_filepath,
-                                                        self._output_patient_folder).split('/')[1:])
-                    self._resampled_input_volume_filepath = os.path.join(self._output_patient_folder,
+                                                        self.output_patient_folder).split('/')[1:])
+                    self._resampled_input_volume_filepath = os.path.join(self.output_patient_folder,
                                                                          self._timestamp_folder_name, rel_path)
         except Exception as e:
             raise ValueError("Changing the timestamp folder name for the AnnotationStructure failed with: {}".format(e))
@@ -330,15 +340,18 @@ class AnnotationVolume:
         self._unsaved_changes = True
         logging.debug("Unsaved changes - Annotation volume opacity edited.")
 
-    def get_display_color(self) -> Tuple[int]:
+    @property
+    def display_color(self) -> List[int]:
         return self._display_color
 
-    def set_display_color(self, color: Tuple[int]) -> None:
-        self._display_color = color
+    @display_color.setter
+    def display_color(self, value: List[int]) -> None:
+        self._display_color = value
         self._unsaved_changes = True
         logging.debug("Unsaved changes - Annotation volume display color edited.")
 
-    def get_display_volume(self) -> np.ndarray:
+    @property
+    def display_volume(self) -> np.ndarray:
         return self._display_volume
 
     # @TODO. Has to be updated to match the @getter @setter pattern.
@@ -387,7 +400,7 @@ class AnnotationVolume:
         the raw DICOM content, which is deleted upon creation completion, and as such the filepath should be adjusted.
         The display volume needs also to be created as it is a first time use.
         """
-        self._raw_input_filepath = self._usable_input_filepath
+        self._raw_input_filepath = self.usable_input_filepath
         self.__generate_display_volume()
 
     def save(self) -> dict:
@@ -397,7 +410,7 @@ class AnnotationVolume:
         try:
             # Disk operations
             if not self._resampled_input_volume is None:
-                self._resampled_input_volume_filepath = os.path.join(self._output_patient_folder,
+                self._resampled_input_volume_filepath = os.path.join(self.output_patient_folder,
                                                                      self._timestamp_folder_name, 'display',
                                                                      self._unique_id + '_resampled.nii.gz')
                 if not os.path.exists(self._resampled_input_volume_filepath):
@@ -406,18 +419,18 @@ class AnnotationVolume:
 
             # Parameters-filling operations
             volume_params = {}
-            base_patient_folder = self._output_patient_folder
+            base_patient_folder = self.output_patient_folder
             volume_params['display_name'] = self._display_name
-            if self._output_patient_folder in self._raw_input_filepath:
+            if self.output_patient_folder in self._raw_input_filepath:
                 volume_params['raw_input_filepath'] = os.path.relpath(self._raw_input_filepath, base_patient_folder)
             else:
                 volume_params['raw_input_filepath'] = self._raw_input_filepath
 
-            if self._output_patient_folder in self._usable_input_filepath:
-                volume_params['usable_input_filepath'] = os.path.relpath(self._usable_input_filepath,
+            if self.output_patient_folder in self.usable_input_filepath:
+                volume_params['usable_input_filepath'] = os.path.relpath(self.usable_input_filepath,
                                                                          base_patient_folder)
             else:
-                volume_params['usable_input_filepath'] = self._usable_input_filepath
+                volume_params['usable_input_filepath'] = self.usable_input_filepath
 
             volume_params['resample_input_filepath'] = os.path.relpath(self._resampled_input_volume_filepath,
                                                                        base_patient_folder)
@@ -428,7 +441,7 @@ class AnnotationVolume:
                     reg_volumes[k] = os.path.relpath(self.registered_volume_filepaths[k], base_patient_folder)
                 volume_params['registered_volume_filepaths'] = reg_volumes
 
-            volume_params['annotation_class'] = str(self._annotation_class)
+            volume_params['annotation_class'] = self._annotation_class.name
             volume_params['generation_type'] = str(self._generation_type)
             volume_params['parent_mri_uid'] = self._parent_mri_uid
             volume_params['investigation_timestamp_uid'] = self._timestamp_uid
@@ -442,10 +455,10 @@ class AnnotationVolume:
 
     def import_registered_volume(self, filepath: str, registration_space: str) -> None:
         """
-
+        @TODO. Should not be just the registration space but combo space/timestamp...
         """
         try:
-            registered_space_folder = os.path.join(self._output_patient_folder,
+            registered_space_folder = os.path.join(self.output_patient_folder,
                                                    self._timestamp_folder_name, 'raw', registration_space)
             os.makedirs(registered_space_folder, exist_ok=True)
             dest_path = os.path.join(registered_space_folder, os.path.basename(filepath))
@@ -465,12 +478,12 @@ class AnnotationVolume:
             os.makedirs(os.path.join(self.output_patient_folder, self._timestamp_folder_name, 'raw'), exist_ok=True)
             os.makedirs(os.path.join(self.output_patient_folder, self._timestamp_folder_name, 'display'), exist_ok=True)
 
-            self._usable_input_filepath = input_file_type_conversion(input_filename=self._raw_input_filepath,
-                                                                     output_folder=os.path.join(self._output_patient_folder,
+            self.usable_input_filepath = input_file_type_conversion(input_filename=self._raw_input_filepath,
+                                                                     output_folder=os.path.join(self.output_patient_folder,
                                                                                                 self._timestamp_folder_name,
                                                                                                 'raw'))
             self.__generate_standardized_input_volume()
-            if self._output_patient_folder not in self.raw_input_filepath:
+            if self.output_patient_folder not in self.raw_input_filepath:
                 self.__generate_display_volume()
         except Exception as e:
             raise RuntimeError("""Initializing annotation structure from scratch failed  for: {} 
@@ -490,18 +503,18 @@ class AnnotationVolume:
             if os.path.exists(parameters['raw_input_filepath']):
                 self._raw_input_filepath = parameters['raw_input_filepath']
             else:
-                self._raw_input_filepath = os.path.join(self._output_patient_folder, parameters['raw_input_filepath'])
+                self._raw_input_filepath = os.path.join(self.output_patient_folder, parameters['raw_input_filepath'])
 
             # To check whether the usable filepath has been provided by the user (hence lies somewhere on the machine)
             # or was generated by the software and lies within the patient folder.
             if os.path.exists(parameters['usable_input_filepath']):
-                self._usable_input_filepath = parameters['usable_input_filepath']
+                self.usable_input_filepath = parameters['usable_input_filepath']
             else:
-                self._usable_input_filepath = os.path.join(self._output_patient_folder, parameters['usable_input_filepath'])
+                self.usable_input_filepath = os.path.join(self.output_patient_folder, parameters['usable_input_filepath'])
 
             # The resampled volume can only be inside the output patient folder as it is internally computed and cannot be
             # manually imported into the software.
-            self._resampled_input_volume_filepath = os.path.join(self._output_patient_folder,
+            self._resampled_input_volume_filepath = os.path.join(self.output_patient_folder,
                                                                  parameters['resample_input_filepath'])
             if os.path.exists(self._resampled_input_volume_filepath):
                 self._resampled_input_volume = nib.load(self._resampled_input_volume_filepath).get_fdata()[:]
@@ -511,7 +524,7 @@ class AnnotationVolume:
 
             if 'registered_volume_filepaths' in parameters.keys():
                 for k in list(parameters['registered_volume_filepaths'].keys()):
-                    self.registered_volume_filepaths[k] = os.path.join(self._output_patient_folder,
+                    self.registered_volume_filepaths[k] = os.path.join(self.output_patient_folder,
                                                                        parameters['registered_volume_filepaths'][k])
                     self.registered_volumes[k] = nib.load(self.registered_volume_filepaths[k]).get_fdata()[:]
 
@@ -535,11 +548,11 @@ class AnnotationVolume:
         standardization is necessary to set the volume orientation to a common standard.
         """
         try:
-            if not self._usable_input_filepath or not os.path.exists(self._usable_input_filepath):
+            if not self.usable_input_filepath or not os.path.exists(self.usable_input_filepath):
                 raise NameError("Usable input filepath does not exist on disk with value: {}".format(
-                    self._usable_input_filepath))
+                    self.usable_input_filepath))
 
-            image_nib = nib.load(self._usable_input_filepath)
+            image_nib = nib.load(self.usable_input_filepath)
             resampled_input_ni = resample_to_output(image_nib, order=0)
             self._resampled_input_volume = resampled_input_ni.get_fdata()[:].astype('uint8')
         except Exception as e:
@@ -554,6 +567,7 @@ class AnnotationVolume:
         A display copy of the annotation volume is set up, allowing for on-the-fly modifications.
 
         @TODO. Check if more than one label in the file?
+        @TODO. Warning is triggered for a double registered annotation (FLAIR > T1 > MNI)...
         """
         base_volume = self._resampled_input_volume
 

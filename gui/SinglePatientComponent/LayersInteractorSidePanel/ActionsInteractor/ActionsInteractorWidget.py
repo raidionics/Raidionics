@@ -66,12 +66,17 @@ class ActionsInteractorWidget(QWidget):
         self.run_rads_postop = QPushButton("Postoperative reporting")
         self.run_rads_postop.setIcon(QIcon(
             QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../Images/reporting_icon.png'))))
-        self.run_rads_postop.setToolTip("Surgical report generation using the data inside both timestamps at order 0 and 1.")
+        self.run_rads_postop.setToolTip("Tumor features computation and clinical report generation for the data inside the timestamp at order 1.")
+        self.run_rads_surgical = QPushButton("Surgical reporting")
+        self.run_rads_surgical.setIcon(QIcon(
+            QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../../Images/reporting_icon.png'))))
+        self.run_rads_surgical.setToolTip("Surgical report generation using the data inside both timestamps at order 0 and 1.")
         self.pipeline_groupbox_layout.addWidget(self.run_folder_classification)
         self.pipeline_groupbox_layout.addWidget(self.run_segmentation_preop)
         self.pipeline_groupbox_layout.addWidget(self.run_segmentation_postop)
         self.pipeline_groupbox_layout.addWidget(self.run_rads_preop)
         self.pipeline_groupbox_layout.addWidget(self.run_rads_postop)
+        self.pipeline_groupbox_layout.addWidget(self.run_rads_surgical)
         self.pipeline_groupbox_layout.addStretch(1)
         self.layout.addWidget(self.pipeline_groupbox)
 
@@ -112,7 +117,7 @@ class ActionsInteractorWidget(QWidget):
         self.advanced_actions_groupbox_layout.addLayout(self.timestamp_target_layout)
         self.advanced_actions_groupbox_layout.addLayout(self.segmentation_class_layout)
         self.advanced_actions_groupbox_layout.addWidget(self.run_action_pushbutton)
-        self.layout.addWidget(self.advanced_actions_groupbox)
+        # self.layout.addWidget(self.advanced_actions_groupbox)  # Disabling for now, not sure how to have it.
 
     def __set_connections(self):
         self.run_folder_classification.clicked.connect(self.on_execute_folders_classification)
@@ -120,6 +125,7 @@ class ActionsInteractorWidget(QWidget):
         self.run_segmentation_postop.clicked.connect(self.on_postop_segmentation_requested)
         self.run_rads_preop.clicked.connect(self.on_preop_reporting_requested)
         self.run_rads_postop.clicked.connect(self.on_postop_reporting_requested)
+        self.run_rads_surgical.clicked.connect(self.on_surgical_reporting_requested)
 
         self.action_type_combobox.currentIndexChanged.connect(self.__on_action_task_changed)
         self.run_action_pushbutton.clicked.connect(self.__on_run_action_requested)
@@ -130,6 +136,7 @@ class ActionsInteractorWidget(QWidget):
         self.run_segmentation_postop.setFixedHeight(25)
         self.run_rads_preop.setFixedHeight(25)
         self.run_rads_postop.setFixedHeight(25)
+        self.run_rads_surgical.setFixedHeight(25)
 
         self.action_type_combobox.setFixedHeight(25)
         self.timestamp_target_combobox.setFixedHeight(25)
@@ -231,6 +238,23 @@ class ActionsInteractorWidget(QWidget):
         """)
 
         self.run_rads_postop.setStyleSheet("""
+        QPushButton{
+        background: transparent;
+        border-style: none;
+        text-align:left;
+        }
+        QPushButton::hover{
+        border-style: solid;
+        border-width: 1px;
+        border-color: rgba(196, 196, 196, 1);
+        }
+        QPushButton:pressed{
+        border-style:inset;
+        background-color: """ + pressed_background_color + """;
+        }
+        """)
+
+        self.run_rads_surgical.setStyleSheet("""
         QPushButton{
         background: transparent;
         border-style: none;
@@ -430,6 +454,7 @@ class ActionsInteractorWidget(QWidget):
         self.run_segmentation_postop.setEnabled(False)
         self.run_rads_preop.setEnabled(False)
         self.run_rads_postop.setEnabled(False)
+        self.run_rads_surgical.setEnabled(False)
         self.action_type_combobox.setEnabled(False)
         self.action_type_combobox.setCurrentIndex(0)
         self.timestamp_target_combobox.setEnabled(False)
@@ -454,11 +479,16 @@ class ActionsInteractorWidget(QWidget):
         self.timestamp_target_combobox.addItems(items)
 
     def on_enable_actions(self):
+        """
+        @TODO. Should be triggered also when changing the active patient, if it has image content (right now if the
+        patient is loaded from the batch mode, it is not triggered).
+        """
         self.run_folder_classification.setEnabled(True)
         self.run_segmentation_preop.setEnabled(True)
         self.run_segmentation_postop.setEnabled(True)
         self.run_rads_preop.setEnabled(True)
         self.run_rads_postop.setEnabled(True)
+        self.run_rads_surgical.setEnabled(True)
         self.action_type_combobox.setEnabled(True)
         self.timestamp_target_combobox.setEnabled(True)
         self.segmentation_class_combobox.setEnabled(True)
@@ -484,6 +514,9 @@ class ActionsInteractorWidget(QWidget):
 
     def on_postop_reporting_requested(self):
         self.pipeline_execution_requested.emit("postop_reporting")
+
+    def on_surgical_reporting_requested(self):
+        self.pipeline_execution_requested.emit("surgical_reporting")
 
     def __on_run_action_requested(self):
         timestamp = SoftwareConfigResources.getInstance().get_active_patient().get_timestamp_by_display_name(self.timestamp_target_combobox.currentText())

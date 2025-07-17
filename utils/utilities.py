@@ -14,8 +14,19 @@ import numpy as np
 def get_type_from_string(enum_type: Enum, string: str) -> Union[str, int]:
     if type(string) == str:
         for i in range(len(list(enum_type))):
-            #if string == list(EnumType)[i].name:
             if string == str(list(enum_type)[i]):
+                return list(enum_type)[i]
+        return -1
+    elif type(string) == enum_type:
+        return string
+    else: #Unmanaged input type
+        return -1
+
+
+def get_type_from_name(enum_type: Enum, string: str) -> Union[str, int]:
+    if type(string) == str:
+        for i in range(len(list(enum_type))):
+            if string == list(enum_type)[i].name:
                 return list(enum_type)[i]
         return -1
     elif type(string) == enum_type:
@@ -128,3 +139,44 @@ def dicom_write_slice(writer: sitk.ImageFileWriter, series_tag_values: List[Tupl
     # Write to the output directory and add the extension dcm, to force writing in DICOM format.
     writer.SetFileName(os.path.join(dest_dir, str(i)+'.dcm'))
     writer.Execute(image_slice)
+
+
+def sanitize_filename(filename):
+    if not isinstance(filename, str) or filename.strip() == "":
+        raise ValueError("Filename must be a non-empty string.")
+
+    try:
+        filename.encode('utf-8')
+    except UnicodeEncodeError as e:
+        raise ValueError(f"Filename contains invalid unicode characters: {e}")
+
+    return filename
+
+EXCLUDE_DIRS = {
+    "__MACOSX",
+    ".DS_Store",
+    ".Trash",
+    "$RECYCLE.BIN",
+    "System Volume Information",
+    ".git",
+    ".svn",
+    ".idea",
+    ".vscode",
+    ".ipynb_checkpoints",
+    ".Spotlight-V100",
+    ".TemporaryItems",
+    "lost+found",
+}
+
+def folder_eligibility_check(folder_path: str) -> bool:
+    """
+    Assumed the folder paths were acquired with glob, hence they have a trailing folder separator.
+    """
+    if not os.path.isdir(folder_path):
+        return False
+    folder_name = os.path.basename(os.path.dirname(folder_path))
+    if folder_name in EXCLUDE_DIRS:
+        return False
+    if folder_name != ".raidionics" and folder_name.startswith('.'):
+        return False
+    return True

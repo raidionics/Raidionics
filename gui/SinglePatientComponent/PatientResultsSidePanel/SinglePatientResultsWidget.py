@@ -104,6 +104,7 @@ class SinglePatientResultsWidget(QCollapsibleWidget):
         self.output_dir_lineedit.setFixedHeight(20)
 
         self.results_selector_label.setFixedHeight(20)
+        self.results_selector_label.setFixedWidth(55)
         self.results_selector_combobox.setFixedHeight(20)
 
     def __set_connections(self):
@@ -402,16 +403,24 @@ class SinglePatientResultsWidget(QCollapsibleWidget):
         if str(report_structure.report_task) == "Surgical":
             report = SurgicalReportingWidget(patient_uid=self.uid, report_uid=report_uid)
             report_visible_name = "Surgical"
+            if report:
+                self.report_widgets[report_uid] = report
+                self.results_display_stackedwidget.addWidget(report)
+                self.results_selector_combobox.addItem(report_visible_name)
+                report.resizeRequested.connect(self.resizeRequested)
+                self.resizeRequested.emit()
         elif str(report_structure.report_task) == "Tumor characteristics":
-            report = TumorCharacteristicsWidget(patient_uid=self.uid, report_uid=report_uid)
-            report_visible_name = "Features " + report_structure.parent_mri_uid
+            for c in list(report_structure.report_content.keys()):
+                report = None
+                report = TumorCharacteristicsWidget(patient_uid=self.uid, report_uid=report_uid, structure_name=c)
+                report_visible_name = f"Features: {c} - {report_structure.timestamp_folder_name}"
 
-        if report:
-            self.report_widgets[report_uid] = report
-            self.results_display_stackedwidget.addWidget(report)
-            self.results_selector_combobox.addItem(report_visible_name)
-            report.resizeRequested.connect(self.resizeRequested)
-            self.resizeRequested.emit()
+                if report:
+                    self.report_widgets[report_uid] = report
+                    self.results_display_stackedwidget.addWidget(report)
+                    self.results_selector_combobox.addItem(report_visible_name)
+                    report.resizeRequested.connect(self.resizeRequested)
+                    self.resizeRequested.emit()
 
     def on_size_request(self):
         self.resizeRequested.emit()

@@ -4,9 +4,9 @@ import os
 import traceback
 from copy import deepcopy
 from glob import glob
-
 import SimpleITK as sitk
 
+from utils.utilities import folder_eligibility_check
 
 class PatientDICOM:
     _gender = ""
@@ -79,10 +79,17 @@ class PatientDICOM:
                 raise RuntimeError(error_msg)
 
         try:
+            # Careful with glob and separators (windows <=> unix confusions)
             all_dir = glob(os.path.join(self.dicom_folder, "**/"), recursive=True)
+            # # Alternative solution:
+            # all_dir = glob(os.path.join(self.dicom_folder, "**"), recursive=True)
+            all_dir = [d for d in all_dir if folder_eligibility_check(d)]
+
             scans_dir = []
             log_message = None
             for d in all_dir:
+                # Might need a wider check on which folders might not be eligible.
+
                 if True not in [os.path.isdir(os.path.join(d, x)) for x in os.listdir(d)]:
                     reader = sitk.ImageSeriesReader()
                     serie_names = reader.GetGDCMSeriesIDs(d)
@@ -103,7 +110,9 @@ class PatientDICOM:
                         reader.SetMetaDataDictionaryArrayUpdate(True)
                         dicom_series = DICOMSeries(reader)
                         study_id = dicom_series.get_metadata_value('0020|0010')
-                        study_desc = dicom_series.get_metadata_value('0008|1030')
+                        if study_id is None:
+                            raise ValueError("DICOM metadata is missing the study id field [0020|0010]")
+                        study_desc = dicom_series.get_metadata_value('0008|1030') if dicom_series.get_metadata_value('0008|1030') is not None else ""
                         study_name = deepcopy(study_id) + '_' + study_desc
 
                         if study_name not in list(self.studies.keys()):
@@ -263,7 +272,8 @@ class DICOMSeries():
         return self.get_metadata_value('0020|0010')
 
     def get_study_unique_name(self):
-        return self.get_study_id() + '_' + self.get_metadata_value('0008|1030')
+        desc = self.get_metadata_value('0008|1030') if self.get_metadata_value('0008|1030') is not None else ""
+        return self.get_study_id() + '_' + desc
 
     def get_unique_readable_name(self):
         name = self.get_patient_id()
@@ -272,6 +282,8 @@ class DICOMSeries():
         if desc != "" and desc is not None:
             name = name + '_' + desc
 
+        # Automatically trying to fix bad names, otherwise the software crashes
+        name = name.encode('utf-8', 'surrogatepass').decode('utf-8', 'ignore')
         return name
 
 

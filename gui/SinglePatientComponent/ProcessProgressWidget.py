@@ -1,6 +1,7 @@
 import logging
+import math
 
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QLabel, QHBoxLayout
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QLabel, QHBoxLayout, QScrollArea, QSizePolicy
 from PySide6.QtCore import Qt, QSize, Signal
 from PySide6.QtGui import QIcon, QPixmap
 import os
@@ -39,8 +40,14 @@ class ProcessProgressWidget(QWidget):
         self.overall_progress_layout.addWidget(self.circular_progressbar)
         # self.overall_progress_layout.addWidget(self.progress_label)
         self.overall_progress_layout.addStretch(1)
-        self.detailed_progression_layout = QVBoxLayout()
+        self.overall_progress_scrollarea = QScrollArea()
+        self.overall_progress_scrollarea.setWidgetResizable(True)
+        self.overall_progress_scrollwidget = QWidget()
+        self.detailed_progression_layout = QVBoxLayout(self.overall_progress_scrollwidget)
+        self.overall_progress_scrollwidget.setLayout(self.detailed_progression_layout)
         self.detailed_progression_layout.setSpacing(5)
+        self.detailed_progression_layout.addStretch(1)
+        self.overall_progress_scrollarea.setWidget(self.overall_progress_scrollwidget)
         self.cancel_process_layout = QHBoxLayout()
         self.cancel_process_layout.setContentsMargins(0, 10, 0, 0)
         self.cancel_process_pushbutton = QPushButton('Cancel...')
@@ -51,17 +58,24 @@ class ProcessProgressWidget(QWidget):
         self.cancel_process_layout.addStretch(1)
 
         self.layout.addLayout(self.overall_progress_layout)
-        self.layout.addLayout(self.detailed_progression_layout)
+        # self.layout.addLayout(self.detailed_progression_layout)
+        self.layout.addWidget(self.overall_progress_scrollarea, stretch=0)
         self.layout.addLayout(self.cancel_process_layout)
-        self.layout.addStretch(1)
+        # self.layout.addStretch(1) # Adding the final strecth will prevent the scrollarea to extend all the way down
 
     def __set_layout_dimensions(self):
         self.cancel_process_pushbutton.setFixedSize(QSize(50, 25))
         self.progress_label.setFixedSize(QSize(165, 165))
+        self.overall_progress_scrollarea.setSizePolicy(QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding))
+        self.overall_progress_scrollarea.setMaximumHeight(self.parent.baseSize().height() * 0.7)
+        self.overall_progress_scrollwidget.setSizePolicy(QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum))
+        self.overall_progress_scrollwidget.setMinimumSize(0, 0)
 
     def __set_stylesheets(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
         font_color = software_ss["Color7"]
+        background_color = software_ss["Color2"]
+        pressed_background_color = software_ss["Color6"]
 
         self.cancel_process_pushbutton.setStyleSheet("""QPushButton{background-color:rgb(255, 0, 0);}""")
 
@@ -74,6 +88,80 @@ class ProcessProgressWidget(QWidget):
         padding-left: 9px;
         border-image: url(""" + os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/progress_icon_empty.png') + """)
         }""")
+
+        self.overall_progress_scrollarea.setStyleSheet("""
+            QScrollArea {
+                border: none;
+                background-color: transparent;
+            }
+        
+            QScrollArea > QWidget > QWidget {
+                background-color: transparent;
+            }
+        
+            QScrollArea > QWidget {
+                background-color: transparent;
+            }
+        
+            QScrollArea QWidget {
+                background-color: transparent;
+            }
+            QScrollBar:vertical {
+                background: transparent;
+                width: 8px;
+                margin: 0px 0px 0px 0px;
+            }
+
+            QScrollBar::handle:vertical {
+                background: #888;
+                background-color:""" + background_color + """;
+                border-radius: 4px;
+                min-height: 20px;
+            }
+
+            QScrollBar::handle:vertical:hover {
+                background: #555;
+                background-color:""" + pressed_background_color + """;
+            }
+
+            QScrollBar::add-line:vertical,
+            QScrollBar::sub-line:vertical {
+                height: 0px;
+            }
+
+            QScrollBar::add-page:vertical,
+            QScrollBar::sub-page:vertical {
+                background: none;
+            }
+
+            QScrollBar:horizontal {
+                background: transparent;
+                height: 8px;
+                margin: 0px 0px 0px 0px;
+            }
+
+            QScrollBar::handle:horizontal {
+                background: #888;
+                background-color:""" + background_color + """;
+                border-radius: 4px;
+                min-width: 20px;
+            }
+
+            QScrollBar::handle:horizontal:hover {
+                background: #555;
+                background-color:""" + pressed_background_color + """;
+            }
+
+            QScrollBar::add-line:horizontal,
+            QScrollBar::sub-line:horizontal {
+                width: 0px;
+            }
+
+            QScrollBar::add-page:horizontal,
+            QScrollBar::sub-page:horizontal {
+                background: none;
+            }
+        """)
 
     def __set_connections(self):
         self.process_monitoring_thread.message.connect(self.on_process_message)
@@ -132,7 +220,8 @@ class ProcessProgressWidget(QWidget):
                     progress_widget = ProgressItemWidget(self)
                     progress_widget.set_progress_text(current_task, status=False)
                     self.progress_widget.append(progress_widget)
-                    self.detailed_progression_layout.insertWidget(self.detailed_progression_layout.count(), progress_widget)
+                    self.detailed_progression_layout.insertWidget(self.detailed_progression_layout.count()-1, progress_widget)
+                    self.overall_progress_scrollarea.verticalScrollBar().setValue(self.overall_progress_scrollarea.verticalScrollBar().maximum())
             elif 'End' in message:
                 # current_task = message.strip().split('-')[1].strip()
                 current_step = int(message.strip().split('(')[-1].split('/')[0])
@@ -169,7 +258,7 @@ class ProgressItemWidget(QWidget):
         self.status_pushbutton.setFixedSize(QSize(20, 20))
         self.status_pushbutton.setIconSize(QSize(20, 20))
         self.status_pushbutton.setIcon(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../Images/radio_round_toggle_off_icon.png')))
-        self.progress_label.setFixedHeight(20)
+        # self.progress_label.setFixedHeight(20)
 
     def __set_stylesheets(self):
         software_ss = SoftwareConfigResources.getInstance().stylesheet_components
@@ -207,10 +296,29 @@ class ProgressItemWidget(QWidget):
             self.progress_label.setText(self.progress_label.text()[:-3] + ' (' + text + 's)')
         else:
             new_text = text + ' ...'
-            if len(new_text) > 30:
-                nb_words = len(new_text.split(' '))
-                final_text = ' '.join(new_text.split(' ')[:int(nb_words / 2)]) + '\n' + ' '.join(new_text.split(' ')[int(nb_words / 2):])
-                self.progress_label.setFixedHeight(40)
+            char_limit = 30
+            # @TODO. Should split the words and group them so that it does not exist the char limit
+            if len(new_text) > char_limit:
+                to_write_words = new_text.split(' ')
+                used_words = []
+                final_text = ''
+                word_index = 0
+                nb_sentences = 0
+                while len(to_write_words) > len(used_words):
+                    curr_sentence = ""
+                    while len(curr_sentence) < char_limit:
+                        if word_index >= len(to_write_words):
+                            break
+                        curr_sentence = curr_sentence + " " + to_write_words[word_index]
+                        used_words.append(to_write_words[word_index])
+                        word_index = word_index + 1
+
+                    final_text = final_text + curr_sentence + '\n'
+                    nb_sentences = nb_sentences + 1
+
+                final_text = final_text[:-2]
+                final_height = nb_sentences * 20
+                self.progress_label.setMinimumHeight(final_height)
                 self.progress_label.setText(final_text)
             else:
                 self.progress_label.setText(new_text)

@@ -34,6 +34,7 @@ class CentralAreaExecutionWidget(QLabel):
         super(CentralAreaExecutionWidget, self).__init__()
         self.parent = parent
         self.widget_name = "central_area_execution_widget"
+        self.tumor_type = None
         self._tumor_type_diag = TumorTypeSelectionQDialog(self)
         self.__set_interface()
         self.__set_layout_dimensions()
@@ -146,41 +147,13 @@ class CentralAreaExecutionWidget(QLabel):
         """
 
         """
-        self.model_name = ""
-        if ("Classification" not in pipeline_code) and ("Brain" not in pipeline_code) and ("postop" not in pipeline_code) and ("Edema" not in pipeline_code) and ("Cavity" not in pipeline_code):
+        self.tumor_type = None
+        if "classification" not in pipeline_code:
             code = self._tumor_type_diag.exec()
             if code == 0:  # Operation cancelled
                 return
 
-            if self._tumor_type_diag.tumor_type == 'Glioblastoma':
-                self.model_name = "MRI_GBM"
-            elif self._tumor_type_diag.tumor_type == 'Low-Grade Glioma':
-                self.model_name = "MRI_LGGlioma"
-            elif self._tumor_type_diag.tumor_type == 'Metastasis':
-                self.model_name = "MRI_Metastasis"
-            elif self._tumor_type_diag.tumor_type == 'Meningioma':
-                self.model_name = "MRI_Meningioma"
-
-            if UserPreferencesStructure.getInstance().segmentation_tumor_model_type != "Tumor":
-                self.model_name = self.model_name + '_multiclass'
-                if self._tumor_type_diag.tumor_type == 'Low-Grade Glioma':
-                    self.model_name = "MRI_GBM_multiclass"
-        elif "postop" in pipeline_code:
-            code = self._tumor_type_diag.exec()
-            if code == 0:  # Operation cancelled
-                return
-            if self._tumor_type_diag.tumor_type == 'Glioblastoma':
-                self.model_name = "MRI_GBM_Postop_FV_4p"
-                pipeline_code = pipeline_code + '_GBM'
-            elif self._tumor_type_diag.tumor_type == 'Low-Grade Glioma':
-                self.model_name = "MRI_LGGlioma_Postop"
-                pipeline_code = pipeline_code + '_LGGlioma'
-        elif "Brain" in pipeline_code:
-            self.model_name = "MRI_Brain"
-        elif "Edema" in pipeline_code:
-            self.model_name = "MRI_Edema"
-        elif "Cavity" in pipeline_code:
-            self.model_name = "MRI_Cavity"
+            self.tumor_type = self._tumor_type_diag.tumor_type
 
         self.process_started.emit()
         self.pipeline_main_wrapper(pipeline_code)
@@ -206,7 +179,7 @@ class CentralAreaExecutionWidget(QLabel):
             from utils.backend_logic import pipeline_main_wrapper
             current_patient_parameters = SoftwareConfigResources.getInstance().patients_parameters[
             SoftwareConfigResources.getInstance().active_patient_name]
-            code, results = pipeline_main_wrapper(pipeline_task=task, model_name=self.model_name,
+            code, results = pipeline_main_wrapper(pipeline_task=task, tumor_type=self.tumor_type,
                                                   patient_parameters=current_patient_parameters)
             # Processing the generated results to include them in the correct GUI places.
             if 'Annotation' in list(results.keys()):
@@ -218,9 +191,11 @@ class CentralAreaExecutionWidget(QLabel):
             if 'Report' in list(results.keys()):
                 for r in results['Report']:
                     self.standardized_report_imported.emit(r)
-            if 'Classification' in list(results.keys()):
-                # @TODO. Will have to be more generic when more than one classifier.
-                self.radiological_sequences_imported.emit()
+            if 'Classification' in list(results.keys()) and len(results["Classification"]) != 0:
+                if "MRSequence" in results["Classification"]:
+                    self.radiological_sequences_imported.emit()
+                else:
+                    raise ValueError(f"Other classification use-cases not handled yet.")
 
             # Automatically saving the patient (with the latest results) for an easier loading afterwards.
             SoftwareConfigResources.getInstance().get_active_patient().save_patient()
@@ -241,38 +216,3 @@ class CentralAreaExecutionWidget(QLabel):
 
     def on_process_message(self, mess):
         print("Collected message: {}.\n".format(mess))
-
-    def assertion_input_compatible(self, tumor_type: str) -> bool:
-        # Making sure an MRI series with the proper sequence type has been loaded and tagged.
-        if tumor_type != 'Low-Grade Glioma':
-            valid_ids = SoftwareConfigResources.getInstance().get_active_patient().get_all_mri_volumes_for_sequence_type(MRISequenceType.T1c)
-            if len(valid_ids) == 0:
-                box = QMessageBox(self)
-                box.setWindowTitle("Missing contrast-enhanced MRI scan")
-                box.setText("Please make sure to load a contrast-enhanced MRI scan for running this task.\n"
-                            "Also make sure to properly fill in the sequence type attribute for the loaded "
-                            "MRI Series in the right-hand panel!")
-                box.setIcon(QMessageBox.Warning)
-                box.setStyleSheet("""QLabel{
-                color: rgba(0, 0, 0, 1);
-                background-color: rgba(255, 255, 255, 1);
-                }""")
-                box.exec()
-                return False
-        else:
-            valid_ids = SoftwareConfigResources.getInstance().get_active_patient().get_all_mri_volumes_for_sequence_type(MRISequenceType.FLAIR)
-            if len(valid_ids) == 0:
-                box = QMessageBox(self)
-                box.setWindowTitle("Missing FLAIR MRI scan")
-                box.setText("Please make sure to load a contrast-enhanced MRI scan for running this task.\n"
-                            "Also make sure to properly fill in the sequence type attribute for the loaded "
-                            "MRI Series in the right-hand panel!")
-                box.setIcon(QMessageBox.Warning)
-                box.setStyleSheet("""QLabel{
-                color: rgba(0, 0, 0, 1);
-                background-color: rgba(255, 255, 255, 1);
-                }""")
-                box.exec()
-                return False
-
-        return True
