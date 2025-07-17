@@ -772,12 +772,12 @@ class TumorCharacteristicsWidget(QWidget):
 
         if "Type" in list(report_json[structure_name]["Patient"].keys()):
             self.tumor_type_label.setText(report_json[structure_name]["Patient"]['Type'])
-        self.original_space_volume_label.setText(str(report_json[structure_name]["Patient"]['Volume (ml)']) + ' ml')
-        self.mni_space_volume_label.setText(str(report_json[structure_name]["MNI"]['Volume (ml)']) + ' ml')
+        self.original_space_volume_label.setText(str(round(report_json[structure_name]["Patient"]['Volume (ml)'], 2)) + ' ml')
+        self.mni_space_volume_label.setText(str(round(report_json[structure_name]["MNI"]['Volume (ml)'], 2)) + ' ml')
 
         if "Location" in list(report_json[structure_name]["MNI"].keys()):
-            self.laterality_right_label.setText(str(report_json[structure_name]["MNI"]["Location"]['Right laterality (%)']) + ' %')
-            self.laterality_left_label.setText(str(report_json[structure_name]["MNI"]["Location"]['Left laterality (%)']) + ' %')
+            self.laterality_right_label.setText(str(round(report_json[structure_name]["MNI"]["Location"]['Right laterality (%)'], 2)) + ' %')
+            self.laterality_left_label.setText(str(round(report_json[structure_name]["MNI"]["Location"]['Left laterality (%)'], 2)) + ' %')
             self.laterality_midline_label.setText(str(report_json[structure_name]["MNI"]["Location"]['Midline crossing']))
 
         if "Diameters" in list(report_json[structure_name]["MNI"].keys()):
