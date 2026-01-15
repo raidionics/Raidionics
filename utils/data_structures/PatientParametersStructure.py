@@ -949,6 +949,14 @@ class PatientParameters:
                 res.append(im)
         return res
 
+    def get_all_reports_for_mri_and_type(self, mri_volume_uid: str, report_type: str) -> List[ReportingStructure]:
+        res = []
+        for r in list(self._reportings.keys()):
+            if (self._reportings[r].parent_mri_uid == mri_volume_uid and
+                    self._reportings[r].get_report_task_str() == report_type):
+                res.append(self._reportings[r])
+        return res
+
     def get_all_atlases_for_mri(self, mri_volume_uid: str) -> List[str]:
         """
         Convenience method for collecting all atlas objects linked to a specific MRI volume.

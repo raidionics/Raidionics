@@ -29,6 +29,7 @@ class AnnotationClassType(Enum):
     Cavity = 4, 'Cavity'
     TumorCE = 5, 'Contrast-Enhancing Tumor'
     WT = 6, 'Whole Tumor'  # Corresponds to the sum of the tumor-CE, necrosis, and edema
+    Edema = 7, 'Surrounding non-enhancing FLAIR changes'
     # @TODO. Is FLAIRChanges the whole tumor and should we support an edema category in addition?
 
     Lungs = 100, 'Lungs'

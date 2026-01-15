@@ -7,6 +7,7 @@ import json
 import pandas as pd
 import glob
 
+from tmp_dependencies.utils.data_structures.ReportingStructure import ReportingType
 from utils.data_structures.UserPreferencesStructure import UserPreferencesStructure
 from utils.data_structures.MRIVolumeStructure import MRISequenceType
 from utils.data_structures.AnnotationStructure import AnnotationClassType, AnnotationGenerationType
@@ -414,11 +415,19 @@ def collect_results(patient_parameters, pipeline):
                 report_filename = os.path.join(patient_parameters.output_folder, 'reporting', 'reporting',
                                                "T" + str(timestamp), 'neuro_clinical_report.json')
 
-                # @TODO. Hard-coded for contrast-enhanced, will have to make it adjustable (should the base image be
-                # returned from the backend?
-                # parent_mri_uid = patient_parameters.get_all_mri_volumes_for_timestamp(timestamp_uid=patient_parameters.get_timestamp_by_order(order=timestamp).unique_id)
-                parent_mri_uid = patient_parameters.get_all_mri_volumes_for_sequence_type_and_timestamp(sequence_type=MRISequenceType.T1c,
-                    timestamp_order=timestamp)
+                parent_mri_uid = []
+                if pip_step["tumor_type"] == "contrast-enhancing":
+                    parent_mri_uid = patient_parameters.get_all_mri_volumes_for_sequence_type_and_timestamp(
+                        sequence_type=MRISequenceType.T1c,
+                        timestamp_order=timestamp)
+                elif pip_step["tumor_type"] == "non contrast-enhancing":
+                    # @TODO. In the future, it might be T2 is the base image, should be adjustable?
+                    parent_mri_uid = patient_parameters.get_all_mri_volumes_for_sequence_type_and_timestamp(
+                        sequence_type=MRISequenceType.FLAIR,
+                        timestamp_order=timestamp)
+                else:
+                    logging.warning(f"[PipelineResultsCollector] Use-case not handled for updating a timestamp report"
+                                    f" for the following tumor type:{pip_step['tumor_type']}.")
                 if len(parent_mri_uid) == 0:
                     continue
                 parent_mri_uid = parent_mri_uid[0]
@@ -442,10 +451,17 @@ def collect_results(patient_parameters, pipeline):
                 shutil.move(report_filename_txt, dest_file_txt)
 
                 if os.path.exists(dest_file):  # Should always exist
-                    report_uid, error_msg = patient_parameters.import_report(dest_file, dest_ts_object.unique_id)
-                    #@TODO. Maybe the reporting type could be named differently?
-                    patient_parameters.reportings[report_uid].set_reporting_type("Tumor characteristics")
-                    patient_parameters.reportings[report_uid].parent_mri_uid = parent_mri_uid
+                    # If a report was previously computed, it should simply be updated
+                    existing_reports = patient_parameters.get_all_reports_for_mri_and_type(mri_volume_uid=parent_mri_uid,
+                                                                                           report_type=str(ReportingType.Features))
+                    if len(existing_reports) == 0:
+                        report_uid, error_msg = patient_parameters.import_report(dest_file, dest_ts_object.unique_id)
+                        patient_parameters.reportings[report_uid].set_reporting_type("Tumor characteristics")
+                        patient_parameters.reportings[report_uid].parent_mri_uid = parent_mri_uid
+                    else:
+                        # @TODO. It shouldn't be allowed with more than 1, have to improve!
+                        existing_report = existing_reports[0]
+                        report_uid = existing_report.unique_id
                     results['Report'].append(report_uid)
             elif pip_step["task"] == "Surgical reporting":
                 report_filename = os.path.join(patient_parameters.output_folder, 'reporting', 'reporting',

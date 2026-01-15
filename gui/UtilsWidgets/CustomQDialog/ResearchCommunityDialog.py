@@ -159,7 +159,7 @@ class ResearchCommunityDialog(QDialog):
 
         self.brats_widget = HospitalContributorWidget(self)
         self.brats_widget.set_hospital_name("The BraTS challenge 2023/2024")
-        self.brats_widget.set_hospital_participants("""<a href=https://www.synapse.org/Synapse:syn64153130/wiki/>Official website</a>""")
+        self.brats_widget.set_hospital_participants("""<a href="https://www.synapse.org/Synapse:syn64153130/wiki">Official website</a>""")
         self.brats_widget.set_logo_icon(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                         '../../Images/brats-challenge-logo.png'))
         self.main_scrollarea_layout.addWidget(self.brats_widget, 5, 0, 1, 1)
@@ -237,7 +237,8 @@ class HospitalContributorWidget(QWidget):
         self.hospital_name_label = QLabel()
         self.hospital_name_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
         self.hospital_participants_label = QLabel()
-        self.hospital_participants_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        self.hospital_participants_label.setTextInteractionFlags(Qt.TextSelectableByMouse | Qt.TextBrowserInteraction)
+        self.hospital_participants_label.setOpenExternalLinks(True)
 
         self.hospital_location_layout = QVBoxLayout()
         self.hospital_location_layout.setSpacing(0)
