@@ -257,7 +257,7 @@ def generate_surrogate_folder(patient_parameters: PatientParameters, output_fold
                     for anno in manual_annos:
                         shutil.copyfile(src=patient_parameters.get_annotation_by_uid(anno).usable_input_filepath,
                                         dst=os.path.join(surrogate_folder, "T" + str(ts_object.order), os.path.basename(
-                                            patient_parameters.get_mri_by_uid(im).usable_input_filepath[:-7] + '-label_' + str(c) + '.nii.gz')))
+                                            patient_parameters.get_mri_by_uid(im).usable_input_filepath[:-7] + '-label_' + c.name + '.nii.gz')))
                 else:
                     annos = patient_parameters.get_specific_annotations_for_mri(mri_volume_uid=im,
                                                                                 generation_type=AnnotationGenerationType.Automatic,
@@ -265,7 +265,7 @@ def generate_surrogate_folder(patient_parameters: PatientParameters, output_fold
                     for anno in annos:
                         shutil.copyfile(src=patient_parameters.get_annotation_by_uid(anno).usable_input_filepath,
                                         dst=os.path.join(surrogate_folder, "T" + str(ts_object.order), os.path.basename(
-                                            patient_parameters.get_mri_by_uid(im).usable_input_filepath[:-7] + '-label_' + str(c) + '.nii.gz')))
+                                            patient_parameters.get_mri_by_uid(im).usable_input_filepath[:-7] + '-label_' + c.name + '.nii.gz')))
 
     except Exception:
         logging.error('Pipeline surrogate folder creation failed with: \n{}'.format(traceback.format_exc()))

@@ -414,13 +414,23 @@ class SinglePatientResultsWidget(QCollapsibleWidget):
                 report = None
                 report = TumorCharacteristicsWidget(patient_uid=self.uid, report_uid=report_uid, structure_name=c)
                 report_visible_name = f"Features: {c} - {report_structure.timestamp_folder_name}"
+                ritems = [self.results_selector_combobox.itemText(i) for i in range(self.results_selector_combobox.count())]
 
-                if report:
-                    self.report_widgets[report_uid] = report
-                    self.results_display_stackedwidget.addWidget(report)
-                    self.results_selector_combobox.addItem(report_visible_name)
-                    report.resizeRequested.connect(self.resizeRequested)
-                    self.resizeRequested.emit()
+                if not report:
+                    return
+
+                if report_visible_name in ritems:
+                    rind = self.results_selector_combobox.findText(report_visible_name)
+                    dkey = list(self.report_widgets.keys())[rind]
+                    self.results_display_stackedwidget.removeWidget(self.report_widgets[dkey])
+                    self.report_widgets[dkey].deleteLater()
+                    self.report_widgets.pop(dkey)
+
+                self.report_widgets[report_uid] = report
+                self.results_display_stackedwidget.addWidget(report)
+                self.results_selector_combobox.addItem(report_visible_name)
+                report.resizeRequested.connect(self.resizeRequested)
+                self.resizeRequested.emit()
 
     def on_size_request(self):
         self.resizeRequested.emit()

@@ -8,6 +8,7 @@
 [![Paper](https://zenodo.org/badge/DOI/10.1038/s41598-023-42048-7.svg)](https://doi.org/10.1038/s41598-023-42048-7)
 [![codecov](https://codecov.io/gh/raidionics/Raidionics/branch/master/graph/badge.svg?token=ZSPQVR7RKX)](https://codecov.io/gh/raidionics/Raidionics)
 [![GitHub release](https://img.shields.io/github/v/release/raidionics/raidionics?sort=semver)](https://github.com/raidionics/raidionics/releases)
+<a target="_blank" href="https://huggingface.co/spaces/dbouget/raidionics"><img src="https://img.shields.io/badge/🤗%20Hugging%20Face-Spaces-yellow.svg"></a>
 
 **Raidionics** was developed by SINTEF Medical Image Analysis. A paper presenting the software and some benchmarks has been published in [Scientific Reports](https://doi.org/10.1038/s41598-023-42048-7).
  

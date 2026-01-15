@@ -135,6 +135,17 @@ def __create_preop_segmentation_pipeline(tumor_type: str) -> dict:
         pip[pip_num]["description"] = "Identifying the best necrosis segmentation model for existing inputs"
         download_model(model_name='MRI_Necrosis')
 
+        pip_num_int = pip_num_int + 1
+        pip_num = str(pip_num_int)
+        pip[pip_num] = {}
+        pip[pip_num]["task"] = 'Model selection'
+        pip[pip_num]["model"] = 'MRI_SNFH'
+        pip[pip_num]["timestamp"] = 0
+        pip[pip_num]["format"] = "thresholding"
+        pip[pip_num]["description"] = ("Identifying the best surrounding non-enhancing FLAIR hyperintensity (SNFH) "
+                                       "segmentation model for existing inputs")
+        download_model(model_name='MRI_SNFH')
+
     pip_num_int = pip_num_int + 1
     pip_num = str(pip_num_int)
     pip[pip_num] = {}
@@ -238,6 +249,17 @@ def __create_postop_segmentation_pipeline(tumor_type: str) -> dict:
         pip[pip_num]["description"] = "Identifying the best rest enhancing tumor segmentation model for existing inputs"
         download_model(model_name='MRI_TumorCE_Postop')
 
+        pip_num_int = pip_num_int + 1
+        pip_num = str(pip_num_int)
+        pip[pip_num] = {}
+        pip[pip_num]["task"] = 'Model selection'
+        pip[pip_num]["model"] = 'MRI_SNFH'
+        pip[pip_num]["timestamp"] = postop_ts
+        pip[pip_num]["format"] = "thresholding"
+        pip[pip_num]["description"] = ("Identifying the best surrounding non-enhancing FLAIR hyperintensity (SNFH) "
+                                       "segmentation model for existing inputs")
+        download_model(model_name='MRI_SNFH')
+
     pip_num_int = pip_num_int + 1
     pip_num = str(pip_num_int)
     pip[pip_num] = {}
@@ -312,6 +334,17 @@ def __create_preop_reporting_pipeline(tumor_type: str) -> dict:
         pip[pip_num]["description"] = "Identifying the best necrosis segmentation model for existing inputs"
         download_model(model_name='MRI_Necrosis')
 
+        pip_num_int = pip_num_int + 1
+        pip_num = str(pip_num_int)
+        pip[pip_num] = {}
+        pip[pip_num]["task"] = 'Model selection'
+        pip[pip_num]["model"] = 'MRI_SNFH'
+        pip[pip_num]["timestamp"] = 0
+        pip[pip_num]["format"] = "thresholding"
+        pip[pip_num]["description"] = ("Identifying the best surrounding non-enhancing FLAIR hyperintensity (SNFH) "
+                                       "segmentation model for existing inputs")
+        download_model(model_name='MRI_SNFH')
+
     pip_num_int = pip_num_int + 1
     pip_num = str(pip_num_int)
     pip[pip_num] = {}
@@ -361,6 +394,17 @@ def __create_postop_reporting_pipeline(tumor_type: str) -> dict:
         pip[pip_num]["format"] = "thresholding"
         pip[pip_num]["description"] = "Identifying the best tumor core segmentation model for existing inputs"
         download_model(model_name='MRI_TumorCE_Postop')
+
+        pip_num_int = pip_num_int + 1
+        pip_num = str(pip_num_int)
+        pip[pip_num] = {}
+        pip[pip_num]["task"] = 'Model selection'
+        pip[pip_num]["model"] = 'MRI_SNFH'
+        pip[pip_num]["timestamp"] = postop_ts
+        pip[pip_num]["format"] = "thresholding"
+        pip[pip_num]["description"] = ("Identifying the best surrounding non-enhancing FLAIR hyperintensity (SNFH) "
+                                       "segmentation model for existing inputs")
+        download_model(model_name='MRI_SNFH')
 
     pip_num_int = pip_num_int + 1
     pip_num = str(pip_num_int)
